@@ -32,6 +32,8 @@ type Props = {
   achievements?: string[];
   /** Embers earned by this run (Forge currency). */
   embers?: number;
+  /** Gems still on the floor when the run ended (for the near-miss line). */
+  gemsLeft?: number;
   onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
@@ -54,6 +56,7 @@ const GameOverOverlay = ({
   unlockedHeroes,
   achievements,
   embers,
+  gemsLeft,
   onShare,
   onRetry,
   onMainMenu,
@@ -131,6 +134,16 @@ const GameOverOverlay = ({
       ) : bestScore ? (
         <Text style={styles.best} maxFontSizeMultiplier={1.3}>
           {bestText.toLocaleUpperCase()}
+        </Text>
+      ) : null}
+      {!victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2 ? (
+        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.3}>
+          {plural('over.gemsLeft', gemsLeft, { floor: level })}
+        </Text>
+      ) : null}
+      {!victory && !isNewBest && bestScore && score >= bestScore * 0.75 && score < bestScore ? (
+        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.3}>
+          {t('over.shortOfBest', { points: bestScore - score })}
         </Text>
       ) : null}
       {embers && embers > 0 ? (
@@ -264,6 +277,7 @@ const styles = StyleSheet.create({
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
   best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13, textAlign: 'center' },
   embers: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },

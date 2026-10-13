@@ -616,6 +616,7 @@ export default function GameScreen({ navigation, route }: Props) {
         unlockedHeroes={runResult?.unlocked}
         achievements={runResult?.achievements}
         embers={runResult?.embers}
+        gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={isDaily ? handleShare : undefined}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
