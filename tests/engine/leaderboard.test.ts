@@ -40,6 +40,13 @@ describe('checkName', () => {
   });
 });
 
+describe('invisible characters', () => {
+  it('cannot hide a blocked word', () => {
+    expect(checkName('fu\u200bck').ok).toBe(false);
+    expect(sanitizeName('Ana\u202eoR')).toBe('AnaoR');
+  });
+});
+
 describe('validateSubmission', () => {
   it('accepts a plausible submission', () => {
     expect(validateSubmission(valid)).toEqual([]);
@@ -47,7 +54,7 @@ describe('validateSubmission', () => {
 
   it.each([
     ['level', { level: 0 }],
-    ['level', { level: 501 }],
+    ['level', { level: 13 }],
     ['score', { score: -1 }],
     ['score', { score: 5 * 20000 + 1 }],
     ['coins', { coins: 5 * 8 + 1 }],

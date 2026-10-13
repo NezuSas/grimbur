@@ -35,6 +35,7 @@ import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
+import { countGuardians } from "../core/engine/entityCounts";
 import { coinReward, killValue } from "../core/engine/scoring";
 import { omenEffects, omenFor } from "../core/engine/omens";
 import characters from "../data/characters";
@@ -124,7 +125,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const lastPlayerIndex = useRef(state.playerIndex);
   const lastCoins = useRef(state.coins);
   const lastAttack = useRef(state.attack);
-  const lastEnemyCount = useRef(state.entities.filter(e => e.type === "enemy").length);
+  const lastEnemyCount = useRef(countGuardians(state));
   const killPlayerIndex = useRef(state.playerIndex);
   const gameOverTriggered = useRef(false); // prevents the end-of-run flow from running twice
   const runRecorded = useRef(false); //       the run is saved to local stats exactly once
@@ -221,7 +222,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // ── Floor bookkeeping (real counts for the level-complete card) ───────────
   useEffect(() => {
     floorStart.current = {
-      enemies: state.entities.filter(e => e.type === "enemy").length,
+      enemies: countGuardians(state),
       gems: state.coins,
     };
   }, [state.seed]);
@@ -361,7 +362,7 @@ export default function GameScreen({ navigation, route }: Props) {
     const timer = setTimeout(() => {
       if (leaving.current || !mounted.current) return;
       const now = stateRef.current;
-      const enemiesLeft = now.entities.filter(e => e.type === "enemy").length;
+      const enemiesLeft = countGuardians(now);
       navigation.navigate("LevelCompleteScreen", {
         characterIndex,
         score: now.score,
@@ -417,7 +418,7 @@ export default function GameScreen({ navigation, route }: Props) {
   }, [state.playerIndex, state.coins, state.attack, state.isGameOver, state.isLevelUp]);
 
   useEffect(() => {
-    const enemies = state.entities.filter(e => e.type === "enemy").length;
+    const enemies = countGuardians(state);
     // A kill removes an enemy while the player stays put; a shield-absorbed hit moves the player onto the tile.
     const killed = enemies < lastEnemyCount.current && state.playerIndex === killPlayerIndex.current;
     if (killed && !isResetting.current) {
@@ -546,7 +547,7 @@ export default function GameScreen({ navigation, route }: Props) {
             characterIndex={characterIndex}
             isGameOver={state.isGameOver}
             isAttacking={isAttacking}
-            lastKilledEnemyCount={state.entities.filter(e => e.type === "enemy").length}
+            lastKilledEnemyCount={countGuardians(state)}
             onTilePress={travelTo}
             onSwipe={swipeMove ? manualMove : undefined}
           />

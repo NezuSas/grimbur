@@ -4,7 +4,9 @@ import { checkName, validateSubmission } from "../core/leaderboard/validation";
 import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
 import {
   collection,
-  addDoc,
+  doc,
+  setDoc,
+  DocumentReference,
   getDocs,
   orderBy,
   limit,
@@ -25,6 +27,14 @@ export type Doc = { id: string; data: () => HighscoreRow };
 const REQUEST_TIMEOUT_MS = 8000;
 /** The cached top-10 threshold is re-fetched after this long. */
 const THRESHOLD_TTL_MS = 60_000;
+
+/**
+ * A submission keeps one document id for as long as it is being retried. If the first attempt times out
+ * but still reaches the server, the retry rewrites the same document instead of creating a duplicate row.
+ */
+const pendingRefs = new Map<string, DocumentReference>();
+const pendingRetried = new Set<string>();
+const submissionKey = (r: HighscoreRow) => [r.name, r.score, r.level, r.coins, r.characterIndex, r.time].join('|');
 
 let cachedThreshold: { value: Threshold; at: number } | null = null;
 
@@ -81,7 +91,22 @@ export async function addHighscore(row: HighscoreRow): Promise<void> {
   const problems = validateSubmission(safeRow);
   if (problems.length > 0) throw new Error(`[Highscores] Invalid submission: ${problems.join(", ")}`);
 
-  await withTimeout(addDoc(collection(db, "highscores"), safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
+  const key = submissionKey(safeRow);
+  const ref = pendingRefs.get(key) ?? doc(collection(db, "highscores"));
+  pendingRefs.set(key, ref);
+  try {
+    await withTimeout(setDoc(ref, safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
+    pendingRefs.delete(key);
+  } catch (e) {
+    // A retry after the row already landed is rejected by the rules (no updates). That means it is saved.
+    if ((e as { code?: string })?.code === "permission-denied" && pendingRefs.has(key) && pendingRetried.has(key)) {
+      pendingRefs.delete(key);
+      pendingRetried.delete(key);
+      return;
+    }
+    pendingRetried.add(key);
+    throw e;
+  }
 }
 
 /**

@@ -5,7 +5,8 @@
 
 export const LEADERBOARD_LIMITS = {
   maxNameLength: 20,
-  maxLevel: 500,
+  /** A full expedition is 10 floors; a little headroom for future floors. */
+  maxLevel: 12,
   /** Generous upper bound for points earned per level (coins, kills, bonuses). */
   maxScorePerLevel: 20000,
   /** Difficulty caps coins at 8 per level. */
@@ -54,6 +55,8 @@ export function containsBlockedWord(name: string): boolean {
 export function sanitizeName(raw: string): string {
   return raw
     .replace(/[\u0000-\u001f\u007f]/g, '')
+    // Invisible and direction-changing characters would hide a blocked word or flip the name.
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]/g, '')
     .replace(/https?:\/\/\S+|www\.\S+/gi, '')
     .replace(/\s+/g, ' ')
     .trim()
