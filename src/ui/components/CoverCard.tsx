@@ -1,9 +1,12 @@
-import React from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, useWindowDimensions } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, Animated, Easing, useWindowDimensions } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ModeCard from "./ModeCard";
+import PlayButton from "./PlayButton";
+import EmberParticles from "./EmberParticles";
+import { useSettingsStore } from "../../state/settings/store";
 import StreakBadge from "./StreakBadge";
 import SpriteImage from "./SpriteImage";
 import { MIN_TOUCH } from "../layout/useGameLayout";
@@ -21,6 +24,16 @@ type Props = {
   /** The endless descent opens after the first victory. */
   endlessUnlocked: boolean;
   bestEndlessFloor: number;
+  /** Embers in the purse (shown as a chip). */
+  embers: number;
+  bestScore: number;
+  bestFloor: number;
+  /** Nothing played yet: the play button says what to expect. */
+  firstRun: boolean;
+  /** Something affordable in the Forge: a dot on its icon. */
+  forgeBadge: boolean;
+  /** Achievements unlocked since the screen was last opened: a dot on its icon. */
+  achievementsBadge: boolean;
   onPressScores: () => void;
   onPressInstructions: () => void;
   onPressForge: () => void;
@@ -28,8 +41,25 @@ type Props = {
   onPressSettings: () => void;
 };
 
+/** The Wumpus breathes: a slow, small swell so the cover is alive without being noisy. */
+const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolean }) => {
+  const swell = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (calm) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(swell, { toValue: 1, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(swell, { toValue: 0, duration: 2200, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [calm, swell]);
+  return <Animated.View style={{ transform: [{ scale: swell.interpolate({ inputRange: [0, 1], outputRange: [1, 1.045] }) }] }}>{children}</Animated.View>;
+};
+
 /** A round icon button with its name underneath: the menu dock. */
-const DockButton = ({ icon, label, onPress, ui }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number }) => (
+const DockButton = ({ icon, label, onPress, ui, dot, dotLabel }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string }) => (
   <Pressable
     onPress={() => {
       haptic.impact();
@@ -37,10 +67,11 @@ const DockButton = ({ icon, label, onPress, ui }: { icon: keyof typeof Ionicons.
     }}
     style={({ pressed }) => [styles.dockItem, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
     accessibilityRole="button"
-    accessibilityLabel={label}
+    accessibilityLabel={dot && dotLabel ? `${label}. ${dotLabel}` : label}
   >
     <View style={[styles.dockCircle, { width: 52 * ui, height: 52 * ui, borderRadius: 26 * ui }]}>
       <Ionicons name={icon} size={24 * ui} color="#F2C14E" />
+      {dot ? <View style={styles.dot} /> : null}
     </View>
     <Text style={[styles.dockLabel, { fontSize: 11 * ui }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
       {label}
@@ -61,6 +92,12 @@ const CoverCard: React.FC<Props> = ({
   dailyDone,
   endlessUnlocked,
   bestEndlessFloor,
+  embers,
+  bestScore,
+  bestFloor,
+  firstRun,
+  forgeBadge,
+  achievementsBadge,
   onPressScores,
   onPressInstructions,
   onPressForge,
@@ -70,6 +107,7 @@ const CoverCard: React.FC<Props> = ({
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const calm = useSettingsStore(st => st.reduceFlash);
 
   const wide = width >= 640 && width > height;
   // Phones keep the base sizes; roomier screens grow the cards, icons and text up to 1.5x.
@@ -84,7 +122,8 @@ const CoverCard: React.FC<Props> = ({
     : Math.max(34, Math.min(56, width * 0.13, leftWidth / 5.4));
   const showArt = height >= 400 && (wide ? width >= 760 : height >= 700);
   const artSize = Math.min(wide ? height * 0.3 : 150, 210);
-  const sideRow = menuWidth >= 480;
+  const short = height < 420;
+  const sideRow = menuWidth >= (short ? 300 : 480);
 
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
@@ -105,23 +144,42 @@ const CoverCard: React.FC<Props> = ({
           ]}
         >
           <View style={[styles.medallionGlow, { width: artSize * 1.05, height: artSize * 1.05, borderRadius: artSize * 0.525 }]} />
-          <SpriteImage
-            source={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
-            style={{ width: artSize, height: artSize }}
-            resizeMode="contain"
-            accessibilityIgnoresInvertColors
-          />
+          <Breathing calm={calm}>
+            <SpriteImage
+              source={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
+              style={{ width: artSize, height: artSize }}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
+          </Breathing>
         </View>
       )}
     </View>
   );
 
   const menu = (
-    <View style={[styles.menu, { width: menuWidth }]}>
-      <ModeCard ui={ui} featured icon="compass" tint="#F2C14E" title={t("cover.mode.expedition")} subtitle={t("cover.mode.expedition.sub")} onPress={onPressPlay} />
+    <View style={[styles.menu, { width: menuWidth, gap: short ? 6 : 8 }]}>
+      <View style={styles.chips}>
+        <View style={styles.chip} accessible accessibilityLabel={`${embers} ${t("cover.embers")}`}>
+          <Text style={styles.chipFlame}>🔥</Text>
+          <Text style={styles.chipText} maxFontSizeMultiplier={1.15}>
+            {embers}
+          </Text>
+        </View>
+      </View>
+      <PlayButton
+        ui={ui}
+        calm={calm}
+        compact={short}
+        title={t("cover.playBig")}
+        subtitle={firstRun ? t("cover.firstRun") : t("cover.mode.expedition.sub")}
+        footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
+        onPress={onPressPlay}
+      />
       <View style={[styles.modeRow, !sideRow && { flexDirection: "column" }]}>
         <ModeCard
           ui={ui}
+          compactCard={short}
           icon="calendar"
           tint="#FF9A3C"
           title={t("cover.mode.daily")}
@@ -131,6 +189,7 @@ const CoverCard: React.FC<Props> = ({
         />
         <ModeCard
           ui={ui}
+          compactCard={short}
           icon="infinite"
           tint="#B39DDB"
           title={t("cover.mode.endless")}
@@ -147,9 +206,9 @@ const CoverCard: React.FC<Props> = ({
       </View>
 
       <View style={styles.dock}>
-        <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} />
+        <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />
         <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />
-        <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} />
+        <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />
         <DockButton ui={ui} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
       </View>
     </View>
@@ -157,6 +216,7 @@ const CoverCard: React.FC<Props> = ({
 
   return (
     <View style={styles.root}>
+      {!calm && <EmberParticles count={width >= 900 ? 18 : 12} />}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -262,6 +322,31 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(242,193,78,0.12)",
     borderWidth: 1.5,
     borderColor: "rgba(242,193,78,0.55)",
+  },
+  chips: { flexDirection: "row", justifyContent: "flex-end" },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    height: 34,
+    paddingHorizontal: 12,
+    borderRadius: 17,
+    backgroundColor: "rgba(10,7,24,0.72)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,171,64,0.6)",
+  },
+  chipFlame: { fontSize: 15 },
+  chipText: { color: "#FFAB40", fontWeight: "800", fontSize: 15 },
+  dot: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#FF4D4D",
+    borderWidth: 2,
+    borderColor: "#1a1030",
   },
   dockLabel: { color: "#e6e1fa", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%" },
   settings: {

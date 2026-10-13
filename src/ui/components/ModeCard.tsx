@@ -22,10 +22,12 @@ type Props = {
   leading?: React.ReactNode;
   /** Size factor for big screens (1 on a phone). */
   ui?: number;
+  /** Lower card for short windows. */
+  compactCard?: boolean;
 };
 
 /** A game-mode entry on the cover: icon, name, and a line that tells it apart from the others. */
-const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, locked = false, badge, featured = false, leading, ui = 1 }) => {
+const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, locked = false, badge, featured = false, leading, ui = 1, compactCard = false }) => {
   const scale = useRef(new Animated.Value(1)).current;
   return (
     <Animated.View style={{ transform: [{ scale }], flex: featured ? undefined : 1 }}>
@@ -39,7 +41,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
         accessibilityState={{ disabled: locked }}
-        style={[styles.card, { borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : 70) * ui, gap: 12 * ui, paddingHorizontal: 12 * ui }]}
+        style={[styles.card, { borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : compactCard ? 60 : 70) * ui, gap: 12 * ui, paddingHorizontal: 12 * ui }]}
       >
         {leading ?? (
           <View style={[styles.iconWrap, { width: 46 * ui, height: 46 * ui, borderRadius: 23 * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
@@ -47,7 +49,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
           </View>
         )}
         <View style={styles.text}>
-          <Text style={[styles.title, featured && styles.titleFeatured, { fontSize: (featured ? 19 : 15) * ui }, locked && { color: "#cfcbe6" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.title, featured && styles.titleFeatured, { fontSize: (featured ? 19 : compactCard ? 12 : 15) * ui, letterSpacing: compactCard ? 0.5 : 1.5 }, locked && { color: "#cfcbe6" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
             {title.toLocaleUpperCase()}
           </Text>
           <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>

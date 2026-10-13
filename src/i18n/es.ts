@@ -18,6 +18,12 @@ export const es: Record<TranslationKey, string> = {
 
   // ── cover ─────────────────────────────────────────────────────────────
   'cover.tagline': 'Desciende. Deduce. Vence al Wumpus.',
+  'cover.embers': 'brasas',
+  'cover.playBig': 'Jugar',
+  'cover.best': 'Mejor {score} · piso {floor}',
+  'cover.firstRun': 'Tu primera expedición empieza con un breve tutorial.',
+  'a11y.badgeForge': 'Puedes comprar una mejora',
+  'a11y.badgeAchievements': 'Logros nuevos',
   'cover.mode.expedition': 'Expedición',
   'cover.mode.expedition.sub': '10 pisos y un jefe final. Gana brasas, desbloquea héroes y dificultades.',
   'cover.mode.daily': 'Reto diario',

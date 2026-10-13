@@ -17,6 +17,12 @@ export const en = {
 
   // ── cover ─────────────────────────────────────────────────────────────
   'cover.tagline': 'Descend. Deduce. Slay the Wumpus.',
+  'cover.embers': 'embers',
+  'cover.playBig': 'Play',
+  'cover.best': 'Best {score} · floor {floor}',
+  'cover.firstRun': 'Your first expedition starts with a short tutorial.',
+  'a11y.badgeForge': 'You can buy an upgrade',
+  'a11y.badgeAchievements': 'New achievements',
   'cover.mode.expedition': 'Expedition',
   'cover.mode.expedition.sub': '10 floors and a final boss. Earn embers, unlock heroes and harder difficulties.',
   'cover.mode.daily': 'Daily challenge',
