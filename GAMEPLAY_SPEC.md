@@ -135,3 +135,15 @@ After winning an expedition the next **depth** unlocks (1 to 5). On the hero scr
 
 The Daily Challenge is always depth 0 so every player sees the same cave. Two achievements reward winning on depth 3+ and on depth 5. `scripts/simulate.ts [runs] [first] [last] [depth]` measures the effect on survival.
 
+## 16. The Forge (permanent upgrades)
+Every finished run earns **embers**, win or lose: `floor(score / 250) + 4 x floor reached`, plus `50 + 15 x depth` for a victory. Runs that never started earn nothing. Embers are spent in the Forge (reachable from the cover) on permanent upgrades:
+
+| Upgrade | Levels (cost) | Effect |
+| :--- | :--- | :--- |
+| Whetstone | 2 (60, 160) | +1 arrow on every floor, per level |
+| Coin purse | 3 (40, 90, 160) | Gems worth +10% per level |
+| Scribe | 1 (250) | Relic drafts offer 1 extra choice |
+| Ward | 1 (80) | Start every run with a shield |
+
+Forge upgrades never apply to the Daily Challenge (same cave, same tools for everyone). Embers earned appear on the end-of-run card.
+

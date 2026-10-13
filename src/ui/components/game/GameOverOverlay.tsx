@@ -30,6 +30,8 @@ type Props = {
   unlockedHeroes?: number[];
   /** Achievement ids earned by this run. */
   achievements?: string[];
+  /** Embers earned by this run (Forge currency). */
+  embers?: number;
   onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
@@ -51,6 +53,7 @@ const GameOverOverlay = ({
   streak,
   unlockedHeroes,
   achievements,
+  embers,
   onShare,
   onRetry,
   onMainMenu,
@@ -128,6 +131,11 @@ const GameOverOverlay = ({
       ) : bestScore ? (
         <Text style={styles.best} maxFontSizeMultiplier={1.3}>
           {bestText.toLocaleUpperCase()}
+        </Text>
+      ) : null}
+      {embers && embers > 0 ? (
+        <Text style={styles.embers} maxFontSizeMultiplier={1.3}>
+          🔥 {plural('over.embers', embers).toLocaleUpperCase()}
         </Text>
       ) : null}
       {achievements && achievements.length > 0 && (
@@ -256,6 +264,7 @@ const styles = StyleSheet.create({
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
   best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  embers: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%' },

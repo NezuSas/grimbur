@@ -50,7 +50,14 @@ type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
 
-type RunResult = { bestScore: number; isNewBest: boolean; streak?: number; unlocked?: number[]; achievements?: string[] };
+type RunResult = {
+  bestScore: number;
+  isNewBest: boolean;
+  streak?: number;
+  unlocked?: number[];
+  achievements?: string[];
+  embers?: number;
+};
 
 // ── Main Screen ──────────────────────────────────────────────────────────
 export default function GameScreen({ navigation, route }: Props) {
@@ -120,9 +127,10 @@ export default function GameScreen({ navigation, route }: Props) {
     reset(selectedCharacter, {
       heroIndex: characterIndex,
       ascension,
+      meta: route.params?.meta,
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
     });
-  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate]);
+  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, route.params?.meta]);
 
   /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
   const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
@@ -145,10 +153,10 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
       }
       const r = await recordRun(run);
-      return { bestScore: r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements };
+      return { bestScore: r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -584,6 +592,7 @@ export default function GameScreen({ navigation, route }: Props) {
         streak={runResult?.streak}
         unlockedHeroes={runResult?.unlocked}
         achievements={runResult?.achievements}
+        embers={runResult?.embers}
         onShare={isDaily ? handleShare : undefined}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}

@@ -10,6 +10,7 @@ import {
 import { dailyKey } from '../core/engine/seed';
 import { newlyUnlockedHeroes } from '../core/stats/heroUnlocks';
 import { newAchievements, withAchievements } from '../core/stats/achievements';
+import { UpgradeId, purchase } from '../core/stats/forge';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
 
@@ -28,7 +29,13 @@ export async function recordRun(run: RunResult) {
   const achievements = newAchievements(merged.stats, run);
   const stats = withAchievements(merged.stats, achievements, dailyKey());
   await save(stats);
-  return { stats, isNewBestScore: merged.isNewBestScore, unlocked: newlyUnlockedHeroes(before, stats), achievements };
+  return {
+    stats,
+    isNewBestScore: merged.isNewBestScore,
+    unlocked: newlyUnlockedHeroes(before, stats),
+    achievements,
+    embers: stats.embers - before.embers,
+  };
 }
 
 /** Persists a finished daily-challenge run for the given UTC day (default: today). */
@@ -42,9 +49,18 @@ export async function recordDailyRun(run: RunResult, key: string = dailyKey()) {
   return {
     stats,
     achievements,
+    embers: stats.embers - before.embers,
     unlocked: newlyUnlockedHeroes(before, stats),
     isNewDailyBest,
     dailyBest: stats.daily?.bestScore ?? 0,
     streak: currentStreak(stats, key),
   };
+}
+
+/** Buys the next level of a Forge upgrade. Resolves with the new stats, or null when it cannot be bought. */
+export async function buyUpgrade(id: UpgradeId): Promise<LocalStats | null> {
+  const next = purchase(await getLocalStats(), id);
+  if (!next) return null;
+  await save(next);
+  return next;
 }

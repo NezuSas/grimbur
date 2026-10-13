@@ -39,6 +39,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           onPressDaily={() => navigation.navigate("CharactersScreen", { mode: "daily" })}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
           onPressInstructions={() => navigation.navigate("InstructionsScreen")}
+          onPressForge={() => navigation.navigate("ForgeScreen")}
           onPressAchievements={() => navigation.navigate("AchievementsScreen")}
           onPressSettings={() => navigation.navigate("SettingsScreen")}
         />

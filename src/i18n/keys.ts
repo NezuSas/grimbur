@@ -3,6 +3,7 @@ import type { Params } from './translate';
 import type { RelicId } from '../core/engine/relics';
 import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
 import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
+import { UPGRADES, UpgradeId } from '../core/stats/forge';
 
 type T = (key: TranslationKey, params?: Params) => string;
 
@@ -25,4 +26,10 @@ export const unlockText = (t: T, heroIndex: number): string => {
 export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'): string => {
   const params = ACHIEVEMENTS.find(a => a.id === id)?.params ?? {};
   return t(`ach.${id}.${part}` as TranslationKey, params);
+};
+
+/** Localised Forge upgrade text. */
+export const forgeText = (t: T, id: UpgradeId, part: 'name' | 'desc'): string => {
+  const params = UPGRADES.find(u => u.id === id)?.params ?? {};
+  return t(`forge.${id}.${part}` as TranslationKey, params);
 };

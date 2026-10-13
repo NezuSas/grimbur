@@ -219,6 +219,7 @@ export const initialState: GameState = {
   runSeed: 0,
   mode: 'expedition',
   ascension: 0,
+  draftBonus: 0,
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
@@ -514,7 +515,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         seed: seed || state.seed,
         playerIndex: 0,
         visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0),
-        pendingDraft: draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize),
+        pendingDraft: draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus),
         turn: 0,
         isLevelUp: false,
         isGameOver: false,
@@ -542,7 +543,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield } = action;
       const heroPerks = perks ?? NO_PERKS;
       return {
         ...initialState,
@@ -553,12 +554,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entityMap: createEntityMap(entities),
         coins,
         attack: attack + heroPerks.bonusArrows,
-        shield: heroPerks.startShield,
+        shield: heroPerks.startShield || startShield === true,
         perks: heroPerks,
         seed: seed || Date.now(),
         runSeed: runSeed ?? seed ?? 0,
         mode: mode ?? 'expedition',
         ascension: ascension ?? 0,
+        draftBonus: draftBonus ?? 0,
         visited: [0],
         playerIndex: 0,
         totalCoins: 0,
