@@ -14,6 +14,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
 import { recordAction } from '../replay/replay';
+import { bossHearts, countGuardians } from './entityCounts';
 
 /**
  * Wumpus Adventures — Game Engine Hook
@@ -53,13 +54,13 @@ export function useGameEngine(): GameEngineInterface {
     }
 
     // 2. IMPORTANT: Combat Result (Priority 2)
-    if (!hapticTriggered && state.entities.length < prevState.entities.length) {
-      const removedEntityPos = prevState.entities.find(e => !state.entities.find(se => se.index === e.index));
-      if (removedEntityPos?.type === 'enemy' && state.playerIndex === prevState.playerIndex) {
-        emitGameEvent('ENEMY_KILLED', { combo: state.enemyCombo });
-        haptic.impact(ImpactFeedbackStyle.Heavy);
-        hapticTriggered = true;
-      }
+    // Counted by type: a roaming guardian changes tile as it moves, so comparing positions would misread it.
+    const guardiansBefore = countGuardians(prevState);
+    const guardiansNow = countGuardians(state);
+    if (!hapticTriggered && guardiansNow < guardiansBefore && state.playerIndex === prevState.playerIndex) {
+      emitGameEvent('ENEMY_KILLED', { combo: state.enemyCombo });
+      haptic.impact(ImpactFeedbackStyle.Heavy);
+      hapticTriggered = true;
     }
 
     // 3. IMPORTANT: Coin collection (Priority 3)
@@ -97,7 +98,15 @@ export function useGameEngine(): GameEngineInterface {
     }
 
     // Secondary non-haptic effects
-    if (state.attack < prevState.attack && state.entities.length === prevState.entities.length && state.playerIndex === prevState.playerIndex) {
+    // An arrow that hurt the Wumpus (hearts went down) is a hit, not a miss.
+    const hitTheWumpus = bossHearts(state) < bossHearts(prevState);
+    if (
+      state.attack < prevState.attack &&
+      guardiansNow === guardiansBefore &&
+      !hitTheWumpus &&
+      state.entities.length === prevState.entities.length &&
+      state.playerIndex === prevState.playerIndex
+    ) {
       emitGameEvent('ATTACK_MISS');
     }
 

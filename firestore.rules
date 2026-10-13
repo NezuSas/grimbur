@@ -10,7 +10,7 @@ service cloud.firestore {
     function validScore(d) {
       return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
         && d.keys().hasAll(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
-        && isInt(d.level) && d.level >= 1 && d.level <= 500
+        && isInt(d.level) && d.level >= 1 && d.level <= 12
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
         && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
         && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 4
