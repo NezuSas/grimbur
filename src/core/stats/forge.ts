@@ -1,29 +1,56 @@
 import type { LocalStats, RunResult } from './runStats';
 import type { HeroPerks } from '../engine/heroes';
+import type { RelicId } from '../engine/relics';
 
 /**
  * The Forge: permanent upgrades bought with "embers", which every run earns (win or lose).
  * Pure data + functions so the economy is easy to tune and test.
  */
-export type UpgradeId = 'whetstone' | 'purse' | 'scribe' | 'ward' | 'feather' | 'fortune';
+export type UpgradeCategory = 'power' | 'economy' | 'relics';
+
+export type UpgradeId =
+  | 'whetstone' | 'ward' | 'eagle_eye' | 'scribe' | 'explorer'
+  | 'purse' | 'fortune'
+  | 'feather' | 'start_lantern' | 'start_trap_sense' | 'start_iron_boots' | 'start_frost' | 'start_lucky_coin'
+  | 'start_long_bow' | 'start_hunter' | 'start_quiver' | 'start_greed' | 'start_bulwark';
 
 export interface UpgradeInfo {
   id: UpgradeId;
   icon: string;
+  category: UpgradeCategory;
   /** Price of each level; its length is the maximum level. */
   costs: readonly number[];
   /** Values interpolated into the translated description. */
   params: Record<string, number>;
+  /** A start-of-run relic: its picture is shown instead of the emoji. */
+  relic?: RelicId;
 }
 
 export const UPGRADES: readonly UpgradeInfo[] = [
-  { id: 'whetstone', icon: '🏹', costs: [60, 160], params: { arrows: 1 } },
-  { id: 'purse', icon: '👛', costs: [40, 90, 160], params: { percent: 10 } },
-  { id: 'scribe', icon: '📜', costs: [250], params: { extra: 1 } },
-  { id: 'ward', icon: '🛡️', costs: [80], params: {} },
-  { id: 'feather', icon: '🪶', costs: [300], params: {} },
-  { id: 'fortune', icon: '🍀', costs: [120, 240], params: { percent: 15 } },
+  // Power
+  { id: 'whetstone', icon: '🏹', category: 'power', costs: [60, 160], params: { arrows: 1 } },
+  { id: 'ward', icon: '🛡️', category: 'power', costs: [80], params: {} },
+  { id: 'explorer', icon: '🧭', category: 'power', costs: [70, 200], params: { percent: 25 } },
+  { id: 'scribe', icon: '📜', category: 'power', costs: [250], params: { extra: 1 } },
+  { id: 'eagle_eye', icon: '🦅', category: 'power', costs: [500], params: { tiles: 1 } },
+  // Economy
+  { id: 'purse', icon: '👛', category: 'economy', costs: [40, 90, 160], params: { percent: 10 } },
+  { id: 'fortune', icon: '🍀', category: 'economy', costs: [120, 240], params: { percent: 15 } },
+  // Relics you begin every expedition with
+  { id: 'start_lantern', icon: '🏮', category: 'relics', costs: [150], params: {}, relic: 'lantern' },
+  { id: 'start_trap_sense', icon: '🪤', category: 'relics', costs: [180], params: {}, relic: 'trap_sense' },
+  { id: 'start_iron_boots', icon: '👢', category: 'relics', costs: [200], params: {}, relic: 'iron_boots' },
+  { id: 'start_frost', icon: '❄️', category: 'relics', costs: [220], params: {}, relic: 'frost' },
+  { id: 'start_lucky_coin', icon: '🪙', category: 'relics', costs: [260], params: {}, relic: 'lucky_coin' },
+  { id: 'feather', icon: '🪶', category: 'relics', costs: [300], params: {}, relic: 'phoenix' },
+  { id: 'start_long_bow', icon: '🌠', category: 'relics', costs: [320], params: {}, relic: 'long_bow' },
+  { id: 'start_hunter', icon: '🎯', category: 'relics', costs: [350], params: {}, relic: 'hunter' },
+  { id: 'start_greed', icon: '💰', category: 'relics', costs: [400], params: {}, relic: 'greed' },
+  { id: 'start_quiver', icon: '🏹', category: 'relics', costs: [450], params: {}, relic: 'quiver' },
+  { id: 'start_bulwark', icon: '🛡️', category: 'relics', costs: [600], params: {}, relic: 'bulwark' },
 ];
+
+export const UPGRADE_CATEGORIES: readonly UpgradeCategory[] = ['power', 'economy', 'relics'];
 
 /** Extra embers per level of Fortune (+15% each). */
 const FORTUNE_BONUS_PER_LEVEL = 0.15;
@@ -73,11 +100,23 @@ export interface MetaEffects {
   draftBonus: number;
   /** Start the run with a shield. */
   shield: boolean;
-  /** Start the run holding a Phoenix Feather. */
-  feather: boolean;
+  /** Relics the run begins with. */
+  startRelics: RelicId[];
+  /** Extra tiles an arrow reaches. */
+  reach: number;
+  /** Extra exploration points as a fraction (0.25 = +25%). */
+  exploreBonus: number;
 }
 
-export const NO_META: MetaEffects = { arrows: 0, coinBonus: 0, draftBonus: 0, shield: false, feather: false };
+export const NO_META: MetaEffects = {
+  arrows: 0,
+  coinBonus: 0,
+  draftBonus: 0,
+  shield: false,
+  startRelics: [],
+  reach: 0,
+  exploreBonus: 0,
+};
 
 /** Hero perks plus the Forge's permanent bonuses. */
 export function applyMeta(perks: HeroPerks, meta: MetaEffects): HeroPerks {
@@ -85,6 +124,8 @@ export function applyMeta(perks: HeroPerks, meta: MetaEffects): HeroPerks {
     ...perks,
     bonusArrows: perks.bonusArrows + meta.arrows,
     coinMultiplier: perks.coinMultiplier * (1 + meta.coinBonus),
+    arrowReach: perks.arrowReach + meta.reach,
+    newTileMultiplier: perks.newTileMultiplier * (1 + meta.exploreBonus),
   };
 }
 
@@ -95,6 +136,8 @@ export function metaEffects(forge: Record<string, number>): MetaEffects {
     coinBonus: lvl('purse') * 0.1,
     draftBonus: lvl('scribe') * 1,
     shield: lvl('ward') > 0,
-    feather: lvl('feather') > 0,
+    startRelics: UPGRADES.filter(u => u.relic && lvl(u.id) > 0).map(u => u.relic as RelicId),
+    reach: lvl('eagle_eye'),
+    exploreBonus: lvl('explorer') * 0.25,
   };
 }

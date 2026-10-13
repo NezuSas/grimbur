@@ -11,7 +11,7 @@ import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
 import { achievementText, heroText } from '../../../i18n/keys';
 import type { TranslationKey } from '../../../i18n/en';
-import type { AchievementId } from '../../../core/stats/achievements';
+import { rewardFor, type AchievementId } from '../../../core/stats/achievements';
 import SpriteImage from '../SpriteImage';
 
 type Props = {
@@ -224,7 +224,7 @@ const GameOverOverlay = ({
       )}
       {achievements && achievements.length > 0 && (
         <Text style={styles.achievement} maxFontSizeMultiplier={1.2}>
-          🏆 {plural('over.achievements', achievements.length, { names: achievements.map(id => achievementText(t, id as AchievementId, 'name')).join(', ') }).toLocaleUpperCase()}
+          🏆 {plural('over.achievements', achievements.length, { names: achievements.map(id => achievementText(t, id as AchievementId, 'name')).join(', ') }).toLocaleUpperCase()}  +{rewardFor(achievements as AchievementId[])} 🔥
         </Text>
       )}
       {unlockedHeroes && unlockedHeroes.length > 0 && (

@@ -2,7 +2,9 @@ import {
   ACHIEVEMENTS,
   HERO_COUNT,
   SPEEDRUN_SECONDS,
+  ACHIEVEMENT_REWARD,
   newAchievements,
+  rewardFor,
   withAchievements,
 } from '../../src/core/stats/achievements';
 import { EMPTY_STATS, mergeDailyRun, mergeRun, parseStats } from '../../src/core/stats/runStats';
@@ -121,5 +123,48 @@ describe('achievements', () => {
     const stats = mergeRun({ ...EMPTY_STATS, embers: 10, lifetimeEmbers: 10 }, { score: 500, level: 3 }).stats;
     expect(stats.lifetimeEmbers).toBe(stats.embers); // nothing spent yet
     expect(stats.lifetimeEmbers).toBeGreaterThan(10);
+  });
+
+  it('has over a hundred, every id unique, every tier well filled', () => {
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(100);
+    expect(new Set(ACHIEVEMENTS.map(a => a.id)).size).toBe(ACHIEVEMENTS.length);
+    for (const tier of ['easy', 'medium', 'hard', 'legend'] as const) {
+      expect(ACHIEVEMENTS.filter(a => a.tier === tier).length).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it('pays embers for every unlock, more for harder ones, and counts them as earned', () => {
+    expect(ACHIEVEMENT_REWARD.easy).toBeLessThan(ACHIEVEMENT_REWARD.medium);
+    expect(ACHIEVEMENT_REWARD.hard).toBeLessThan(ACHIEVEMENT_REWARD.legend);
+    const run = { score: 10, level: 2 };
+    const merged = mergeRun(EMPTY_STATS, run).stats;
+    const ids = newAchievements(merged, run);
+    const stored = withAchievements(merged, ids, '2026-10-13');
+    expect(rewardFor(ids)).toBeGreaterThan(0);
+    expect(stored.embers).toBe(merged.embers + rewardFor(ids));
+    expect(stored.lifetimeEmbers).toBe(merged.lifetimeEmbers + rewardFor(ids));
+  });
+
+  it('trophy achievements that count other achievements unlock in the same pass', () => {
+    const owned: Record<string, string> = {};
+    // Nine achievements the run below will not touch.
+    ACHIEVEMENTS.slice(20, 29).forEach(a => (owned[a.id] = '2026-10-01'));
+    const stats = { ...mergeRun(EMPTY_STATS, { score: 10, level: 2 }).stats, achievements: owned };
+    const got = newAchievements(stats, { score: 10, level: 2 });
+    // The run itself unlocks some, which brings the total past ten: the trophy is awarded in the same pass.
+    expect(got.filter(id => id !== 'trophies_10').length).toBeGreaterThan(0);
+    expect(got).toContain('trophies_10');
+  });
+
+  it('tracks victories per hero and daily runs and wins', () => {
+    let stats = mergeRun(EMPTY_STATS, { score: 1, level: 10, victory: true, heroIndex: 2 }).stats;
+    expect(stats.heroWins).toEqual([0, 0, 1, 0]);
+    expect(newAchievements(stats, { score: 1, level: 10 })).toContain('win_borin');
+    stats = mergeDailyRun(stats, '2026-10-13', { score: 1, level: 10, victory: true, heroIndex: 0 }).stats;
+    expect(stats.heroWins).toEqual([1, 0, 1, 0]);
+    expect(stats.dailyRuns).toBe(1);
+    expect(stats.dailyWins).toBe(1);
+    const all = { ...stats, heroWins: [1, 2, 1, 5] };
+    expect(newAchievements(all, { score: 1, level: 1 })).toContain('all_hero_wins');
   });
 });
