@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { formatTime } from '../../../shared/utils/formatTime';
+import { checkName } from '../../../core/leaderboard/validation';
 import { overlayStyles } from './overlayStyles';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -27,6 +28,7 @@ const HighScoreEntryModal = ({
   onSubmit: (name: string) => void;
 }) => {
   const [name, setName] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -35,7 +37,10 @@ const HighScoreEntryModal = ({
       duration: 300,
       useNativeDriver: true,
     }).start();
-    if (visible) setName('');
+    if (visible) {
+      setName('');
+      setError(null);
+    }
   }, [visible]);
 
   if (!visible) return null;
@@ -54,15 +59,24 @@ const HighScoreEntryModal = ({
             placeholder="Enter your name..."
             placeholderTextColor="#666"
             value={name}
-            onChangeText={setName}
+            onChangeText={text => {
+              setName(text);
+              setError(null);
+            }}
             maxLength={20}
             autoFocus
             selectionColor="#FFD700"
           />
 
+          {error && <Text style={styles.hsError}>{error}</Text>}
+
           <TouchableOpacity
             style={[styles.hsSubmitBtn, !name.trim() && { opacity: 0.4 }]}
-            onPress={() => name.trim() && onSubmit(name.trim())}
+            onPress={() => {
+              const result = checkName(name);
+              if (result.ok) onSubmit(result.name);
+              else setError(result.reason === 'blocked' ? "That name isn't allowed. Try another." : 'Enter a name.');
+            }}
             activeOpacity={0.8}
             disabled={!name.trim()}
           >
@@ -125,6 +139,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     marginTop: 10,
+  },
+  hsError: {
+    color: '#FF6B6B',
+    fontSize: 12,
+    fontWeight: '700',
   },
   hsSubmitBtn: {
     width: '100%',

@@ -1,5 +1,6 @@
 // src/services/highscores.ts
 import { db } from "../lib/firebase";
+import { checkName, validateSubmission } from "../core/leaderboard/validation";
 import {
   collection,
   addDoc,
@@ -68,11 +69,15 @@ export async function fetchTop10(): Promise<Doc[]> {
 export async function addHighscore(row: HighscoreRow) {
   _cachedThreshold = null; // Invalidate cache so it recalculates
   
-  // Guard: Ensure time is a valid number and at least 1 (to avoid 00:00 bugs)
-  const safeTime = (typeof row.time === 'number' && !isNaN(row.time)) ? Math.max(row.time, 1) : 1;
-  const safeRow = { ...row, time: safeTime };
-  
-  console.log("[Highscores] Adding score:", safeRow);
+  // Guard: time is at least 1 second (avoids 00:00 entries) and always an integer.
+  const safeTime = Number.isFinite(row.time) ? Math.max(Math.round(row.time), 1) : 1;
+  const nameCheck = checkName(row.name);
+  if (!nameCheck.ok) throw new Error(`[Highscores] Rejected name (${nameCheck.reason})`);
+
+  const safeRow: HighscoreRow = { ...row, name: nameCheck.name, time: safeTime };
+  const problems = validateSubmission(safeRow);
+  if (problems.length > 0) throw new Error(`[Highscores] Invalid submission: ${problems.join(', ')}`);
+
   await addDoc(collection(db, "highscores"), safeRow);
 }
 

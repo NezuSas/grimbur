@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Public leaderboard. Anyone can read; anyone can append a well-formed score;
+// nobody can edit or delete. Limits mirror src/core/leaderboard/validation.ts.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isInt(v) { return v is int; }
+
+    function validScore(d) {
+      return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
+        && d.keys().hasAll(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
+        && isInt(d.level) && d.level >= 1 && d.level <= 500
+        && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
+        && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
+        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 4
+        && isInt(d.time) && d.time >= 1 && d.time <= 86400
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20;
+    }
+
+    match /highscores/{scoreId} {
+      allow read: if true;
+      allow create: if validScore(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
