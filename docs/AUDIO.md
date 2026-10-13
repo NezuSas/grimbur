@@ -23,6 +23,12 @@ Why the sound used to "disappear", and how the current design avoids it. Evidenc
 6. **A music start was lost for good** if the player was not ready yet (slow phone, Expo Go). Now `play` retries up to
    8 times, 750 ms apart, while the sound is still wanted.
 
+7. **~100 ms between action and sound.** The first real device log (Settings > Share audio log) showed every effect going
+   `buffering` for about 100 ms before `ready`: restarting a finished player means a seek, and a seek re-buffers. Now an
+   effect rewinds itself in the background the moment it ends, so the next play needs no seek. Looping tracks (music and
+   the hazard hums) are paused and resumed, never rewound, and `stop` only touches what is actually sounding (a floor
+   change used to pause and seek all six music players at once, right when the fanfare started).
+
 ## Rules for new sounds
 
 - Create every player once, at start-up; never create or `remove()` players during play (expo/expo#41852).

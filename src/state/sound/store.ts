@@ -28,6 +28,12 @@ const voicesOf = (name: string): string[] => [
 /** The sound a voice belongs to (`coin#1` -> `coin`); volume and loop targets are shared per sound. */
 const baseOf = (voice: string) => voice.split('#')[0];
 const nextVoice: Record<string, number> = {};
+/**
+ * Voices already sitting at 0:00, ready to play with no seek. Seeking a finished player makes it buffer for ~100 ms
+ * (visible in the audio log), which is the delay players hear between an action and its sound. So when an effect ends
+ * the voice rewinds itself in the background, while nothing is waiting for it.
+ */
+const REWOUND: Record<string, boolean> = {};
 /** How long a player may take to become ready (x 100 ms): slow phones and Expo Go need more than 2 s. */
 const LOAD_WAIT_ATTEMPTS = 60;
 const lastRetry: Record<string, number> = {};
@@ -71,6 +77,13 @@ async function ensurePlayer(name: string): Promise<any> {
                   lastState = key;
                   audioLog('status', `${name} ${key}`);
                 }
+                // An effect (not a looping track) just ended: rewind it now, in the background.
+                if (st.didJustFinish && !TARGET_LOOPS[baseOf(name)]) {
+                  try {
+                    player.seekTo(0);
+                    REWOUND[name] = true;
+                  } catch {}
+                }
               });
             } catch {}
             
@@ -84,6 +97,7 @@ async function ensurePlayer(name: string): Promise<any> {
             audioLog('load', `${name} ${player.isLoaded ? 'ready' : 'NOT READY'} after ${Date.now() - loadStart}ms`);
             if (player.isLoaded) {
                 GLOBAL_PLAYERS[name] = player;
+                REWOUND[name] = true; // a fresh player is at the start
                 // Re-apply target settings
                 if (TARGET_VOLUMES[baseOf(name)] !== undefined) player.volume = TARGET_VOLUMES[baseOf(name)];
                 if (TARGET_LOOPS[baseOf(name)] !== undefined) player.loop = TARGET_LOOPS[baseOf(name)];
@@ -166,8 +180,9 @@ function toLegacyHandle(name: string): LegacySoundHandle {
       }
       try {
         p.volume = Math.max(0, Math.min(1, volume));
-        p.loop = false;
-        p.seekTo(0);
+        if (p.loop) p.loop = false;
+        if (!REWOUND[voice]) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
+        REWOUND[voice] = false;
         p.play();
       } catch (e) {
         console.warn(`[AudioEngine:${name}] one-shot error:`, e);
@@ -204,9 +219,10 @@ function toLegacyHandle(name: string): LegacySoundHandle {
 
         const vol = TARGET_VOLUMES[name] ?? 1.0;
 
-        // 1. Pre-play set
+        // 1. Pre-play set. Looping tracks (music, hazard hums) simply resume; only a one-shot is rewound.
         p.volume = vol;
-        p.seekTo(0);
+        if (!TARGET_LOOPS[name] && !REWOUND[voice]) p.seekTo(0);
+        REWOUND[voice] = false;
 
         // 2. Play
         p.play();
@@ -222,15 +238,15 @@ function toLegacyHandle(name: string): LegacySoundHandle {
 
     stop: async () => {
       try {
-        audioLog('stop', name);
+        const wasWanted = SHOULD_BE_PLAYING[name];
         SHOULD_BE_PLAYING[name] = false;
         for (const voice of voicesOf(name)) {
           const p = GLOBAL_PLAYERS[voice];
-          if (p) {
-            p.pause();
-            p.seekTo(0);
-          }
+          // Pausing something that is not playing still costs a native call (and used to cost a seek, which
+          // re-buffers the player): at a floor change that was six players at once. Only touch what is sounding.
+          if (p && (wasWanted || p.playing)) p.pause();
         }
+        if (wasWanted) audioLog('stop', name);
       } catch (e) {
         console.error(`[AudioEngine:${name}] stop error:`, e);
       }
