@@ -190,6 +190,24 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
         if (names[dir]) onMove(dir);
       }}
     >
+      {/* The whole quadrant under the thumb lights up, not just the arrow: a thumb covers the arrow itself, so this is
+          what tells the player which direction was read. A diamond whose lower corner sits on the centre fills exactly
+          one quadrant of the disc (the disc clips the rest). */}
+      {active && (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            width: D * Math.SQRT2,
+            height: D * Math.SQRT2,
+            left: D / 2 + ARROWS.find(a => a.dir === active)!.dx * D - (D * Math.SQRT2) / 2,
+            top: D / 2 + ARROWS.find(a => a.dir === active)!.dy * D - (D * Math.SQRT2) / 2,
+            backgroundColor: "rgba(255, 213, 79, 0.34)",
+            transform: [{ rotate: "45deg" }],
+          }}
+        />
+      )}
+
       {/* Diagonal seams between the four quadrants */}
       <View style={[styles.seam, { top: D / 2 - 1, width: D, transform: [{ rotate: "45deg" }] }]} />
       <View style={[styles.seam, { top: D / 2 - 1, width: D, transform: [{ rotate: "-45deg" }] }]} />
@@ -217,7 +235,6 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
               justifyContent: "center",
             }}
           >
-            {on && <View style={[styles.glow, { width: size * 1.9, height: size * 1.9, borderRadius: size }]} />}
             <Ionicons name={a.icon} size={size * (on ? 1.25 : 1.1)} color={on ? GOLD : "rgba(255,255,255,0.92)"} />
           </View>
         );

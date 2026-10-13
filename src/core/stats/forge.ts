@@ -57,6 +57,9 @@ const FORTUNE_BONUS_PER_LEVEL = 0.15;
 
 export const maxLevel = (id: UpgradeId): number => UPGRADES.find(u => u.id === id)?.costs.length ?? 0;
 
+/** Embers paid once per UTC day, on the first finished run: 15 plus 5 per day of streak, up to 50. */
+export const dailyBonus = (streak: number): number => Math.min(50, 15 + 5 * Math.max(0, Math.trunc(streak) || 0));
+
 /** Embers earned by a finished run. A run that never started earns nothing. */
 export function embersFor(run: RunResult, progressed = true, fortuneLevel = 0): number {
   if (!progressed) return 0;

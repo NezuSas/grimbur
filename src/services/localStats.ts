@@ -10,7 +10,7 @@ import {
 import { dailyKey } from '../core/engine/seed';
 import { newlyUnlockedHeroes } from '../core/stats/heroUnlocks';
 import { newAchievements, withAchievements } from '../core/stats/achievements';
-import { UpgradeId, purchase } from '../core/stats/forge';
+import { UpgradeId, dailyBonus, purchase } from '../core/stats/forge';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
 
@@ -38,7 +38,7 @@ async function save(stats: LocalStats) {
 export const recordRun = (run: RunResult) => serialized(() => recordRunNow(run));
 async function recordRunNow(run: RunResult) {
   const before = await getLocalStats();
-  const merged = mergeRun(before, run);
+  const merged = mergeRun(before, { ...run, day: run.day ?? dailyKey() });
   const achievements = newAchievements(merged.stats, run);
   const stats = withAchievements(merged.stats, achievements, dailyKey());
   await save(stats);
@@ -48,6 +48,7 @@ async function recordRunNow(run: RunResult) {
     unlocked: newlyUnlockedHeroes(before, stats),
     achievements,
     embers: stats.embers - before.embers,
+    bonus: merged.stats.lastBonusDate !== before.lastBonusDate ? dailyBonus(before.streak) : 0,
   };
 }
 
@@ -55,7 +56,7 @@ async function recordRunNow(run: RunResult) {
 export const recordDailyRun = (run: RunResult, key: string = dailyKey()) => serialized(() => recordDailyRunNow(run, key));
 async function recordDailyRunNow(run: RunResult, key: string) {
   const before = await getLocalStats();
-  const merged = mergeDailyRun(before, key, run);
+  const merged = mergeDailyRun(before, key, { ...run, day: run.day ?? key });
   const achievements = newAchievements(merged.stats, run);
   const stats = withAchievements(merged.stats, achievements, key);
   const isNewDailyBest = merged.isNewDailyBest;
@@ -66,6 +67,7 @@ async function recordDailyRunNow(run: RunResult, key: string) {
     embers: stats.embers - before.embers,
     unlocked: newlyUnlockedHeroes(before, stats),
     isNewDailyBest,
+    bonus: merged.stats.lastBonusDate !== before.lastBonusDate ? dailyBonus(before.streak) : 0,
     dailyBest: stats.daily?.bestScore ?? 0,
     streak: currentStreak(stats, key),
   };
@@ -79,3 +81,10 @@ export const buyUpgrade = (id: UpgradeId): Promise<LocalStats | null> =>
     await save(next);
     return next;
   });
+
+/** Deletes everything stored on the device: progress, embers, achievements and records. */
+export async function resetLocalStats(): Promise<void> {
+  await serialized(async () => {
+    await AsyncStorage.removeItem(STORAGE_KEY);
+  });
+}
