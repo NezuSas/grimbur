@@ -1,13 +1,5 @@
-import React, { useCallback, useState } from "react";
-import {
-  FlatList,
-  ImageBackground,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Animated, FlatList, ImageBackground, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,23 +7,143 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList } from "../navigation/types";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
-import { UPGRADES, UpgradeId, canAfford, levelOf, maxLevel, nextCost } from "../core/stats/forge";
+import { UPGRADES, UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../core/stats/forge";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { buyUpgrade, getLocalStats } from "../services/localStats";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
 import { useT } from "../i18n/useT";
 import { forgeText } from "../i18n/keys";
+import ScreenHeader from "../ui/components/ScreenHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ForgeScreen">;
+
+const EMBER = "#FFAB40";
+
+/** The ember balance, with a small pop each time it changes (earning or spending feels like something). */
+const Balance: React.FC<{ value: number; label: string }> = ({ value, label }) => {
+  const pop = useRef(new Animated.Value(1)).current;
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    Animated.sequence([
+      Animated.timing(pop, { toValue: 1.25, duration: 120, useNativeDriver: true }),
+      Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true }),
+    ]).start();
+  }, [value, pop]);
+
+  return (
+    <Animated.View style={[styles.balance, { transform: [{ scale: pop }] }]} accessible accessibilityLiveRegion="polite" accessibilityLabel={label}>
+      <Text style={styles.balanceFlame}>🔥</Text>
+      <Text style={styles.balanceValue} maxFontSizeMultiplier={1.2}>
+        {value}
+      </Text>
+    </Animated.View>
+  );
+};
+
+type CardProps = {
+  info: UpgradeInfo;
+  stats: LocalStats;
+  columns: number;
+  busy: boolean;
+  justBought: boolean;
+  onBuy: (id: UpgradeId) => void;
+};
+
+const UpgradeCard = React.memo(({ info, stats, columns, busy, justBought, onBuy }: CardProps) => {
+  const { t } = useT();
+  const level = levelOf(stats, info.id);
+  const max = maxLevel(info.id);
+  const cost = nextCost(stats, info.id);
+  const affordable = canAfford(stats, info.id);
+  const maxed = cost === null;
+  const name = forgeText(t, info.id, "name");
+  const description = forgeText(t, info.id, "desc");
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!justBought) return;
+    Animated.sequence([
+      Animated.timing(scale, { toValue: 1.04, duration: 110, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, friction: 4, useNativeDriver: true }),
+    ]).start();
+  }, [justBought, scale]);
+
+  const progress = cost ? Math.min(1, stats.embers / cost) : 1;
+
+  return (
+    <Animated.View
+      style={[
+        styles.card,
+        columns > 1 && { flex: 1 },
+        affordable && styles.cardAffordable,
+        maxed && styles.cardMaxed,
+        { transform: [{ scale }] },
+      ]}
+    >
+      <View style={styles.cardTop}>
+        <View style={[styles.badge, maxed && styles.badgeMaxed]}>
+          <Text style={styles.badgeIcon}>{info.icon}</Text>
+        </View>
+        <View style={styles.cardText}>
+          <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            {name}
+          </Text>
+          <Text style={styles.desc} maxFontSizeMultiplier={1.2}>
+            {description}
+          </Text>
+          <View style={styles.pips} accessible accessibilityLabel={t("forge.level", { level, max })}>
+            {Array.from({ length: max }, (_, i) => (
+              <View key={i} style={[styles.pip, i < level && styles.pipOn]} />
+            ))}
+          </View>
+        </View>
+      </View>
+
+      {maxed ? (
+        <View style={[styles.cta, styles.ctaMaxed]} accessible accessibilityLabel={t("forge.maxed")}>
+          <Ionicons name="checkmark-circle" size={18} color="#FFD54F" />
+          <Text style={styles.ctaMaxedText} maxFontSizeMultiplier={1.2}>
+            {t("forge.maxed").toLocaleUpperCase()}
+          </Text>
+        </View>
+      ) : affordable ? (
+        <TouchableOpacity
+          style={[styles.cta, styles.ctaBuy]}
+          onPress={() => onBuy(info.id)}
+          disabled={busy}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={`${name}. ${t("forge.buy", { cost: cost as number })}`}
+        >
+          <Text style={styles.ctaBuyText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            🔥 {cost}   {t("forge.buyShort").toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={[styles.cta, styles.ctaLocked]} accessible accessibilityLabel={t("forge.needs", { cost: cost as number })}>
+          <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
+          <Text style={styles.ctaLockedText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            🔥 {stats.embers} / {cost}
+          </Text>
+        </View>
+      )}
+    </Animated.View>
+  );
+});
 
 const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const { t, plural } = useT();
   const { width } = useWindowDimensions();
-  const { fontSize, spacing, insets } = useGameLayout();
+  const { insets } = useGameLayout();
   const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [bought, setBought] = useState<UpgradeId | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -39,54 +151,47 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
     }, []),
   );
 
-  const buy = async (id: UpgradeId) => {
-    if (busy) return;
-    setBusy(true);
-    setError(false);
-    try {
-      const next = await buyUpgrade(id);
-      if (next) {
-        setStats(next);
-        emitSound("RELIC_PICKED");
-        haptic.notify(NotificationFeedbackType.Success);
+  const buy = useCallback(
+    async (id: UpgradeId) => {
+      if (busy) return;
+      setBusy(true);
+      setError(false);
+      try {
+        const next = await buyUpgrade(id);
+        if (next) {
+          setStats(next);
+          setBought(id);
+          emitSound("RELIC_PICKED");
+          haptic.notify(NotificationFeedbackType.Success);
+          setTimeout(() => setBought(current => (current === id ? null : current)), 600);
+        }
+      } catch {
+        setError(true);
+      } finally {
+        setBusy(false);
       }
-    } catch {
-      setError(true);
-    } finally {
-      setBusy(false);
-    }
-  };
+    },
+    [busy],
+  );
 
-  const cardWidth = Math.min(width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16, 900);
-  const columns = cardWidth >= 560 ? 2 : 1;
+  const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
+  const cardWidth = Math.min(usable, 1100);
+  const columns = cardWidth >= 900 ? 3 : cardWidth >= 560 ? 2 : 1;
+
+  // What to save up for: the cheapest upgrade that is not bought yet and not affordable.
+  const goal = UPGRADES.filter(u => nextCost(stats, u.id) !== null && !canAfford(stats, u.id)).sort(
+    (a, b) => (nextCost(stats, a.id) as number) - (nextCost(stats, b.id) as number),
+  )[0];
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
-        <View style={[styles.header, { paddingVertical: spacing(12) }]}>
-          <TouchableOpacity
-            style={[styles.backButton, { left: Math.max(insets.left, 12) }]}
-            onPress={() => navigation.goBack()}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t("a11y.back")}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={{ alignItems: "center" }}>
-            <Text style={[styles.title, { fontSize: fontSize(26) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-              {t("forge.title").toLocaleUpperCase()}
-            </Text>
-            <Text style={styles.balance} maxFontSizeMultiplier={1.3} accessibilityLiveRegion="polite">
-              🔥 {plural("forge.balance", stats.embers)}
-            </Text>
-            {error && (
-              <Text style={styles.error} accessibilityLiveRegion="assertive" maxFontSizeMultiplier={1.3}>
-                {t("forge.error")}
-              </Text>
-            )}
-          </View>
-        </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
+        <ScreenHeader
+          title={t("forge.title")}
+          subtitle={t("forge.hint")}
+          onBack={() => navigation.goBack()}
+          right={<Balance value={stats.embers} label={plural("forge.balance", stats.embers)} />}
+        />
 
         <FlatList
           key={columns}
@@ -97,57 +202,24 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={{ padding: 8, paddingBottom: 24 + insets.bottom, gap: 10 }}
           columnWrapperStyle={columns > 1 ? { gap: 10 } : undefined}
           ListHeaderComponent={
-            <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
-              {t("forge.hint")}
-            </Text>
+            error ? (
+              <Text style={styles.error} accessibilityLiveRegion="assertive">
+                {t("forge.error")}
+              </Text>
+            ) : goal ? (
+              <Text style={styles.goal} maxFontSizeMultiplier={1.2}>
+                {t("forge.goal", { name: forgeText(t, goal.id, "name"), missing: (nextCost(stats, goal.id) as number) - stats.embers })}
+              </Text>
+            ) : null
           }
           ListFooterComponent={
-            <Text style={[styles.hint, { marginTop: 6 }]} maxFontSizeMultiplier={1.3}>
+            <Text style={styles.footer} maxFontSizeMultiplier={1.2}>
               {t("forge.dailyNote")}
             </Text>
           }
-          renderItem={({ item }) => {
-            const level = levelOf(stats, item.id);
-            const max = maxLevel(item.id);
-            const cost = nextCost(stats, item.id);
-            const affordable = canAfford(stats, item.id);
-            const name = forgeText(t, item.id, "name");
-            const description = forgeText(t, item.id, "desc");
-            return (
-              <View style={[styles.card, columns > 1 && { flex: 1 }]}>
-                <Text style={styles.icon}>{item.icon}</Text>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={styles.name} maxFontSizeMultiplier={1.3}>
-                    {name}
-                  </Text>
-                  <Text style={styles.desc} maxFontSizeMultiplier={1.3}>
-                    {description}
-                  </Text>
-                  <View style={styles.pips} accessible accessibilityLabel={t("forge.level", { level, max })}>
-                    {Array.from({ length: max }, (_, i) => (
-                      <View key={i} style={[styles.pip, i < level && styles.pipOn]} />
-                    ))}
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.buyButton, (!affordable || cost === null) && styles.buyDisabled]}
-                    onPress={() => buy(item.id)}
-                    disabled={!affordable || cost === null || busy}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${name}. ${cost === null ? t("forge.maxed") : t("forge.buy", { cost })}`}
-                    accessibilityState={{ disabled: !affordable || cost === null }}
-                  >
-                    <Text style={styles.buyText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-                      {cost === null
-                        ? t("forge.maxed").toLocaleUpperCase()
-                        : affordable
-                        ? t("forge.buy", { cost }).toLocaleUpperCase()
-                        : t("forge.needs", { cost }).toLocaleUpperCase()}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <UpgradeCard info={item} stats={stats} columns={columns} busy={busy} justBought={bought === item.id} onBuy={buy} />
+          )}
         />
       </SafeAreaView>
     </ImageBackground>
@@ -156,52 +228,67 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  header: {
+  balance: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    borderBottomWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-  backButton: {
-    position: "absolute",
-    width: MIN_TOUCH,
-    height: MIN_TOUCH,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: MIN_TOUCH / 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: { color: "#fff", fontWeight: "900", letterSpacing: 4, textAlign: "center" },
-  balance: { color: "#FFAB40", fontWeight: "900", fontSize: 14, marginTop: 2 },
-  error: { color: "#FF5252", fontWeight: "800", fontSize: 12, marginTop: 2 },
-  hint: { color: "#bdbdbd", fontSize: 12, textAlign: "center", marginBottom: 4 },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "rgba(255, 171, 64, 0.35)",
-    backgroundColor: "rgba(255, 171, 64, 0.07)",
-    padding: 12,
-  },
-  icon: { fontSize: 32, width: 42, textAlign: "center" },
-  name: { color: "#fff", fontWeight: "900", fontSize: 15 },
-  desc: { color: "#cfcfcf", fontSize: 13 },
-  pips: { flexDirection: "row", gap: 6, marginVertical: 6 },
-  pip: { width: 18, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.15)" },
-  pipOn: { backgroundColor: "#FFAB40" },
-  buyButton: {
-    minHeight: MIN_TOUCH,
-    borderRadius: 12,
-    backgroundColor: "#FFAB40",
-    alignItems: "center",
-    justifyContent: "center",
+    gap: 6,
     paddingHorizontal: 12,
+    height: MIN_TOUCH,
+    borderRadius: MIN_TOUCH / 2,
+    backgroundColor: "rgba(255,171,64,0.16)",
+    borderWidth: 1.5,
+    borderColor: "rgba(255,171,64,0.7)",
   },
-  buyDisabled: { backgroundColor: "rgba(255,255,255,0.12)" },
-  buyText: { color: "#000", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
+  balanceFlame: { fontSize: 20 },
+  balanceValue: { color: EMBER, fontSize: 20, fontWeight: "900" },
+  goal: { color: "#c9c3e6", fontSize: 13, fontWeight: "700", textAlign: "center", marginBottom: 2 },
+  error: { color: "#FF5252", fontWeight: "800", textAlign: "center", marginBottom: 2 },
+  footer: { color: "#8f8aa8", fontSize: 12, textAlign: "center", marginTop: 6 },
+  card: {
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.12)",
+    backgroundColor: "rgba(20, 15, 40, 0.88)",
+    padding: 12,
+    gap: 10,
+  },
+  cardAffordable: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.1)" },
+  cardMaxed: { borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.07)" },
+  cardTop: { flexDirection: "row", gap: 12, alignItems: "center" },
+  badge: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,171,64,0.14)",
+    borderWidth: 2,
+    borderColor: "rgba(255,171,64,0.55)",
+  },
+  badgeMaxed: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.16)" },
+  badgeIcon: { fontSize: 32 },
+  cardText: { flex: 1, gap: 3 },
+  name: { color: "#fff", fontWeight: "900", fontSize: 17 },
+  desc: { color: "#cfc9e8", fontSize: 13 },
+  pips: { flexDirection: "row", gap: 6, marginTop: 3 },
+  pip: { width: 22, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.16)" },
+  pipOn: { backgroundColor: EMBER },
+  cta: {
+    minHeight: MIN_TOUCH,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 8,
+    overflow: "hidden",
+  },
+  ctaBuy: { backgroundColor: EMBER, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
+  ctaBuyText: { color: "#1a0f00", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
+  ctaLocked: { backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" },
+  fill: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: "rgba(255,171,64,0.28)" },
+  ctaLockedText: { color: "#d8d2f0", fontWeight: "800", fontSize: 14 },
+  ctaMaxed: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.5)" },
+  ctaMaxedText: { color: "#FFD54F", fontWeight: "900", letterSpacing: 2, fontSize: 13 },
 });
 
 export default ForgeScreen;

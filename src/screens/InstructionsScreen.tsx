@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
+import ScreenHeader from "../ui/components/ScreenHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 
@@ -52,6 +53,17 @@ const SECTIONS: Section[] = [
       { key: "manual.mission.heroes" },
       { key: "manual.mission.depth", badgeColor: "#ff7043" },
       { key: "manual.mission.survival" },
+    ],
+  },
+  {
+    id: "controls",
+    color: "#ffd54f",
+    icon: "🎮",
+    rows: [
+      { key: "manual.controls.move" },
+      { key: "manual.controls.attack" },
+      { key: "manual.controls.travel" },
+      { key: "manual.controls.flag" },
     ],
   },
   {
@@ -126,14 +138,25 @@ const SectionHeader = ({
   image,
   color,
   size,
+  open,
+  onToggle,
 }: {
   title: string;
   icon?: string;
   image?: ImageSourcePropType;
   color: string;
   size: number;
+  open: boolean;
+  onToggle: () => void;
 }) => (
-  <View style={styles.sectionHeader}>
+  <TouchableOpacity
+    style={styles.sectionHeader}
+    onPress={onToggle}
+    activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityState={{ expanded: open }}
+    accessibilityLabel={title}
+  >
     <View style={[styles.iconContainer, { backgroundColor: color + "22" }]}>
       {image ? (
         <SpriteImage source={image} style={styles.sectionImage} resizeMode="contain" accessibilityIgnoresInvertColors />
@@ -141,16 +164,19 @@ const SectionHeader = ({
         <Text style={styles.sectionIcon}>{icon}</Text>
       )}
     </View>
-    <Text
-      style={[styles.sectionTitle, { fontSize: size, color }]}
-      accessibilityRole="header"
-      maxFontSizeMultiplier={1.3}
-      numberOfLines={2}
-    >
+    <Text style={[styles.sectionTitle, { fontSize: size, color }]} maxFontSizeMultiplier={1.3} numberOfLines={2}>
       {title.toLocaleUpperCase()}
     </Text>
-  </View>
+    <Ionicons name={open ? "chevron-up" : "chevron-down"} size={22} color={color} />
+  </TouchableOpacity>
 );
+
+const QUICK_STEPS: { image?: ImageSourcePropType; icon?: React.ComponentProps<typeof Ionicons>["name"]; tint?: string }[] = [
+  { image: require("../assets/sprites/tiles/Tile_Hidden.png") },
+  { icon: "volume-high", tint: "#ffcc80" },
+  { image: require("../assets/sprites/items/Icon_Gem.png") },
+  { image: require("../assets/sprites/enemies/Wumpus_Boss.png") },
+];
 
 const InstructionRow = ({
   label,
@@ -188,6 +214,8 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const { spacing, fontSize, insets } = useGameLayout();
+  const [open, setOpen] = useState<Record<string, boolean>>({ mission: true, controls: true });
+  const toggle = (id: string) => setOpen(prev => ({ ...prev, [id]: !prev[id] }));
 
   const cardWidth = Math.min(width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16, 1000);
   const body = Math.max(13, Math.min(fontSize(15), 17));
@@ -235,36 +263,62 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
         <View style={{ flex: 1, alignItems: "center" }}>
-          <View style={[styles.header, { paddingVertical: spacing(12) }]}>
-            <TouchableOpacity
-              style={[styles.backButton, { left: Math.max(insets.left, 12) }]}
-              onPress={() => navigation.goBack()}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel={t("a11y.back")}
-            >
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-            <Text style={[styles.title, { fontSize: fontSize(26) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-              {t("manual.title").toLocaleUpperCase()}
-            </Text>
-          </View>
+          <ScreenHeader title={t("manual.title")} onBack={() => navigation.goBack()} />
 
           <View style={[styles.mainCard, { width: cardWidth }]}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 18, paddingBottom: spacing(50) + insets.bottom }}>
+              <Text style={[styles.quickTitle, { fontSize: sectionSize }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+                {t("manual.quick.title").toLocaleUpperCase()}
+              </Text>
+              <View style={styles.quickRow}>
+                {QUICK_STEPS.map((step, i) => (
+                  <View key={i} style={styles.quickStep} accessible accessibilityLabel={`${i + 1}. ${t(asKey(`manual.quick.${i + 1}`))}`}>
+                    <View style={styles.quickBadge}>
+                      <Text style={styles.quickNumber}>{i + 1}</Text>
+                    </View>
+                    <View style={styles.quickArt}>
+                      {step.image ? (
+                        <SpriteImage source={step.image} style={styles.quickImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+                      ) : (
+                        <View style={[styles.quickIcon, { backgroundColor: step.tint }]}>
+                          <Ionicons name={step.icon!} size={24} color="#bf360c" />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={[styles.quickText, { fontSize: Math.max(12, body - 2) }]} maxFontSizeMultiplier={1.2}>
+                      {t(asKey(`manual.quick.${i + 1}`))}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={styles.tutorialButton}
+                onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0, replay: true })}
+                accessibilityRole="button"
+                accessibilityLabel={t("manual.replayTutorial")}
+              >
+                <Ionicons name="school-outline" size={20} color="#000" />
+                <Text style={styles.tutorialText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+                  {t("manual.replayTutorial").toLocaleUpperCase()}
+                </Text>
+              </TouchableOpacity>
+              <View style={styles.separator} />
+
               {SECTIONS.map((section, sectionIndex) => (
                 <View key={section.id}>
                   {sectionIndex > 0 && <View style={styles.separator} />}
                   <SectionHeader
-                    title={t(asKey(`manual.${section.id === "hazards" ? "hazards" : section.id}.title`))}
+                    open={!!open[section.id]}
+                    onToggle={() => toggle(section.id)}
+                    title={t(asKey(`manual.${section.id}.title`))}
                     icon={section.icon}
                     image={section.image}
                     color={section.color}
                     size={sectionSize}
                   />
-                  {section.visual === "tiles" && tiles}
-                  {section.visual === "hazards" && hazards}
-                  {section.rows.map(row => {
+                  {open[section.id] && section.visual === "tiles" && tiles}
+                  {open[section.id] && section.visual === "hazards" && hazards}
+                  {open[section.id] && section.rows.map(row => {
                     const badgeKey = asKey(`${row.key}.badge`);
                     const hasBadge = Boolean(t(badgeKey, PARAMS) !== badgeKey);
                     return (
@@ -278,7 +332,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                       />
                     );
                   })}
-                  {section.id === "hazards" && (
+                  {open[section.id] && section.id === "hazards" && (
                     <Text style={[styles.note, { fontSize: body - 1 }]} maxFontSizeMultiplier={1.3}>
                       {t("manual.hazards.note")}
                     </Text>
@@ -287,7 +341,8 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
               ))}
 
               <View style={styles.separator} />
-              <SectionHeader title={t("manual.tips.title")} icon="💡" color="#4db6ac" size={sectionSize} />
+              <SectionHeader title={t("manual.tips.title")} icon="💡" color="#4db6ac" size={sectionSize} open={!!open.tips} onToggle={() => toggle("tips")} />
+              {open.tips && (
               <View style={styles.tipBox}>
                 {TIPS.map(tip => (
                   <Text key={tip} style={[styles.tipText, { fontSize: body }]} maxFontSizeMultiplier={1.3}>
@@ -296,18 +351,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                   </Text>
                 ))}
               </View>
-
-              <TouchableOpacity
-                style={styles.tutorialButton}
-                onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0, replay: true })}
-                accessibilityRole="button"
-                accessibilityLabel={t("manual.replayTutorial")}
-              >
-                <Ionicons name="school-outline" size={20} color="#000" />
-                <Text style={styles.tutorialText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-                  {t("manual.replayTutorial").toLocaleUpperCase()}
-                </Text>
-              </TouchableOpacity>
+              )}
 
               <SpriteImage source={characters[1].winImage} style={styles.footerImage} resizeMode="contain" accessibilityIgnoresInvertColors />
             </ScrollView>
@@ -348,7 +392,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     overflow: "hidden",
   },
-  sectionHeader: { flexDirection: "row", alignItems: "center", marginBottom: 16, gap: 14 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12, gap: 14, minHeight: MIN_TOUCH + 10 },
   iconContainer: { width: 56, height: 56, borderRadius: 16, justifyContent: "center", alignItems: "center" },
   sectionImage: { width: 42, height: 42 },
   sectionIcon: { fontSize: 26 },
@@ -404,8 +448,17 @@ const styles = StyleSheet.create({
   valueBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, maxWidth: 110, alignSelf: "flex-start" },
   valueText: { color: "#000", fontWeight: "900", fontSize: 11, textAlign: "center" },
   separator: { height: 1, backgroundColor: "rgba(255, 255, 255, 0.05)", marginVertical: 22 },
+  quickTitle: { color: "#FFD54F", fontWeight: "900", letterSpacing: 1.5, marginBottom: 12 },
+  quickRow: { flexDirection: "row", gap: 8 },
+  quickStep: { flex: 1, alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  quickBadge: { position: "absolute", top: 6, left: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: "#FFD54F", alignItems: "center", justifyContent: "center" },
+  quickNumber: { color: "#1a1030", fontWeight: "900", fontSize: 12 },
+  quickArt: { height: 64, alignItems: "center", justifyContent: "center" },
+  quickImage: { width: 60, height: 60 },
+  quickIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#ef6c00" },
+  quickText: { color: "#e4e0f4", textAlign: "center", fontWeight: "700" },
   tutorialButton: {
-    marginTop: 22,
+    marginTop: 14,
     minHeight: MIN_TOUCH,
     flexDirection: "row",
     alignItems: "center",
