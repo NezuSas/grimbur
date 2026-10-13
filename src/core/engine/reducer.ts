@@ -271,16 +271,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newLastPickup: PickupKind | null = null;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
+      let absorbedThisMove = false;
       const absorbHit = (): boolean => {
-        if (newShield) {
-          newShield = false;
-          return true;
-        }
-        if (relicCount(newRelics, 'phoenix') > 0) {
-          newRelics = removeRelic(newRelics, 'phoenix');
-          return true;
-        }
-        return false;
+        const absorbed = tryAbsorb(newShield, newRelics);
+        if (!absorbed.ok) return false;
+        newShield = absorbed.shield;
+        newRelics = absorbed.relics;
+        absorbedThisMove = true;
+        return true;
       };
 
       const consumeEntity = () => {
@@ -360,9 +358,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           break;
       }
 
-      // The Wumpus hunts: every Nth move it steps toward the player.
+      // Taking the last gem clears the floor before anything can strike, and a hit that was just soaked
+      // by a shield (or feather) stuns the hunters for this action, so one move never costs two protections.
       const newTurn = state.turn + 1;
-      if (!newIsGameOver) {
+      const floorCleared = newCoins === 0 && !newIsGameOver && !hasBoss(world);
+      if (!newIsGameOver && !floorCleared && !absorbedThisMove) {
         const acted = huntersAct(world, nextIndex, rows, cols, newTurn, has('frost'));
         world = acted.world;
         for (const hitter of acted.hits) {
@@ -375,7 +375,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       let newIsLevelUp: boolean = state.isLevelUp;
-      if (newCoins === 0 && !newIsGameOver && !hasBoss(world)) {
+      if (floorCleared && !newIsGameOver) {
         newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * has('greed')));
         newIsLevelUp = true;
       }
