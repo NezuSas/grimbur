@@ -19,6 +19,7 @@ export interface AnalyticsEvents {
   high_score_submitted: { level: number; score: number };
   screen_view: { screen: string };
   daily_shared: { score: number };
+  run_shared: { score: number };
   relic_picked: { relic: string; floor: number };
   expedition_won: { score: number; time: number; character: number; mode: string };
 }
