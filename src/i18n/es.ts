@@ -99,6 +99,27 @@ export const es: Record<TranslationKey, string> = {
   'ach.hero_variety.name': 'Todos los héroes',
   'ach.hero_variety.desc': 'Juega con cada héroe.',
 
+  'ascension.title': 'Profundidad',
+  'ascension.name': 'Profundidad {n}',
+  'ascension.0': 'Reglas normales.',
+  'ascension.1': 'Una flecha menos en cada piso.',
+  'ascension.2': 'Acechadores ya desde el piso 5.',
+  'ascension.3': 'El Wumpus tiene un corazón más.',
+  'ascension.4': 'Las trampas duelen el doble y cada piso tiene una más.',
+  'ascension.5': 'Las reliquias ofrecen solo 2 opciones.',
+  'ascension.hint': 'Gana una expedición para desbloquear la siguiente profundidad.',
+  'over.depth': 'Profundidad {n}',
+  'a11y.depthLower': 'Bajar la profundidad',
+  'a11y.depthRaise': 'Subir la profundidad',
+  'ach.ascended.name': 'En el fuego',
+  'ach.ascended.desc': 'Gana una expedición en la profundidad {depth} o más.',
+  'ach.abyssal.name': 'Abismal',
+  'ach.abyssal.desc': 'Gana una expedición en la profundidad {depth}.',
+  'manual.mission.depth.label': 'Profundidad',
+  'manual.mission.depth.detail':
+    'Cuando ganas, se desbloquean profundidades más difíciles una a una. Cada una conserva todas las penalizaciones anteriores, así que la {maxDepth} las acumula todas. Se elige en la pantalla de héroes.',
+  'manual.mission.depth.badge': 'Prof. 1-{maxDepth}',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Ajustes',
   'settings.sound': 'Sonido',

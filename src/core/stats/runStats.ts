@@ -1,4 +1,5 @@
 import { previousDayKey } from '../engine/seed';
+import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 
 export interface DailyProgress {
   /** UTC day (`YYYY-MM-DD`) this progress belongs to. */
@@ -16,6 +17,8 @@ export interface LocalStats {
   victories: number;
   /** Gems collected over all runs. */
   totalGems: number;
+  /** Highest depth (ascension) the player may choose; 0 until the first victory. */
+  maxAscension: number;
   /** Hero indices the player has played with. */
   heroesUsed: number[];
   /** Unlocked achievements: id -> UTC day (`YYYY-MM-DD`) it was earned. */
@@ -40,6 +43,8 @@ export interface RunResult {
   time?: number;
   /** Hero played. */
   heroIndex?: number;
+  /** Depth (ascension) the run was played at. */
+  ascension?: number;
 }
 
 export const EMPTY_STATS: LocalStats = {
@@ -48,6 +53,7 @@ export const EMPTY_STATS: LocalStats = {
   gamesPlayed: 0,
   victories: 0,
   totalGems: 0,
+  maxAscension: 0,
   heroesUsed: [],
   achievements: {},
   daily: null,
@@ -64,12 +70,19 @@ function accumulate(stats: LocalStats, run: RunResult) {
   return { totalGems: stats.totalGems + (run.gems ?? 0), heroesUsed };
 }
 
+/** Winning at a depth unlocks the next one (never lowers what was already unlocked). */
+function unlockedDepth(stats: LocalStats, run: RunResult): number {
+  if (!run.victory) return stats.maxAscension;
+  return Math.max(stats.maxAscension, Math.min(MAX_ASCENSION, clampAscension(run.ascension ?? 0) + 1));
+}
+
 /** Folds a finished expedition run into the stored stats. Pure, so it is easy to test. */
 export function mergeRun(stats: LocalStats, run: RunResult) {
   const isNewBestScore = run.score > stats.bestScore;
   const next: LocalStats = {
     ...stats,
     ...accumulate(stats, run),
+    maxAscension: unlockedDepth(stats, run),
     bestScore: Math.max(stats.bestScore, run.score),
     bestLevel: Math.max(stats.bestLevel, run.level),
     gamesPlayed: stats.gamesPlayed + 1,
@@ -149,6 +162,7 @@ export function parseStats(raw: string | null): LocalStats {
       gamesPlayed: num(data.gamesPlayed),
       victories: num(data.victories),
       totalGems: num(data.totalGems),
+      maxAscension: Math.min(MAX_ASCENSION, Math.trunc(num(data.maxAscension))),
       heroesUsed: Array.isArray(data.heroesUsed)
         ? [...new Set<number>(data.heroesUsed.filter((v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < 16))].sort((a, b) => a - b)
         : [],

@@ -23,6 +23,8 @@ type Props = {
   isNewBest?: boolean;
   /** Set for daily-challenge runs: the UTC day being played. */
   dailyLabel?: string;
+  /** Depth (ascension) of the run; shown when above 0. */
+  depth?: number;
   streak?: number;
   /** Hero indices unlocked by this run. */
   unlockedHeroes?: number[];
@@ -45,6 +47,7 @@ const GameOverOverlay = ({
   bestScore,
   isNewBest,
   dailyLabel,
+  depth = 0,
   streak,
   unlockedHeroes,
   achievements,
@@ -105,6 +108,11 @@ const GameOverOverlay = ({
       {causeText && (
         <Text style={styles.cause} maxFontSizeMultiplier={1.3}>
           {causeText}
+        </Text>
+      )}
+      {depth > 0 && (
+        <Text style={styles.depth} maxFontSizeMultiplier={1.3}>
+          🔥 {t('over.depth', { n: depth }).toLocaleUpperCase()}
         </Text>
       )}
       {dailyLabel && (
@@ -244,6 +252,7 @@ const styles = StyleSheet.create({
   bodyColumn: { gap: 10, flex: 1.2, width: '100%' },
   title: { fontSize: 20, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
   cause: { color: '#bdbdbd', fontSize: 12, textAlign: 'center' },
+  depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
   best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },

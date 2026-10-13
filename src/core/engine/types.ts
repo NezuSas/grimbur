@@ -51,6 +51,8 @@ export interface GameState {
   /** Seed of the whole run; each level derives its own seed from it. */
   runSeed: number;
   mode: GameMode;
+  /** Depth of the run (0 = normal); see core/engine/ascension.ts. */
+  ascension: number;
   totalCoins: number;
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
@@ -85,6 +87,7 @@ export type GameAction =
       mode?: GameMode;
       runSeed?: number;
       perks?: HeroPerks;
+      ascension?: number;
     }
   | {
       type: 'LEVEL_UP';
@@ -103,7 +106,7 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: () => void;
-  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number }) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number }) => void;
   levelUp: () => void;
   pickRelic: (id: RelicId) => void;
 }

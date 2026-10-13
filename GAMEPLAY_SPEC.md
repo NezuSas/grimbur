@@ -122,3 +122,16 @@ From floor 7 one guardian per floor is a **stalker** (two from floor 11 in endle
 
 Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. The balance simulation shows the deduction bot clearing about 65% of floors 7-9 (about 87-95% on floors 5-6 where there are none).
 
+## 15. Depth (ascension)
+After winning an expedition the next **depth** unlocks (1 to 5). On the hero screen the player picks any unlocked depth (it defaults to the deepest). Each depth keeps the earlier penalties:
+
+| Depth | Extra rule |
+| :--- | :--- |
+| 1 | One arrow fewer on every floor (never below 1) |
+| 2 | A stalker already appears from floor 5 |
+| 3 | The Wumpus has one more heart |
+| 4 | Traps hurt twice as much and every floor from 3 has one more |
+| 5 | Relic drafts offer only 2 choices |
+
+The Daily Challenge is always depth 0 so every player sees the same cave. Two achievements reward winning on depth 3+ and on depth 5. `scripts/simulate.ts [runs] [first] [last] [depth]` measures the effect on survival.
+
