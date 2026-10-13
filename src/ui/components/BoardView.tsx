@@ -72,6 +72,17 @@ const GridCell = memo(({
   // The hint badge breathes between 85% and 100%: it must stay visible at every moment.
   const hintScale = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] });
 
+  // A tile "pops" when it is uncovered (not when the floor first draws): quick, native-driven, and a no-op on mount.
+  const revealScale = useRef(new Animated.Value(1)).current;
+  const wasVisited = useRef(isVisited);
+  useEffect(() => {
+    if (isVisited && !wasVisited.current) {
+      revealScale.setValue(0.82);
+      Animated.spring(revealScale, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
+    }
+    wasVisited.current = isVisited;
+  }, [isVisited]);
+
   // Background priority: visited block > fog
   let backgroundAsset = (isVisited || isPlayerHere) ? ASSETS.block : ASSETS.blockFog;
 
@@ -105,7 +116,11 @@ const GridCell = memo(({
       ]}
     >
       {/* Base tile */}
-      <Image style={{ width: tileSize, height: tileSize }} source={backgroundAsset} resizeMode="contain" />
+      <Animated.Image
+        style={{ width: tileSize, height: tileSize, transform: [{ scale: revealScale }] }}
+        source={backgroundAsset}
+        resizeMode="contain"
+      />
 
       {/* Danger pulse tint */}
       {showHints && !isPlayerHere && (
