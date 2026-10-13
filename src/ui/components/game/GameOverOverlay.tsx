@@ -19,6 +19,8 @@ type Props = {
   level: number;
   /** Floors of the expedition (the progress bar shows how far the run got). */
   floors?: number;
+  /** The endless descent: no ten-floor bar, and the record is a floor, not a score. */
+  endless?: boolean;
   totalCoins: number;
   time: number;
   character: Character;
@@ -77,6 +79,7 @@ const GameOverOverlay = ({
   score,
   level,
   floors = 10,
+  endless = false,
   totalCoins,
   time,
   character,
@@ -130,7 +133,7 @@ const GameOverOverlay = ({
 
   const title = victory ? t('over.victory') : t('over.fell', { floor: level });
   const nearGems = !victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2;
-  const nearBest = !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
+  const nearBest = !endless && !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
   const stats = [
     { icon: 'diamond' as const, label: t('over.gems'), value: String(totalCoins), color: '#4FC3F7' },
@@ -168,11 +171,13 @@ const GameOverOverlay = ({
       </Text>
 
       {/* How far the run got: one pip per floor */}
+      {!endless && (
       <View style={styles.pips} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
         {Array.from({ length: floors }, (_, i) => (
           <View key={i} style={[styles.pip, i < level && { backgroundColor: accent }, i === level - 1 && !victory && styles.pipLast]} />
         ))}
       </View>
+      )}
 
       <View style={styles.scoreRow} accessible accessibilityLabel={`${t('over.score')}: ${score}`}>
         <Text style={styles.scoreLabel} maxFontSizeMultiplier={1.2}>{t('over.score').toLocaleUpperCase()}</Text>
@@ -181,11 +186,16 @@ const GameOverOverlay = ({
         </Text>
         {isNewBest ? (
           <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
-            🏅 {(dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
+            🏅 {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
           </Text>
         ) : bestScore ? (
           <Text style={styles.best} maxFontSizeMultiplier={1.2}>
-            {(dailyLabel ? t('over.bestToday', { score: bestScore.toLocaleString() }) : t('over.best', { score: bestScore.toLocaleString() })).toLocaleUpperCase()}
+            {(endless
+              ? t('over.bestFloor', { floor: bestScore })
+              : dailyLabel
+              ? t('over.bestToday', { score: bestScore.toLocaleString() })
+              : t('over.best', { score: bestScore.toLocaleString() })
+            ).toLocaleUpperCase()}
           </Text>
         ) : null}
       </View>

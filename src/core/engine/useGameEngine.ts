@@ -7,6 +7,7 @@ import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
 import { omenFor } from './omens';
+import { isLairFloor, lairHeartBonus } from './lair';
 import { getHeroPerks } from './heroes';
 import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
 import { RelicId } from './relics';
@@ -138,8 +139,7 @@ export function useGameEngine(): GameEngineInterface {
   }, [pureDispatch]);
 
   /** The final floor of an expedition (and of a daily) is the Wumpus' lair. */
-  const isBossFloor = (mode: GameMode, level: number) =>
-    mode !== 'endless' && level === GAME_CONFIG.expedition.floors;
+  const isBossFloor = isLairFloor;
 
   const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects } = {}) => {
     const mode = options.mode ?? 'expedition';
@@ -150,7 +150,7 @@ export function useGameEngine(): GameEngineInterface {
     const perks = applyMeta(getHeroPerks(options.heroIndex ?? 0), meta);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1) });
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), endless: mode === 'endless' });
 
     pureDispatch({
       type: 'RESET',
@@ -178,7 +178,9 @@ export function useGameEngine(): GameEngineInterface {
     const board = generateBoard(nextLevel, seed, {
       boss: isBossFloor(stateRef.current.mode, nextLevel),
       ascension,
-      omen: omenFor(stateRef.current.runSeed, nextLevel),
+      omen: omenFor(stateRef.current.runSeed, nextLevel, stateRef.current.mode),
+      bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),
+      endless: stateRef.current.mode === 'endless',
     });
 
     pureDispatch({

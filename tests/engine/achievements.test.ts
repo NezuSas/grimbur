@@ -19,10 +19,12 @@ describe('achievements', () => {
   });
 
   it('awards depth achievements from the best floor reached', () => {
-    expect(unlockedBy({ score: 10, level: 1 })).toEqual([]);
-    expect(unlockedBy({ score: 10, level: 2 })).toEqual(['first_descent']);
-    expect(unlockedBy({ score: 10, level: 5 })).toEqual(['first_descent', 'halfway']);
-    expect(unlockedBy({ score: 10, level: 9 })).toEqual(['first_descent', 'halfway', 'deep_diver']);
+    expect(unlockedBy({ score: 10, level: 1 })).toEqual(['first_steps']);
+    const depth = (level: number) => unlockedBy({ score: 10, level }).filter(id => ['first_descent', 'cave_dweller', 'halfway', 'deep_diver', 'edge_of_lair'].includes(id));
+    expect(depth(2)).toEqual(['first_descent']);
+    expect(depth(5)).toEqual(['first_descent', 'cave_dweller', 'halfway']);
+    expect(depth(9)).toEqual(['first_descent', 'cave_dweller', 'halfway', 'deep_diver']);
+    expect(depth(10)).toContain('edge_of_lair');
   });
 
   it('awards the Wumpus slayer and the speedrunner only for victories (speed only when fast)', () => {
@@ -72,7 +74,7 @@ describe('achievements', () => {
     const first = newAchievements(merged, run);
     const stored = withAchievements(merged, first, '2026-10-12');
 
-    expect(stored.achievements).toEqual({ first_descent: '2026-10-12' });
+    expect(stored.achievements).toEqual({ first_steps: '2026-10-12', first_descent: '2026-10-12' });
     expect(newAchievements(stored, run)).toEqual([]);
     expect(withAchievements(stored, [], '2026-10-13')).toBe(stored);
   });
@@ -87,5 +89,37 @@ describe('achievements', () => {
     expect(messy.totalGems).toBe(0);
     expect(messy.heroesUsed).toEqual([1, 2]);
     expect(messy.achievements).toEqual({ a: '2026-10-12' });
+  });
+
+  it('has far more than a dozen, spread over every tier, with matching texts in both languages', () => {
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(40);
+    for (const tier of ['easy', 'medium', 'hard', 'legend'] as const) {
+      expect(ACHIEVEMENTS.filter(a => a.tier === tier).length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('endless floors unlock their own achievements and never the expedition ones', () => {
+    const deep = { score: 99999, level: 21, victory: false, mode: 'endless' as const };
+    const got = unlockedBy(deep);
+    expect(got).toEqual(expect.arrayContaining(['beyond', 'deeper_still', 'second_lair']));
+    expect(got).not.toContain('legendary_haul');
+    expect(got).not.toContain('abyss_walker');
+    const merged = mergeRun(EMPTY_STATS, deep).stats;
+    expect(merged.bestEndlessFloor).toBe(21);
+    expect(merged.bestLevel).toBe(0); // the expedition record is untouched
+    expect(merged.bestScore).toBe(0);
+  });
+
+  it('cumulative achievements report progress that never exceeds the target', () => {
+    const stats = { ...EMPTY_STATS, totalGems: 37 };
+    const gems = ACHIEVEMENTS.find(a => a.id === 'collector')!;
+    expect(gems.progress!(stats)).toEqual({ current: 37, target: 100 });
+    expect(gems.progress!({ ...stats, totalGems: 5000 })).toEqual({ current: 100, target: 100 });
+  });
+
+  it('counts every ember ever earned, even after spending', () => {
+    const stats = mergeRun({ ...EMPTY_STATS, embers: 10, lifetimeEmbers: 10 }, { score: 500, level: 3 }).stats;
+    expect(stats.lifetimeEmbers).toBe(stats.embers); // nothing spent yet
+    expect(stats.lifetimeEmbers).toBeGreaterThan(10);
   });
 });

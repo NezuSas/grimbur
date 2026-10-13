@@ -24,8 +24,14 @@ export const unlockText = (t: T, heroIndex: number): string => {
 
 /** Localised achievement text; the description is interpolated with the real thresholds. */
 export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'): string => {
-  const params = ACHIEVEMENTS.find(a => a.id === id)?.params ?? {};
-  return t(`ach.${id}.${part}` as TranslationKey, params);
+  const info = ACHIEVEMENTS.find(a => a.id === id);
+  if (part === 'name') return t(`ach.${id}.name` as TranslationKey);
+  if (info?.desc) {
+    const params: Params = { ...(info.params ?? {}) };
+    if (info.desc === 'depthWin') params.name = t(`ascension.label.${info.params.n}` as TranslationKey);
+    return t(`ach.d.${info.desc}` as TranslationKey, params);
+  }
+  return t(`ach.${id}.desc` as TranslationKey, info?.params ?? {});
 };
 
 /** Localised Forge upgrade text. */
