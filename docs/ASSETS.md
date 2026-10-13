@@ -80,3 +80,9 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 `sprites/characters/{Hero,Attack,Icon}_{Cyan,Red,Green,Gold}.png`, `sprites/relics/*.png` (11 relic icons) and
 `sprites/tiles/Tile_Hidden.png`, `Tile_Revealed.png` were generated with ChatGPT's image tool on 2026-10-13 from the prompts in
 `docs/ART_PROMPTS.md` and processed with `scripts/processSprites.py`.
+
+### App icons, splash and cover (same tool, same date)
+
+`assets/emblem.png` (Wumpus head + gem) and `sprites/backgrounds/Cover_Background.png` were generated with ChatGPT's image tool on
+2026-10-13 (prompts in `docs/ART_PROMPTS.md` and the chat). `assets/icon.png`, `adaptive-icon.png`, `splash.png` and
+`favicon.png` are built from the emblem by `scripts/buildAppIcons.py`; this replaces the earlier icons whose source was unknown.

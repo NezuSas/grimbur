@@ -17,7 +17,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#140F2A"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.cuencaoscar.wumpusadventures",
@@ -47,8 +47,8 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash.png",
-          "resizeMode": "cover",
-          "backgroundColor": "#000000"
+          "resizeMode": "contain",
+          "backgroundColor": "#0E0B1F"
         }
       ],
       "expo-status-bar"
