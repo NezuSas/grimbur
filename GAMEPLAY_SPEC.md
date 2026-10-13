@@ -178,3 +178,10 @@ Floors are generated until a careful player can collect every gem using only the
 - **Death**: the moment the hero dies the board shakes hard and the screen flashes red (softer with *reduce flashes*), the killer stays visible on its tile, and 0.85 s later the card appears (0.7 s after a victory).
 - **Game-over card**: names what killed you (with its picture), says on which floor you fell, shows a ten-pip progress bar, the score counting up, a new-best or near-miss line, gems, time and embers earned, one tip about that killer, a large Retry button, and Menu / Forge (when embers were earned) / Share below it.
 
+## 20. Menu screens
+All menu screens share one header (`ui/components/ScreenHeader.tsx`: back button, title with a gold underline, optional right slot).
+- **Forge**: the ember balance is a pill at the top right that pops when it changes. Each upgrade is a card with a large icon, level pips and one clear state: gold *Buy* button when affordable, a progress bar (`175 / 250`) when not, *Maxed* when done. A line names the next goal and how many embers are missing.
+- **Achievements**: overall progress bar, earned ones first (newest first) with a green check and date, locked ones with a lock badge.
+- **Leaderboard**: a "your record" panel (best score, deepest floor, victories, runs, and the score the top 10 starts at) beside the list on wide screens; gold, silver and bronze for the first three rows.
+- **How to play**: a four-step picture strip, the replay-tutorial button, then collapsible sections (mission and controls open, the rest folded).
+
