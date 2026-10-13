@@ -34,7 +34,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const runs = chartRuns(stats.history);
-  const best = Math.max(1, ...runs.map(r => r.score));
+  const best = Math.max(0, ...runs.map(r => r.score));
   const trend = trendOf(runs);
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const pageWidth = Math.min(usable, 1000);
@@ -66,7 +66,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.panelTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
               {t("progress.recent").toLocaleUpperCase()}
             </Text>
-            {runs.length === 0 ? (
+            {runs.length === 0 || best <= 0 ? (
               <Text style={styles.empty} maxFontSizeMultiplier={1.2}>
                 {t("progress.recent.empty")}
               </Text>
@@ -78,7 +78,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                       <View
                         style={[
                           styles.bar,
-                          { height: Math.max(6, (r.score / best) * (CHART_HEIGHT - 8)), backgroundColor: r.victory ? GOLD : "#6C7BD9" },
+                          { height: Math.max(6, (r.score / Math.max(1, best)) * (CHART_HEIGHT - 8)), backgroundColor: r.victory ? GOLD : "#6C7BD9" },
                         ]}
                       />
                     </View>
@@ -146,9 +146,10 @@ const styles = StyleSheet.create({
   panel: { borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.85)", padding: 14, gap: 8 },
   panelTitle: { color: GOLD, fontWeight: "800", letterSpacing: 2, fontSize: 12 },
   empty: { color: "#c9c3e6", fontSize: 14, paddingVertical: 12 },
-  chart: { flexDirection: "row", alignItems: "flex-end", gap: 4, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
-  barSlot: { flex: 1, alignItems: "center", justifyContent: "flex-end", height: "100%" },
-  bar: { width: "78%", borderTopLeftRadius: 5, borderTopRightRadius: 5 },
+  // Bars keep a fixed width and sit from the left: with only one or two runs they must not stretch into blocks.
+  chart: { flexDirection: "row", alignItems: "flex-end", gap: 8, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
+  barSlot: { width: 30, alignItems: "center", justifyContent: "flex-end", height: "100%" },
+  bar: { width: 26, borderTopLeftRadius: 5, borderTopRightRadius: 5 },
   legend: { flexDirection: "row", alignItems: "center", gap: 6 },
   swatch: { width: 10, height: 10, borderRadius: 3 },
   legendText: { color: "#a8a2c4", fontSize: 11, fontWeight: "700", marginRight: 8 },
