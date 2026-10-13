@@ -74,3 +74,9 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 | `sprites/items/Icon_Shield.png` | ART_PROMPTS 1.5 | |
 | `sprites/items/Icon_Arrows.png` | ART_PROMPTS 1.6 | |
 | `sprites/tiles/Trap_Sprung.png` | ART_PROMPTS 1.7 | not shown in the game yet |
+
+### Hero sprites, relic icons and floor tiles (same tool, same date)
+
+`sprites/characters/{Hero,Attack,Icon}_{Cyan,Red,Green,Gold}.png`, `sprites/relics/*.png` (11 relic icons) and
+`sprites/tiles/Tile_Hidden.png`, `Tile_Revealed.png` were generated with ChatGPT's image tool on 2026-10-13 from the prompts in
+`docs/ART_PROMPTS.md` and processed with `scripts/processSprites.py`.

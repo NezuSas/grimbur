@@ -27,6 +27,7 @@ TILES = {
 }
 # Heroes: only processed with --characters, one hero colour per run (e.g. --characters Cyan).
 CHARACTER_SIZES = {'Hero': 384, 'Attack': 384, 'Icon': 256}
+RELICS = ['quiver', 'lucky_coin', 'iron_boots', 'lantern', 'phoenix', 'hunter', 'long_bow', 'bulwark', 'greed', 'frost', 'trap_sense']
 PADDING = 0.06  # share of the canvas left empty around the subject
 
 
@@ -59,6 +60,10 @@ def process_tile(rel: str, size: int) -> None:
 
 
 if __name__ == '__main__':
+    if '--relics' in sys.argv:
+        for rid in RELICS:
+            process(f'relics/{rid}.png', 256)
+        raise SystemExit(0)
     if '--characters' in sys.argv:
         for color in sys.argv[sys.argv.index('--characters') + 1:]:
             for kind, size in CHARACTER_SIZES.items():

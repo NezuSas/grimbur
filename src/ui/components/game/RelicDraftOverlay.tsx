@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
-import { RELICS, RelicId } from '../../../core/engine/relics';
+import { RelicId } from '../../../core/engine/relics';
+import RelicIcon from '../RelicIcon';
 import OverlayContainer from './OverlayContainer';
 import { useT } from '../../../i18n/useT';
 import { relicText } from '../../../i18n/keys';
@@ -54,7 +55,7 @@ const RelicDraftOverlay = ({ offer, floor, onPick }: Props) => {
               accessibilityRole="button"
               accessibilityLabel={`${name}. ${description}`}
             >
-              <Text style={styles.icon}>{RELICS[id].icon}</Text>
+              <RelicIcon id={id} size={64} />
               <Text style={styles.name} maxFontSizeMultiplier={1.3}>
                 {name.toLocaleUpperCase()}
               </Text>
@@ -97,7 +98,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  icon: { fontSize: 36 },
   name: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1, textAlign: 'center' },
   description: { color: '#cfcfcf', fontSize: 12, textAlign: 'center' },
   hint: { color: '#9a9a9a', fontSize: 11, marginTop: 12, letterSpacing: 1, textAlign: 'center' },
