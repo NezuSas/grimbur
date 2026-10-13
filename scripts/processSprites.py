@@ -25,6 +25,8 @@ TILES = {
     'tiles/Tile_Hidden.png': 256,
     'tiles/Tile_Revealed.png': 256,
 }
+# Heroes: only processed with --characters, one hero colour per run (e.g. --characters Cyan).
+CHARACTER_SIZES = {'Hero': 384, 'Attack': 384, 'Icon': 256}
 PADDING = 0.06  # share of the canvas left empty around the subject
 
 
@@ -57,6 +59,11 @@ def process_tile(rel: str, size: int) -> None:
 
 
 if __name__ == '__main__':
+    if '--characters' in sys.argv:
+        for color in sys.argv[sys.argv.index('--characters') + 1:]:
+            for kind, size in CHARACTER_SIZES.items():
+                process(f'characters/{kind}_{color}.png', size)
+        raise SystemExit(0)
     only_tiles = '--tiles' in sys.argv
     if not only_tiles:
         for rel, size in JOBS.items():
