@@ -1,0 +1,368 @@
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  StyleSheet,
+  View,
+  StatusBar,
+  Dimensions,
+  Animated,
+  BackHandler,
+  ImageBackground,
+} from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/types";
+import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import ScoreBar from "../ui/components/ScoreBar";
+import BoardView from "../ui/components/BoardView";
+import Controls from "../ui/components/DirectionPad";
+import CoinFlight from "../ui/components/game/CoinFlight";
+import DangerVignette from "../ui/components/game/DangerVignette";
+import GameOverOverlay from "../ui/components/game/GameOverOverlay";
+import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
+import ScorePopup from "../ui/components/game/ScorePopup";
+import { useSettingsStore } from "../state/settings/store";
+import { emitSound } from "../audio/audioEventBus";
+import { useGameEngine } from "../core/engine/useGameEngine";
+import { getNearbyHazards } from "../core/engine/proximity";
+import { coinValue, killValue } from "../core/engine/scoring";
+import characters from "../data/characters";
+import { getDifficulty } from "../core/difficulty/difficulty";
+import { addHighscore, isTopTenScore } from "../services/highscores";
+import { useSessionTimer } from "../hooks/useSessionTimer";
+import { useProximityAudio } from "../hooks/useProximityAudio";
+
+type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
+// ── Main Screen ──────────────────────────────────────────────────────────
+export default function GameScreen({ navigation, route }: Props) {
+  const insets = useSafeAreaInsets();
+  const characterIndex = (route.params as any)?.characterIndex ?? 0;
+  const selectedCharacter = characters[characterIndex];
+
+  const { state, isAttacking, move, attack, reset, levelUp } = useGameEngine();
+  const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
+  const [killPopups, setKillPopups] = useState<{ id: number; points: number; type?: 'coin' | 'kill' }[]>([]);
+  const [showGameOver, setShowGameOver] = useState(false);
+  const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
+  const combatFlash = useRef(new Animated.Value(0)).current;
+  const vortexFlash = useRef(new Animated.Value(0)).current;
+
+  const { time: sessionTime, reset: resetTimer } = useSessionTimer(!state.isGameOver && !state.isLevelUp);
+
+  // Refs for tracking changes
+  const lastPlayerIndex = useRef(state.playerIndex);
+  const lastCoins = useRef(state.coins);
+  const lastAttack = useRef(state.attack);
+  const lastEnemyCount = useRef(state.entities.filter(e => e.type === 'enemy').length);
+  const gameOverTriggered = useRef(false); // Guard: prevent multiple triggers
+  const justLeveledUp     = useRef(false); // Guard: suppress phantom MOVE on level start
+  const isResetting       = useRef(false); // Guard: suppress feedbacks on retry/reset
+
+  // Handle game music on focus/unfocus
+  useFocusEffect(
+    useCallback(() => {
+      emitSound('GAME_MUSIC_START');
+      return () => {
+        emitSound('GAME_MUSIC_STOP');
+        emitSound('STOP_GUARDIAN_NEAR');
+        emitSound('STOP_VORTEX_NEAR');
+      };
+    }, [])
+  );
+
+  // Initialize game on mount
+  useEffect(() => {
+    reset(selectedCharacter);
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      emitSound('GAME_MUSIC_STOP');
+      emitSound('STOP_GUARDIAN_NEAR');
+      emitSound('STOP_VORTEX_NEAR');
+      return false; // Let navigation handle the actual back
+    });
+
+    return () => backHandler.remove();
+  }, []);
+
+  // ── VORTEX TELEPORT Flash ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!state.wasTeleported) return;
+    emitSound('VORTEX_TELEPORT');
+    // Quick purple flash: fade in fast, fade out slower
+    Animated.sequence([
+      Animated.timing(vortexFlash, { toValue: 1, duration: 120, useNativeDriver: true }),
+      Animated.timing(vortexFlash, { toValue: 0, duration: 350, useNativeDriver: true }),
+    ]).start();
+  }, [state.wasTeleported, state.playerIndex]);
+
+  // ── GAME OVER Handler ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (state.isGameOver && !gameOverTriggered.current) {
+      gameOverTriggered.current = true;
+      emitSound('GAME_OVER');
+      
+      const checkPromise = isTopTenScore(state.score, sessionTime);
+      const t = setTimeout(async () => {
+        const qualifies = await checkPromise;
+        if (qualifies) {
+          setShowHighScoreEntry(true);
+        } else {
+          setShowGameOver(true);
+        }
+      }, 400);
+      return () => clearTimeout(t);
+    }
+  }, [state.isGameOver, sessionTime]);
+
+  const handleHighScoreSubmit = useCallback(async (playerName: string) => {
+    try {
+      await addHighscore({
+        score: state.score,
+        level: state.level,
+        name: playerName,
+        coins: state.totalCoins,
+        characterIndex,
+        time: sessionTime,
+      });
+      console.log("[GameScreen] Highscore submitted successfully with time:", sessionTime);
+    } catch (e) {
+      console.warn('[GameScreen] addHighscore error:', e);
+    }
+    setShowHighScoreEntry(false);
+    setShowGameOver(true);
+  }, [state.score, state.level, state.totalCoins, characterIndex, sessionTime]);
+
+  const handleRetry = useCallback(() => {
+    isResetting.current = true;
+    gameOverTriggered.current = false;
+    setKillPopups([]);            
+    setShowGameOver(false);
+    resetTimer();
+    reset(selectedCharacter);
+    
+    setTimeout(() => { 
+      isResetting.current = false; 
+    }, 100);
+  }, [selectedCharacter, reset]);
+
+  const handleMainMenu = useCallback(() => {
+    setKillPopups([]);
+    setShowGameOver(false);
+    emitSound('GAME_MUSIC_STOP'); // Force stop on exit
+    navigation.navigate('CoverScreen');
+  }, [navigation]);
+
+  // ── Level Up & Transition ───────────────────────────────────────────────
+  useEffect(() => {
+    if (state.isLevelUp) {
+      emitSound('LEVEL_UP');
+      const diffLevel = getDifficulty(state.level);
+      const remainingEnemies = state.entities.filter(e => e.type === 'enemy').length;
+      const enemiesKilled = diffLevel.enemies - remainingEnemies;
+
+      const timer = setTimeout(() => {
+        navigation.navigate("LevelCompleteScreen", {
+          characterIndex,
+          score: state.score,
+          level: state.level,
+          coins: diffLevel.coins - state.coins,
+          totalCoins: diffLevel.coins,
+          sessionCoins: state.totalCoins,
+          kills: enemiesKilled,
+          totalEnemies: diffLevel.enemies,
+          time: sessionTime, // Total run time
+        });
+        justLeveledUp.current = true;
+        levelUp();
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [state.isLevelUp, state.level, state.entities.length, sessionTime]);
+
+  // ── Gameplay Feedback ─────────────────────────────────────────────────
+  useEffect(() => {
+    const collectingCoin  = state.coins < lastCoins.current;
+    const isPhantomMove   = justLeveledUp.current;
+    justLeveledUp.current = false;
+
+    if (
+      state.playerIndex !== lastPlayerIndex.current &&
+      !state.isGameOver &&
+      !state.isLevelUp &&
+      !collectingCoin &&
+      !isPhantomMove
+    ) {
+      emitSound('MOVE');
+    }
+    lastPlayerIndex.current = state.playerIndex;
+
+    if (state.coins < lastCoins.current && !isResetting.current) {
+      emitSound('COIN_COLLECTED');
+      setKillPopups(prev => [...prev, { id: Date.now() + Math.random(), points: coinValue(state.level), type: 'coin' }]);
+      
+      const coinX = screenWidth / 2 - 16;
+      const coinY = screenHeight / 2 - 16;
+      setActiveCoins(prev => [...prev, { id: Date.now() + Math.random(), x: coinX, y: coinY }]);
+    }
+    lastCoins.current = state.coins;
+
+    if (state.attack < lastAttack.current) {
+      emitSound('ATTACK');
+    }
+    lastAttack.current = state.attack;
+
+  }, [state.playerIndex, state.coins, state.attack, state.isGameOver, state.isLevelUp]);
+
+  useEffect(() => {
+    const currentEnemyCount = state.entities.filter(e => e.type === 'enemy').length;
+    if (currentEnemyCount < lastEnemyCount.current && !isResetting.current) {
+      emitSound('ENEMY_KILLED');
+      setKillPopups(prev => [...prev, { id: Date.now() + Math.random(), points: killValue(state.enemyCombo), type: 'kill' }]);
+      
+      Animated.sequence([
+        Animated.timing(combatFlash, { toValue: 0.35, duration: 25, useNativeDriver: true }),
+        Animated.timing(combatFlash, { toValue: 0,    duration: 35, useNativeDriver: true }),
+      ]).start();
+    }
+    lastEnemyCount.current = currentEnemyCount;
+  }, [state.entities]);
+
+  useProximityAudio(state);
+
+  const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
+
+  const removeCoin = (id: number) => {
+    setActiveCoins(prev => prev.filter(c => c.id !== id));
+  };
+
+  return (
+    <ImageBackground
+      source={require("../assets/sprites/backgrounds/Cover_Background.png")}
+      style={styles.container}
+      resizeMode="cover"
+    >
+      {/* Dark Overlay for Gameplay Clarity */}
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.55)' }]} />
+      
+      <StatusBar hidden />
+
+      <View style={{ paddingTop: insets.top, zIndex: 10 }}>
+        <ScoreBar
+          score={state.score}
+          coins={state.coins}
+          attackValue={state.attack}
+          level={state.level}
+          character={selectedCharacter}
+          time={sessionTime}
+        />
+      </View>
+
+      <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
+
+      <View style={[
+        styles.gameContent, 
+        { flexDirection: useSettingsStore.getState().controlPosition === 'left' ? 'row-reverse' : 'row' }
+      ]}>
+        <BoardView
+          level={state.level}
+          rows={state.rows}
+          cols={state.cols}
+          entities={state.entities}
+          entityMap={state.entityMap}
+          playerIndex={state.playerIndex}
+          visited={state.visited}
+          facingDir={state.facingDir}
+          characterIndex={characterIndex}
+          isGameOver={state.isGameOver}
+          isAttacking={isAttacking}
+          lastKilledEnemyCount={state.entities.filter(e => e.type === 'enemy').length}
+        />
+
+        <View style={styles.controlsWrapper}>
+          <Controls
+            onMove={move}
+            onAttack={attack}
+          />
+        </View>
+      </View>
+
+      {killPopups.map(p => (
+        <ScorePopup
+          key={p.id}
+          points={p.points}
+          type={p.type}
+          onComplete={() => setKillPopups(prev => prev.filter(k => k.id !== p.id))}
+        />
+      ))}
+
+      {activeCoins.map(c => (
+        <CoinFlight 
+          key={c.id} 
+          startX={c.x} 
+          startY={c.y} 
+          onComplete={() => removeCoin(c.id)} 
+        />
+      ))}
+
+      <Animated.View 
+        style={[
+          StyleSheet.absoluteFill, 
+          { backgroundColor: '#FFF', opacity: combatFlash, zIndex: 999 }
+        ]} 
+        pointerEvents="none" 
+      />
+
+      {/* Purple flash on vortex teleport */}
+      <Animated.View 
+        style={[
+          StyleSheet.absoluteFill, 
+          { backgroundColor: 'rgba(156,39,176,0.55)', opacity: vortexFlash, zIndex: 998 }
+        ]} 
+        pointerEvents="none" 
+      />
+
+      <HighScoreEntryModal
+        visible={showHighScoreEntry}
+        score={state.score}
+        level={state.level}
+        totalCoins={state.totalCoins}
+        time={sessionTime}
+        onSubmit={handleHighScoreSubmit}
+      />
+
+      <GameOverOverlay
+        visible={showGameOver}
+        score={state.score}
+        level={state.level}
+        totalCoins={state.totalCoins}
+        time={sessionTime}
+        character={selectedCharacter}
+        deathCause={state.deathCause}
+        onRetry={handleRetry}
+        onMainMenu={handleMainMenu}
+      />
+    </ImageBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  gameContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+  },
+  controlsWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
