@@ -11,7 +11,8 @@
     ],
     "scheme": "wumpus",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.cuencaoscar.wumpusadventures"
     },
     "android": {
       "adaptiveIcon": {
