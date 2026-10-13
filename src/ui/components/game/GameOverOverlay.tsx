@@ -16,6 +16,7 @@ const GameOverOverlay = ({
   time,
   character,
   deathCause,
+  victory = false,
   bestScore,
   isNewBest,
   dailyLabel,
@@ -31,6 +32,7 @@ const GameOverOverlay = ({
   time: number;
   character: Character;
   deathCause: EntityType | null;
+  victory?: boolean;
   bestScore?: number;
   isNewBest?: boolean;
   /** Set for daily-challenge runs: the UTC day being played. */
@@ -59,23 +61,25 @@ const GameOverOverlay = ({
 
   return (
     <Animated.View style={[overlayStyles.overlay, { opacity: fadeAnim }]}>
-      <Animated.View style={[styles.gameOverCard, { transform: [{ scale: cardAnim }] }]}>
+      <Animated.View style={[styles.gameOverCard, victory && styles.victoryCard, { transform: [{ scale: cardAnim }] }]}>
 
         {/* Character or Killer image */}
         <Image
           source={
-            deathCause === 'enemy' ? require("../../../assets/sprites/enemies/Guardian_Enemy.png") :
+            (deathCause === 'enemy' || deathCause === 'boss') ? require("../../../assets/sprites/enemies/Guardian_Enemy.png") :
             deathCause === 'pit'   ? require("../../../assets/sprites/tiles/Danger_Vortex.png") :
             (character?.loseImage ?? character?.scoreImage)
           }
           style={[
             styles.gameOverImage, 
-            (deathCause === 'enemy' || deathCause === 'pit') && { width: 90, height: 90, marginBottom: 10 }
+            (deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'pit') && { width: 90, height: 90, marginBottom: 10 }
           ]}
           resizeMode="contain"
         />
 
-        <Text style={styles.gameOverTitle}>GAME OVER</Text>
+        <Text style={[styles.gameOverTitle, victory && styles.victoryTitle]}>
+          {victory ? 'EXPEDITION COMPLETE' : 'GAME OVER'}
+        </Text>
         {dailyLabel && (
           <Text style={styles.dailyLabel}>
             📅 DAILY {dailyLabel}{streak ? `  ·  🔥 ${streak}` : ''}
@@ -159,6 +163,8 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 2,
   },
+  victoryCard: { borderColor: '#FFD700', shadowColor: '#FFD700' },
+  victoryTitle: { color: '#FFD700' },
   dailyLabel: {
     color: '#4FC3F7',
     fontWeight: '800',

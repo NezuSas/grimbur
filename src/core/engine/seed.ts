@@ -1,4 +1,5 @@
-export type GameMode = 'endless' | 'daily';
+/** `expedition` and `daily` are 10-floor runs ending with the Wumpus; `endless` (later) has no boss. */
+export type GameMode = 'expedition' | 'daily' | 'endless';
 
 /** UTC calendar day as `YYYY-MM-DD`, so every player in the world shares the same daily. */
 export function dailyKey(date: Date = new Date()): string {

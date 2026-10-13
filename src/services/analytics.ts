@@ -11,7 +11,7 @@ type Params = Record<string, string | number | boolean>;
 
 /** Every event the game reports, with the parameters it must carry. */
 export interface AnalyticsEvents {
-  game_start: { mode: 'endless' | 'daily'; character: number };
+  game_start: { mode: 'expedition' | 'daily' | 'endless'; character: number };
   level_complete: { level: number; score: number; time: number };
   game_over: { level: number; score: number; time: number; cause: string };
   powerup_collected: { kind: 'shield' | 'ammo' };
@@ -19,6 +19,7 @@ export interface AnalyticsEvents {
   high_score_submitted: { level: number; score: number };
   screen_view: { screen: string };
   daily_shared: { score: number };
+  expedition_won: { score: number; time: number; character: number; mode: string };
 }
 
 export interface AnalyticsProvider {

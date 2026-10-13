@@ -89,13 +89,16 @@ export default function GameScreen({ navigation, route }: Props) {
   );
 
   // The daily challenge fixes the board seed to today's UTC date (captured once per screen visit).
-  const mode = route.params?.mode ?? 'endless';
+  const mode = route.params?.mode ?? 'expedition';
   const isDaily = mode === 'daily';
   const dailyDate = useRef(dailyKey()).current;
 
   const startRun = useCallback(() => {
-    reset(selectedCharacter, isDaily ? { mode: 'daily', runSeed: dailySeed(dailyDate) } : {});
-  }, [reset, selectedCharacter, isDaily, dailyDate]);
+    reset(selectedCharacter, {
+      heroIndex: characterIndex,
+      ...(isDaily ? { mode: 'daily' as const, runSeed: dailySeed(dailyDate) } : {}),
+    });
+  }, [reset, selectedCharacter, characterIndex, isDaily, dailyDate]);
 
   // Initialize game on mount
   useEffect(() => {
@@ -141,16 +144,23 @@ export default function GameScreen({ navigation, route }: Props) {
   }, [state.wasTeleported, state.playerIndex]);
 
   // ── GAME OVER Handler ────────────────────────────────────────────────────
+  const runEnded = state.isGameOver || state.isVictory;
+
   useEffect(() => {
-    if (state.isGameOver && !gameOverTriggered.current) {
+    if (runEnded && !gameOverTriggered.current) {
       gameOverTriggered.current = true;
-      emitSound('GAME_OVER');
-      analytics.track('game_over', {
-        level: state.level,
-        score: state.score,
-        time: sessionTime,
-        cause: state.deathCause ?? 'unknown',
-      });
+      if (state.isVictory) {
+        emitSound('LEVEL_UP'); // victory fanfare
+        analytics.track('expedition_won', { score: state.score, time: sessionTime, character: characterIndex, mode });
+      } else {
+        emitSound('GAME_OVER');
+        analytics.track('game_over', {
+          level: state.level,
+          score: state.score,
+          time: sessionTime,
+          cause: state.deathCause ?? 'unknown',
+        });
+      }
       if (isDaily) {
         // Daily runs are tracked locally (best of the day + streak) and never enter the global top 10.
         recordDailyRun({ score: state.score, level: state.level }, dailyDate)
@@ -176,7 +186,7 @@ export default function GameScreen({ navigation, route }: Props) {
       }, 400);
       return () => clearTimeout(t);
     }
-  }, [state.isGameOver, sessionTime]);
+  }, [runEnded, sessionTime]);
 
   const handleHighScoreSubmit = useCallback(async (playerName: string) => {
     try {
@@ -237,7 +247,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // ── Level Up & Transition ───────────────────────────────────────────────
   useEffect(() => {
-    if (state.isLevelUp) {
+    if (state.isLevelUp && !state.isVictory) {
       emitSound('LEVEL_UP');
       analytics.track('level_complete', { level: state.level, score: state.score, time: sessionTime });
       const diffLevel = getDifficulty(state.level);
@@ -355,6 +365,7 @@ export default function GameScreen({ navigation, route }: Props) {
           shield={state.shield}
           onPause={canPauseRef.current ? () => setPaused(true) : undefined}
           level={state.level}
+          floors={mode === 'endless' ? undefined : GAME_CONFIG.expedition.floors}
           character={selectedCharacter}
           time={sessionTime}
         />
@@ -448,6 +459,7 @@ export default function GameScreen({ navigation, route }: Props) {
         time={sessionTime}
         character={selectedCharacter}
         deathCause={state.deathCause}
+        victory={state.isVictory}
         bestScore={runResult?.bestScore}
         isNewBest={runResult?.isNewBest}
         dailyLabel={isDaily ? dailyDate : undefined}

@@ -1,12 +1,13 @@
 import { Character } from '../../data/characters';
 import { GameMode } from './seed';
+import { HeroPerks } from './heroes';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss';
 
 /** Entities that kill the player on contact. */
-export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy'];
+export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss'];
 
 /** What the player ran into on the last move (UI feedback only). */
 export type PickupKind = 'shield' | 'ammo' | 'trap';
@@ -14,6 +15,8 @@ export type PickupKind = 'shield' | 'ammo' | 'trap';
 export interface GameEntity {
   index: number;
   type: EntityType;
+  /** Remaining hit points (the boss only). */
+  hp?: number;
 }
 
 export interface GameState {
@@ -46,6 +49,12 @@ export interface GameState {
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
   wasTeleported: boolean;
+  /** Perks of the chosen hero. */
+  perks: HeroPerks;
+  /** Player moves made on the current floor (drives the boss). */
+  turn: number;
+  /** True once the Wumpus is dead and the expedition is won. */
+  isVictory: boolean;
   /** Set for one move when the player stepped on a trap or collected a power-up. */
   lastPickup: PickupKind | null;
 }
@@ -64,6 +73,7 @@ export type GameAction =
       seed?: number;
       mode?: GameMode;
       runSeed?: number;
+      perks?: HeroPerks;
     }
   | {
       type: 'LEVEL_UP';
@@ -82,6 +92,6 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: () => void;
-  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number }) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number }) => void;
   levelUp: () => void;
 }

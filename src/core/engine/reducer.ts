@@ -1,7 +1,8 @@
-import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES } from './types';
+import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, Direction } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinValue, killValue, levelClearBonus } from './scoring';
+import { NO_PERKS } from './heroes';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
@@ -12,11 +13,40 @@ const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => 
   return map;
 };
 
-/** Returns new `entities` / `entityMap` without the entity at `index`. */
-const removeEntityAt = (state: GameState, index: number) => {
-  const entityMap = { ...state.entityMap };
+type World = { entities: GameEntity[]; entityMap: Record<number, GameEntity> };
+
+/** Returns a new world without the entity at `index`. */
+const removeEntityAt = (world: World, index: number): World => {
+  const entityMap = { ...world.entityMap };
   delete entityMap[index];
-  return { entities: state.entities.filter(e => e.index !== index), entityMap };
+  return { entities: world.entities.filter(e => e.index !== index), entityMap };
+};
+
+/** Returns a new world where the entity at `index` is replaced by `next`. */
+const replaceEntityAt = (world: World, index: number, next: GameEntity): World => {
+  const entityMap = { ...world.entityMap };
+  delete entityMap[index];
+  entityMap[next.index] = next;
+  return {
+    entities: world.entities.map(e => (e.index === index ? next : e)),
+    entityMap,
+  };
+};
+
+const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
+
+/** The tile one step from `index` in `direction`, or -1 at the board edge. */
+const neighbour = (index: number, direction: Direction, rows: number, cols: number): number => {
+  const isTop    = index < cols;
+  const isBottom = index >= cols * (rows - 1);
+  const isLeft   = index % cols === 0;
+  const isRight  = (index + 1) % cols === 0;
+
+  if (direction === 'UP'    && !isTop)    return index - cols;
+  if (direction === 'DOWN'  && !isBottom) return index + cols;
+  if (direction === 'LEFT'  && !isLeft)   return index - 1;
+  if (direction === 'RIGHT' && !isRight)  return index + 1;
+  return -1;
 };
 
 /**
@@ -63,6 +93,34 @@ const pickTeleportDestination = (
   return pickDeterministic(pool, state.seed, vortexIndex * 31 + visited.length);
 };
 
+/**
+ * Decides the Wumpus' move: one step toward the player along the longer axis
+ * (then the shorter one), onto an empty tile. Reaching the player is an attack.
+ */
+const bossStep = (
+  bossIndex: number,
+  playerIndex: number,
+  rows: number,
+  cols: number,
+  entityMap: Record<number, GameEntity>,
+): { kind: 'attack' } | { kind: 'move'; to: number } | { kind: 'stay' } => {
+  const dr = Math.floor(playerIndex / cols) - Math.floor(bossIndex / cols);
+  const dc = (playerIndex % cols) - (bossIndex % cols);
+
+  const vertical: Direction | null = dr === 0 ? null : dr > 0 ? 'DOWN' : 'UP';
+  const horizontal: Direction | null = dc === 0 ? null : dc > 0 ? 'RIGHT' : 'LEFT';
+  const order = Math.abs(dr) >= Math.abs(dc) ? [vertical, horizontal] : [horizontal, vertical];
+
+  for (const direction of order) {
+    if (!direction) continue;
+    const target = neighbour(bossIndex, direction, rows, cols);
+    if (target === -1) continue;
+    if (target === playerIndex) return { kind: 'attack' };
+    if (!entityMap[target]) return { kind: 'move', to: target };
+  }
+  return { kind: 'stay' };
+};
+
 // ─── Initial State ─────────────────────────────────────────────────────────
 export const initialState: GameState = {
   playerIndex: 0,
@@ -84,10 +142,13 @@ export const initialState: GameState = {
   gameStatus: 'idle',
   seed: 0,
   runSeed: 0,
-  mode: 'endless',
+  mode: 'expedition',
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
+  perks: NO_PERKS,
+  turn: 0,
+  isVictory: false,
   lastPickup: null,
 };
 
@@ -101,22 +162,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'MOVE': {
       if (state.isGameOver || state.isLevelUp) return state;
 
-      const { rows, cols } = state;
+      const { rows, cols, perks } = state;
       const { direction } = action;
 
-      let nextIndex = state.playerIndex;
-
-      const isTop    = state.playerIndex < cols;
-      const isBottom = state.playerIndex >= cols * (rows - 1);
-      const isLeft   = state.playerIndex % cols === 0;
-      const isRight  = (state.playerIndex + 1) % cols === 0;
-
-      if (direction === 'UP'    && !isTop)    nextIndex -= cols;
-      if (direction === 'DOWN'  && !isBottom) nextIndex += cols;
-      if (direction === 'LEFT'  && !isLeft)   nextIndex -= 1;
-      if (direction === 'RIGHT' && !isRight)  nextIndex += 1;
-
-      if (nextIndex === state.playerIndex) {
+      let nextIndex = neighbour(state.playerIndex, direction, rows, cols);
+      if (nextIndex === -1) {
         return { ...state, facingDir: direction, lastPickup: null };
       }
 
@@ -126,13 +176,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         : [...state.visited];
 
       let newScore = Math.max(0, state.score + GAME_CONFIG.scoring.stepCost);
-      if (isNewTile) newScore += GAME_CONFIG.scoring.newTile;
+      if (isNewTile) newScore += GAME_CONFIG.scoring.newTile * perks.newTileMultiplier;
 
       let newIsGameOver: boolean = false;
       let newCoins = state.coins;
       let newAttack = state.attack;
-      let newEntities = state.entities;
-      let newEntityMap = state.entityMap;
+      let world: World = { entities: state.entities, entityMap: state.entityMap };
       let newShield = state.shield;
       let newTotalCoins = state.totalCoins;
       let newDeathCause: GameState['deathCause'] = null;
@@ -140,7 +189,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newLastPickup: PickupKind | null = null;
 
       const consumeEntity = () => {
-        ({ entities: newEntities, entityMap: newEntityMap } = removeEntityAt(state, nextIndex));
+        world = removeEntityAt(world, nextIndex);
       };
 
       // O(1) collision check via the entity map
@@ -155,6 +204,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           } else {
             newIsGameOver = true;
             newDeathCause = 'enemy';
+          }
+          break;
+
+        case 'boss':
+          if (state.shield) {
+            // The shield breaks and throws the player back; the Wumpus survives.
+            newShield = false;
+            nextIndex = state.playerIndex;
+            newVisited = [...state.visited];
+          } else {
+            newIsGameOver = true;
+            newDeathCause = 'boss';
           }
           break;
 
@@ -175,15 +236,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += coinValue(state.level);
+          newScore += Math.round(coinValue(state.level) * perks.coinMultiplier);
           newCoins -= 1;
           newTotalCoins += 1;
           consumeEntity();
           break;
 
         case 'trap':
-          newScore += GAME_CONFIG.scoring.trapPenalty;
-          newLastPickup = 'trap';
+          if (!perks.trapImmune) {
+            newScore += GAME_CONFIG.scoring.trapPenalty;
+            newLastPickup = 'trap';
+          }
           consumeEntity();
           break;
 
@@ -202,8 +265,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           break;
       }
 
+      // The Wumpus hunts: every Nth move it steps toward the player.
+      const newTurn = state.turn + 1;
+      if (!newIsGameOver && hasBoss(world) && newTurn % GAME_CONFIG.boss.moveEvery === 0) {
+        const boss = world.entities.find(e => e.type === 'boss')!;
+        const step = bossStep(boss.index, nextIndex, rows, cols, world.entityMap);
+
+        if (step.kind === 'move') {
+          world = replaceEntityAt(world, boss.index, { ...boss, index: step.to });
+        } else if (step.kind === 'attack') {
+          if (newShield) {
+            newShield = false; // absorbed; the Wumpus stays where it is
+          } else {
+            newIsGameOver = true;
+            newDeathCause = 'boss';
+          }
+        }
+      }
+
       let newIsLevelUp: boolean = state.isLevelUp;
-      if (newCoins === 0 && !newIsGameOver) {
+      if (newCoins === 0 && !newIsGameOver && !hasBoss(world)) {
         newScore += levelClearBonus(state.level);
         newIsLevelUp = true;
       }
@@ -220,13 +301,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isLevelUp: newIsLevelUp,
         coins: newCoins,
         attack: newAttack,
-        entities: newEntities,
-        entityMap: newEntityMap,
+        entities: world.entities,
+        entityMap: world.entityMap,
         enemyCombo: 0,
         shield: newShield,
         totalCoins: newTotalCoins,
         wasTeleported: newWasTeleported,
         lastPickup: newLastPickup,
+        turn: newTurn,
         deathCause: newIsGameOver ? newDeathCause : null,
       };
     }
@@ -235,27 +317,47 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.isGameOver || state.isLevelUp || state.attack <= 0) return state;
 
       const { rows, cols } = state;
+
+      // The arrow flies up to `arrowReach` tiles and hits the first hostile one.
       let targetIndex = -1;
+      let cursor = state.playerIndex;
+      for (let step = 0; step < state.perks.arrowReach; step++) {
+        cursor = neighbour(cursor, state.facingDir, rows, cols);
+        if (cursor === -1) break;
+        const type = state.entityMap[cursor]?.type;
+        if (type === 'enemy' || type === 'boss') {
+          targetIndex = cursor;
+          break;
+        }
+      }
 
-      const isTop    = state.playerIndex < cols;
-      const isBottom = state.playerIndex >= cols * (rows - 1);
-      const isLeft   = state.playerIndex % cols === 0;
-      const isRight  = (state.playerIndex + 1) % cols === 0;
-
-      if (state.facingDir === 'UP'    && !isTop)    targetIndex = state.playerIndex - cols;
-      if (state.facingDir === 'DOWN'  && !isBottom) targetIndex = state.playerIndex + cols;
-      if (state.facingDir === 'LEFT'  && !isLeft)   targetIndex = state.playerIndex - 1;
-      if (state.facingDir === 'RIGHT' && !isRight)  targetIndex = state.playerIndex + 1;
-
-      let newEntities = state.entities;
-      let newEntityMap = state.entityMap;
+      let world: World = { entities: state.entities, entityMap: state.entityMap };
       let newScore = state.score;
       let newEnemyCombo = state.enemyCombo;
+      let newIsLevelUp = false;
+      let newIsVictory = false;
 
-      if (targetIndex !== -1 && state.entityMap[targetIndex]?.type === 'enemy') {
+      const target = targetIndex !== -1 ? state.entityMap[targetIndex] : undefined;
+
+      if (target?.type === 'boss') {
+        const hp = (target.hp ?? GAME_CONFIG.boss.hp) - 1;
+        if (hp > 0) {
+          newScore += GAME_CONFIG.boss.hitScore;
+          world = replaceEntityAt(world, targetIndex, { ...target, hp });
+        } else {
+          newScore += GAME_CONFIG.boss.killScore;
+          world = removeEntityAt(world, targetIndex);
+          if (state.coins === 0) {
+            newScore += levelClearBonus(state.level);
+            newIsLevelUp = true;
+            newIsVictory = true;
+          }
+        }
+        newEnemyCombo = 0;
+      } else if (target?.type === 'enemy') {
         newEnemyCombo = Math.min(state.enemyCombo + 1, GAME_CONFIG.multipliers.maxCombo);
         newScore += killValue(newEnemyCombo);
-        ({ entities: newEntities, entityMap: newEntityMap } = removeEntityAt(state, targetIndex));
+        world = removeEntityAt(world, targetIndex);
       } else {
         newScore += GAME_CONFIG.scoring.missPenalty;
         newEnemyCombo = 0;
@@ -265,9 +367,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         attack: state.attack - 1,
         score: Math.max(0, newScore),
-        entities: newEntities,
-        entityMap: newEntityMap,
+        entities: world.entities,
+        entityMap: world.entityMap,
         enemyCombo: newEnemyCombo,
+        isLevelUp: newIsLevelUp,
+        isVictory: newIsVictory,
         lastPickup: null,
       };
     }
@@ -282,10 +386,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entities,
         entityMap: createEntityMap(entities),
         coins,
-        attack,
+        attack: attack + state.perks.bonusArrows,
+        shield: state.shield || state.perks.startShield,
         seed: seed || state.seed,
         playerIndex: 0,
         visited: [0],
+        turn: 0,
         isLevelUp: false,
         isGameOver: false,
         enemyCombo: 0,
@@ -295,7 +401,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks } = action;
+      const heroPerks = perks ?? NO_PERKS;
       return {
         ...initialState,
         selectedCharacter: character,
@@ -304,10 +411,12 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entities,
         entityMap: createEntityMap(entities),
         coins,
-        attack,
+        attack: attack + heroPerks.bonusArrows,
+        shield: heroPerks.startShield,
+        perks: heroPerks,
         seed: seed || Date.now(),
         runSeed: runSeed ?? seed ?? 0,
-        mode: mode ?? 'endless',
+        mode: mode ?? 'expedition',
         visited: [0],
         playerIndex: 0,
         totalCoins: 0,

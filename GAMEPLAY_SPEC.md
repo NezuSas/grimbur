@@ -61,7 +61,7 @@ Final scores are calculated based on efficiency and risk-taking.
 - **Level Multiplier**: `1 + (Level - 1) * 0.2`. Coin and level-clear rewards increase by 20% per level.
 - **Enemy Combo**: Hits cap at a **3x multiplier** for consecutive kills without moving or missing.
 
-## 6. Level Progression
+## 6. Level Progression (Expedition)
 - **Victory Condition**: Collect **all coins** on the current board (3 at level 1, capped at 8).
 - **Level Up**: Clears the board, resets player to starting position, and generates a new, more difficult level.
 - **Difficulty Scaling**: Board size, enemies, pits and coins grow with the level. Every generated board is validated so that all coins are reachable without crossing a hazard.
@@ -73,3 +73,22 @@ Final scores are calculated based on efficiency and risk-taking.
 ## 8. Pause
 A pause button sits next to the timer. Android's Back button pauses (and resumes) instead of abandoning the run, and sending the app to the background pauses automatically. The timer stops while paused.
 
+## 9. The Expedition and the Wumpus
+A standard run (and the Daily Challenge) is an **expedition of 10 floors**. Floors 1-9 follow the rules above (levels are
+called floors). **Floor 10 is the Wumpus lair**:
+
+- No gems. Killing the Wumpus clears the floor and wins the expedition (victory screen, +2,000 points).
+- The Wumpus has 3 hearts; each arrow removes one (+150 points per hit).
+- It hunts: after every 2nd player move it steps one tile toward the player, only onto empty tiles.
+- Touching it (or being reached by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives.
+- It counts as a guardian in the proximity clues, so the roar warns you as it closes in.
+
+## 10. Heroes
+Each hero has a perk (`core/engine/heroes.ts`), shown on the selection screen:
+
+| Hero | Perk |
+| :--- | :--- |
+| Cyan Explorer | Trapfinder: traps never hurt; +1 arrow every floor |
+| Scarlet Knight | Piercing arrows: arrows fly 2 tiles |
+| Moss Golem | Stoneskin: starts every floor with a shield |
+| Golden Rogue | Treasure hunter: gems +30%, exploration bonus x2 |
