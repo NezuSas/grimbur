@@ -80,7 +80,9 @@ const GameOverOverlay = ({
 
   const image = victory
     ? character.winImage
-    : deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'stalker'
+    : deathCause === 'boss'
+    ? require('../../../assets/sprites/enemies/Wumpus_Boss.png')
+    : deathCause === 'enemy' || deathCause === 'stalker'
     ? require('../../../assets/sprites/enemies/Guardian_Enemy.png')
     : deathCause === 'pit'
     ? require('../../../assets/sprites/tiles/Danger_Vortex.png')
