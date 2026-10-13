@@ -1,4 +1,4 @@
-# Mario Grid: Expo Setup & Run Guide 🚀
+# Wumpus Adventures: Expo Setup & Run Guide 🚀
 
 This project is built using **Expo**, a framework for universal React applications. Follow these steps to set up and run the game on your local machine, Android, and iOS.
 
@@ -18,7 +18,7 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository** (if you haven't already).
 2. **Install dependencies**:
    ```bash
-   npm install
+   npm install --legacy-peer-deps   # ts-jest declares a TypeScript peer range older than the installed one
    ```
 
 ---
@@ -66,11 +66,11 @@ The project includes unit tests for the game engine and stress tests:
 To create a standalone APK or IPA for distribution:
 1. Install EAS CLI: `npm install -g eas-cli`
 2. Log in to your Expo account: `eas login`
-3. Configure the build: `eas build:configure`
-4. Run a build:
-   - Android: `eas build -p android`
-   - iOS: `eas build -p ios`
+3. Run a build (profiles are in `eas.json`; `production` builds the Android App Bundle):
+   - Android: `eas build -p android --profile production`
+   - iOS: `eas build -p ios --profile production`
+4. Before submitting, work through `docs/release/RELEASE_CHECKLIST.md`.
 
 ---
 
-**Enjoy adventuring in Mario Grid!** 🍄🌟
+**Enjoy the descent!** 🔦💎
