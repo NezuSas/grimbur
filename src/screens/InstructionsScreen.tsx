@@ -97,7 +97,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                 color="#ff5252" 
               />
               <View style={styles.sectionContent}>
-                <InstructionRow label="Primary Goal" detail="Navigate the grid to secure every Mystic Gem. Only then will the extraction point open." />
+                <InstructionRow label="Primary Goal" detail="Navigate the grid to secure every Mystic Gem. Only then do you descend to the next, harder cave." />
                 <InstructionRow label="Survival" detail="Avoid lethal pits and hostile guardians. One wrong step ends the run." />
               </View>
 

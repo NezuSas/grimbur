@@ -1,6 +1,6 @@
 # Wumpus Adventures
 
-Mobile "Hunt the Wumpus"-style game built with React Native, Expo (SDK 54) and TypeScript (strict).
+Mobile "Hunt the Wumpus"-style game built with React Native, Expo (SDK 57) and TypeScript (strict).
 Collect every gem on the board while avoiding guardians and vortexes; shoot guardians with a limited
 number of arrows. Difficulty scales per level and high scores are stored in Firebase.
 

@@ -18,7 +18,7 @@ Players can **Move** (spending points) and **Attack** (using limited arrows) to 
 5. **Progression**: Clear all coins to advance to the next level (difficulty scales).
 
 ## 3. Technology Stack
-- **Core**: React Native (0.81.4) + Expo (Universal framework).
+- **Core**: React Native (0.86) + Expo (Universal framework).
 - **Language**: TypeScript (Strict mode).
 - **State Management**: 
     - **Game Logic**: `useReducer` within a custom hook (`useGameEngine`).
