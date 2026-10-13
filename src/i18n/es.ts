@@ -293,7 +293,7 @@ export const es: Record<TranslationKey, string> = {
   'manual.explore.tiles': 'Las casillas empiezan ocultas. Pisa una para revelarla.',
   'manual.explore.pace.label': 'Planea tu camino',
   'manual.explore.pace.detail':
-    'Las gemas siempre se ven; los peligros, nunca. Cada paso cuesta un punto, así que camina con intención.',
+    'Las gemas siempre se ven; los peligros, nunca. Cada paso cuesta un punto, así que camina con intención. Toca una casilla ya explorada y vacía para ir hasta ella; se detiene si algo cambia.',
 
   'manual.hazards.title': 'Leer las pistas',
   'manual.hazards.guardian': 'Guardián',
