@@ -207,4 +207,5 @@ One thing to do first: a large golden PLAY button (the expedition) with the best
 - **Daily bonus**: the first finished run of each UTC day also pays 15 embers plus 5 per day of streak (up to 50). No timers, no loss if skipped: it is simply there the next day. The end-of-run card says it was included.
 - **Celebration**: a victory or a new record drops confetti on the end card (off with *reduce flashes*).
 - **Delete my data** (Settings): erases progress, embers, achievements and records from the device after a second tap to confirm (the confirmation expires after 4 s).
+- **My progress** (button in the leaderboard's "your record" panel): the last 14 scored runs as a bar chart (gold for victories), a line saying whether the recent runs beat the earlier ones (needs six runs), eight lifetime tiles (runs, victories, gems, embers earned, deepest floor, endless record, dailies played, streak) and victories per hero. The device keeps the latest 30 runs; the endless descent is left out of the chart because it is measured in floors.
 
