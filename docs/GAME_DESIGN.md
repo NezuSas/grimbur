@@ -36,11 +36,11 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 | Hero | Perk |
 | --- | --- |
 | Cyan Explorer | **Trapfinder**: traps never hurt; +1 arrow each floor |
-| Scarlet Knight | **Piercing arrows**: arrows reach 2 tiles |
-| Moss Golem | **Stoneskin**: starts every floor with a shield |
-| Golden Rogue | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
+| Scarlet Archer | **Piercing arrows**: arrows reach 2 tiles |
+| Moss Warden | **Stoneskin**: starts every floor with a shield |
+| Gilded Delver | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
 
-Unlocks (implemented): Cyan free; Knight after reaching floor 4; Golem after reaching floor 7; Rogue after winning an expedition.
+Unlocks (implemented): Cyan free; Archer after reaching floor 4; Warden after reaching floor 7; Delver after winning an expedition.
 To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/gameConfig.ts` (never ship it on).
 
 ## The Wumpus (floor 10)

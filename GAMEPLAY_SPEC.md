@@ -39,7 +39,7 @@ Visited tiles show a rune when a guardian (🔊) or vortex (∞) is orthogonally
 
 ## 4. Combat Logic
 Players are equipped with arrows to defend themselves.
-- **Attack**: Firing an arrow consumes 1 attack charge. It flies up to 1 tile in the **Facing Direction** and hits the first hostile tile it meets; the Scarlet Knight (piercing arrows) and the Long Bow relic add reach (see sections 10 and 11).
+- **Attack**: Firing an arrow consumes 1 attack charge. It flies up to 1 tile in the **Facing Direction** and hits the first hostile tile it meets; the Scarlet Archer (piercing arrows) and the Long Bow relic add reach (see sections 10 and 11).
 - **Hit**: Killing an enemy awards high points and increases the **Enemy Combo**.
 - **Miss**: Firing into an empty tile or a wall results in a **-25 point** penalty and resets the combo to zero.
 
@@ -90,9 +90,9 @@ Each hero has a perk (`core/engine/heroes.ts`), shown on the selection screen:
 | Hero | Perk |
 | :--- | :--- |
 | Cyan Explorer | Trapfinder: traps never hurt; +1 arrow every floor |
-| Scarlet Knight | Piercing arrows: arrows fly 2 tiles |
-| Moss Golem | Stoneskin: starts every floor with a shield |
-| Golden Rogue | Treasure hunter: gems +30%, exploration bonus x2 |
+| Scarlet Archer | Piercing arrows: arrows fly 2 tiles |
+| Moss Warden | Stoneskin: starts every floor with a shield |
+| Gilded Delver | Treasure hunter: gems +30%, exploration bonus x2 |
 
 ## 11. Relics
 After every cleared floor the game offers **3 different relics** and waits for the player to take one. They stack (up to each relic's limit) and last for the rest of the run. The offer is seeded, so a Daily Challenge shows every player the same draft.
