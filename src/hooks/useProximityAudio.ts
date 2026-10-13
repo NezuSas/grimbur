@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { emitSound } from '../audio/audioEventBus';
 import { getNearbyHazards } from '../core/engine/proximity';
 import { GameState } from '../core/engine/types';
@@ -31,4 +32,15 @@ export function useProximityAudio(
     guardianNear.current = enemy;
     vortexNear.current = pit;
   }, [playerIndex, rows, cols, entityMap, isGameOver, isLevelUp]);
+
+  // Going to the background pauses every player, so the loops are silent when the player comes back even though
+  // the hazard is still next to them: start them again from the current situation.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', next => {
+      if (next !== 'active') return;
+      if (guardianNear.current) emitSound('GUARDIAN_NEAR');
+      if (vortexNear.current) emitSound('VORTEX_NEAR');
+    });
+    return () => sub.remove();
+  }, []);
 }

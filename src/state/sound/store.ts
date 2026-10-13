@@ -18,7 +18,8 @@ const INITIALIZING_PLAYERS: Record<string, Promise<any> | undefined> = {};
  * With a single player, a second shot, step or gem arriving while the first is still sounding restarted
  * or swallowed it, which is why effects seemed to play only some of the time.
  */
-const EXTRA_VOICES: Record<string, number> = { move: 2, coin: 2, attack: 2, relic: 1 };
+// Every expo-audio player is a whole ExoPlayer plus a MediaSession on Android, so voices are kept few.
+const EXTRA_VOICES: Record<string, number> = { move: 1, coin: 1, attack: 1 };
 const voicesOf = (name: string): string[] => [
   name,
   ...Array.from({ length: EXTRA_VOICES[name] ?? 0 }, (_, i) => `${name}#${i + 1}`),
@@ -253,8 +254,15 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     TARGET_VOLUMES['vortex'] = 0.4;
 
     try {
+      // `interruptionMode` MUST be set explicitly. On Android expo-audio leaves it unset (null) unless told otherwise,
+      // and then asks the system for audio focus on every play: any notification, call, assistant or other app's
+      // sound takes that focus away and expo-audio pauses ALL players (a permanent loss never resumes them).
+      // That is the "sound just disappears" bug. `mixWithOthers` asks for no focus at all, so nothing can pause us.
       await setAudioModeAsync({
         playsInSilentMode: true,
+        interruptionMode: 'mixWithOthers',
+        shouldPlayInBackground: false,
+        allowsRecording: false,
         shouldRouteThroughEarpiece: false,
       });
     } catch (e) {
