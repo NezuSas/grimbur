@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Asset } from "expo-asset";
 import type { LegacySoundHandle, SoundStore } from "./types";
+import { audioLog } from "../../audio/audioDiagnostics";
 
 /**
  * Global registries for native state.
@@ -59,7 +60,19 @@ async function ensurePlayer(name: string): Promise<any> {
             if (!asset.localUri) await asset.downloadAsync();
             const stableUri = asset.localUri || asset.uri;
             
+            const loadStart = Date.now();
             const player = createAudioPlayer(stableUri);
+            // Log every change of state (not every tick) so a dropout can be read off the log afterwards.
+            let lastState = '';
+            try {
+              (player as any).addListener?.('playbackStatusUpdate', (st: any) => {
+                const key = `playing=${st.playing} loaded=${st.isLoaded} state=${st.playbackState}${st.didJustFinish ? ' FINISHED' : ''}${st.error ? ` ERROR=${st.error}` : ''}`;
+                if (key !== lastState) {
+                  lastState = key;
+                  audioLog('status', `${name} ${key}`);
+                }
+              });
+            } catch {}
             
             // Wait for internal engine to confirm readiness
             let attempts = 0;
@@ -68,6 +81,7 @@ async function ensurePlayer(name: string): Promise<any> {
                 attempts++;
             }
 
+            audioLog('load', `${name} ${player.isLoaded ? 'ready' : 'NOT READY'} after ${Date.now() - loadStart}ms`);
             if (player.isLoaded) {
                 GLOBAL_PLAYERS[name] = player;
                 // Re-apply target settings
@@ -126,6 +140,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
   const handle: LegacySoundHandle = {
     playOneShot: (volume: number) => {
       const voices = voicesOf(name);
+      audioLog('sfx', `${name} vol=${volume}`);
       // Strict rotation: consecutive effects always land on different players, so the player that just
       // started never has to be restarted. (`playing` is reported late by the native side, so it cannot be trusted.)
       let tried = 0;
@@ -166,6 +181,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
     play: async () => {
       try {
         SHOULD_BE_PLAYING[name] = true;
+        audioLog('play', `${name} (player ${GLOBAL_PLAYERS[name] ? 'exists' : 'MISSING'})`);
         const voices = voicesOf(name);
         // Prefer a voice that is silent right now; otherwise take them in turn.
         let voice = voices.find(v => GLOBAL_PLAYERS[v]?.isLoaded && !GLOBAL_PLAYERS[v]?.playing);
@@ -181,6 +197,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         if (!p) {
           // The player is not there yet (slow device, load still running): keep trying for a few seconds so music
           // that was asked for at start-up is not lost for good.
+          audioLog('play', `${name} has no player yet, retrying`);
           retryPlay(name, 0);
           return;
         }
@@ -205,6 +222,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
 
     stop: async () => {
       try {
+        audioLog('stop', name);
         SHOULD_BE_PLAYING[name] = false;
         for (const voice of voicesOf(name)) {
           const p = GLOBAL_PLAYERS[voice];
@@ -312,7 +330,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     };
 
     try {
-      console.log("Audio Engine: Starting initialization...");
+      audioLog('init', 'start');
       
       // All players load at the same time (each one polls until the native engine reports it ready).
       const files: [string, any][] = [
@@ -333,7 +351,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       const p = Object.fromEntries(files.map(([name], i) => [name, handles[i]]));
 
       set({ sounds: p as any, ready: true });
-      console.log("Audio Engine: Ready.");
+      audioLog('init', 'ready');
     } catch (err) {
       console.error("Audio Engine: Init error", err);
     }

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
+  Share,
   ImageBackground,
   useWindowDimensions,
 } from "react-native";
@@ -16,6 +17,7 @@ import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
 import type { AttackButtonPlacement, ControlPosition, ControlSize } from "../state/settings/types";
+import { getAudioLog } from "../audio/audioDiagnostics";
 import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 
@@ -244,6 +246,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.separator} />
 
+            <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline">
+              <TouchableOpacity
+                style={styles.logButton}
+                onPress={() => {
+                  Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {});
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t("settings.audioLog")}
+              >
+                <Ionicons name="share-outline" size={20} color="#000" />
+              </TouchableOpacity>
+            </SettingRow>
+
+            <View style={styles.separator} />
+
             <View style={styles.infoBox}>
               <Ionicons name="information-circle-outline" size={20} color="#aaa" />
               <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
@@ -313,6 +330,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
+  logButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#FFD700", alignItems: "center", justifyContent: "center" },
   segmentActive: { backgroundColor: "#FFD700" },
   segmentText: { color: "#d0d0d0", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   segmentTextActive: { color: "#000" },
