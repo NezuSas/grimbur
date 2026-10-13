@@ -37,14 +37,13 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const star2 = useRef(new Animated.Value(0)).current;
   const star3 = useRef(new Animated.Value(0)).current;
 
-  // Rating: 1 star = floor cleared, 2 = every gem collected, 3 = every gem + every guardian.
+  // Rating: 3 stars = every guardian slain (or none on the floor), 2 = at least half, 1 = floor cleared.
+  // Every gem is always collected when a floor clears, so gems do not affect the rating.
   const starsEarned = useMemo(() => {
-    const allCoins = coins === totalCoins;
-    const allKilled = kills === totalEnemies;
-    if (allCoins && allKilled) return 3;
-    if (allCoins) return 2;
+    if (totalEnemies === 0 || kills >= totalEnemies) return 3;
+    if (kills >= Math.ceil(totalEnemies / 2)) return 2;
     return 1;
-  }, [coins, totalCoins, kills, totalEnemies]);
+  }, [kills, totalEnemies]);
 
   useEffect(() => {
     Animated.spring(cardScale, { toValue: 1, friction: 6, useNativeDriver: true }).start(() => {
@@ -134,7 +133,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
               <View style={styles.statsContainer}>
                 {[
                   { label: t("complete.score"), value: score.toLocaleString(), color: "#fff" },
-                  { label: t("complete.gems"), value: `${coins} / ${totalCoins}`, color: "#FFD700" },
+                  { label: t("complete.gems"), value: String(totalCoins || coins), color: "#FFD700" },
                   { label: t("complete.kills"), value: `${kills} / ${totalEnemies}`, color: "#FF6E40" },
                   { label: t("complete.time"), value: formatTime(time), color: "#4FC3F7" },
                 ].map(stat => (

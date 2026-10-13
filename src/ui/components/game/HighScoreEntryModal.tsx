@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -145,12 +143,10 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 1001 }]} pointerEvents="box-none">
       <OverlayContainer keyboardAvoiding>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.avoid}>
-          <View style={[styles.card, { width: Math.min(width * 0.94, compact ? 640 : 380) }, compact && styles.cardRow]}>
-            {summary}
-            {form}
-          </View>
-        </KeyboardAvoidingView>
+        <View style={[styles.card, { width: Math.min(width * 0.94, compact ? 640 : 380) }, compact && styles.cardRow]}>
+          {summary}
+          {form}
+        </View>
       </OverlayContainer>
     </Animated.View>
   );
@@ -159,7 +155,6 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
 export default HighScoreEntryModal;
 
 const styles = StyleSheet.create({
-  avoid: { alignItems: 'center', justifyContent: 'center' },
   card: {
     backgroundColor: '#1a1a1a',
     borderRadius: 24,

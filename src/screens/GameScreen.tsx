@@ -268,6 +268,7 @@ export default function GameScreen({ navigation, route }: Props) {
     runRecorded.current = false;
     isResetting.current = true;
     gameOverTriggered.current = false;
+    emitSound("GAME_MUSIC_START"); // Game Over / victory stopped the loop and the focus did not change
     setPopups([]);
     setRunResult(null);
     setShowGameOver(false);

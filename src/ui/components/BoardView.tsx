@@ -233,6 +233,11 @@ const BoardView: React.FC<Props> = memo(
       ]).start();
     }, [rowIndex, colIndex, tileSize]);
 
+    // A new floor or a restart changes the guardian count without a kill: re-arm the guard silently.
+    useEffect(() => {
+      shakeGuard.current = lastKilledEnemyCount;
+    }, [level, rows, cols]);
+
     // Board Shake on kill
     useEffect(() => {
       if (lastKilledEnemyCount === undefined) return;
