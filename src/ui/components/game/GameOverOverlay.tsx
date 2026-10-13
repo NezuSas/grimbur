@@ -1,32 +1,15 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import type { Character } from '../../../data/characters';
 import type { EntityType } from '../../../core/engine/types';
 import { formatTime } from '../../../shared/utils/formatTime';
-import { overlayStyles } from './overlayStyles';
-import characters from '../../../data/characters';
+import OverlayContainer from './OverlayContainer';
+import { MIN_TOUCH } from '../../layout/useGameLayout';
+import { useT } from '../../../i18n/useT';
+import { heroText } from '../../../i18n/keys';
 
-const { width: screenWidth } = Dimensions.get('window');
-
-const GameOverOverlay = ({
-  visible,
-  score,
-  level,
-  totalCoins,
-  time,
-  character,
-  deathCause,
-  victory = false,
-  bestScore,
-  isNewBest,
-  dailyLabel,
-  streak,
-  unlockedHeroes,
-  onShare,
-  onRetry,
-  onMainMenu,
-}: {
+type Props = {
   visible: boolean;
   score: number;
   level: number;
@@ -45,230 +28,257 @@ const GameOverOverlay = ({
   onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
-}) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const cardAnim = useRef(new Animated.Value(0.8)).current;
+};
+
+const GameOverOverlay = ({
+  visible,
+  score,
+  level,
+  totalCoins,
+  time,
+  character,
+  deathCause,
+  victory = false,
+  bestScore,
+  isNewBest,
+  dailyLabel,
+  streak,
+  unlockedHeroes,
+  onShare,
+  onRetry,
+  onMainMenu,
+}: Props) => {
+  const { t, plural } = useT();
+  const { width, height } = useWindowDimensions();
+  const cardAnim = useRef(new Animated.Value(0.85)).current;
 
   useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        Animated.spring(cardAnim, { toValue: 1, friction: 6, useNativeDriver: true }),
-      ]).start();
-    } else {
-      fadeAnim.setValue(0);
-      cardAnim.setValue(0.8);
-    }
+    if (visible) Animated.spring(cardAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start();
+    else cardAnim.setValue(0.85);
   }, [visible]);
 
   if (!visible) return null;
 
-  return (
-    <Animated.View style={[overlayStyles.overlay, { opacity: fadeAnim }]}>
-      <Animated.View style={[styles.gameOverCard, victory && styles.victoryCard, { transform: [{ scale: cardAnim }] }]}>
+  // Short landscape windows get a two-column card so it never outgrows the screen.
+  const compact = height < 460;
+  const accent = victory ? '#FFD700' : '#FF3B30';
+  const killer = deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'pit';
+  const imageSize = compact ? 56 : killer ? 84 : 72;
 
-        {/* Character or Killer image */}
-        <Image
-          source={
-            (deathCause === 'enemy' || deathCause === 'boss') ? require("../../../assets/sprites/enemies/Guardian_Enemy.png") :
-            deathCause === 'pit'   ? require("../../../assets/sprites/tiles/Danger_Vortex.png") :
-            (character?.loseImage ?? character?.scoreImage)
-          }
-          style={[
-            styles.gameOverImage, 
-            (deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'pit') && { width: 90, height: 90, marginBottom: 10 }
-          ]}
-          resizeMode="contain"
-        />
+  const image = victory
+    ? character.winImage
+    : deathCause === 'enemy' || deathCause === 'boss'
+    ? require('../../../assets/sprites/enemies/Guardian_Enemy.png')
+    : deathCause === 'pit'
+    ? require('../../../assets/sprites/tiles/Danger_Vortex.png')
+    : character.loseImage ?? character.scoreImage;
 
-        <Text style={[styles.gameOverTitle, victory && styles.victoryTitle]}>
-          {victory ? 'EXPEDITION COMPLETE' : 'GAME OVER'}
+  const causeText = !victory && killer ? t(`over.cause.${deathCause}` as 'over.cause.enemy') : null;
+
+  const stats = [
+    { label: t('over.floor'), value: String(level), color: '#fff' },
+    { label: t('over.score'), value: score.toLocaleString(), color: '#FFD700' },
+    { label: t('over.gems'), value: String(totalCoins), color: '#FFD700' },
+    { label: t('over.time'), value: formatTime(time), color: '#00BFFF' },
+  ];
+
+  const bestText = dailyLabel
+    ? t('over.bestToday', { score: (bestScore ?? 0).toLocaleString() })
+    : t('over.best', { score: (bestScore ?? 0).toLocaleString() });
+
+  const header = (
+    <View style={styles.headerColumn}>
+      <Image source={image} style={{ width: imageSize, height: imageSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <Text
+        style={[styles.title, { color: accent }]}
+        accessibilityRole="header"
+        maxFontSizeMultiplier={1.3}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+      >
+        {(victory ? t('over.victory') : t('over.defeat')).toLocaleUpperCase()}
+      </Text>
+      {causeText && (
+        <Text style={styles.cause} maxFontSizeMultiplier={1.3}>
+          {causeText}
         </Text>
-        {dailyLabel && (
-          <Text style={styles.dailyLabel}>
-            📅 DAILY {dailyLabel}{streak ? `  ·  🔥 ${streak}` : ''}
+      )}
+      {dailyLabel && (
+        <Text style={styles.daily} maxFontSizeMultiplier={1.3}>
+          📅 {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
+          {streak ? `  ·  🔥 ${plural('over.streak', streak)}` : ''}
+        </Text>
+      )}
+      {isNewBest ? (
+        <Text style={styles.newBest} maxFontSizeMultiplier={1.3}>
+          🏅 {(dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
+        </Text>
+      ) : bestScore ? (
+        <Text style={styles.best} maxFontSizeMultiplier={1.3}>
+          {bestText.toLocaleUpperCase()}
+        </Text>
+      ) : null}
+      {unlockedHeroes && unlockedHeroes.length > 0 && (
+        <Text style={styles.unlocked} maxFontSizeMultiplier={1.3}>
+          🔓{' '}
+          {plural('over.unlocked', unlockedHeroes.length, {
+            names: unlockedHeroes.map(i => heroText(t, i, 'name')).join(', '),
+          }).toLocaleUpperCase()}
+        </Text>
+      )}
+    </View>
+  );
+
+  const body = (
+    <View style={styles.bodyColumn}>
+      <View style={styles.statsGrid}>
+        {stats.map(s => (
+          <View key={s.label} style={styles.statTile} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
+            <Text style={styles.statLabel} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+              {s.label.toLocaleUpperCase()}
+            </Text>
+            <Text
+              style={[styles.statValue, { color: s.color }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              maxFontSizeMultiplier={1.2}
+            >
+              {s.value}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={[styles.retryButton, { backgroundColor: accent }]}
+          onPress={onRetry}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('over.retry')}
+        >
+          <Text
+            style={[styles.retryText, victory && { color: '#000' }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            maxFontSizeMultiplier={1.3}
+          >
+            🔄  {t('over.retry').toLocaleUpperCase()}
           </Text>
-        )}
-        {isNewBest ? (
-          <Text style={styles.newBest}>{dailyLabel ? '🏅 NEW DAILY BEST!' : '🏅 NEW PERSONAL BEST!'}</Text>
-        ) : bestScore ? (
-          <Text style={styles.bestScore}>{dailyLabel ? "TODAY'S BEST" : 'BEST'} {bestScore.toLocaleString()}</Text>
-        ) : null}
-
-        {unlockedHeroes && unlockedHeroes.length > 0 && (
-          <Text style={styles.unlocked}>
-            🔓 UNLOCKED: {unlockedHeroes.map(i => characters[i]?.playerName.toUpperCase()).join(', ')}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={onMainMenu}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('over.menu')}
+        >
+          <Text style={styles.menuText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+            🏠  {t('over.menu').toLocaleUpperCase()}
           </Text>
-        )}
+        </TouchableOpacity>
+      </View>
 
-        {/* Stats */}
-        <View style={styles.gameOverStats}>
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>LEVEL</Text>
-            <Text style={styles.statValue}>{level}</Text>
-          </View>
-          <View style={[styles.statRow, styles.statDivider]} />
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>SCORE</Text>
-            <Text style={[styles.statValue, { color: '#FFD700' }]}>{score}</Text>
-          </View>
-          <View style={[styles.statRow, styles.statDivider]} />
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>GEMS</Text>
-            <Text style={[styles.statValue, { color: '#FFD700' }]}>{totalCoins}</Text>
-          </View>
-          <View style={[styles.statRow, styles.statDivider]} />
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>TIME</Text>
-            <Text style={[styles.statValue, { color: '#00BFFF' }]}>{formatTime(time)}</Text>
-          </View>
-        </View>
+      {onShare && (
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={onShare}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('over.share')}
+        >
+          <Text style={styles.shareText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+            📤  {t('over.share').toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
-        {/* Buttons */}
-        <View style={styles.gameOverButtons}>
-          <TouchableOpacity style={styles.retryButton} onPress={onRetry} activeOpacity={0.8}>
-            <Text style={styles.retryButtonText}>🔄  RETRY</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.menuButton} onPress={onMainMenu} activeOpacity={0.8}>
-            <Text style={styles.menuButtonText}>🏠  MENU</Text>
-          </TouchableOpacity>
-        </View>
-        {onShare && (
-          <TouchableOpacity style={styles.shareButton} onPress={onShare} activeOpacity={0.8}>
-            <Text style={styles.shareButtonText}>📤  SHARE RESULT</Text>
-          </TouchableOpacity>
-        )}
-
+  return (
+    <OverlayContainer>
+      <Animated.View
+        style={[
+          styles.card,
+          { borderColor: accent, shadowColor: accent, width: Math.min(width * 0.94, compact ? 640 : 380) },
+          compact && styles.cardRow,
+          { transform: [{ scale: cardAnim }] },
+        ]}
+      >
+        {header}
+        {body}
       </Animated.View>
-    </Animated.View>
+    </OverlayContainer>
   );
 };
 
 export default GameOverOverlay;
 
 const styles = StyleSheet.create({
-  gameOverCard: {
+  card: {
     backgroundColor: '#1a1a1a',
     borderRadius: 24,
     borderWidth: 2,
-    borderColor: '#FF3B30',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    padding: 16,
     alignItems: 'center',
-    width: Math.min(screenWidth * 0.78, 340),
-    shadowColor: '#FF3B30',
+    gap: 12,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 14,
     elevation: 20,
-    gap: 12,
   },
-  gameOverImage: {
-    width: 72,
-    height: 72,
+  cardRow: { flexDirection: 'row', alignItems: 'center' },
+  headerColumn: { alignItems: 'center', gap: 6, flex: 1 },
+  bodyColumn: { gap: 10, flex: 1.2, width: '100%' },
+  title: { fontSize: 20, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
+  cause: { color: '#bdbdbd', fontSize: 12, textAlign: 'center' },
+  daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
+  newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
+  best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%' },
+  statTile: {
+    flexGrow: 1,
+    flexBasis: '45%',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  gameOverTitle: {
-    color: '#FF3B30',
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
-  victoryCard: { borderColor: '#FFD700', shadowColor: '#FFD700' },
-  victoryTitle: { color: '#FFD700' },
-  dailyLabel: {
-    color: '#4FC3F7',
-    fontWeight: '800',
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  shareButton: {
-    width: '100%',
-    backgroundColor: '#4FC3F7',
-    borderRadius: 14,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  shareButtonText: {
-    color: '#000',
-    fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-  newBest: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 13,
-    letterSpacing: 1.5,
-  },
-  bestScore: {
-    color: '#888',
-    fontWeight: '700',
-    fontSize: 12,
-    letterSpacing: 1.5,
-  },
-  gameOverStats: {
-    width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  statDivider: {
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    marginVertical: 2,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statLabel: {
-    color: '#777',
-    fontWeight: '900',
-    fontSize: 12,
-    letterSpacing: 2,
-  },
-  statValue: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 18,
-  },
-  gameOverButtons: {
-    flexDirection: 'row',
-    gap: 10,
-    width: '100%',
-  },
+  statLabel: { color: '#9a9a9a', fontWeight: '900', fontSize: 11, letterSpacing: 1.5 },
+  statValue: { fontWeight: '900', fontSize: 20 },
+  buttons: { flexDirection: 'row', gap: 10, width: '100%' },
   retryButton: {
     flex: 1,
-    backgroundColor: '#FF3B30',
+    minHeight: MIN_TOUCH,
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0,0,0,0.3)',
   },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 1,
-  },
+  retryText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
   menuButton: {
     flex: 1,
+    minHeight: MIN_TOUCH,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',
   },
-  menuButtonText: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 1,
+  menuText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
+  shareButton: {
+    width: '100%',
+    minHeight: MIN_TOUCH,
+    backgroundColor: '#4FC3F7',
+    borderRadius: 14,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  shareText: { color: '#000', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });

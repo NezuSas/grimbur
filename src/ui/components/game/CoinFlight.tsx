@@ -1,9 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Easing } from 'react-native';
+import { Animated, Easing } from 'react-native';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+type Props = {
+  startX: number;
+  startY: number;
+  /** Where the gem lands (the HUD gem counter). */
+  targetX: number;
+  targetY: number;
+  onComplete: () => void;
+};
 
-const CoinFlight = ({ startX, startY, onComplete }: { startX: number, startY: number, onComplete: () => void }) => {
+const CoinFlight = ({ startX, startY, targetX, targetY, onComplete }: Props) => {
   const pos = useRef(new Animated.ValueXY({ x: startX, y: startY })).current;
   const scale = useRef(new Animated.Value(0.8)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -11,7 +18,7 @@ const CoinFlight = ({ startX, startY, onComplete }: { startX: number, startY: nu
   useEffect(() => {
     Animated.parallel([
       Animated.timing(pos, {
-        toValue: { x: screenWidth * 0.85, y: screenHeight * 0.05 },
+        toValue: { x: targetX, y: targetY },
         duration: 500,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
         useNativeDriver: true,

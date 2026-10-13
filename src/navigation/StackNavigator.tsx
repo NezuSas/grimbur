@@ -6,6 +6,7 @@ import { RootStackParamList } from "./types";
 import CoverScreen from "../screens/CoverScreen";
 import CharactersScreen from "../screens/CharactersScreen";
 import GameScreen from "../screens/GameScreen";
+import TutorialScreen from "../screens/TutorialScreen";
 import HighScoresScreen from "../screens/HighScoresScreen";
 import LevelCompleteScreen from "../screens/LevelCompleteScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
@@ -26,6 +27,7 @@ const StackNavigator: React.FC = () => {
       >
         <Stack.Screen name="CoverScreen" component={CoverScreen} />
         <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
+        <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
         <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />

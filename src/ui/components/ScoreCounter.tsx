@@ -7,9 +7,11 @@ type Props = {
   value: number | string;
   label?: string;
   iconDim?: number;
+  /** Spoken description for screen readers. */
+  a11yLabel?: string;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, value, label, iconDim = 32 }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, value, label, iconDim = 32, a11yLabel }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -30,12 +32,20 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, value, label, iconDim = 32 }
   }, [value]);
 
   return (
-    <View style={[styles.container, { paddingRight: spacing(12), paddingVertical: spacing(4), marginHorizontal: spacing(4) }]}>
+    <View
+      style={[styles.container, { paddingRight: spacing(12), paddingVertical: spacing(4), marginHorizontal: spacing(4) }]}
+      accessible={!!a11yLabel}
+      accessibilityLabel={a11yLabel}
+    >
       <View style={[styles.iconWrapper, { width: iconDim, height: iconDim }]}>
         <Image source={icon} style={[styles.icon, { width: iconDim * 0.9, height: iconDim * 0.9 }]} />
       </View>
       <View style={[styles.content, { marginLeft: spacing(10) }]}>
-        <Animated.Text style={[styles.value, { transform: [{ scale: scaleAnim }] }]}>
+        <Animated.Text
+          style={[styles.value, { transform: [{ scale: scaleAnim }] }]}
+          maxFontSizeMultiplier={1.15}
+          numberOfLines={1}
+        >
           {value}
         </Animated.Text>
         {label && <Text style={styles.label}>{label}</Text>}

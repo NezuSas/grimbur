@@ -1,5 +1,5 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react';
-import * as Haptics from 'expo-haptics';
+import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../shared/haptics';
 import { gameReducer, initialState } from './reducer';
 import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
@@ -45,7 +45,7 @@ export function useGameEngine(): GameEngineInterface {
     // 1. CRITICAL: Game Over (Priority 1)
     if (state.isGameOver && !prevState.isGameOver) {
       emitGameEvent('GAME_OVER');
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      haptic.impact(ImpactFeedbackStyle.Heavy);
       hapticTriggered = true;
     }
 
@@ -54,7 +54,7 @@ export function useGameEngine(): GameEngineInterface {
       const removedEntityPos = prevState.entities.find(e => !state.entities.find(se => se.index === e.index));
       if (removedEntityPos?.type === 'enemy' && state.playerIndex === prevState.playerIndex) {
         emitGameEvent('ENEMY_KILLED', { combo: state.enemyCombo });
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        haptic.impact(ImpactFeedbackStyle.Heavy);
         hapticTriggered = true;
       }
     }
@@ -62,7 +62,7 @@ export function useGameEngine(): GameEngineInterface {
     // 3. IMPORTANT: Coin collection (Priority 3)
     if (!hapticTriggered && state.totalCoins > prevState.totalCoins) {
       emitGameEvent('COIN_COLLECTED', { remaining: state.coins, total: state.totalCoins });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptic.notify(NotificationFeedbackType.Success);
       hapticTriggered = true;
     }
 
@@ -71,11 +71,11 @@ export function useGameEngine(): GameEngineInterface {
       if (state.lastPickup === 'trap') {
         emitGameEvent('TRAP_TRIGGERED');
         analytics.track('trap_triggered', { level: state.level });
-        if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        if (!hapticTriggered) haptic.notify(NotificationFeedbackType.Warning);
       } else {
         emitGameEvent('POWERUP_COLLECTED', { kind: state.lastPickup });
         analytics.track('powerup_collected', { kind: state.lastPickup });
-        if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        if (!hapticTriggered) haptic.notify(NotificationFeedbackType.Success);
       }
       hapticTriggered = true;
     }
@@ -87,7 +87,7 @@ export function useGameEngine(): GameEngineInterface {
       if (!hapticTriggered) {
         const now = Date.now();
         if (now - lastHapticMoveRef.current > 100) {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          haptic.impact(ImpactFeedbackStyle.Light);
           lastHapticMoveRef.current = now;
         }
       }
@@ -109,10 +109,20 @@ export function useGameEngine(): GameEngineInterface {
     pureDispatch({ type: 'MOVE', direction });
   }, [pureDispatch]);
 
+  const attackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (attackTimer.current) clearTimeout(attackTimer.current);
+  }, []);
+
   const attack = useCallback(() => {
+    // A no-op attack (no arrows, run over, draft open) gives no animation or haptics.
+    const s = stateRef.current;
+    if (s.isGameOver || s.isLevelUp || s.pendingDraft || s.attack <= 0) return;
+
     setIsAttacking(true);
     pureDispatch({ type: 'ATTACK' });
-    setTimeout(() => setIsAttacking(false), 400);
+    if (attackTimer.current) clearTimeout(attackTimer.current);
+    attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
   }, [pureDispatch]);
 
   /** The final floor of an expedition (and of a daily) is the Wumpus' lair. */

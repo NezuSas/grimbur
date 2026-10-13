@@ -9,5 +9,5 @@ export type GameEvent =
   | "POWERUP_COLLECTED";
 
 export function emitGameEvent(event: GameEvent, payload?: any) {
-  console.log(`[GameEvent] ${event}`, payload || '');
+  if (typeof __DEV__ !== 'undefined' && __DEV__) console.log(`[GameEvent] ${event}`, payload || '');
 }

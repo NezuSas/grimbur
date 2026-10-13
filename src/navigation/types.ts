@@ -3,6 +3,7 @@ import type { GameMode } from "../core/engine/seed";
 export type RootStackParamList = {
   CoverScreen: undefined;
   CharactersScreen: { mode?: GameMode } | undefined;
+  TutorialScreen: { characterIndex?: number } | undefined;
   GameScreen: { characterIndex?: number; skipLoading?: boolean; mode?: GameMode } | undefined;
   HighScoresScreen: undefined;
   LevelCompleteScreen: {

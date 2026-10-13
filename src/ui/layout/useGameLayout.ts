@@ -1,48 +1,55 @@
-import { useWindowDimensions, Platform } from "react-native";
+import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+/** Smallest text size the UI scales down to, so nothing becomes unreadable on small phones. */
+export const MIN_FONT_SIZE = 11;
+/** Minimum comfortable touch target (dp). */
+export const MIN_TOUCH = 46;
+/** Horizontal breathing room around the board row in the game screen. */
+export const GAME_ROW_PADDING = 12;
+
+/** The direction pad needs 4.26 button-widths: 3.1 for the middle row, plus gaps and padding. */
+export const PAD_WIDTH_IN_BUTTONS = 4.26;
 
 /**
  * Wumpus Adventures — Game Camera Layout Hook
- * Provides responsive dimensions for the landscape-locked game screen.
+ * Provides responsive dimensions for the landscape game screen. Everything the game
+ * screen needs (HUD, control panel, board) derives from the live window size and the
+ * safe-area insets, so rotation, split-screen and display-size changes just work.
  */
 export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) => {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  // Basic flags
   const isTablet = screenWidth >= 900;
 
-  // Layout segments — match actual ScoreBar rendered height (avatar + paddingVertical)
-  const hudHeight = Platform.OS === 'android' ? 72 : 76;
-  const controlPanelWidth = Math.max(screenWidth * 0.20, 190);
-  
-  // Buffers - Set to absolute zero for no-gap scaling
-  const horizontalBuffer = 0; 
-  const verticalBuffer = 0;
+  // HUD: a fixed, predictable height (the ScoreBar renders exactly this tall).
+  const hudHeight = clamp(screenHeight * 0.16, 54, 96);
 
-  // The actual available space for the board
-  const cameraWidth = screenWidth - controlPanelWidth - insets.left - insets.right - horizontalBuffer;
-  const cameraHeight = screenHeight - hudHeight - insets.top - insets.bottom - verticalBuffer;
+  // Control panel: wide enough for the direction pad at a comfortable button size.
+  const controlPanelWidth = clamp(screenWidth * 0.22, MIN_TOUCH * PAD_WIDTH_IN_BUTTONS, 320);
+  const padButtonSize = clamp(controlPanelWidth / PAD_WIDTH_IN_BUTTONS, MIN_TOUCH, 76);
 
-  // Tile Sizing (Centered Camera Logic)
-  const tileSize = Math.min(
-    cameraWidth / boardColumns,
-    cameraHeight / boardRows
-  );
+  // Space left for the board once the HUD, control panel, insets and row padding are paid for.
+  const cameraWidth = screenWidth - controlPanelWidth - insets.left - insets.right - GAME_ROW_PADDING * 2;
+  const cameraHeight = screenHeight - hudHeight - insets.top - insets.bottom;
 
+  const tileSize = Math.max(8, Math.min(cameraWidth / boardColumns, cameraHeight / boardRows));
   const boardWidth = tileSize * boardColumns;
   const boardHeight = tileSize * boardRows;
 
   // UI Element Sizing
   const heroSize = controlPanelWidth * 0.45;
-  const directionSize = controlPanelWidth * 0.17;
-  const buttonSize = directionSize; 
-  const attackSize = directionSize * 1.15;
-  const buttonGap = directionSize * 0.25;
-  const iconSize = Math.min(hudHeight * 0.75, 34);
-  
-  // Font scaling helper (relative to screen width)
-  const fontSize = (val: number) => (val / 1200) * screenWidth;
+  const directionSize = padButtonSize;
+  const buttonSize = padButtonSize;
+  const attackSize = padButtonSize * 1.1;
+  const buttonGap = padButtonSize * 0.22;
+  const iconSize = Math.min(hudHeight * 0.6, 34);
+
+  // Font scaling helper: relative to screen width, never below a readable floor.
+  const fontSize = (val: number) => Math.max(MIN_FONT_SIZE, (val / 1200) * screenWidth);
 
   // Typography scaling
   const titleSize = fontSize(32);
@@ -57,6 +64,7 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
     isTablet,
     hudHeight,
     controlPanelWidth,
+    padButtonSize,
     cameraWidth,
     cameraHeight,
     tileSize,
@@ -74,6 +82,6 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
     textSize,
     insets,
     boardColumns,
-    boardRows
+    boardRows,
   };
 };

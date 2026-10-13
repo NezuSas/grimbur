@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { analytics } from '../../services/analytics';
+import { translateNow } from '../../i18n/useT';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean };
@@ -27,10 +28,16 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Something went wrong</Text>
-        <Text style={styles.body}>The cave collapsed. Your best score is safe.</Text>
-        <TouchableOpacity style={styles.button} onPress={this.restart} activeOpacity={0.8}>
-          <Text style={styles.buttonText}>TRY AGAIN</Text>
+        <Text style={styles.title} accessibilityRole="header">{translateNow('error.title')}</Text>
+        <Text style={styles.body}>{translateNow('error.body')}</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={this.restart}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={translateNow('error.retry')}
+        >
+          <Text style={styles.buttonText}>{translateNow('error.retry').toLocaleUpperCase()}</Text>
         </TouchableOpacity>
       </View>
     );

@@ -2,7 +2,7 @@ import "react-native-gesture-handler";
 import React, { useEffect, useState, useCallback } from "react";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { View, ActivityIndicator, Image } from "react-native";
+import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
@@ -15,6 +15,7 @@ import characters from "./src/data/characters";
 import { prefetchLeaderboardThreshold } from "./src/services/highscores";
 import { installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
+import LoadingScreen from "./src/ui/components/LoadingScreen";
 
 installGlobalErrorHandler();
 
@@ -40,7 +41,6 @@ export default function App() {
 
         // 3. Pre-load Images (Resilient sequential download)
         const images = [
-          require("./src/assets/sprites/backgrounds/Loading.png"),
           require("./src/assets/sprites/backgrounds/Cover_Background.png"),
           require("./src/assets/sprites/enemies/Guardian_Enemy.png"),
           require("./src/assets/sprites/tiles/Danger_Vortex.png"),
@@ -63,7 +63,7 @@ export default function App() {
         }
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
-        await prefetchLeaderboardThreshold();
+        void prefetchLeaderboardThreshold(); // best effort, never blocks the splash
       } catch (e) {
         console.warn("[App] Critical preparation error:", e);
       } finally {
@@ -82,18 +82,7 @@ export default function App() {
   }, [appIsReady]);
 
   if (!appIsReady) {
-    return (
-      <View style={{ flex: 1, backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }}>
-        <Image 
-          source={require("./src/assets/sprites/backgrounds/Loading.png")} 
-          style={{ width: '100%', height: '100%', position: 'absolute', bottom: 0 }} 
-          resizeMode="contain" 
-        />
-        <View style={{ position: 'absolute', bottom: 50 }}>
-          <ActivityIndicator size="large" color="#FFD700" />
-        </View>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (

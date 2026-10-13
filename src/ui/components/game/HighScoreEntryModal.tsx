@@ -1,7 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -9,81 +8,150 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 
 import { formatTime } from '../../../shared/utils/formatTime';
 import { checkName } from '../../../core/leaderboard/validation';
-import { overlayStyles } from './overlayStyles';
+import OverlayContainer from './OverlayContainer';
+import { MIN_TOUCH } from '../../layout/useGameLayout';
+import { useT } from '../../../i18n/useT';
 
-const { width: screenWidth } = Dimensions.get('window');
-
-const HighScoreEntryModal = ({
-  visible, score, level, totalCoins, time, onSubmit,
-}: {
+type Props = {
   visible: boolean;
   score: number;
   level: number;
   totalCoins: number;
   time: number;
-  onSubmit: (name: string) => void;
-}) => {
-  const [name, setName] = React.useState('');
-  const [error, setError] = React.useState<string | null>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  /** Should save the score; rejects when it could not be saved. */
+  onSubmit: (name: string) => Promise<void>;
+  onSkip: () => void;
+};
+
+const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit, onSkip }: Props) => {
+  const { t, plural } = useT();
+  const { width, height } = useWindowDimensions();
+  const [name, setName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+  const fade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: visible ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(fade, { toValue: visible ? 1 : 0, duration: 250, useNativeDriver: true }).start();
     if (visible) {
       setName('');
       setError(null);
+      setSaving(false);
+      // Focus after the fade-in so the keyboard does not fight the animation.
+      const timer = setTimeout(() => inputRef.current?.focus(), 350);
+      return () => clearTimeout(timer);
     }
   }, [visible]);
 
   if (!visible) return null;
 
+  // With the keyboard up a landscape phone has ~150 dp: use a compact two-column card.
+  const compact = height < 460;
+
+  const submit = async () => {
+    if (saving) return; // guards double taps
+    const result = checkName(name);
+    if (!result.ok) {
+      setError(result.reason === 'blocked' ? t('entry.errBlocked') : t('entry.errEmpty'));
+      return;
+    }
+    setSaving(true);
+    try {
+      await onSubmit(result.name);
+    } catch {
+      setError(t('entry.errFailed'));
+      setSaving(false);
+    }
+  };
+
+  const summary = (
+    <View style={styles.summary}>
+      <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
+        🏆 {t('entry.badge').toLocaleUpperCase()}
+      </Text>
+      <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+        {t('entry.title').toLocaleUpperCase()}
+      </Text>
+      <Text style={styles.score} maxFontSizeMultiplier={1.3}>
+        {t('entry.points', { score: score.toLocaleString() })}
+      </Text>
+      <Text style={styles.subtitle} maxFontSizeMultiplier={1.3}>
+        {t('entry.subtitle', { floor: level, gems: plural('common.gems', totalCoins), time: formatTime(time) })}
+      </Text>
+    </View>
+  );
+
+  const form = (
+    <View style={styles.form}>
+      <TextInput
+        ref={inputRef}
+        style={styles.input}
+        placeholder={t('entry.placeholder')}
+        placeholderTextColor="#8a8a8a"
+        value={name}
+        onChangeText={text => {
+          setName(text);
+          setError(null);
+        }}
+        maxLength={20}
+        selectionColor="#FFD700"
+        returnKeyType="done"
+        onSubmitEditing={submit}
+        editable={!saving}
+        accessibilityLabel={t('entry.placeholder')}
+      />
+      {error && (
+        <Text style={styles.error} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+          {error}
+        </Text>
+      )}
+
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={onSkip}
+          disabled={saving}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.skip')}
+        >
+          <Text style={styles.skipText} numberOfLines={1} maxFontSizeMultiplier={1.3}>
+            {t('common.skip').toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.saveButton, (!name.trim() || saving) && { opacity: 0.45 }]}
+          onPress={submit}
+          disabled={!name.trim() || saving}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('entry.save')}
+          accessibilityState={{ disabled: !name.trim() || saving, busy: saving }}
+        >
+          <Text style={styles.saveText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+            {(saving ? t('entry.saving') : t('entry.save')).toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
-    <Animated.View style={[overlayStyles.overlay, { opacity: fadeAnim }]}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={styles.hsCard}>
-          <Text style={styles.hsBadge}>🏆 TOP 10!</Text>
-          <Text style={styles.hsTitle}>NEW HIGH SCORE</Text>
-          <Text style={styles.hsScore}>{score.toLocaleString()} pts</Text>
-          <Text style={styles.hsSubtitle}>Level {level} · {totalCoins} gems · Time {formatTime(time)}</Text>
-
-          <TextInput
-            style={styles.hsInput}
-            placeholder="Enter your name..."
-            placeholderTextColor="#666"
-            value={name}
-            onChangeText={text => {
-              setName(text);
-              setError(null);
-            }}
-            maxLength={20}
-            autoFocus
-            selectionColor="#FFD700"
-          />
-
-          {error && <Text style={styles.hsError}>{error}</Text>}
-
-          <TouchableOpacity
-            style={[styles.hsSubmitBtn, !name.trim() && { opacity: 0.4 }]}
-            onPress={() => {
-              const result = checkName(name);
-              if (result.ok) onSubmit(result.name);
-              else setError(result.reason === 'blocked' ? "That name isn't allowed. Try another." : 'Enter a name.');
-            }}
-            activeOpacity={0.8}
-            disabled={!name.trim()}
-          >
-            <Text style={styles.hsSubmitText}>SAVE SCORE ➔</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+    <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 1001 }]} pointerEvents="box-none">
+      <OverlayContainer keyboardAvoiding>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.avoid}>
+          <View style={[styles.card, { width: Math.min(width * 0.94, compact ? 640 : 380) }, compact && styles.cardRow]}>
+            {summary}
+            {form}
+          </View>
+        </KeyboardAvoidingView>
+      </OverlayContainer>
     </Animated.View>
   );
 };
@@ -91,15 +159,13 @@ const HighScoreEntryModal = ({
 export default HighScoreEntryModal;
 
 const styles = StyleSheet.create({
-  hsCard: {
+  avoid: { alignItems: 'center', justifyContent: 'center' },
+  card: {
     backgroundColor: '#1a1a1a',
     borderRadius: 24,
     borderWidth: 2,
     borderColor: '#FFD700',
-    paddingHorizontal: 28,
-    paddingVertical: 24,
-    alignItems: 'center',
-    width: Math.min(screenWidth * 0.78, 340),
+    padding: 16,
     gap: 10,
     shadowColor: '#FFD700',
     shadowOffset: { width: 0, height: 6 },
@@ -107,58 +173,48 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 20,
   },
-  hsBadge: {
-    fontSize: 26,
-    color: '#fff',
-  },
-  hsTitle: {
-    color: '#FFD700',
-    fontWeight: '900',
-    fontSize: 18,
-    letterSpacing: 2,
-  },
-  hsScore: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 22,
-  },
-  hsSubtitle: {
-    color: '#888',
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  hsInput: {
+  cardRow: { flexDirection: 'row', alignItems: 'center' },
+  summary: { alignItems: 'center', gap: 4, flex: 1 },
+  form: { gap: 8, flex: 1.2, width: '100%' },
+  badge: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  title: { color: '#FFD700', fontWeight: '900', fontSize: 17, letterSpacing: 2, textAlign: 'center' },
+  score: { color: '#fff', fontWeight: '900', fontSize: 22 },
+  subtitle: { color: '#b5b5b5', fontSize: 12, letterSpacing: 0.5, textAlign: 'center' },
+  input: {
     width: '100%',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    minHeight: MIN_TOUCH,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    marginTop: 10,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
-  hsError: {
-    color: '#FF6B6B',
-    fontSize: 12,
-    fontWeight: '700',
+  error: { color: '#FF8A80', fontSize: 12, fontWeight: '700' },
+  buttons: { flexDirection: 'row', gap: 10 },
+  skipButton: {
+    flex: 1,
+    minHeight: MIN_TOUCH,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
-  hsSubmitBtn: {
-    width: '100%',
+  skipText: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1 },
+  saveButton: {
+    flex: 1.6,
+    minHeight: MIN_TOUCH,
     backgroundColor: '#FFD700',
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0,0,0,0.2)',
   },
-  hsSubmitText: {
-    color: '#000',
-    fontWeight: '900',
-    fontSize: 16,
-    letterSpacing: 1,
-  },
+  saveText: { color: '#000', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
 });

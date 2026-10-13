@@ -20,6 +20,8 @@ type Props = {
   isAttacking?: boolean;
   /** Enemy count at last kill — passed from GameScreen to decouple shake from coin events */
   lastKilledEnemyCount?: number;
+  /** Tiles to outline (used by the tutorial). */
+  highlight?: readonly number[];
 };
 
 const ASSETS: Record<"enemy" | "pit" | "coin" | "block" | "blockFog", ImageSourcePropType> = {
@@ -38,7 +40,7 @@ const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, rows, cols, isVisited, isPlayerHere, entity, hints 
+  index, tileSize, rows, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted 
 }: {
   index: number;
   tileSize: number;
@@ -47,10 +49,14 @@ const GridCell = memo(({
   isVisited: boolean;
   isPlayerHere: boolean;
   entity?: GameEntity;
-  hints: NearbyHazards;
+  /** Guardians (and the Wumpus) touching this tile; only set on explored tiles. */
+  enemyCount: number;
+  /** Vortexes touching this tile; only set on explored tiles. */
+  pitCount: number;
+  highlighted: boolean;
 }) => {
-  const roar = hints.enemy;
-  const vortex = hints.pit;
+  const roar = enemyCount > 0;
+  const vortex = pitCount > 0;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   // Background priority: visited block > fog
@@ -113,14 +119,21 @@ const GridCell = memo(({
       {/* The Wumpus: shown on explored tiles, with its remaining hearts */}
       {entity?.type === 'boss' && (isVisited || isPlayerHere) && (
         <>
-          <View style={[styles.bossAura, { width: tileSize, height: tileSize }]} pointerEvents="none" />
+          <View
+            style={[
+              styles.bossAura,
+              { width: tileSize, height: tileSize },
+              (entity.charge ?? 0) >= 1 && styles.bossCharged,
+            ]}
+            pointerEvents="none"
+          />
           <Image
             style={{ width: tileSize * 1.05, height: tileSize * 1.05, position: 'absolute' }}
             source={ASSETS.enemy}
             resizeMode="contain"
           />
           <View style={styles.bossHp} pointerEvents="none">
-            <Text style={[styles.bossHpText, { fontSize: tileSize * 0.22 }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
+            <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
           </View>
         </>
       )}
@@ -131,13 +144,13 @@ const GridCell = memo(({
           {roar && (
             <Animated.View style={[styles.hintBadge, styles.hintRoar, { transform: [{ scale: pulseAnim }] }]}>
               <Ionicons name="volume-high" size={tileSize * 0.42} color="#bf360c" />
-              {hints.enemyCount > 1 && <Text style={[styles.hintCount, { fontSize: tileSize * 0.26, color: "#bf360c" }]}>{hints.enemyCount}</Text>}
+              {enemyCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#bf360c" }]}>{enemyCount}</Text>}
             </Animated.View>
           )}
           {vortex && (
             <Animated.View style={[styles.hintBadge, styles.hintVortex, { transform: [{ scale: pulseAnim }] }]}>
               <Ionicons name="infinite" size={tileSize * 0.42} color="#fff" />
-              {hints.pitCount > 1 && <Text style={[styles.hintCount, { fontSize: tileSize * 0.26, color: "#fff" }]}>{hints.pitCount}</Text>}
+              {pitCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#fff" }]}>{pitCount}</Text>}
             </Animated.View>
           )}
         </View>
@@ -171,6 +184,8 @@ const GridCell = memo(({
         </View>
       )}
 
+      {highlighted && <View style={styles.highlight} pointerEvents="none" />}
+
       {/* Player highlight glow */}
       {isPlayerHere && (
         <View style={[styles.playerHighlight, { width: tileSize, height: tileSize }]} />
@@ -180,7 +195,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -235,6 +250,7 @@ const BoardView: React.FC<Props> = memo(
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
+    const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
     const playerSource = isAttacking 
@@ -254,7 +270,7 @@ const BoardView: React.FC<Props> = memo(
           <View style={[StyleSheet.absoluteFill, { width: boardWidth, height: boardHeight }]}>
             {gridIndices.map(i => {
               // Recalculate hints for this specific cell in the current level layout
-              const hints = visitedSet.has(i) ? getNearbyHazards(i, rows, cols, entityMap) : NO_HINTS;
+              const near = visitedSet.has(i) ? getNearbyHazards(i, rows, cols, entityMap) : NO_HINTS;
               
               return (
                 <GridCell
@@ -266,7 +282,9 @@ const BoardView: React.FC<Props> = memo(
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}
                   entity={entityMap?.[i]}
-                  hints={hints}
+                  enemyCount={near.enemyCount}
+                  pitCount={near.pitCount}
+                  highlighted={highlightSet.has(i)}
                 />
               );
             })}
@@ -316,6 +334,8 @@ const styles = StyleSheet.create({
   },
   cell: { alignItems: "center", justifyContent: "center" },
   bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
+  highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD700", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
