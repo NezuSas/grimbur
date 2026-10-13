@@ -20,6 +20,11 @@ JOBS = {
     'items/Icon_Shield.png': 256,
     'items/Icon_Arrows.png': 256,
 }
+# Square floor tiles: opaque, edge to edge, only resized (never cropped or padded).
+TILES = {
+    'tiles/Tile_Hidden.png': 256,
+    'tiles/Tile_Revealed.png': 256,
+}
 PADDING = 0.06  # share of the canvas left empty around the subject
 
 
@@ -44,6 +49,17 @@ def process(rel: str, size: int) -> None:
     print(f'{rel}: {size}px, {os.path.getsize(path) // 1024} KB')
 
 
+def process_tile(rel: str, size: int) -> None:
+    path = os.path.join(SPR, rel)
+    im = Image.open(path).convert('RGB').resize((size, size), Image.LANCZOS)
+    im.save(path, optimize=True)
+    print(f'{rel}: {size}px, {os.path.getsize(path) // 1024} KB')
+
+
 if __name__ == '__main__':
-    for rel, size in JOBS.items():
-        process(rel, size)
+    only_tiles = '--tiles' in sys.argv
+    if not only_tiles:
+        for rel, size in JOBS.items():
+            process(rel, size)
+    for rel, size in TILES.items():
+        process_tile(rel, size)
