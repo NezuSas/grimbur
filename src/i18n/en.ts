@@ -245,6 +245,10 @@ export const en = {
 
   'share.daily':
     'Wumpus Adventures · Daily {date}\nFloor {floor} · {score} pts · {gems}{streak}\nSame cave for everyone today. Can you beat me?',
+  'share.run':
+    'Wumpus Adventures{depth}\n{result} · {score} pts · {gems}\nCan you go deeper?',
+  'share.reached': 'Reached floor {floor}',
+  'share.won': 'Slew the Wumpus',
   'share.streak_one': ' · {count}-day streak',
   'share.streak_other': ' · {count}-day streak',
 

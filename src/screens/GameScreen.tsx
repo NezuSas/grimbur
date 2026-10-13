@@ -380,20 +380,27 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleShare = useCallback(async () => {
     const s = stateRef.current;
     const streak = runResult?.streak ? plural("share.streak", runResult.streak) : "";
-    const message = t("share.daily", {
-      date: dailyDate,
-      floor: s.level,
-      score: s.score.toLocaleString(),
-      gems: plural("common.gems", s.totalCoins),
-      streak,
-    });
-    analytics.track("daily_shared", { score: s.score });
+    const message = isDaily
+      ? t("share.daily", {
+          date: dailyDate,
+          floor: s.level,
+          score: s.score.toLocaleString(),
+          gems: plural("common.gems", s.totalCoins),
+          streak,
+        })
+      : t("share.run", {
+          depth: ascension > 0 ? ` · ${t("ascension.name", { n: ascension })}` : "",
+          result: s.isVictory ? t("share.won") : t("share.reached", { floor: s.level }),
+          score: s.score.toLocaleString(),
+          gems: plural("common.gems", s.totalCoins),
+        });
+    analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
     try {
       await Share.share({ message });
     } catch (e) {
       console.warn("[GameScreen] share error:", e);
     }
-  }, [dailyDate, runResult, t, plural]);
+  }, [dailyDate, runResult, t, plural, isDaily, ascension]);
 
   // ── Floor cleared → level-complete screen → next floor ────────────────────
   useEffect(() => {
@@ -667,7 +674,7 @@ export default function GameScreen({ navigation, route }: Props) {
         achievements={runResult?.achievements}
         embers={runResult?.embers}
         gemsLeft={state.isGameOver ? state.coins : undefined}
-        onShare={isDaily ? handleShare : undefined}
+        onShare={handleShare}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
       />
