@@ -175,6 +175,7 @@ export const en = {
   'ascension.label.4': 'Abyssal',
   'ascension.label.5': 'Legendary',
   'difficulty.title': 'Difficulty',
+  'difficulty.unlock': 'Win on {from} to unlock {to}.',
   'difficulty.hint': 'Harder caves earn more embers. Winning unlocks the next level.',
   'ascension.0': 'Normal rules.',
   'ascension.1': 'One arrow fewer on every floor.',

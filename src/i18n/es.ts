@@ -176,6 +176,7 @@ export const es: Record<TranslationKey, string> = {
   'ascension.label.4': 'Abismal',
   'ascension.label.5': 'Legendario',
   'difficulty.title': 'Dificultad',
+  'difficulty.unlock': 'Gana en {from} para desbloquear {to}.',
   'difficulty.hint': 'Las cuevas más duras dan más brasas. Ganar desbloquea el siguiente nivel.',
   'ascension.0': 'Reglas normales.',
   'ascension.1': 'Una flecha menos en cada piso.',

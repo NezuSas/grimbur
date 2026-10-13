@@ -164,7 +164,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : "#E8BA52";
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
-  const showDepth = mode === "expedition" && maxDepth > 0;
+  // Always shown for expeditions: the locked levels teach that winning opens harder ones.
+  const showDepth = mode === "expedition";
 
   const isLocked = (heroIndex: number) =>
     !GAME_CONFIG.dev.unlockAllHeroes && !isHeroUnlocked(heroIndex, stats);
@@ -227,15 +228,30 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Ionicons name="remove" size={22} color="#fff" />
               </TouchableOpacity>
               <View style={styles.depthText} accessible accessibilityLabel={`${t("difficulty.title")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
-                <Text style={styles.depthKicker} maxFontSizeMultiplier={1.2}>
-                  {t("difficulty.title").toLocaleUpperCase()}
-                </Text>
+                {!compactScreen && (
+                  <Text style={styles.depthKicker} maxFontSizeMultiplier={1.2}>
+                    {t("difficulty.title").toLocaleUpperCase()}
+                  </Text>
+                )}
                 <Text style={styles.depthName} maxFontSizeMultiplier={1.2}>
-                  🔥 {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
+                  🔥 {compactScreen ? `${t("difficulty.title")}: ` : ""}{t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                 </Text>
-                <Text style={styles.depthRule} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                <Text style={styles.depthRule} numberOfLines={compactScreen ? 1 : 2} maxFontSizeMultiplier={1.2}>
                   {t(ascensionRuleKey(depth) as TranslationKey)}
                 </Text>
+                {/* All six levels: open ones filled, the selected one outlined, locked ones dark with a lock */}
+                <View style={styles.depthPips}>
+                  {Array.from({ length: MAX_ASCENSION + 1 }, (_, i) => (
+                    <View key={i} style={[styles.depthPip, i <= maxDepth && styles.depthPipOpen, i === depth && styles.depthPipSelected]}>
+                      {i > maxDepth ? <Ionicons name="lock-closed" size={8} color="#b8b3d0" /> : null}
+                    </View>
+                  ))}
+                </View>
+                {depth >= maxDepth && maxDepth < MAX_ASCENSION && (
+                  <Text style={styles.depthLock} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                    🔒 {t("difficulty.unlock", { from: t(`ascension.label.${maxDepth}` as TranslationKey), to: t(`ascension.label.${maxDepth + 1}` as TranslationKey) })}
+                  </Text>
+                )}
               </View>
               <TouchableOpacity
                 style={[styles.depthButton, depth >= maxDepth && { opacity: 0.35 }]}
@@ -333,6 +349,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   depthText: { flexShrink: 1, alignItems: "center", minWidth: 140 },
+  depthPips: { flexDirection: "row", gap: 6, marginTop: 4 },
+  depthPip: { width: 22, height: 12, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
+  depthPipOpen: { backgroundColor: "#FF9A5C" },
+  depthPipSelected: { borderWidth: 2, borderColor: "#fff" },
+  depthLock: { color: "#c9c3e6", fontSize: 11, fontWeight: "700", textAlign: "center", marginTop: 2 },
   depthKicker: { color: "#9a95b8", fontWeight: "800", letterSpacing: 2, fontSize: 10 },
   depthName: { color: "#FF9A5C", fontWeight: "900", letterSpacing: 1.5, fontSize: 15 },
   depthRule: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
@@ -349,16 +370,16 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 10,
   },
-  portraitArea: { flex: 1, minHeight: 70, alignItems: "center", justifyContent: "center" },
+  portraitArea: { flex: 1, minHeight: 56, alignItems: "center", justifyContent: "center" },
   cardBody: { padding: 12, gap: 4 },
   heroTitle: { fontWeight: "700", letterSpacing: 2, textAlign: "center" },
   perkBox: {
-    marginTop: 6,
+    marginTop: 4,
     borderRadius: 16,
     borderWidth: 1.5,
     backgroundColor: "rgba(255,255,255,0.05)",
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 6,
     gap: 2,
   },
   selectGlow: { borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
