@@ -25,6 +25,10 @@ type Props = {
   onTilePress?: (index: number) => void;
   /** When set, a swipe on the board moves one step; shorter touches still count as taps. */
   onSwipe?: (direction: Direction) => void;
+  /** Tiles the player marked as suspected danger. */
+  flags?: ReadonlySet<number>;
+  /** Long press on a tile (toggles its flag). */
+  onTileLongPress?: (index: number) => void;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -46,7 +50,7 @@ const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted 
+  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged
 }: {
   index: number;
   tileSize: number;
@@ -59,6 +63,8 @@ const GridCell = memo(({
   /** Vortexes touching this tile; only set on explored tiles. */
   pitCount: number;
   highlighted: boolean;
+  /** The player marked this unexplored tile as dangerous. */
+  flagged: boolean;
 }) => {
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
@@ -198,6 +204,12 @@ const GridCell = memo(({
         </View>
       )}
 
+      {flagged && (
+        <View style={styles.pickup} pointerEvents="none">
+          <Ionicons name="flag" size={tileSize * 0.5} color="#FF5252" />
+        </View>
+      )}
+
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
 
       {/* Player highlight glow */}
@@ -209,7 +221,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, onTileLongPress }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -303,13 +315,21 @@ const BoardView: React.FC<Props> = memo(
                   enemyCount={near.enemyCount}
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}
+                  flagged={!!flags && flags.has(i) && !visitedSet.has(i)}
                 />
               );
             })}
           </View>
 
-          {(onTilePress || onSwipe) && (
-            <BoardTouchLayer tileSize={tileSize} rows={rows} cols={cols} onTilePress={onTilePress} onSwipe={onSwipe} />
+          {(onTilePress || onSwipe || onTileLongPress) && (
+            <BoardTouchLayer
+              tileSize={tileSize}
+              rows={rows}
+              cols={cols}
+              onTilePress={onTilePress}
+              onSwipe={onSwipe}
+              onTileLongPress={onTileLongPress}
+            />
           )}
 
           {/* Player sprite */}

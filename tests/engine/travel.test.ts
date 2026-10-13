@@ -1,4 +1,4 @@
-import { travelPath } from '../../src/core/engine/travel';
+import { stepTarget, travelPath } from '../../src/core/engine/travel';
 import { GameEntity } from '../../src/core/engine/types';
 
 const map = (...entities: GameEntity[]) => Object.fromEntries(entities.map(e => [e.index, e]));
@@ -32,5 +32,19 @@ describe('travelPath', () => {
   it('does not wrap around the edges of a row', () => {
     // 3 and 4 are neighbours in the flat array but not on the board.
     expect(travelPath([3, 4], {}, 3, 4, 3, 4)).toBeNull();
+  });
+});
+
+describe('stepTarget', () => {
+  // 3 x 4 board
+  it('moves one tile and reports the edges', () => {
+    expect(stepTarget(5, 'UP', 3, 4)).toBe(1);
+    expect(stepTarget(5, 'DOWN', 3, 4)).toBe(9);
+    expect(stepTarget(5, 'LEFT', 3, 4)).toBe(4);
+    expect(stepTarget(5, 'RIGHT', 3, 4)).toBe(6);
+    expect(stepTarget(0, 'UP', 3, 4)).toBe(-1);
+    expect(stepTarget(11, 'DOWN', 3, 4)).toBe(-1);
+    expect(stepTarget(4, 'LEFT', 3, 4)).toBe(-1); // does not wrap to the end of the row above
+    expect(stepTarget(7, 'RIGHT', 3, 4)).toBe(-1);
   });
 });

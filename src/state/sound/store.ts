@@ -217,20 +217,23 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     try {
       console.log("Audio Engine: Starting initialization...");
       
-      const p = {
-        cover:      await prepare(require("../../assets/music/cover.wav"), "cover"),
-        selection:  await prepare(require("../../assets/music/selection.wav"), "selection"),
-        gameplay:   await prepare(require("../../assets/music/gameplay.wav"), "gameplay"),
-        death:      await prepare(require("../../assets/sfx/death.wav"), "death"),
-        coin:       await prepare(require("../../assets/sfx/coin.wav"), "coin"),
-        victory:    await prepare(require("../../assets/music/victory.wav"), "victory"),
-        move:       await prepare(require("../../assets/sfx/move.wav"), "move"),
-        attack:     await prepare(require("../../assets/sfx/attack.wav"), "attack"),
-        monster:    await prepare(require("../../assets/sfx/monster.wav"), "monster"),
-        vortex:     await prepare(require("../../assets/sfx/vortex.wav"), "vortex"),
-        relic:      await prepare(require("../../assets/sfx/relic.wav"), "relic"),
-        roar:       await prepare(require("../../assets/sfx/roar.wav"), "roar"),
-      };
+      // All players load at the same time (each one polls until the native engine reports it ready).
+      const files: [string, any][] = [
+        ["cover", require("../../assets/music/cover.wav")],
+        ["selection", require("../../assets/music/selection.wav")],
+        ["gameplay", require("../../assets/music/gameplay.wav")],
+        ["death", require("../../assets/sfx/death.wav")],
+        ["coin", require("../../assets/sfx/coin.wav")],
+        ["victory", require("../../assets/music/victory.wav")],
+        ["move", require("../../assets/sfx/move.wav")],
+        ["attack", require("../../assets/sfx/attack.wav")],
+        ["monster", require("../../assets/sfx/monster.wav")],
+        ["vortex", require("../../assets/sfx/vortex.wav")],
+        ["relic", require("../../assets/sfx/relic.wav")],
+        ["roar", require("../../assets/sfx/roar.wav")],
+      ];
+      const handles = await Promise.all(files.map(([name, source]) => prepare(source, name)));
+      const p = Object.fromEntries(files.map(([name], i) => [name, handles[i]]));
 
       set({ sounds: p as any, ready: true });
       console.log("Audio Engine: Ready.");
