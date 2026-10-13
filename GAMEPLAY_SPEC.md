@@ -65,3 +65,11 @@ Final scores are calculated based on efficiency and risk-taking.
 - **Victory Condition**: Collect **all coins** on the current board (3 at level 1, capped at 8).
 - **Level Up**: Clears the board, resets player to starting position, and generates a new, more difficult level.
 - **Difficulty Scaling**: Board size, enemies, pits and coins grow with the level. Every generated board is validated so that all coins are reachable without crossing a hazard.
+
+## 7. Game Modes
+- **Endless**: the default run. Each run gets a random run seed; every level derives its own board seed from it, so a run is fully reproducible.
+- **Daily Challenge**: the run seed is derived from the current UTC date, so every player gets the same boards that day. Retrying replays the same cave. Results are kept locally (best of the day, attempts) together with a streak of consecutive days, and can be shared as text. Daily runs never enter the global Top 10.
+
+## 8. Pause
+A pause button sits next to the timer. Android's Back button pauses (and resumes) instead of abandoning the run, and sending the app to the background pauses automatically. The timer stops while paused.
+

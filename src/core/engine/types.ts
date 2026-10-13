@@ -1,4 +1,5 @@
 import { Character } from '../../data/characters';
+import { GameMode } from './seed';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -36,7 +37,11 @@ export interface GameState {
   /** Consecutive enemy kills without a movement or a miss. */
   enemyCombo: number;
   gameStatus: 'idle' | 'playing' | 'win' | 'lose' | 'loading';
+  /** Seed of the current level's board. */
   seed: number;
+  /** Seed of the whole run; each level derives its own seed from it. */
+  runSeed: number;
+  mode: GameMode;
   totalCoins: number;
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
@@ -57,6 +62,8 @@ export type GameAction =
       coins: number;
       attack: number;
       seed?: number;
+      mode?: GameMode;
+      runSeed?: number;
     }
   | {
       type: 'LEVEL_UP';
@@ -75,6 +82,6 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: () => void;
-  reset: (character: Character) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number }) => void;
   levelUp: () => void;
 }

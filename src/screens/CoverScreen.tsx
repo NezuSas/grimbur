@@ -35,7 +35,8 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         resizeMode="cover"
       >
         <CoverCard
-          onPressPlay={() => navigation.navigate("CharactersScreen")}
+          onPressPlay={() => navigation.navigate("CharactersScreen", { mode: "endless" })}
+          onPressDaily={() => navigation.navigate("CharactersScreen", { mode: "daily" })}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
           onPressInstructions={() => navigation.navigate("InstructionsScreen")}
           onPressSettings={() => navigation.navigate("SettingsScreen")}

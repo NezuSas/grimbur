@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { StyleSheet, View, Image, Text, Dimensions } from "react-native";
+import { StyleSheet, View, Image, Text, Dimensions, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
@@ -16,9 +16,11 @@ type Props = {
   level: number;
   time: number;
   shield?: boolean;
+  /** When provided, a pause button is shown next to the timer. */
+  onPause?: () => void;
 };
 
-const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, time, shield = false }) => {
+const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, time, shield = false, onPause }) => {
   const { spacing, fontSize } = useGameLayout();
 
   // Responsive scaling based on width
@@ -37,6 +39,16 @@ const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, 
             <Text style={styles.timeLabel}>TIME</Text>
             <Text style={[styles.timeValue, { fontSize: fontSize(20) }]}>{formatTime(time)}</Text>
           </View>
+          {onPause && (
+            <TouchableOpacity
+              onPress={onPause}
+              style={[styles.pauseButton, { marginLeft: spacing(12) }]}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityLabel="Pause"
+            >
+              <Ionicons name="pause" size={18} color="#fff" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -112,6 +124,16 @@ const styles = StyleSheet.create({
   centerGroup: {
     flex: 1,
     alignItems: "center",
+  },
+  pauseButton: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
   },
   shieldBadge: {
     position: "absolute",
