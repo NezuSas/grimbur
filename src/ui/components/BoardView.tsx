@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useRef, useEffect, useMemo } from "react";
-import { StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import { StyleSheet, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";

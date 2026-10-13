@@ -1,6 +1,7 @@
 // src/screens/HighScoresScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import { FlatList, Text, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
+import { FlatList, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
+import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchTop10, type Doc } from "../services/highscores";
 import { SafeAreaView } from "react-native-safe-area-context";

@@ -14,7 +14,7 @@ export interface Character {
 const characters: Character[] = [
   {
     id: 1,
-    playerName: "Cyan Explorer",
+    playerName: "Vael",
     scoreImage: require("../assets/sprites/characters/Icon_Cyan.png"),
     attackImage: require("../assets/sprites/characters/Attack_Cyan.png"),
     playerImage: require("../assets/sprites/characters/Hero_Cyan.png"),
@@ -24,7 +24,7 @@ const characters: Character[] = [
   },
   {
     id: 2,
-    playerName: "Scarlet Archer",
+    playerName: "Sera",
     scoreImage: require("../assets/sprites/characters/Icon_Red.png"),
     attackImage: require("../assets/sprites/characters/Attack_Red.png"),
     playerImage: require("../assets/sprites/characters/Hero_Red.png"),
@@ -34,7 +34,7 @@ const characters: Character[] = [
   },
   {
     id: 3,
-    playerName: "Moss Warden",
+    playerName: "Borin",
     scoreImage: require("../assets/sprites/characters/Icon_Green.png"),
     attackImage: require("../assets/sprites/characters/Attack_Green.png"),
     playerImage: require("../assets/sprites/characters/Hero_Green.png"),
@@ -44,7 +44,7 @@ const characters: Character[] = [
   },
   {
     id: 4,
-    playerName: "Gilded Delver",
+    playerName: "Auric",
     scoreImage: require("../assets/sprites/characters/Icon_Gold.png"),
     attackImage: require("../assets/sprites/characters/Attack_Gold.png"),
     playerImage: require("../assets/sprites/characters/Hero_Gold.png"),

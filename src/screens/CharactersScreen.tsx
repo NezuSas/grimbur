@@ -3,7 +3,6 @@ import React, { memo, useCallback, useRef, useState } from "react";
 import {
   StatusBar,
   StyleSheet,
-  Text,
   View,
   FlatList,
   ImageBackground,
@@ -11,6 +10,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
+import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import characters, { type Character } from "../data/characters";
 import { RootStackParamList } from "../navigation/types";
@@ -28,97 +28,87 @@ import { heroText, unlockText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { metaEffects } from "../core/stats/forge";
+import { dailyKey } from "../core/engine/seed";
 import type { TranslationKey } from "../i18n/en";
 import SpriteImage from "../ui/components/SpriteImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
+
+/** Accent per hero, in the same hue as the character but softer than a pure screen colour. */
+const HERO_ACCENT = ["#69C3DE", "#E5737E", "#97C46E", "#E8BA52"] as const;
+const accentOf = (heroIndex: number) => HERO_ACCENT[heroIndex] ?? "#E8BA52";
 
 type CardProps = {
   hero: Character;
   heroIndex: number;
   cardWidth: number;
   cardHeight: number;
-  portraitSize: number;
   locked: boolean;
   onSelect: (heroIndex: number) => void;
 };
 
 /** One hero card. Defined at module level so the list never remounts it on state changes. */
-const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, portraitSize, locked, onSelect }: CardProps) => {
+const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, locked, onSelect }: CardProps) => {
   const { t } = useT();
-  const { spacing } = useGameLayout();
-  // Short windows (phones in landscape) get a compact card: one-line name, two-line description.
   const compact = cardHeight < 300;
-  const nameSize = compact ? 16 : Math.max(16, Math.min(cardWidth * 0.095, 28));
-  const perkSize = compact ? 12 : Math.max(13, Math.min(cardWidth * 0.058, 17));
-  const descSize = compact ? 11 : Math.max(12, Math.min(cardWidth * 0.052, 16));
+  const accent = accentOf(heroIndex);
+  // Everything scales with the card: on a tablet the art and the text grow instead of leaving empty bands.
+  const nameSize = compact ? 18 : Math.max(22, Math.min(cardWidth * 0.12, 36));
+  const titleSize = compact ? 11 : Math.max(12, Math.min(cardWidth * 0.052, 16));
+  const perkSize = compact ? 13 : Math.max(15, Math.min(cardWidth * 0.066, 21));
+  const descSize = compact ? 12 : Math.max(14, Math.min(cardWidth * 0.058, 19));
   const name = heroText(t, heroIndex, "name");
+  const title = heroText(t, heroIndex, "title");
   const perk = heroText(t, heroIndex, "perk");
   const description = heroText(t, heroIndex, "desc");
   const requirement = unlockText(t, heroIndex);
 
   return (
     <View style={[styles.itemWrapper, { width: cardWidth, height: cardHeight }]}>
-      <ScrollView
-        style={[styles.card, { borderColor: hero.arrowColor }]}
-        contentContainerStyle={styles.cardContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.cardTop}>
-        <View
-          style={[
-            styles.imageContainer,
-            { width: portraitSize, height: portraitSize, borderRadius: portraitSize / 2, borderColor: hero.arrowColor + "66" },
-          ]}
-        >
+      <View style={[styles.card, { borderColor: accent + "CC", shadowColor: accent }]}>
+        {/* Portrait: takes whatever height the name, power and button leave over */}
+        <View style={[styles.portraitArea, { backgroundColor: accent + "1F" }]}>
           <SpriteImage
             source={hero.playerImage}
-            style={{ width: portraitSize * 0.75, height: portraitSize * 0.75, opacity: locked ? 0.3 : 1 }}
+            style={{ width: "86%", height: "92%", opacity: locked ? 0.3 : 1 }}
             resizeMode="contain"
             accessibilityIgnoresInvertColors
           />
-          {locked && <Ionicons name="lock-closed" size={portraitSize * 0.4} color="#fff" style={styles.lock} />}
+          {locked && <Ionicons name="lock-closed" size={44} color="#fff" style={styles.lock} />}
         </View>
 
-        <Text
-          style={[styles.heroName, { fontSize: nameSize, textShadowColor: hero.arrowColor }]}
-          numberOfLines={compact ? 1 : 2}
-          adjustsFontSizeToFit={compact}
-          accessibilityRole="header"
-          maxFontSizeMultiplier={1.3}
-        >
-          {name.toLocaleUpperCase()}
-        </Text>
-        <View style={[styles.underline, { backgroundColor: hero.arrowColor }]} />
-        </View>
+        <View style={styles.cardBody}>
+          <Text style={[styles.heroName, { fontSize: nameSize }]} numberOfLines={1} adjustsFontSizeToFit accessibilityRole="header" maxFontSizeMultiplier={1.2}>
+            {name}
+          </Text>
+          <Text style={[styles.heroTitle, { color: accent, fontSize: titleSize }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+            {title.toLocaleUpperCase()}
+          </Text>
 
-        <View style={styles.cardMiddle}>
-          <Text style={[styles.perkName, { color: hero.arrowColor, fontSize: perkSize }]} maxFontSizeMultiplier={1.3}>
-            {perk.toLocaleUpperCase()}
-          </Text>
-          <Text style={[styles.perkDesc, { fontSize: descSize }]} numberOfLines={compact ? 3 : undefined} maxFontSizeMultiplier={1.3}>
-            {description}
-          </Text>
-        </View>
+          <View style={[styles.perkBox, { borderColor: accent + "55" }]}>
+            <Text style={[styles.perkName, { color: accent, fontSize: perkSize }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+              {perk}
+            </Text>
+            <Text style={[styles.perkDesc, { fontSize: descSize }]} numberOfLines={compact ? 3 : 4} maxFontSizeMultiplier={1.2}>
+              {description}
+            </Text>
+          </View>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          disabled={locked}
-          onPress={() => onSelect(heroIndex)}
-          accessibilityRole="button"
-          accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${requirement}` : `${t("heroes.select")}: ${name}`}
-          accessibilityState={{ disabled: locked }}
-          style={[
-            styles.selectButton,
-            { backgroundColor: hero.arrowColor, paddingHorizontal: spacing(24) },
-            locked && { opacity: 0.55 },
-          ]}
-        >
-          <Text style={[styles.selectText, { fontSize: Math.max(13, perkSize * (locked ? 0.9 : 1)) }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
-            {(locked ? requirement : t("heroes.select")).toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            disabled={locked}
+            onPress={() => onSelect(heroIndex)}
+            accessibilityRole="button"
+            accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${requirement}` : `${t("heroes.select")}: ${name}`}
+            accessibilityState={{ disabled: locked }}
+            style={[styles.selectButton, { backgroundColor: locked ? "rgba(255,255,255,0.14)" : accent }, !locked && styles.selectGlow]}
+          >
+            <Text style={[styles.selectText, locked && { color: "#d8d2f0" }, { fontSize: Math.max(13, perkSize - 1) }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+              {(locked ? requirement : t("heroes.select")).toLocaleUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 });
@@ -149,7 +139,6 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const cardWidth = fitsAll ? Math.min(fitWidth, 320) : Math.min(Math.max(width * 0.3, 200), 290, width - 48);
   const itemLength = cardWidth + gap;
   const cardHeight = Math.max(170, Math.min(listHeight - 16, 620));
-  const portraitSize = cardHeight < 300 ? 48 : Math.max(56, Math.min(cardWidth * 0.72, cardHeight * 0.36));
 
   useFocusEffect(
     useCallback(() => {
@@ -168,6 +157,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       return () => emitSound("SELECTION_SCREEN_STOP");
     }, []),
   );
+
+  const compactScreen = height < 460;
+  const modeTitle = t(`heroes.mode.${mode}` as TranslationKey);
+  const modeRule = t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
+  const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : "#E8BA52";
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   const showDepth = mode === "expedition" && maxDepth > 0;
@@ -205,10 +199,20 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Text style={[styles.title, { fontSize: fontSize(30) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+            <Text style={[styles.modeKicker, { color: modeTint }]} maxFontSizeMultiplier={1.2}>
+              {modeTitle.toLocaleUpperCase()}
+            </Text>
+            <Text style={[styles.title, { fontSize: Math.min(fontSize(28), 32) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
               {t("heroes.title").toLocaleUpperCase()}
             </Text>
-            <View style={styles.titleUnderline} />
+            {!(compactScreen && showDepth) && (
+              <>
+                <View style={styles.titleUnderline} />
+                <Text style={styles.modeRule} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                  {modeRule}
+                </Text>
+              </>
+            )}
           </View>
 
           {showDepth && (
@@ -222,9 +226,12 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <Ionicons name="remove" size={22} color="#fff" />
               </TouchableOpacity>
-              <View style={styles.depthText} accessible accessibilityLabel={`${t("ascension.name", { n: depth })}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
+              <View style={styles.depthText} accessible accessibilityLabel={`${t("difficulty.title")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
+                <Text style={styles.depthKicker} maxFontSizeMultiplier={1.2}>
+                  {t("difficulty.title").toLocaleUpperCase()}
+                </Text>
                 <Text style={styles.depthName} maxFontSizeMultiplier={1.2}>
-                  🔥 {t("ascension.name", { n: depth }).toLocaleUpperCase()}
+                  🔥 {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                 </Text>
                 <Text style={styles.depthRule} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                   {t(ascensionRuleKey(depth) as TranslationKey)}
@@ -266,7 +273,6 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 heroIndex={index}
                 cardWidth={cardWidth}
                 cardHeight={cardHeight}
-                portraitSize={portraitSize}
                 locked={isLocked(index)}
                 onSelect={handleSelect}
               />
@@ -294,7 +300,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  header: { alignItems: "center", marginTop: 8 },
+  header: { alignItems: "center", marginTop: 2, paddingHorizontal: MIN_TOUCH + 28 },
+  modeKicker: { fontWeight: "800", letterSpacing: 3, fontSize: 12 },
+  modeRule: { color: "#d6d0ee", fontSize: 12, textAlign: "center", marginTop: 4 },
   title: {
     color: "#fff",
     fontWeight: "900",
@@ -325,25 +333,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   depthText: { flexShrink: 1, alignItems: "center", minWidth: 140 },
-  depthName: { color: "#FF7043", fontWeight: "900", letterSpacing: 1.5, fontSize: 14 },
+  depthKicker: { color: "#9a95b8", fontWeight: "800", letterSpacing: 2, fontSize: 10 },
+  depthName: { color: "#FF9A5C", fontWeight: "900", letterSpacing: 1.5, fontSize: 15 },
   depthRule: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
   list: { flex: 1 },
   itemWrapper: {},
   card: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.78)",
+    backgroundColor: "rgba(16, 12, 32, 0.92)",
     borderRadius: 26,
-    borderWidth: 3,
+    borderWidth: 2.5,
+    overflow: "hidden",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 10,
   },
-  cardContent: { flexGrow: 1, alignItems: "center", justifyContent: "space-between", padding: 10, gap: 4 },
-  cardTop: { alignItems: "center", gap: 6 },
-  cardMiddle: { alignItems: "center", gap: 6, flexShrink: 1 },
-  imageContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
+  portraitArea: { flex: 1, minHeight: 70, alignItems: "center", justifyContent: "center" },
+  cardBody: { padding: 12, gap: 4 },
+  heroTitle: { fontWeight: "700", letterSpacing: 2, textAlign: "center" },
+  perkBox: {
+    marginTop: 6,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 2,
   },
+  selectGlow: { borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   lock: { position: "absolute" },
   heroName: {
     color: "#fff",

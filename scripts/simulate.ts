@@ -211,7 +211,7 @@ interface FloorResult {
 }
 
 function playFloor(floor: number, seed: number): FloorResult {
-  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor) });
+  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10 });
   let state: GameState = gameReducer(
     { ...initialState },
     {
@@ -280,7 +280,7 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 
   for (let i = 0; i < RUNS; i++) {
     const seed = floor * 100003 + i * 7919 + 1;
-    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor) });
+    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10 });
     dims = `${board.rows}x${board.cols}`;
     cells = board.rows * board.cols;
     gems += board.coins;

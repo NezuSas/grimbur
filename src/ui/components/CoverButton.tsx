@@ -2,13 +2,13 @@ import React, { memo, useRef } from "react";
 import {
   Pressable,
   StyleSheet,
-  Text,
   View,
   ViewStyle,
   TextStyle,
   StyleProp,
   Animated,
 } from "react-native";
+import Text from "./Text";
 import { LinearGradient } from "expo-linear-gradient";
 import { haptic } from "../../shared/haptics";
 import { useGameLayout } from "../layout/useGameLayout";
@@ -19,13 +19,15 @@ type Props = {
   disabled?: boolean;
   fullWidth?: boolean;
   variant?: "primary" | "secondary";
+  /** Smaller height and text, for crowded rows. */
+  compact?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   testID?: string;
 };
 
 const CoverButton: React.FC<Props> = memo(
-  ({ label, onPress, disabled = false, fullWidth = false, variant = "primary", style, textStyle, testID }) => {
+  ({ label, onPress, disabled = false, fullWidth = false, variant = "primary", compact = false, style, textStyle, testID }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const { fontSize } = useGameLayout();
 
@@ -70,7 +72,7 @@ const CoverButton: React.FC<Props> = memo(
               colors={gradientColors as any}
               style={[
                 styles.button,
-                { minHeight: 52, borderRadius: 14, borderColor, paddingHorizontal: 12, paddingVertical: 6 },
+                { minHeight: compact ? 46 : 52, borderRadius: 14, borderColor, paddingHorizontal: 12, paddingVertical: 6 },
                 fullWidth ? { width: '100%' } : null,
                 disabled && styles.disabled,
                 style,
@@ -79,7 +81,7 @@ const CoverButton: React.FC<Props> = memo(
               <Text
                 style={[
                   styles.text,
-                  { fontSize: Math.max(14, fontSize(20)), color: variant === "primary" ? "#FFD700" : "#fff" },
+                  { fontSize: compact ? 12 : Math.max(14, fontSize(20)), color: variant === "primary" ? "#FFD700" : "#fff" },
                   disabled && styles.textDisabled,
                   textStyle,
                 ]}

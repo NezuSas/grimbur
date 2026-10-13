@@ -185,3 +185,11 @@ All menu screens share one header (`ui/components/ScreenHeader.tsx`: back button
 - **Leaderboard**: a "your record" panel (best score, deepest floor, victories, runs, and the score the top 10 starts at) beside the list on wide screens; gold, silver and bronze for the first three rows.
 - **How to play**: a four-step picture strip, the replay-tutorial button, then collapsible sections (mission and controls open, the rest folded).
 
+## 21. Modes, difficulty and long-term goals
+- **Expedition**: 10 floors and the Wumpus; your Forge upgrades and chosen difficulty apply; it earns embers and unlocks heroes and difficulties.
+- **Daily challenge**: the same cave for everyone, today only; no upgrades, always *Normal*; keeps a streak (a flame with the number of days on the cover; it pulses until today's run is done and shows a check afterwards).
+- **Endless descent**: unlocked by the first victory. No last floor: the Wumpus returns every 10 floors with one more heart each time (killing it opens the next floor, it is not a victory), and from floor 11 each floor adds guardians (up to +6) and vortexes (up to +4). It keeps its own record (deepest floor) and never touches the expedition's best score, floor or victories, and it does not submit to the leaderboard.
+- **Difficulty** (formerly "depth"): Normal, Veteran, Nightmare, Inferno, Abyssal, Legendary. Each one keeps the earlier penalties (section 15) and the next opens by winning at the current one.
+- **Achievements**: 44, in four tiers (easy, medium, hard, legendary) across getting started, depth, treasure, builds, the Wumpus, difficulty, habits and the endless descent. Cumulative ones show a progress bar; the next goal sorts to the top.
+- **Heroes** have names and titles: Vael the Pathfinder, Sera the Crimson Archer, Borin the Moss Warden, Auric the Gilded Delver.
+- **Typeface**: Fredoka (OFL), one file per weight, applied through `ui/components/Text.tsx`. The version number is not shown to players.

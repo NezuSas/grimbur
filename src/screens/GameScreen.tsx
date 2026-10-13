@@ -40,6 +40,7 @@ import { lineOfFire, stepTarget } from "../core/engine/travel";
 import type { Direction } from "../core/engine/types";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
+import type { TranslationKey } from "../i18n/en";
 import { omenEffects, omenFor } from "../core/engine/omens";
 import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
@@ -421,7 +422,7 @@ export default function GameScreen({ navigation, route }: Props) {
           streak,
         })
       : t("share.run", {
-          depth: ascension > 0 ? ` · ${t("ascension.name", { n: ascension })}` : "",
+          depth: ascension > 0 ? ` · ${t(`ascension.label.${ascension}` as TranslationKey)}` : "",
           result: s.isVictory ? t("share.won") : t("share.reached", { floor: s.level }),
           score: s.score.toLocaleString(),
           gems: plural("common.gems", s.totalCoins),

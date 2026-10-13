@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { FlatList, ImageBackground, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { FlatList, ImageBackground, StyleSheet, View, useWindowDimensions } from "react-native";
+import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,16 +8,19 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList } from "../navigation/types";
 import { useGameLayout } from "../ui/layout/useGameLayout";
-import { ACHIEVEMENTS } from "../core/stats/achievements";
+import { ACHIEVEMENTS, TIER_ORDER, AchievementTier } from "../core/stats/achievements";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats } from "../services/localStats";
 import { useT } from "../i18n/useT";
 import { achievementText } from "../i18n/keys";
+import type { TranslationKey } from "../i18n/en";
 import ScreenHeader from "../ui/components/ScreenHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AchievementsScreen">;
 
-const GOLD = "#FFD54F";
+const GOLD = "#F2C14E";
+
+const TIER_COLOR: Record<AchievementTier, string> = { easy: "#A5D6A7", medium: "#90CAF9", hard: "#FFAB91", legend: "#CE93D8" };
 
 const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
@@ -35,8 +39,16 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
     const earned = ACHIEVEMENTS.filter(a => a.id in stats.achievements).sort((a, b) =>
       stats.achievements[b.id].localeCompare(stats.achievements[a.id]),
     );
-    return [...earned, ...ACHIEVEMENTS.filter(a => !(a.id in stats.achievements))];
-  }, [stats.achievements]);
+    // Still to chase: the nearest first (closest to done), then by tier, so the next goal is always on top.
+    const open = ACHIEVEMENTS.filter(a => !(a.id in stats.achievements)).sort((x, y) => {
+      const px = x.progress ? x.progress(stats) : null;
+      const py = y.progress ? y.progress(stats) : null;
+      const rx = px ? px.current / px.target : 0;
+      const ry = py ? py.current / py.target : 0;
+      return TIER_ORDER[x.tier] - TIER_ORDER[y.tier] || ry - rx;
+    });
+    return [...earned, ...open];
+  }, [stats]);
 
   const done = ACHIEVEMENTS.length - ordered.filter(a => !(a.id in stats.achievements)).length;
   const total = ACHIEVEMENTS.length;
@@ -86,12 +98,29 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                   )}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[styles.name, !unlockedOn && { color: "#cfcbe6" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                    {name}
-                  </Text>
+                  <View style={styles.nameRow}>
+                    <Text style={[styles.name, !unlockedOn && { color: "#cfcbe6" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                      {name}
+                    </Text>
+                    <View style={[styles.tier, { borderColor: TIER_COLOR[item.tier] + "99" }]}>
+                      <Text style={[styles.tierText, { color: TIER_COLOR[item.tier] }]} maxFontSizeMultiplier={1.1}>
+                        {t(`ach.tier.${item.tier}` as TranslationKey).toLocaleUpperCase()}
+                      </Text>
+                    </View>
+                  </View>
                   <Text style={styles.desc} maxFontSizeMultiplier={1.2}>
                     {description}
                   </Text>
+                  {!unlockedOn && item.progress ? (
+                    <View style={styles.progressRow}>
+                      <View style={styles.progressTrack}>
+                        <View style={[styles.progressFill, { width: `${Math.round((item.progress(stats).current / item.progress(stats).target) * 100)}%` }]} />
+                      </View>
+                      <Text style={styles.progressText} maxFontSizeMultiplier={1.1}>
+                        {item.progress(stats).current}/{item.progress(stats).target}
+                      </Text>
+                    </View>
+                  ) : null}
                   {unlockedOn ? (
                     <View style={styles.dateChip}>
                       <Ionicons name="checkmark-circle" size={14} color="#76FF03" />
@@ -144,7 +173,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.25)",
   },
-  name: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  name: { color: "#fff", fontWeight: "800", fontSize: 16, flexShrink: 1 },
+  tier: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1 },
+  tierText: { fontSize: 9, fontWeight: "800", letterSpacing: 1 },
+  progressRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+  progressTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 3, backgroundColor: "#90CAF9" },
+  progressText: { color: "#b8c7e6", fontSize: 11, fontWeight: "700", minWidth: 44, textAlign: "right" },
   desc: { color: "#c4bfdc", fontSize: 13 },
   dateChip: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
   date: { color: "#b7f2a0", fontSize: 12, fontWeight: "800" },

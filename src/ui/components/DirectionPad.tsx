@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState, memo } from "react";
-import { View, Text, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
+import { View, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
+import Text from "./Text";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useGameLayout } from "../layout/useGameLayout";

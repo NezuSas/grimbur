@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import Text from "../Text";
 
 import { RelicId } from '../../../core/engine/relics';
 import RelicIcon from '../RelicIcon';

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import Text from "../Text";
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Character } from '../../../data/characters';
@@ -152,7 +153,7 @@ const GameOverOverlay = ({
       )}
       {depth > 0 && (
         <Text style={styles.depth} maxFontSizeMultiplier={1.2}>
-          🔥 {t('over.depth', { n: depth }).toLocaleUpperCase()}
+          🔥 {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
         </Text>
       )}
       {dailyLabel && (

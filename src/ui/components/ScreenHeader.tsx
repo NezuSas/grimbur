@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import Text from "./Text";
 import { Ionicons } from '@expo/vector-icons';
 import { MIN_TOUCH, useGameLayout } from '../layout/useGameLayout';
 import { useT } from '../../i18n/useT';

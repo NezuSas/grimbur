@@ -1,15 +1,25 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
-import Constants from "expo-constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CoverButton from "./CoverButton";
+import ModeCard from "./ModeCard";
+import StreakBadge from "./StreakBadge";
 import { MIN_TOUCH, useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
 
 type Props = {
   onPressPlay: () => void;
   onPressDaily: () => void;
+  onPressEndless: () => void;
+  /** Current daily streak in days (0 when broken or never started). */
+  streak: number;
+  /** The daily has already been played today. */
+  dailyDone: boolean;
+  /** The endless descent opens after the first victory. */
+  endlessUnlocked: boolean;
+  bestEndlessFloor: number;
   onPressScores: () => void;
   onPressInstructions: () => void;
   onPressForge: () => void;
@@ -17,14 +27,16 @@ type Props = {
   onPressSettings: () => void;
 };
 
-const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressForge, onPressAchievements, onPressSettings }) => {
+const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressEndless, streak, dailyDone, endlessUnlocked, bestEndlessFloor, onPressScores, onPressInstructions, onPressForge, onPressAchievements, onPressSettings }) => {
   const { t } = useT();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  // Short landscape phones: the four menu buttons share one row so the whole card fits without scrolling.
+  const short = height < 420;
   const insets = useSafeAreaInsets();
   const { spacing, titleSize } = useGameLayout();
 
   const cardWidth = Math.min(width - Math.max(insets.left, 12) - Math.max(insets.right, 12) - 16, 540);
-  const version = Constants.expoConfig?.version ?? "";
+  const wide = cardWidth >= 460;
 
   return (
     <ScrollView
@@ -62,32 +74,56 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, 
           </Text>
         </View>
 
-        {/* Primary actions */}
-        <CoverButton label={t("cover.play")} onPress={onPressPlay} variant="primary" />
-        <CoverButton label={t("cover.daily")} onPress={onPressDaily} variant="primary" />
-
-        <View style={styles.buttonRow}>
-          <View style={styles.half}>
-            <CoverButton label={t("cover.forge")} onPress={onPressForge} variant="secondary" />
-          </View>
-          <View style={styles.half}>
-            <CoverButton label={t("cover.rankings")} onPress={onPressScores} variant="secondary" />
+        {/* Game modes: each says what makes it different */}
+        <View style={styles.modes}>
+          <ModeCard
+            featured
+            icon="compass"
+            tint="#F2C14E"
+            title={t("cover.mode.expedition")}
+            subtitle={t("cover.mode.expedition.sub")}
+            onPress={onPressPlay}
+          />
+          <View style={[styles.modeRow, !wide && { flexDirection: "column" }]}>
+            <ModeCard
+              icon="calendar"
+              tint="#FF9A3C"
+              title={t("cover.mode.daily")}
+              subtitle={streak > 0 ? t(dailyDone ? "cover.streak.done" : "cover.streak.risk", { count: streak }) : t("cover.mode.daily.sub")}
+              onPress={onPressDaily}
+              leading={<StreakBadge days={streak} doneToday={dailyDone} />}
+            />
+            <ModeCard
+              icon="infinite"
+              tint="#B39DDB"
+              title={t("cover.mode.endless")}
+              subtitle={
+                endlessUnlocked
+                  ? bestEndlessFloor > 0
+                    ? t("cover.mode.endless.best", { floor: bestEndlessFloor })
+                    : t("cover.mode.endless.sub")
+                  : t("cover.mode.endless.locked")
+              }
+              locked={!endlessUnlocked}
+              onPress={endlessUnlocked ? onPressEndless : onPressPlay}
+            />
           </View>
         </View>
-        <View style={styles.buttonRow}>
+
+        <View style={[styles.menu, short && styles.menuShort]}>
           <View style={styles.half}>
-            <CoverButton label={t("cover.achievements")} onPress={onPressAchievements} variant="secondary" />
+            <CoverButton label={t("cover.forge")} onPress={onPressForge} variant="secondary" compact={short} />
           </View>
           <View style={styles.half}>
-            <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" />
+            <CoverButton label={t("cover.rankings")} onPress={onPressScores} variant="secondary" compact={short} />
+          </View>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.achievements")} onPress={onPressAchievements} variant="secondary" compact={short} />
+          </View>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" compact={short} />
           </View>
         </View>
-
-        {version ? (
-          <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>
-            {t("cover.version", { version })}
-          </Text>
-        ) : null}
       </View>
     </ScrollView>
   );
@@ -121,7 +157,7 @@ const styles = StyleSheet.create({
   },
   header: { alignItems: "center", paddingHorizontal: 40 },
   title: {
-    color: "#FFD700",
+    color: "#F2C14E",
     fontWeight: "900",
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.8)",
@@ -137,8 +173,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 4,
   },
-  buttonRow: { flexDirection: "row", gap: 10 },
-  half: { flex: 1 },
+  modes: { gap: 8, marginBottom: 6 },
+  modeRow: { flexDirection: "row", gap: 8 },
+  menu: { flexDirection: "row", flexWrap: "wrap", columnGap: 10 },
+  menuShort: { flexWrap: "nowrap", columnGap: 6 },
+  half: { flexBasis: "47%", flexGrow: 1, flexShrink: 1, minWidth: 0 },
   versionText: {
     color: "rgba(255, 255, 255, 0.55)",
     fontWeight: "bold",
