@@ -195,7 +195,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <AttackPanel onAttack={attack} />
+        <AttackPanel onAttack={attack} arrows={state.attack} />
         <BoardView
           level={1}
           rows={state.rows}
@@ -209,7 +209,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           highlight={highlight}
         />
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
-          <Controls onMove={move} onAttack={attack} />
+          <Controls onMove={move} onAttack={attack} arrows={state.attack} />
         </View>
       </View>
     </ImageBackground>
@@ -246,5 +246,5 @@ const styles = StyleSheet.create({
   skipButton: { minHeight: MIN_TOUCH, justifyContent: "center", paddingHorizontal: 8 },
   skipText: { color: "#bdbdbd", fontWeight: "700", fontSize: 13, textDecorationLine: "underline" },
   gameContent: { flex: 1, alignItems: "center", justifyContent: "space-around" },
-  controlsWrapper: { justifyContent: "center", alignItems: "center" },
+  controlsWrapper: { alignSelf: "stretch", justifyContent: "flex-end", alignItems: "center", paddingBottom: 10 },
 });

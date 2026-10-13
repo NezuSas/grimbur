@@ -12,6 +12,7 @@ Design: [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) and [GAMEPLAY_SPEC.md](GAMEPL
 npm install
 npm start            # Expo dev server (use `npm run start:lan` / `start:tunnel` for devices)
 npm run android      # native build (needs Android Studio / SDK)
+npm run web          # browser preview (react-native-web): handy for checking layouts at any window size
 ```
 
 ## Scripts

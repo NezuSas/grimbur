@@ -167,6 +167,10 @@ export const en = {
   'settings.controls': 'Control position',
   'settings.left': 'Left',
   'settings.right': 'Right',
+  'settings.controlSize': 'Control size',
+  'settings.sizeSmall': 'Small',
+  'settings.sizeMedium': 'Medium',
+  'settings.sizeLarge': 'Large',
   'settings.attackButton': 'Attack button',
   'settings.attackSide': 'Opposite side',
   'settings.attackCenter': 'In the pad',
@@ -263,6 +267,7 @@ export const en = {
   'error.retry': 'Try again',
 
   // ── accessibility labels ──────────────────────────────────────────────
+  'a11y.dpad': 'Direction pad',
   'a11y.moveUp': 'Move up',
   'a11y.moveDown': 'Move down',
   'a11y.moveLeft': 'Move left',

@@ -584,7 +584,7 @@ export default function GameScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <AttackPanel onAttack={manualAttack} />
+        <AttackPanel onAttack={manualAttack} arrows={state.attack} />
 
         <View accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <BoardView
@@ -606,7 +606,7 @@ export default function GameScreen({ navigation, route }: Props) {
         </View>
 
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
-          <Controls onMove={manualMove} onAttack={manualAttack} />
+          <Controls onMove={manualMove} onAttack={manualAttack} arrows={state.attack} />
         </View>
       </View>
 
@@ -702,9 +702,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
   },
+  // Controls rest low on their side, where the thumbs naturally fall in landscape.
   controlsWrapper: {
-    justifyContent: "center",
+    alignSelf: "stretch",
+    justifyContent: "flex-end",
     alignItems: "center",
+    paddingBottom: 10,
   },
   relicRow: {
     position: "absolute",

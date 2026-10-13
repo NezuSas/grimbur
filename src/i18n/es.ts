@@ -168,6 +168,10 @@ export const es: Record<TranslationKey, string> = {
   'settings.controls': 'Posición de los controles',
   'settings.left': 'Izq.',
   'settings.right': 'Der.',
+  'settings.controlSize': 'Tamaño de los controles',
+  'settings.sizeSmall': 'Pequeño',
+  'settings.sizeMedium': 'Mediano',
+  'settings.sizeLarge': 'Grande',
   'settings.attackButton': 'Botón de ataque',
   'settings.attackSide': 'Lado opuesto',
   'settings.attackCenter': 'En la cruceta',
@@ -264,6 +268,7 @@ export const es: Record<TranslationKey, string> = {
   'error.retry': 'Intentar de nuevo',
 
   // ── accessibility labels ──────────────────────────────────────────────
+  'a11y.dpad': 'Cruceta de dirección',
   'a11y.moveUp': 'Mover arriba',
   'a11y.moveDown': 'Mover abajo',
   'a11y.moveLeft': 'Mover a la izquierda',
