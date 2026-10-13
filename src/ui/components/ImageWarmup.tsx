@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Image, ImageSourcePropType, StyleSheet, View } from 'react-native';
+import { ImageSourcePropType, StyleSheet, View } from 'react-native';
+import SpriteImage from './SpriteImage';
 
 type Props = {
   images: ImageSourcePropType[];
@@ -40,7 +41,7 @@ const ImageWarmup: React.FC<Props> = ({ images, onDone, timeoutMs = 3000 }) => {
   return (
     <View style={styles.hidden} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       {images.map((source, i) => (
-        <Image key={i} source={source} style={styles.image} fadeDuration={0} onLoadEnd={settle} />
+        <SpriteImage key={i} source={source} style={styles.image} onLoadEnd={settle} />
       ))}
     </View>
   );

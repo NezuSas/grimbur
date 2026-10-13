@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import SpriteImage from "./SpriteImage";
 
 /**
  * Startup screen drawn entirely from the game's own assets, so it adapts to any window size.
@@ -11,7 +12,7 @@ const LoadingScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image
+      <SpriteImage
         source={require('../../assets/sprites/items/Icon_Gem.png')}
         style={{ width: gem, height: gem }}
         resizeMode="contain"

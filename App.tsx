@@ -6,6 +6,8 @@ import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
+import * as Font from "expo-font";
+import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "./src/state/settings/store";
 
 import { useSoundStore } from "./src/state/sound/store";
@@ -49,7 +51,10 @@ export default function App() {
             Asset.fromModule(image as number).downloadAsync().catch(err => console.warn("[App] Failed to pre-load asset:", err)),
           ),
         );
-        await Promise.all([audio, settings, images]);
+        // The icon font loads before the first screen too: otherwise arrows, hint badges and buttons appear blank
+        // for a moment the first time each one is drawn.
+        const fonts = Font.loadAsync(Ionicons.font).catch(err => console.warn("[App] Icon font failed:", err));
+        await Promise.all([audio, settings, images, fonts]);
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks

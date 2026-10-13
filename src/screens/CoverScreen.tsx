@@ -19,6 +19,8 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <View style={styles.root}>
       <ImageBackground
+      fadeDuration={0}
+      resizeMethod="none"
         source={require("../assets/sprites/backgrounds/Cover_Background.png")}
         style={StyleSheet.absoluteFill}
         imageStyle={StyleSheet.absoluteFill}

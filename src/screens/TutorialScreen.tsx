@@ -121,6 +121,8 @@ export default function TutorialScreen({ navigation, route }: Props) {
 
   return (
     <ImageBackground
+      fadeDuration={0}
+      resizeMethod="none"
       source={require("../assets/sprites/backgrounds/Cover_Background.png")}
       style={styles.container}
       resizeMode="cover"

@@ -1,16 +1,18 @@
-import React, { useCallback, useRef, useState, memo } from "react";
-import { View, Text, Pressable, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
+import React, { useMemo, useRef, useState, memo } from "react";
+import { View, Text, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction } from "../../core/engine/types";
 import { dpadDirection } from "../../core/input/dpad";
+import { aimFromDrag } from "../../core/input/swipe";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
 
 type Props = {
   onMove: (direction: Direction) => void;
-  onAttack: () => void;
+  onAttack: (direction?: Direction) => void;
+  onAim?: (aim: Direction | "facing" | null) => void;
   /** Arrows left, shown on the attack button. */
   arrows: number;
 };
@@ -21,41 +23,111 @@ const animateScale = (anim: Animated.Value, toValue: number) => {
   Animated.timing(anim, { toValue, duration: 90, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
 };
 
-type AttackButtonProps = { size: number; arrows: number; label: string; onPress: () => void };
+type AttackButtonProps = {
+  size: number;
+  arrows: number;
+  label: string;
+  /** Tap: fire where the hero faces. Drag toward a side and release: turn that way and fire. */
+  onAttack: (direction?: Direction) => void;
+  /** Reports what the player is aiming at while the finger is down ('facing' = no drag yet), then null. */
+  onAim?: (aim: Direction | "facing" | null) => void;
+};
 
-/** The round attack button with the number of arrows left on it (so the player never has to look away). */
-export const AttackButton = memo(({ size, arrows, label, onPress }: AttackButtonProps) => {
+const AIM_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
+  UP: "arrow-up",
+  DOWN: "arrow-down",
+  LEFT: "arrow-back",
+  RIGHT: "arrow-forward",
+};
+
+/**
+ * The round attack button. The number of arrows left is printed on it, big, so the player never has to
+ * look away. Tap to shoot where the hero faces; press and drag toward a side to aim without moving.
+ */
+export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: AttackButtonProps) => {
+  const { t } = useT();
   const scale = useRef(new Animated.Value(1)).current;
   const empty = arrows <= 0;
+  const [aim, setAim] = useState<Direction | null>(null);
+  const aimRef = useRef<Direction | null>(null);
+  const latest = useRef({ onAttack, onAim, empty });
+  latest.current = { onAttack, onAim, empty };
 
-  const handlePress = useCallback(() => {
-    haptic.notify(empty ? NotificationFeedbackType.Warning : NotificationFeedbackType.Success);
-    onPress();
-  }, [empty, onPress]);
+  const responder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          aimRef.current = null;
+          animateScale(scale, 0.92);
+          latest.current.onAim?.("facing");
+        },
+        onPanResponderMove: (_e, g) => {
+          const next = aimFromDrag(g.dx, g.dy);
+          if (next !== aimRef.current) {
+            aimRef.current = next;
+            setAim(next);
+            latest.current.onAim?.(next ?? "facing");
+            if (next) haptic.impact();
+          }
+        },
+        onPanResponderRelease: () => {
+          const direction = aimRef.current ?? undefined;
+          aimRef.current = null;
+          setAim(null);
+          animateScale(scale, 1);
+          latest.current.onAim?.(null);
+          haptic.notify(latest.current.empty ? NotificationFeedbackType.Warning : NotificationFeedbackType.Success);
+          latest.current.onAttack(direction);
+        },
+        onPanResponderTerminate: () => {
+          aimRef.current = null;
+          setAim(null);
+          animateScale(scale, 1);
+          latest.current.onAim?.(null);
+        },
+      }),
+    [scale],
+  );
+
+  const names: Record<Direction, string> = {
+    UP: t("a11y.moveUp"),
+    DOWN: t("a11y.moveDown"),
+    LEFT: t("a11y.moveLeft"),
+    RIGHT: t("a11y.moveRight"),
+  };
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
-      <Pressable
-        onPress={handlePress}
-        onPressIn={() => animateScale(scale, 0.9)}
-        onPressOut={() => animateScale(scale, 1)}
+      <View
+        {...responder.panHandlers}
+        accessible
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ disabled: empty }}
-        hitSlop={6}
-        style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, empty && styles.attackEmpty]}
+        accessibilityActions={(Object.keys(names) as Direction[]).map(d => ({ name: d, label: `${t("a11y.attack")}: ${names[d]}` }))}
+        onAccessibilityTap={() => onAttack()}
+        onAccessibilityAction={e => onAttack(e.nativeEvent.actionName as Direction)}
+        style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, empty && styles.attackEmpty, aim && styles.attackAiming]}
       >
         <LinearGradient
           colors={empty ? ["#5b5b66", "#33333b"] : ["#FF6B3D", "#E6194B"]}
           style={[StyleSheet.absoluteFill, { borderRadius: size / 2 }]}
         />
-        <Ionicons name="flash" size={Math.round(size * 0.46)} color={empty ? "#9a9aa5" : "#fff"} />
-        <View style={[styles.badge, { minWidth: size * 0.36, height: size * 0.3, borderRadius: size * 0.15 }]}>
-          <Text style={[styles.badgeText, { fontSize: Math.max(11, size * 0.19) }, empty && { color: "#FF5252" }]} allowFontScaling={false}>
-            {arrows}
-          </Text>
-        </View>
-      </Pressable>
+        {aim ? (
+          <Ionicons name={AIM_ICON[aim]} size={Math.round(size * 0.62)} color="#fff" />
+        ) : (
+          <>
+            <Ionicons name="flash" size={Math.round(size * 0.36)} color={empty ? "#9a9aa5" : "#fff"} />
+            <Text
+              style={[styles.count, { fontSize: Math.max(16, size * 0.3) }, empty && { color: "#FFB4B4" }]}
+              allowFontScaling={false}
+            >
+              {arrows}
+            </Text>
+          </>
+        )}
+      </View>
     </Animated.View>
   );
 });
@@ -71,7 +143,7 @@ const ARROWS: { dir: Direction; icon: keyof typeof Ionicons.glyphMap; dx: number
  * One round direction pad. The whole disc is the touch area, split into four quadrants along its diagonals,
  * so a thumb that drifts a little still lands on the intended arrow (a pad of four small buttons has gaps).
  */
-const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, arrows }) => {
+const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows }) => {
   const { t } = useT();
   const { padDiameter: D, splitAttack, attackSize } = useGameLayout();
   const [active, setActive] = useState<Direction | null>(null);
@@ -162,7 +234,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, arrows }) => {
 
       {!splitAttack && (
         <View style={styles.center} pointerEvents="box-none">
-          <AttackButton size={attackSize} arrows={arrows} label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`} onPress={onAttack} />
+          <AttackButton size={attackSize} arrows={arrows} label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`} onAttack={onAttack} onAim={onAim} />
         </View>
       )}
     </View>
@@ -211,18 +283,15 @@ const styles = StyleSheet.create({
     }),
   },
   attackEmpty: { borderColor: "rgba(255,255,255,0.18)", shadowOpacity: 0 },
-  badge: {
-    position: "absolute",
-    right: -4,
-    bottom: -4,
-    paddingHorizontal: 5,
-    backgroundColor: "rgba(14, 11, 31, 0.95)",
-    borderWidth: 2,
-    borderColor: GOLD,
-    alignItems: "center",
-    justifyContent: "center",
+  attackAiming: { borderColor: "#fff" },
+  count: {
+    color: "#fff",
+    fontWeight: "900",
+    textShadowColor: "rgba(0,0,0,0.45)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+    marginTop: -2,
   },
-  badgeText: { color: GOLD, fontWeight: "900" },
 });
 
 export default DirectionPad;

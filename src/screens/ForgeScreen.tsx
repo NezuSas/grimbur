@@ -61,7 +61,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const columns = cardWidth >= 560 ? 2 : 1;
 
   return (
-    <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
         <View style={[styles.header, { paddingVertical: spacing(12) }]}>
           <TouchableOpacity

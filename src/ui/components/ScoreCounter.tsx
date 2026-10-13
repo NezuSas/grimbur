@@ -1,9 +1,12 @@
 import React, { memo, useEffect, useRef } from "react";
-import { View, Text, Image, StyleSheet, ImageSourcePropType, Animated } from "react-native";
+import { View, Text, StyleSheet, ImageSourcePropType, Animated } from "react-native";
 import { useGameLayout } from "../layout/useGameLayout";
+import SpriteImage from "./SpriteImage";
 
 type Props = {
-  icon: ImageSourcePropType;
+  icon?: ImageSourcePropType;
+  /** A drawn icon (used instead of an image). */
+  iconNode?: React.ReactNode;
   value: number | string;
   label?: string;
   iconDim?: number;
@@ -11,7 +14,7 @@ type Props = {
   a11yLabel?: string;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, value, label, iconDim = 32, a11yLabel }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -38,7 +41,7 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, value, label, iconDim = 32, 
       accessibilityLabel={a11yLabel}
     >
       <View style={[styles.iconWrapper, { width: iconDim, height: iconDim }]}>
-        <Image source={icon} style={[styles.icon, { width: iconDim * 0.9, height: iconDim * 0.9 }]} />
+        {iconNode ?? (icon && <SpriteImage source={icon} style={[styles.icon, { width: iconDim * 0.9, height: iconDim * 0.9 }]} />)}
       </View>
       <View style={[styles.content, { marginLeft: spacing(10) }]}>
         <Animated.Text

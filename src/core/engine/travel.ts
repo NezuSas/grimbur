@@ -10,6 +10,18 @@ export function stepTarget(index: number, direction: Direction, rows: number, co
   return col < cols - 1 ? index + 1 : -1;
 }
 
+/** The tiles an arrow fired from `index` toward `direction` can reach (up to `reach` tiles, stopping at the edge). */
+export function lineOfFire(index: number, direction: Direction, reach: number, rows: number, cols: number): number[] {
+  const tiles: number[] = [];
+  let cursor = index;
+  for (let step = 0; step < reach; step++) {
+    cursor = stepTarget(cursor, direction, rows, cols);
+    if (cursor === -1) break;
+    tiles.push(cursor);
+  }
+  return tiles;
+}
+
 /**
  * Shortest walk from `from` to `to` that only crosses tiles the player has already explored
  * and that hold nothing (no leftover pickup, trap or hazard). Because it never steps on a

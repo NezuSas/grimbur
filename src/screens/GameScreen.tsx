@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -25,7 +25,7 @@ import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import PauseOverlay from "../ui/components/game/PauseOverlay";
 import FloorBanner from "../ui/components/game/FloorBanner";
-import RelicIcon from "../ui/components/RelicIcon";
+import RelicTray from "../ui/components/RelicTray";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
@@ -34,8 +34,9 @@ import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
-import { countGuardians } from "../core/engine/entityCounts";
-import { stepTarget } from "../core/engine/travel";
+import { bossHearts, countGuardians } from "../core/engine/entityCounts";
+import { lineOfFire, stepTarget } from "../core/engine/travel";
+import type { Direction } from "../core/engine/types";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import { omenEffects, omenFor } from "../core/engine/omens";
@@ -43,7 +44,7 @@ import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
-import { clampAscension } from "../core/engine/ascension";
+import { clampAscension, modifiersFor } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
@@ -71,7 +72,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const { t, plural } = useT();
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const { controlPanelWidth, hudHeight } = useGameLayout();
+  const { controlPanelWidth, hudHeight, splitAttack } = useGameLayout();
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const reduceFlash = useSettingsStore(s => s.reduceFlash);
 
@@ -106,6 +107,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const [runNumber, setRunNumber] = useState(0);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = omenFor(state.runSeed, state.level);
+  const isLair = state.mode !== "endless" && state.level === GAME_CONFIG.expedition.floors;
   const levelUpWindow = state.isLevelUp && !state.isVictory;
 
   // Tap an explored tile to walk there; any control press interrupts the walk.
@@ -137,7 +139,14 @@ export default function GameScreen({ navigation, route }: Props) {
     },
     [cancelTravel, move, flags],
   );
-  const manualAttack = useCallback(() => { cancelTravel(); attack(); }, [cancelTravel, attack]);
+  const manualAttack = useCallback((direction?: Direction) => { cancelTravel(); attack(direction); }, [cancelTravel, attack]);
+  // While the attack button is held, the board shows where the arrow would go.
+  const [aim, setAim] = useState<Direction | "facing" | null>(null);
+  const reach = state.perks.arrowReach + relicCount(state.relics, "long_bow");
+  const aimTiles = useMemo(
+    () => (aim ? new Set(lineOfFire(state.playerIndex, aim === "facing" ? state.facingDir : aim, reach, state.rows, state.cols)) : undefined),
+    [aim, state.playerIndex, state.facingDir, state.rows, state.cols, reach],
+  );
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
   const { time: sessionTime, reset: resetTimer } = useSessionTimer(
@@ -523,8 +532,14 @@ export default function GameScreen({ navigation, route }: Props) {
   const removeCoin = (id: number) => setActiveCoins(prev => prev.filter(c => c.id !== id));
   const flashPeak = reduceFlash ? 0.25 : 1;
 
+  // The run starts in an effect, so the very first render still holds the engine's empty placeholder board.
+  // Showing it would flash a wrong board for a moment: wait until the real run exists.
+  if (state.selectedCharacter === null) return <View style={styles.container} />;
+
   return (
     <ImageBackground
+      fadeDuration={0}
+      resizeMethod="none"
       source={require("../assets/sprites/backgrounds/Cover_Background.png")}
       style={styles.container}
       resizeMode="cover"
@@ -545,29 +560,20 @@ export default function GameScreen({ navigation, route }: Props) {
           floors={mode === "endless" ? undefined : GAME_CONFIG.expedition.floors}
           character={selectedCharacter}
           time={sessionTime}
+          bossHearts={isLair ? bossHearts(state) : undefined}
         />
       </View>
 
-      {state.relics.length > 0 && (
-        <View
-          style={[styles.relicRow, { top: insets.top + hudHeight + 4, left: insets.left + 8 }]}
-          pointerEvents="none"
-          accessible
-          accessibilityLabel={t("a11y.relics", { names: relicNames })}
-        >
-          {state.relics.map((id, i) => (
-            <RelicIcon key={`${id}-${i}`} id={id} size={22} />
-          ))}
-        </View>
-      )}
 
       <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
       {!runEnded && !levelUpWindow && !state.pendingDraft && (
         <FloorBanner
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
-          title={state.level >= GAME_CONFIG.expedition.floors && state.mode !== "endless" ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
-          omenName={floorOmen ? omenText(t, floorOmen, "name") : undefined}
-          omenRule={floorOmen ? omenText(t, floorOmen, "rule") : undefined}
+          title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
+          omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: GAME_CONFIG.boss.hp + modifiersFor(ascension).bossHpBonus }) : floorOmen ? omenText(t, floorOmen, "rule") : undefined}
+          long={isLair}
+          dismiss={state.turn > 0}
           calm={reduceFlash}
         />
       )}
@@ -584,7 +590,7 @@ export default function GameScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <AttackPanel onAttack={manualAttack} arrows={state.attack} />
+        <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
 
         <View accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <BoardView
@@ -600,13 +606,20 @@ export default function GameScreen({ navigation, route }: Props) {
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}
             flags={flags}
+            aimTiles={aimTiles}
             onTileLongPress={toggleFlag}
             onSwipe={swipeMove ? manualMove : undefined}
           />
         </View>
 
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
-          <Controls onMove={manualMove} onAttack={manualAttack} arrows={state.attack} />
+          {/* Wide screens show the relics above the attack button; narrow ones, above the pad. */}
+          {state.relics.length > 0 && !splitAttack && (
+            <View style={styles.relicSlot} pointerEvents="none">
+              <RelicTray relics={state.relics} size={28} label={t("a11y.relics", { names: relicNames })} />
+            </View>
+          )}
+          <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
         </View>
       </View>
 
@@ -647,7 +660,7 @@ export default function GameScreen({ navigation, route }: Props) {
         pointerEvents="none"
       />
 
-      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} onPick={handlePickRelic} />
+      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLair} onPick={handlePickRelic} />
 
       <PauseOverlay
         visible={paused}
@@ -709,16 +722,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 10,
   },
-  relicRow: {
-    position: "absolute",
-    zIndex: 11,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    maxWidth: "40%",
-    gap: 2,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    borderRadius: 10,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-  },
+  relicSlot: { position: "absolute", top: 4, left: 0, right: 0, alignItems: "center" },
 });

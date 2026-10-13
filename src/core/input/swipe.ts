@@ -20,3 +20,16 @@ export function classifyGesture(dx: number, dy: number, minSwipe = SWIPE_MIN_DIS
   if (ay >= ax * AXIS_DOMINANCE) return { kind: 'swipe', direction: dy > 0 ? 'DOWN' : 'UP' };
   return { kind: 'none' };
 }
+
+/** Shortest drag (dp) from the attack button that aims a shot. */
+export const AIM_MIN_DISTANCE = 22;
+
+/**
+ * Direction of a drag that starts on the attack button, or null while the finger has barely moved.
+ * More forgiving than a movement swipe: the dominant axis always wins, because aiming should never be refused.
+ */
+export function aimFromDrag(dx: number, dy: number, minDistance = AIM_MIN_DISTANCE): Direction | null {
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < minDistance) return null;
+  if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'RIGHT' : 'LEFT';
+  return dy > 0 ? 'DOWN' : 'UP';
+}

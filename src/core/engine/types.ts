@@ -76,7 +76,8 @@ export interface GameState {
 
 export type GameAction =
   | { type: 'MOVE'; direction: Direction }
-  | { type: 'ATTACK' }
+  /** Shoots; with a `direction` the hero first turns that way (no step), otherwise it fires where it faces. */
+  | { type: 'ATTACK'; direction?: Direction }
   | { type: 'PICK_RELIC'; id: RelicId }
   | {
       type: 'RESET';
@@ -113,7 +114,7 @@ export interface GameEngineInterface {
   state: GameState;
   isAttacking: boolean;
   move: (direction: Direction) => void;
-  attack: () => void;
+  attack: (direction?: Direction) => void;
   reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects }) => void;
   levelUp: () => void;
   pickRelic: (id: RelicId) => void;

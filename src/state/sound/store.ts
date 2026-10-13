@@ -14,6 +14,20 @@ const TARGET_LOOPS: Record<string, boolean> = {};
 const INITIALIZING_PLAYERS: Record<string, Promise<any> | undefined> = {};
 
 /**
+ * Short effects that can overlap get several "voices" (independent native players of the same file).
+ * With a single player, a second shot, step or gem arriving while the first is still sounding restarted
+ * or swallowed it, which is why effects seemed to play only some of the time.
+ */
+const EXTRA_VOICES: Record<string, number> = { move: 1, coin: 2, attack: 2, relic: 1 };
+const voicesOf = (name: string): string[] => [
+  name,
+  ...Array.from({ length: EXTRA_VOICES[name] ?? 0 }, (_, i) => `${name}#${i + 1}`),
+];
+/** The sound a voice belongs to (`coin#1` -> `coin`); volume and loop targets are shared per sound. */
+const baseOf = (voice: string) => voice.split('#')[0];
+const nextVoice: Record<string, number> = {};
+
+/**
  * Ensures a player is loaded and syncs target state.
  * Uses a single-flight pattern to prevent concurrent initialization race conditions.
  */
@@ -50,8 +64,8 @@ async function ensurePlayer(name: string): Promise<any> {
             if (player.isLoaded) {
                 GLOBAL_PLAYERS[name] = player;
                 // Re-apply target settings
-                if (TARGET_VOLUMES[name] !== undefined) player.volume = TARGET_VOLUMES[name];
-                if (TARGET_LOOPS[name] !== undefined) player.loop = TARGET_LOOPS[name];
+                if (TARGET_VOLUMES[baseOf(name)] !== undefined) player.volume = TARGET_VOLUMES[baseOf(name)];
+                if (TARGET_LOOPS[baseOf(name)] !== undefined) player.loop = TARGET_LOOPS[baseOf(name)];
                 return player;
             }
             // Never became ready: release it instead of leaking a native player on every retry.
@@ -89,30 +103,36 @@ function toLegacyHandle(name: string): LegacySoundHandle {
 
   return {
     isPlaying: async () => {
-      const p = GLOBAL_PLAYERS[name];
-      return p ? p.playing : false;
+      return voicesOf(name).some(v => GLOBAL_PLAYERS[v]?.playing === true);
     },
 
     play: async () => {
       try {
         SHOULD_BE_PLAYING[name] = true;
-        let p = GLOBAL_PLAYERS[name];
+        const voices = voicesOf(name);
+        // Prefer a voice that is silent right now; otherwise take them in turn.
+        let voice = voices.find(v => GLOBAL_PLAYERS[v]?.isLoaded && !GLOBAL_PLAYERS[v]?.playing);
+        if (voice === undefined) {
+          nextVoice[name] = ((nextVoice[name] ?? -1) + 1) % voices.length;
+          voice = voices[nextVoice[name]];
+        }
+        let p = GLOBAL_PLAYERS[voice];
         if (!p) {
-          p = await ensurePlayer(name);
+          p = await ensurePlayer(voice);
         }
         if (!p || !SHOULD_BE_PLAYING[name]) return;
 
         const vol = TARGET_VOLUMES[name] ?? 1.0;
-        
+
         // 1. Pre-play set
         p.volume = vol;
         p.seekTo(0);
-        
+
         // 2. Play
         p.play();
-        
-        // 3. Post-play aggressive reinforcement (Android only)
-        if (Platform.OS === 'android') {
+
+        // 3. Looping music only: re-assert the volume for a moment (Android's mixer can reset it).
+        if (Platform.OS === 'android' && TARGET_LOOPS[name]) {
           hammerVolumeLoop();
         }
       } catch (e) {
@@ -123,10 +143,12 @@ function toLegacyHandle(name: string): LegacySoundHandle {
     stop: async () => {
       try {
         SHOULD_BE_PLAYING[name] = false;
-        const p = GLOBAL_PLAYERS[name];
-        if (p) {
-          p.pause();
-          p.seekTo(0);
+        for (const voice of voicesOf(name)) {
+          const p = GLOBAL_PLAYERS[voice];
+          if (p) {
+            p.pause();
+            p.seekTo(0);
+          }
         }
       } catch (e) {
         console.error(`[AudioEngine:${name}] stop error:`, e);
@@ -136,8 +158,10 @@ function toLegacyHandle(name: string): LegacySoundHandle {
     setNumberOfLoops: async (loops: number) => {
       try {
         TARGET_LOOPS[name] = (loops !== 0);
-        const p = await ensurePlayer(name);
-        if (p) p.loop = TARGET_LOOPS[name];
+        for (const voice of voicesOf(name)) {
+          const p = await ensurePlayer(voice);
+          if (p) p.loop = TARGET_LOOPS[name];
+        }
       } catch (e) {
         console.error(`[AudioEngine:${name}] setNumberOfLoops error:`, e);
       }
@@ -147,9 +171,9 @@ function toLegacyHandle(name: string): LegacySoundHandle {
       try {
         const v = Math.max(0, Math.min(1, vol));
         TARGET_VOLUMES[name] = v;
-        const p = GLOBAL_PLAYERS[name];
-        if (p && p.isLoaded) {
-            p.volume = v;
+        for (const voice of voicesOf(name)) {
+          const p = GLOBAL_PLAYERS[voice];
+          if (p && p.isLoaded) p.volume = v;
         }
       } catch (e) {
         console.error(`[AudioEngine:${name}] setVolume error:`, e);
@@ -158,8 +182,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
 
     unload: async () => {
       try {
-        const p = GLOBAL_PLAYERS[name];
-        if (p) p.pause();
+        for (const voice of voicesOf(name)) GLOBAL_PLAYERS[voice]?.pause();
       } catch (e) {
         console.error(`[AudioEngine:${name}] unload error:`, e);
       }
@@ -210,7 +233,9 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
 
     const prepare = async (source: any, name: string) => {
       GLOBAL_SOURCES[name] = source;
-      await ensurePlayer(name);
+      const voices = voicesOf(name);
+      for (const voice of voices) GLOBAL_SOURCES[voice] = source;
+      await Promise.all(voices.map(voice => ensurePlayer(voice)));
       return toLegacyHandle(name);
     };
 

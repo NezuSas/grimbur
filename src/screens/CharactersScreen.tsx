@@ -1,7 +1,6 @@
 // src/screens/CharactersScreen.tsx
 import React, { memo, useCallback, useRef, useState } from "react";
 import {
-  Image,
   StatusBar,
   StyleSheet,
   Text,
@@ -30,6 +29,7 @@ import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { metaEffects } from "../core/stats/forge";
 import type { TranslationKey } from "../i18n/en";
+import SpriteImage from "../ui/components/SpriteImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 
@@ -64,7 +64,7 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, portraitSize, locked, onSel
             { width: portraitSize, height: portraitSize, borderRadius: portraitSize / 2, borderColor: hero.arrowColor + "66" },
           ]}
         >
-          <Image
+          <SpriteImage
             source={hero.playerImage}
             style={{ width: portraitSize * 0.75, height: portraitSize * 0.75, opacity: locked ? 0.3 : 1 }}
             resizeMode="contain"
@@ -168,7 +168,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 
   return (
-    <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <StatusBar hidden />
       <View style={styles.contentLayer}>
         <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right", "bottom"]}>

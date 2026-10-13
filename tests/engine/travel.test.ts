@@ -1,4 +1,4 @@
-import { stepTarget, travelPath } from '../../src/core/engine/travel';
+import { lineOfFire, stepTarget, travelPath } from '../../src/core/engine/travel';
 import { GameEntity } from '../../src/core/engine/types';
 
 const map = (...entities: GameEntity[]) => Object.fromEntries(entities.map(e => [e.index, e]));
@@ -46,5 +46,14 @@ describe('stepTarget', () => {
     expect(stepTarget(11, 'DOWN', 3, 4)).toBe(-1);
     expect(stepTarget(4, 'LEFT', 3, 4)).toBe(-1); // does not wrap to the end of the row above
     expect(stepTarget(7, 'RIGHT', 3, 4)).toBe(-1);
+  });
+});
+
+describe('lineOfFire', () => {
+  it('lists the tiles an arrow can reach and stops at the edge', () => {
+    expect(lineOfFire(0, 'RIGHT', 2, 3, 4)).toEqual([1, 2]);
+    expect(lineOfFire(2, 'RIGHT', 3, 3, 4)).toEqual([3]);
+    expect(lineOfFire(0, 'UP', 2, 3, 4)).toEqual([]);
+    expect(lineOfFire(5, 'DOWN', 5, 3, 4)).toEqual([9]);
   });
 });

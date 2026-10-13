@@ -1,11 +1,12 @@
 import React, { memo, useRef, useEffect, useMemo } from "react";
-import { Image, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import { StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
 import { getNearbyHazards, NearbyHazards } from "../../core/engine/proximity";
+import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 
 type Props = {
   level: number;
@@ -27,6 +28,8 @@ type Props = {
   onSwipe?: (direction: Direction) => void;
   /** Tiles the player marked as suspected danger. */
   flags?: ReadonlySet<number>;
+  /** Tiles an arrow would cross right now (shown while the attack button is held). */
+  aimTiles?: ReadonlySet<number>;
   /** Long press on a tile (toggles its flag). */
   onTileLongPress?: (index: number) => void;
 };
@@ -50,7 +53,7 @@ const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged
+  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed
 }: {
   index: number;
   tileSize: number;
@@ -65,6 +68,8 @@ const GridCell = memo(({
   highlighted: boolean;
   /** The player marked this unexplored tile as dangerous. */
   flagged: boolean;
+  /** An arrow would fly over this tile. */
+  aimed: boolean;
 }) => {
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
@@ -116,7 +121,7 @@ const GridCell = memo(({
       ]}
     >
       {/* Base tile */}
-      <Animated.Image
+      <AnimatedSprite
         style={{ width: tileSize, height: tileSize, transform: [{ scale: revealScale }] }}
         source={backgroundAsset}
         resizeMode="contain"
@@ -144,7 +149,7 @@ const GridCell = memo(({
       )}
 
       {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker') && (isVisited || isPlayerHere) && (
-        <Image
+        <SpriteImage
           style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
           source={entity.type === 'pit' ? ASSETS.pit : ASSETS.enemy}
           resizeMode="contain"
@@ -162,7 +167,7 @@ const GridCell = memo(({
             ]}
             pointerEvents="none"
           />
-          <Image
+          <SpriteImage
             style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
             source={ASSETS.boss}
             resizeMode="contain"
@@ -193,7 +198,7 @@ const GridCell = memo(({
 
       {/* Render Entity (Gem) overlaid on background */}
       {entity?.type === 'coin' && (
-        <Image 
+        <SpriteImage 
           source={ASSETS.coin} 
           style={{ 
             position: 'absolute', 
@@ -210,12 +215,12 @@ const GridCell = memo(({
       {/* Power-ups (always visible, like gems). Traps stay hidden on purpose. */}
       {entity?.type === 'shield' && (
         <View style={styles.pickup} pointerEvents="none">
-          <Image source={ASSETS.shield} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
+          <SpriteImage source={ASSETS.shield} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
         </View>
       )}
       {entity?.type === 'ammo' && (
         <View style={styles.pickup} pointerEvents="none">
-          <Image source={ASSETS.ammo} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
+          <SpriteImage source={ASSETS.ammo} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
         </View>
       )}
 
@@ -224,6 +229,8 @@ const GridCell = memo(({
           <Ionicons name="flag" size={tileSize * 0.5} color="#FF5252" />
         </View>
       )}
+
+      {aimed && <View style={styles.aim} pointerEvents="none" />}
 
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
 
@@ -236,7 +243,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, onTileLongPress }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -299,9 +306,8 @@ const BoardView: React.FC<Props> = memo(
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
-    const playerSource = isAttacking 
-      ? characters[characterIndex]?.attackImage 
-      : characters[characterIndex]?.playerImage;
+    const idleSource = characters[characterIndex]?.playerImage;
+    const attackSource = characters[characterIndex]?.attackImage;
     const currentFacing = (facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
 
     return (
@@ -331,6 +337,7 @@ const BoardView: React.FC<Props> = memo(
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}
                   flagged={!!flags && flags.has(i) && !visitedSet.has(i)}
+                  aimed={!!aimTiles && aimTiles.has(i)}
                 />
               );
             })}
@@ -364,9 +371,21 @@ const BoardView: React.FC<Props> = memo(
             ]}
             pointerEvents="none"
           >
-            {playerSource && (
-              <Image style={{ width: tileSize * 0.8, height: tileSize * 0.8, resizeMode: "contain" }} source={playerSource} />
-            )}
+            {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
+            <View style={{ width: tileSize * 0.8, height: tileSize * 0.8, transform: [{ scaleX: currentFacing === "left" ? -1 : 1 }] }}>
+              {idleSource && (
+                <SpriteImage
+                  style={[styles.heroLayer, { opacity: isAttacking ? 0 : 1 }]}
+                  source={idleSource}
+                />
+              )}
+              {attackSource && (
+                <SpriteImage
+                  style={[styles.heroLayer, { opacity: isAttacking ? 1 : 0 }]}
+                  source={attackSource}
+                />
+              )}
+            </View>
             <View style={[styles.arrowWrap, { top: -tileSize * 0.05, width: tileSize }]}>
               <Text style={[styles.arrowText, { fontSize: tileSize * 0.35 }]}>
                 {DIR_CHAR[currentFacing]}
@@ -394,6 +413,7 @@ const styles = StyleSheet.create({
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
+  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.22)", zIndex: 7 },
   highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD700", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
@@ -404,6 +424,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
+  heroLayer: { position: "absolute", left: 0, top: 0, width: "100%", height: "100%", resizeMode: "contain" },
   arrowWrap: { position: "absolute", alignItems: "center" },
   arrowText: {
     color: "#ffeb3b",
