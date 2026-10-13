@@ -314,7 +314,7 @@ export const en = {
   'manual.explore.tiles': 'Tiles start hidden. Step on one to reveal it.',
   'manual.explore.pace.label': 'Plan your path',
   'manual.explore.pace.detail':
-    'Gems are always visible, hazards never are. Every step costs a point, so walk with purpose. Tap any explored empty tile to walk there automatically; it stops if anything changes.',
+    'Gems are always visible, hazards never are. Every step costs a point, so walk with purpose. Tap any explored empty tile to walk there automatically; it stops if anything changes. Hold your finger on an unexplored tile to mark it as dangerous: you cannot step onto a marked tile until you unmark it.',
 
   'manual.hazards.title': 'Reading the clues',
   'manual.hazards.guardian': 'Guardian',

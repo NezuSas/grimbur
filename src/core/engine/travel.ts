@@ -1,5 +1,15 @@
 import { Direction, GameEntity } from './types';
 
+/** The tile one step from `index` in `direction`, or -1 at the edge of the board. */
+export function stepTarget(index: number, direction: Direction, rows: number, cols: number): number {
+  const row = Math.floor(index / cols);
+  const col = index % cols;
+  if (direction === 'UP') return row > 0 ? index - cols : -1;
+  if (direction === 'DOWN') return row < rows - 1 ? index + cols : -1;
+  if (direction === 'LEFT') return col > 0 ? index - 1 : -1;
+  return col < cols - 1 ? index + 1 : -1;
+}
+
 /**
  * Shortest walk from `from` to `to` that only crosses tiles the player has already explored
  * and that hold nothing (no leftover pickup, trap or hazard). Because it never steps on a

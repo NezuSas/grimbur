@@ -35,6 +35,8 @@ import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { countGuardians } from "../core/engine/entityCounts";
+import { stepTarget } from "../core/engine/travel";
+import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import { omenEffects, omenFor } from "../core/engine/omens";
 import characters from "../data/characters";
@@ -108,7 +110,33 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // Tap an explored tile to walk there; any control press interrupts the walk.
   const { travelTo, cancel: cancelTravel } = useTravel(state, move, !paused && !runEnded && !levelUpWindow && !state.pendingDraft);
-  const manualMove = useCallback((d: Parameters<typeof move>[0]) => { cancelTravel(); move(d); }, [cancelTravel, move]);
+  // Tiles the player marked as dangerous (long press). Cosmetic memory aid with one safety rule: stepping
+  // onto a marked tile is refused, so a slip of the thumb cannot walk into a suspected hazard.
+  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  const toggleFlag = useCallback((index: number) => {
+    const s = stateRef.current;
+    if (s.visited.includes(index)) return;
+    haptic.impact();
+    setFlags(prev => {
+      const next = new Set(prev);
+      if (!next.delete(index)) next.add(index);
+      return next;
+    });
+  }, []);
+  useEffect(() => setFlags(new Set()), [state.level, state.runSeed, runNumber]);
+
+  const manualMove = useCallback(
+    (d: Parameters<typeof move>[0]) => {
+      cancelTravel();
+      const s = stateRef.current;
+      if (flags.has(stepTarget(s.playerIndex, d, s.rows, s.cols))) {
+        haptic.notify(NotificationFeedbackType.Warning); // marked as dangerous: refuse the step
+        return;
+      }
+      move(d);
+    },
+    [cancelTravel, move, flags],
+  );
   const manualAttack = useCallback(() => { cancelTravel(); attack(); }, [cancelTravel, attack]);
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
@@ -564,6 +592,8 @@ export default function GameScreen({ navigation, route }: Props) {
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}
+            flags={flags}
+            onTileLongPress={toggleFlag}
             onSwipe={swipeMove ? manualMove : undefined}
           />
         </View>
