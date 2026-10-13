@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useMemo, useState } from "react";
 import {
   Animated,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,6 +18,7 @@ import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
+import SpriteImage from "../ui/components/SpriteImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
@@ -101,7 +101,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
               </Text>
 
               <View style={{ width: "100%", height: imageHeight, marginVertical: 8 }}>
-                <Image source={character.winImage} style={styles.winImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+                <SpriteImage source={character.winImage} style={styles.winImage} resizeMode="contain" accessibilityIgnoresInvertColors />
               </View>
 
               <View style={styles.starsContainer} accessible accessibilityLabel={accessibilityStars}>

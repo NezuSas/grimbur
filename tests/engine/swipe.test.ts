@@ -1,4 +1,4 @@
-import { classifyGesture, SWIPE_MIN_DISTANCE, TAP_MAX_DISTANCE } from '../../src/core/input/swipe';
+import { aimFromDrag, classifyGesture, SWIPE_MIN_DISTANCE, TAP_MAX_DISTANCE } from '../../src/core/input/swipe';
 
 describe('classifyGesture', () => {
   it('reads clear swipes in four directions', () => {
@@ -21,5 +21,15 @@ describe('classifyGesture', () => {
   it('respects a larger minimum distance', () => {
     expect(classifyGesture(40, 0, 60)).toEqual({ kind: 'none' });
     expect(classifyGesture(70, 0, 60)).toEqual({ kind: 'swipe', direction: 'RIGHT' });
+  });
+});
+
+describe('aimFromDrag', () => {
+  it('needs a real drag, then follows the dominant axis even on diagonals', () => {
+    expect(aimFromDrag(5, 8)).toBeNull();
+    expect(aimFromDrag(40, 10)).toBe('RIGHT');
+    expect(aimFromDrag(-40, 10)).toBe('LEFT');
+    expect(aimFromDrag(10, -40)).toBe('UP');
+    expect(aimFromDrag(30, 31)).toBe('DOWN');
   });
 });

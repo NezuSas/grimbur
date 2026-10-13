@@ -194,3 +194,20 @@ describe('gameReducer', () => {
     });
   });
 });
+
+describe('aimed attacks', () => {
+  it('turns toward the target and shoots without moving or paying a step', () => {
+    // Guardian directly below the player, but the hero faces right.
+    let state = createState({ entities: [enemy(15), coin(100)], coins: 1 });
+    expect(state.facingDir).toBe('RIGHT');
+    state = gameReducer(state, { type: 'ATTACK', direction: 'DOWN' });
+    expect(state.entities.some(e => e.type === 'enemy')).toBe(false); // killed
+    expect(state.facingDir).toBe('DOWN');
+    expect(state.playerIndex).toBe(0);
+  });
+
+  it('a plain shot still goes where the hero faces', () => {
+    const state = gameReducer(createState({ entities: [enemy(15), coin(100)], coins: 1 }), { type: 'ATTACK' });
+    expect(state.entities.some(e => e.type === 'enemy')).toBe(true); // it fired right, into the empty tile
+  });
+});

@@ -147,6 +147,11 @@ export const es: Record<TranslationKey, string> = {
   'a11y.settings': 'Ajustes',
 
   'floor.banner': 'Piso {n}',
+  'boss.goalTitle': 'Vence al Wumpus',
+  'boss.goalRule': 'Aquí no hay gemas. Sigue su rugido, apunta y dispara: tiene {hearts} corazones y te persigue.',
+  'relic.lairNext': 'Sigue: la guarida del Wumpus. Elige lo que te ayude a pelear.',
+  'a11y.bossHearts': 'Corazones del Wumpus: {count}',
+  'hud.bossHearts': 'Wumpus',
   'floor.banner.lair': 'La guarida del Wumpus',
   'omen.bounty.name': 'Presagio: Botín',
   'omen.bounty.rule': 'Las gemas valen un 50 % más, pero acecha un guardián extra.',

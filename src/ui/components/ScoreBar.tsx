@@ -1,11 +1,12 @@
 import React, { memo } from "react";
-import { StyleSheet, View, Image, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
 import { useGameLayout, MIN_TOUCH } from "../layout/useGameLayout";
 import { formatTime } from "../../shared/utils/formatTime";
 import { useT } from "../../i18n/useT";
+import SpriteImage from "./SpriteImage";
 
 type Props = {
   score: number;
@@ -17,6 +18,8 @@ type Props = {
   floors?: number;
   time: number;
   shield?: boolean;
+  /** Hearts the Wumpus has left; when set (lair floor) it replaces the gem counter. */
+  bossHearts?: number;
   /** When provided, a pause button is shown next to the timer. */
   onPause?: () => void;
 };
@@ -25,7 +28,7 @@ type Props = {
 const HUD_FONT_CAP = 1.15;
 
 const ScoreBar: React.FC<Props> = memo(
-  ({ score, attackValue, coins, character, level, floors, time, shield = false, onPause }) => {
+  ({ score, attackValue, coins, character, level, floors, time, shield = false, bossHearts, onPause }) => {
     const { t, plural } = useT();
     const { hudHeight, insets, fontSize, spacing } = useGameLayout();
 
@@ -50,7 +53,7 @@ const ScoreBar: React.FC<Props> = memo(
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           >
-            <Image
+            <SpriteImage
               source={character.scoreImage}
               style={{ width: avatarSize * 0.85, height: avatarSize * 0.85 }}
               resizeMode="contain"
@@ -100,19 +103,29 @@ const ScoreBar: React.FC<Props> = memo(
           </View>
           {shield && (
             <View style={styles.shieldBadge} accessible accessibilityLabel={t("a11y.shieldActive")}>
-              <Image source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
+              <SpriteImage source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
             </View>
           )}
         </View>
 
         {/* RIGHT: counters */}
         <View style={styles.rightGroup}>
-          <ScoreCounter
-            icon={require("../../assets/sprites/items/Icon_Gem.png")}
-            value={coins}
-            iconDim={statIconSize}
-            a11yLabel={plural("a11y.gemsLeft", coins)}
-          />
+          {bossHearts !== undefined ? (
+            <ScoreCounter
+              icon={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
+              value={`${bossHearts}`}
+              label={t("hud.bossHearts").toLocaleUpperCase()}
+              iconDim={statIconSize}
+              a11yLabel={t("a11y.bossHearts", { count: bossHearts })}
+            />
+          ) : (
+            <ScoreCounter
+              icon={require("../../assets/sprites/items/Icon_Gem.png")}
+              value={coins}
+              iconDim={statIconSize}
+              a11yLabel={plural("a11y.gemsLeft", coins)}
+            />
+          )}
           <ScoreCounter
             icon={require("../../assets/sprites/items/Icon_Arrows.png")}
             value={attackValue}
@@ -120,7 +133,7 @@ const ScoreBar: React.FC<Props> = memo(
             a11yLabel={t("a11y.arrowsLeft", { count: attackValue })}
           />
           <ScoreCounter
-            icon={character.scoreImage}
+            iconNode={<Ionicons name="trophy" size={Math.round(statIconSize * 0.78)} color="#FFD54F" />}
             value={score}
             iconDim={statIconSize}
             a11yLabel={`${t("over.score")} ${score}`}

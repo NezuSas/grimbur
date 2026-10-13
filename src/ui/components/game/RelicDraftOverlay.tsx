@@ -12,10 +12,12 @@ type Props = {
   offer: RelicId[] | null;
   /** The floor the player is about to enter. */
   floor: number;
+  /** True when that floor is the Wumpus' lair. */
+  lairNext?: boolean;
   onPick: (id: RelicId) => void;
 };
 
-const RelicDraftOverlay = ({ offer, floor, onPick }: Props) => {
+const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const pop = useRef(new Animated.Value(0.9)).current;
@@ -70,6 +72,11 @@ const RelicDraftOverlay = ({ offer, floor, onPick }: Props) => {
       <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
         {t('relic.hint')}
       </Text>
+      {lairNext && (
+        <Text style={styles.lair} maxFontSizeMultiplier={1.3}>
+          {t('relic.lairNext')}
+        </Text>
+      )}
     </OverlayContainer>
   );
 };
@@ -100,5 +107,6 @@ const styles = StyleSheet.create({
   },
   name: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1, textAlign: 'center' },
   description: { color: '#cfcfcf', fontSize: 12, textAlign: 'center' },
+  lair: { color: '#FF8A80', fontWeight: '900', fontSize: 13, textAlign: 'center', marginTop: 4 },
   hint: { color: '#9a9a9a', fontSize: 11, marginTop: 12, letterSpacing: 1, textAlign: 'center' },
 });

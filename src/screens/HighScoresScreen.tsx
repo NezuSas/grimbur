@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   FlatList,
-  Image,
   Text,
   TouchableOpacity,
   View,
@@ -20,6 +19,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
+import SpriteImage from "../ui/components/SpriteImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
@@ -91,7 +91,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </View>
         <View style={[styles.cell, { flex: COLUMNS.hero }]}>
-          <Image source={char.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
+          <SpriteImage source={char.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
         </View>
         <View style={[styles.cell, { flex: COLUMNS.name }]}>
           <Text style={[styles.cellText, { fontSize: fontSize(17) }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
@@ -128,7 +128,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
         <View style={[styles.headerArea, { paddingVertical: spacing(14) }]}>
           <TouchableOpacity

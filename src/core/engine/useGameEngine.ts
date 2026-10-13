@@ -126,13 +126,13 @@ export function useGameEngine(): GameEngineInterface {
     if (attackTimer.current) clearTimeout(attackTimer.current);
   }, []);
 
-  const attack = useCallback(() => {
+  const attack = useCallback((direction?: Direction) => {
     // A no-op attack (no arrows, run over, draft open) gives no animation or haptics.
     const s = stateRef.current;
     if (s.isGameOver || s.isLevelUp || s.pendingDraft || s.attack <= 0) return;
 
     setIsAttacking(true);
-    pureDispatch({ type: 'ATTACK' });
+    pureDispatch({ type: 'ATTACK', direction });
     if (attackTimer.current) clearTimeout(attackTimer.current);
     attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
   }, [pureDispatch]);

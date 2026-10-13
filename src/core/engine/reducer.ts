@@ -411,12 +411,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (state.isGameOver || state.isLevelUp || state.pendingDraft || state.attack <= 0) return state;
 
       const { rows, cols } = state;
+      // An aimed shot turns the hero toward the target first; a plain shot keeps the current facing.
+      const aim = action.direction ?? state.facingDir;
 
       // The arrow flies up to `arrowReach` tiles and hits the first hostile one.
       let targetIndex = -1;
       let cursor = state.playerIndex;
       for (let step = 0; step < state.perks.arrowReach + relicCount(state.relics, 'long_bow'); step++) {
-        cursor = neighbour(cursor, state.facingDir, rows, cols);
+        cursor = neighbour(cursor, aim, rows, cols);
         if (cursor === -1) break;
         const type = state.entityMap[cursor]?.type;
         if (type === 'enemy' || type === 'boss' || type === 'stalker') {
@@ -485,6 +487,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       return {
         ...state,
+        facingDir: aim,
         attack: state.attack - 1,
         score: Math.max(0, newScore),
         entities: world.entities,

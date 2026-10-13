@@ -38,6 +38,8 @@ export function useSoundManager(): void {
   const soundsRef = useRef(currentSounds);
   const soundEnabledRef = useRef(currentSoundEnabled);
   const lastMusicIntent = useRef<SoundEvent | null>(null);
+  /** The music event whose track is playing now, so a repeated start (screen focus fires twice) never restarts it. */
+  const activeMusic = useRef<SoundEvent | null>(null);
 
   useEffect(() => { soundsRef.current = currentSounds; }, [currentSounds]);
   useEffect(() => { soundEnabledRef.current = currentSoundEnabled; }, [currentSoundEnabled]);
@@ -80,6 +82,7 @@ export function useSoundManager(): void {
     const s = soundsRef.current;
     if (!s) return;
     if (__DEV__) console.log(`[SoundManager] stop all background audio: ${reason}`);
+    activeMusic.current = null;
     
     // Specifically target long-running tracks that can leak
     stopTrack(s.cover);
@@ -128,6 +131,7 @@ export function useSoundManager(): void {
       case 'LEVEL_RESUME':
         stopTrack(sounds.victory);
         startLoopingTrack(sounds.gameplay, MUSIC_VOL);
+        activeMusic.current = 'GAME_MUSIC_START';
         break;
 
       case 'GAME_OVER':
@@ -136,28 +140,36 @@ export function useSoundManager(): void {
         break;
 
       case 'COVER_SCREEN_START':
+        if (activeMusic.current === event) break;
         stopAllBackgroundMusic("cover_start");
         startLoopingTrack(sounds.cover, MUSIC_VOL);
+        activeMusic.current = event;
         break;
 
       case 'GAME_MUSIC_START':
+        if (activeMusic.current === event) break;
         stopAllBackgroundMusic("game_start");
         startLoopingTrack(sounds.gameplay, MUSIC_VOL);
+        activeMusic.current = event;
         break;
 
       case 'GAME_MUSIC_STOP':
         // Only stop gameplay-specific loops to prevent killing victory/death SFX
+        if (activeMusic.current === 'GAME_MUSIC_START') activeMusic.current = null;
         stopTrack(sounds.gameplay);
         stopTrack(sounds.monster);
         stopTrack(sounds.vortex);
         break;
 
       case 'SELECTION_SCREEN_START':
+        if (activeMusic.current === event) break;
         stopAllBackgroundMusic("selection_start");
         startLoopingTrack(sounds.selection, MUSIC_VOL);
+        activeMusic.current = event;
         break;
 
       case 'SELECTION_SCREEN_STOP':
+        if (activeMusic.current === 'SELECTION_SCREEN_START') activeMusic.current = null;
         stopTrack(sounds.selection);
         break;
 
@@ -192,6 +204,7 @@ export function useSoundManager(): void {
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active' && soundEnabledRef.current && lastMusicIntent.current) {
+        activeMusic.current = null; // the OS may have paused the track while we were away: restart it
         processEvent(lastMusicIntent.current);
       }
     };

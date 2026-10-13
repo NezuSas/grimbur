@@ -146,6 +146,11 @@ export const en = {
   'a11y.settings': 'Settings',
 
   'floor.banner': 'Floor {n}',
+  'boss.goalTitle': 'Slay the Wumpus',
+  'boss.goalRule': 'No gems here. Follow its roar, aim and shoot: it has {hearts} hearts and hunts you.',
+  'relic.lairNext': 'Next: the lair of the Wumpus. Pick what helps you fight.',
+  'a11y.bossHearts': 'Wumpus hearts left: {count}',
+  'hud.bossHearts': 'Wumpus',
   'floor.banner.lair': 'The Wumpus\'s lair',
   'omen.bounty.name': 'Omen: Bounty',
   'omen.bounty.rule': 'Gems are worth 50% more, but one more guardian lurks.',

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ImageBackground,
   ImageSourcePropType,
   useWindowDimensions,
@@ -21,6 +20,7 @@ import { MAX_ASCENSION } from "../core/engine/ascension";
 import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
 import { useT } from "../i18n/useT";
+import SpriteImage from "../ui/components/SpriteImage";
 
 type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 
@@ -136,7 +136,7 @@ const SectionHeader = ({
   <View style={styles.sectionHeader}>
     <View style={[styles.iconContainer, { backgroundColor: color + "22" }]}>
       {image ? (
-        <Image source={image} style={styles.sectionImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={image} style={styles.sectionImage} resizeMode="contain" accessibilityIgnoresInvertColors />
       ) : (
         <Text style={styles.sectionIcon}>{icon}</Text>
       )}
@@ -197,12 +197,12 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.visualRow}>
       <View style={styles.visualComparison}>
         <View style={styles.visualItem}>
-          <Image source={require("../assets/sprites/tiles/Tile_Hidden.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <SpriteImage source={require("../assets/sprites/tiles/Tile_Hidden.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.visualText}>{t("manual.explore.hidden").toLocaleUpperCase()}</Text>
         </View>
         <Ionicons name="arrow-forward" size={26} color="#888" style={{ marginHorizontal: 22 }} />
         <View style={styles.visualItem}>
-          <Image source={require("../assets/sprites/tiles/Tile_Revealed.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <SpriteImage source={require("../assets/sprites/tiles/Tile_Revealed.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.visualText}>{t("manual.explore.revealed").toLocaleUpperCase()}</Text>
         </View>
       </View>
@@ -215,14 +215,14 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
   const hazards = (
     <View style={styles.hazardVisual}>
       <View style={styles.visualItem}>
-        <Image source={require("../assets/sprites/enemies/Guardian_Enemy.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={require("../assets/sprites/enemies/Guardian_Enemy.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
         <Text style={styles.visualText}>{t("manual.hazards.guardian").toLocaleUpperCase()}</Text>
         <View style={[styles.hintIconContainer, { backgroundColor: "#ffcc80" }]}>
           <Ionicons name="volume-high" size={16} color="#bf360c" />
         </View>
       </View>
       <View style={[styles.visualItem, { marginLeft: 40 }]}>
-        <Image source={require("../assets/sprites/tiles/Danger_Vortex.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={require("../assets/sprites/tiles/Danger_Vortex.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
         <Text style={styles.visualText}>{t("manual.hazards.vortex").toLocaleUpperCase()}</Text>
         <View style={[styles.hintIconContainer, { backgroundColor: "#9c27b0" }]}>
           <Ionicons name="infinite" size={16} color="#fff" />
@@ -232,7 +232,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
         <View style={{ flex: 1, alignItems: "center" }}>
           <View style={[styles.header, { paddingVertical: spacing(12) }]}>
@@ -309,7 +309,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
 
-              <Image source={characters[1].winImage} style={styles.footerImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+              <SpriteImage source={characters[1].winImage} style={styles.footerImage} resizeMode="contain" accessibilityIgnoresInvertColors />
             </ScrollView>
           </View>
         </View>

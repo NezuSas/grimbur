@@ -10,17 +10,21 @@ type Props = {
   omenRule?: string;
   /** Skip the animation (reduce flashes setting). */
   calm?: boolean;
+  /** Keep the banner up longer (the lair explains its goal). */
+  long?: boolean;
+  /** Fade out right away (the player has started moving). */
+  dismiss?: boolean;
 };
 
 /** Brief "Floor N" announcement that also names the floor's omen. Never blocks touches. */
-const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, calm }) => {
+const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, calm, long, dismiss }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(calm ? 0 : 12)).current;
 
   useEffect(() => {
     opacity.setValue(0);
     lift.setValue(calm ? 0 : 12);
-    const hold = omenName ? 2100 : 1100;
+    const hold = long ? 4200 : omenName ? 2100 : 1100;
     const run = Animated.sequence([
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
@@ -31,7 +35,15 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, cal
     ]);
     run.start();
     return () => run.stop();
-  }, [floorKey, omenName, calm, opacity, lift]);
+  }, [floorKey, omenName, calm, long, opacity, lift]);
+
+  // Once the player moves, the banner has done its job and stops covering the board.
+  useEffect(() => {
+    if (!dismiss) return;
+    const fade = Animated.timing(opacity, { toValue: 0, duration: 160, useNativeDriver: true });
+    fade.start();
+    return () => fade.stop();
+  }, [dismiss, opacity]);
 
   return (
     <Animated.View

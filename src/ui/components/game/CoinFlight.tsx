@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
+import SpriteImage, { AnimatedSprite } from "../SpriteImage";
 
 type Props = {
   startX: number;
@@ -37,7 +38,7 @@ const CoinFlight = ({ startX, startY, targetX, targetY, onComplete }: Props) => 
   }, []);
 
   return (
-    <Animated.Image
+    <AnimatedSprite
       source={require("../../../assets/sprites/items/Icon_Gem.png")}
       style={{
         position: 'absolute',

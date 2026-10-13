@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Animated, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import type { Character } from '../../../data/characters';
 import type { EntityType } from '../../../core/engine/types';
@@ -9,6 +9,7 @@ import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
 import { achievementText, heroText } from '../../../i18n/keys';
 import type { AchievementId } from '../../../core/stats/achievements';
+import SpriteImage from "../SpriteImage";
 
 type Props = {
   visible: boolean;
@@ -103,7 +104,7 @@ const GameOverOverlay = ({
 
   const header = (
     <View style={styles.headerColumn}>
-      <Image source={image} style={{ width: imageSize, height: imageSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <SpriteImage source={image} style={{ width: imageSize, height: imageSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
       <Text
         style={[styles.title, { color: accent }]}
         accessibilityRole="header"
