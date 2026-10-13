@@ -99,6 +99,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.sectionContent}>
                 <InstructionRow label="Primary Goal" detail="Navigate the grid to secure every Mystic Gem. Only then do you descend to the next, harder cave." />
                 <InstructionRow label="The Wumpus" detail="Floor 10 is the Wumpus lair. It has 3 hearts and hunts you, stepping closer every two moves. Shoot it three times to win the expedition. Touching it is deadly (a shield bounces you back once)." value="FLOOR 10" valueColor="#ff1744" />
+                <InstructionRow label="Relics" detail="Clear a floor and choose 1 of 3 relics: extra arrows, richer gems, a Phoenix Feather that saves you once, a slower Wumpus and more. They stack and last the whole expedition." value="DRAFT" valueColor="#ffd700" />
                 <InstructionRow label="Heroes" detail="Each hero has a perk shown on the selection screen: Trapfinder, Piercing arrows, Stoneskin and Treasure hunter." />
                 <InstructionRow label="Survival" detail="Avoid lethal pits and hostile guardians. One wrong step ends the run." />
               </View>

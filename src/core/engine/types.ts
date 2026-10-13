@@ -1,6 +1,7 @@
 import { Character } from '../../data/characters';
 import { GameMode } from './seed';
 import { HeroPerks } from './heroes';
+import { RelicId } from './relics';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -51,6 +52,10 @@ export interface GameState {
   wasTeleported: boolean;
   /** Perks of the chosen hero. */
   perks: HeroPerks;
+  /** Relics collected during this run (duplicates = stacks). */
+  relics: RelicId[];
+  /** Relics on offer after clearing a floor; the game waits until one is picked. */
+  pendingDraft: RelicId[] | null;
   /** Player moves made on the current floor (drives the boss). */
   turn: number;
   /** True once the Wumpus is dead and the expedition is won. */
@@ -62,6 +67,7 @@ export interface GameState {
 export type GameAction =
   | { type: 'MOVE'; direction: Direction }
   | { type: 'ATTACK' }
+  | { type: 'PICK_RELIC'; id: RelicId }
   | {
       type: 'RESET';
       character: Character;
@@ -94,4 +100,5 @@ export interface GameEngineInterface {
   attack: () => void;
   reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number }) => void;
   levelUp: () => void;
+  pickRelic: (id: RelicId) => void;
 }

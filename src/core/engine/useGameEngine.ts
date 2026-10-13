@@ -6,6 +6,7 @@ import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { getHeroPerks } from './heroes';
+import { RelicId } from './relics';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
@@ -157,6 +158,10 @@ export function useGameEngine(): GameEngineInterface {
     });
   }, [pureDispatch]);
 
+  const pickRelic = useCallback((id: RelicId) => {
+    pureDispatch({ type: 'PICK_RELIC', id });
+  }, [pureDispatch]);
+
   return {
     state,
     isAttacking,
@@ -164,5 +169,6 @@ export function useGameEngine(): GameEngineInterface {
     attack,
     reset,
     levelUp,
+    pickRelic,
   };
 }
