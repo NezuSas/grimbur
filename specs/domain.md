@@ -73,7 +73,7 @@
 ### 7. Character
 - **Description**: Predefined templates for the Player's avatar.
 - **Properties**:
-    - `playerName`: Name (e.g., Cyan Explorer, Scarlet Knight, Moss Golem, Golden Rogue).
+    - `playerName`: Name (e.g., Cyan Explorer, Scarlet Archer, Moss Warden, Gilded Delver).
     - `assets`: specific images for idle, attack, win, and lose states.
     - `arrowColor`: The visual theme for the player's attacks.
 - **Relationships**:

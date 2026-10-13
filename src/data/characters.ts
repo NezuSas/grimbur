@@ -24,7 +24,7 @@ const characters: Character[] = [
   },
   {
     id: 2,
-    playerName: "Scarlet Knight",
+    playerName: "Scarlet Archer",
     scoreImage: require("../assets/sprites/characters/Icon_Red.png"),
     attackImage: require("../assets/sprites/characters/Attack_Red.png"),
     playerImage: require("../assets/sprites/characters/Hero_Red.png"),
@@ -34,7 +34,7 @@ const characters: Character[] = [
   },
   {
     id: 3,
-    playerName: "Moss Golem",
+    playerName: "Moss Warden",
     scoreImage: require("../assets/sprites/characters/Icon_Green.png"),
     attackImage: require("../assets/sprites/characters/Attack_Green.png"),
     playerImage: require("../assets/sprites/characters/Hero_Green.png"),
@@ -44,7 +44,7 @@ const characters: Character[] = [
   },
   {
     id: 4,
-    playerName: "Golden Rogue",
+    playerName: "Gilded Delver",
     scoreImage: require("../assets/sprites/characters/Icon_Gold.png"),
     attackImage: require("../assets/sprites/characters/Attack_Gold.png"),
     playerImage: require("../assets/sprites/characters/Hero_Gold.png"),

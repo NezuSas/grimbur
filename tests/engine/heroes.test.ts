@@ -54,7 +54,7 @@ describe('Piercing arrows (Knight)', () => {
   });
 });
 
-describe('Stoneskin (Golem)', () => {
+describe('Stoneskin (Warden)', () => {
   const perks = getHeroPerks(2);
 
   it('starts the run with a shield and re-arms it on every floor', () => {
