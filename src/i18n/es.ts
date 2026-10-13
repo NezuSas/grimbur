@@ -142,6 +142,15 @@ export const es: Record<TranslationKey, string> = {
   'over.embers_other': '+{count} brasas',
   'a11y.settings': 'Ajustes',
 
+  'floor.banner': 'Piso {n}',
+  'floor.banner.lair': 'La guarida del Wumpus',
+  'omen.bounty.name': 'Presagio: Botín',
+  'omen.bounty.rule': 'Las gemas valen un 50 % más, pero acecha un guardián extra.',
+  'omen.calm.name': 'Presagio: Calma',
+  'omen.calm.rule': 'Un guardián y un vórtice menos. Respira.',
+  'omen.arsenal.name': 'Presagio: Arsenal',
+  'omen.arsenal.rule': '+2 flechas, pero un vórtice más.',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Ajustes',
   'settings.sound': 'Sonido',

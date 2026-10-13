@@ -33,3 +33,7 @@ export const forgeText = (t: T, id: UpgradeId, part: 'name' | 'desc'): string =>
   const params = UPGRADES.find(u => u.id === id)?.params ?? {};
   return t(`forge.${id}.${part}` as TranslationKey, params);
 };
+
+/** Localised omen text. */
+export const omenText = (t: T, id: string, part: 'name' | 'rule'): string =>
+  t(`omen.${id}.${part}` as TranslationKey);

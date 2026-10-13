@@ -12,6 +12,7 @@
  */
 import { gameReducer, initialState } from '../src/core/engine/reducer';
 import { generateBoard } from '../src/core/engine/generator';
+import { omenFor } from '../src/core/engine/omens';
 import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
 import { NO_PERKS } from '../src/core/engine/heroes';
@@ -210,7 +211,7 @@ interface FloorResult {
 }
 
 function playFloor(floor: number, seed: number): FloorResult {
-  const board = generateBoard(floor, seed, { ascension: DEPTH });
+  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor) });
   let state: GameState = gameReducer(
     { ...initialState },
     {
@@ -279,7 +280,7 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 
   for (let i = 0; i < RUNS; i++) {
     const seed = floor * 100003 + i * 7919 + 1;
-    const board = generateBoard(floor, seed, { ascension: DEPTH });
+    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor) });
     dims = `${board.rows}x${board.cols}`;
     cells = board.rows * board.cols;
     gems += board.coins;

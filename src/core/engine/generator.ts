@@ -2,6 +2,7 @@ import { getDifficulty } from '../difficulty/difficulty';
 import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { modifiersFor } from './ascension';
+import { OmenId, omenEffects } from './omens';
 import { GameEntity, EntityType } from './types';
 
 export interface BoardConfig {
@@ -46,6 +47,8 @@ export interface GenerateOptions {
   boss?: boolean;
   /** Depth of the run; harder depths add stalkers, traps and a tougher Wumpus. */
   ascension?: number;
+  /** The floor's omen (see omens.ts). */
+  omen?: OmenId | null;
 }
 
 export function generateBoard(
@@ -56,6 +59,7 @@ export function generateBoard(
   const withBoss = options.boss === true;
   const mods = modifiersFor(options.ascension ?? 0);
   const diff = getDifficulty(level);
+  const omen = omenEffects(options.omen);
   const prng = createPRNG(seed);
   const totalCells = diff.rows * diff.cols;
 
@@ -69,8 +73,8 @@ export function generateBoard(
 
   const MAX_ATTEMPTS = 10;
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
-  let enemyBudget = diff.enemies;
-  let pitBudget = diff.pits;
+  let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta);
+  let pitBudget = Math.max(1, diff.pits + omen.pitDelta);
 
   let entities: GameEntity[] = [];
 
@@ -162,7 +166,7 @@ export function generateBoard(
     playerIndex: spawnIndex,
     // Report the coins actually placed so the level can always be completed.
     coins: entities.filter(e => e.type === 'coin').length,
-    attack: diff.attackCharges,
+    attack: diff.attackCharges + omen.arrowBonus,
     seed
   };
 }

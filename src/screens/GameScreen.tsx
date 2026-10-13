@@ -24,6 +24,7 @@ import DangerVignette from "../ui/components/game/DangerVignette";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import PauseOverlay from "../ui/components/game/PauseOverlay";
+import FloorBanner from "../ui/components/game/FloorBanner";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
@@ -33,6 +34,7 @@ import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { coinReward, killValue } from "../core/engine/scoring";
+import { omenEffects, omenFor } from "../core/engine/omens";
 import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
@@ -44,7 +46,7 @@ import { useSessionTimer } from "../hooks/useSessionTimer";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useTravel } from "../hooks/useTravel";
 import { useT } from "../i18n/useT";
-import { relicText } from "../i18n/keys";
+import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 
@@ -90,6 +92,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const vortexFlash = useRef(new Animated.Value(0)).current;
 
   const runEnded = state.isGameOver || state.isVictory;
+  const floorOmen = omenFor(state.runSeed, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
 
   // Tap an explored tile to walk there; any control press interrupts the walk.
@@ -393,7 +396,11 @@ export default function GameScreen({ navigation, route }: Props) {
 
     if (collectingCoin && !isResetting.current) {
       emitSound("COIN_COLLECTED");
-      const points = coinReward(state.level, state.perks.coinMultiplier, relicCount(state.relics, "lucky_coin"));
+      const points = coinReward(
+        state.level,
+        state.perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level)).gemMultiplier,
+        relicCount(state.relics, "lucky_coin"),
+      );
       setPopups(prev => [...prev, { id: Date.now() + Math.random(), points, type: "coin" }]);
       setActiveCoins(prev => [
         ...prev,
@@ -502,6 +509,15 @@ export default function GameScreen({ navigation, route }: Props) {
       )}
 
       <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
+      {!runEnded && !levelUpWindow && !state.pendingDraft && (
+        <FloorBanner
+          floorKey={`${state.runSeed}-${state.level}`}
+          title={state.level >= GAME_CONFIG.expedition.floors && state.mode !== "endless" ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
+          omenName={floorOmen ? omenText(t, floorOmen, "name") : undefined}
+          omenRule={floorOmen ? omenText(t, floorOmen, "rule") : undefined}
+          calm={reduceFlash}
+        />
+      )}
 
       <View
         style={[

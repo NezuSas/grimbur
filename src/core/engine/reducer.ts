@@ -2,6 +2,7 @@ import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, HUNTER_TYP
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinReward, killValue, levelClearBonus } from './scoring';
+import { omenEffects, omenFor } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
@@ -330,7 +331,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += coinReward(state.level, perks.coinMultiplier, has('lucky_coin'));
+          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level)).gemMultiplier, has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
           consumeEntity();
