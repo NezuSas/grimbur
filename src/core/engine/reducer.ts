@@ -547,7 +547,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics } = action;
       const heroPerks = perks ?? NO_PERKS;
       return {
         ...initialState,
@@ -565,6 +565,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         mode: mode ?? 'expedition',
         ascension: ascension ?? 0,
         draftBonus: draftBonus ?? 0,
+        relics: startRelics ? [...startRelics] : [],
         visited: [0],
         playerIndex: 0,
         totalCoins: 0,

@@ -5,7 +5,7 @@ import type { HeroPerks } from '../engine/heroes';
  * The Forge: permanent upgrades bought with "embers", which every run earns (win or lose).
  * Pure data + functions so the economy is easy to tune and test.
  */
-export type UpgradeId = 'whetstone' | 'purse' | 'scribe' | 'ward';
+export type UpgradeId = 'whetstone' | 'purse' | 'scribe' | 'ward' | 'feather' | 'fortune';
 
 export interface UpgradeInfo {
   id: UpgradeId;
@@ -21,18 +21,24 @@ export const UPGRADES: readonly UpgradeInfo[] = [
   { id: 'purse', icon: '👛', costs: [40, 90, 160], params: { percent: 10 } },
   { id: 'scribe', icon: '📜', costs: [250], params: { extra: 1 } },
   { id: 'ward', icon: '🛡️', costs: [80], params: {} },
+  { id: 'feather', icon: '🪶', costs: [300], params: {} },
+  { id: 'fortune', icon: '🍀', costs: [120, 240], params: { percent: 15 } },
 ];
+
+/** Extra embers per level of Fortune (+15% each). */
+const FORTUNE_BONUS_PER_LEVEL = 0.15;
 
 export const maxLevel = (id: UpgradeId): number => UPGRADES.find(u => u.id === id)?.costs.length ?? 0;
 
 /** Embers earned by a finished run. A run that never started earns nothing. */
-export function embersFor(run: RunResult, progressed = true): number {
+export function embersFor(run: RunResult, progressed = true, fortuneLevel = 0): number {
   if (!progressed) return 0;
   const score = Number.isFinite(run.score) ? run.score : 0;
   const level = Number.isFinite(run.level) ? run.level : 1;
   const base = Math.floor(Math.max(0, score) / 250) + Math.max(1, level) * 4;
   const victory = run.victory ? 50 + 15 * (run.ascension ?? 0) : 0;
-  return base + victory;
+  const fortune = 1 + FORTUNE_BONUS_PER_LEVEL * Math.min(Math.max(0, Math.trunc(fortuneLevel) || 0), maxLevel('fortune'));
+  return Math.round((base + victory) * fortune);
 }
 
 export const levelOf = (stats: LocalStats, id: UpgradeId): number => stats.forge[id] ?? 0;
@@ -67,9 +73,11 @@ export interface MetaEffects {
   draftBonus: number;
   /** Start the run with a shield. */
   shield: boolean;
+  /** Start the run holding a Phoenix Feather. */
+  feather: boolean;
 }
 
-export const NO_META: MetaEffects = { arrows: 0, coinBonus: 0, draftBonus: 0, shield: false };
+export const NO_META: MetaEffects = { arrows: 0, coinBonus: 0, draftBonus: 0, shield: false, feather: false };
 
 /** Hero perks plus the Forge's permanent bonuses. */
 export function applyMeta(perks: HeroPerks, meta: MetaEffects): HeroPerks {
@@ -87,5 +95,6 @@ export function metaEffects(forge: Record<string, number>): MetaEffects {
     coinBonus: lvl('purse') * 0.1,
     draftBonus: lvl('scribe') * 1,
     shield: lvl('ward') > 0,
+    feather: lvl('feather') > 0,
   };
 }

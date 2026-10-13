@@ -71,17 +71,18 @@ describe('buying upgrades', () => {
 describe('what the upgrades do', () => {
   it('translates levels into run bonuses', () => {
     expect(metaEffects({})).toEqual(NO_META);
-    expect(metaEffects({ whetstone: 2, purse: 3, scribe: 1, ward: 1 })).toEqual({
+    expect(metaEffects({ whetstone: 2, purse: 3, scribe: 1, ward: 1, feather: 1 })).toEqual({
       arrows: 2,
       coinBonus: expect.closeTo(0.3, 5),
       draftBonus: 1,
       shield: true,
+      feather: true,
     });
     expect(metaEffects({ whetstone: 99 }).arrows).toBe(maxLevel('whetstone'));
   });
 
   it('merges with the hero perks', () => {
-    const merged = applyMeta({ ...NO_PERKS, bonusArrows: 1, coinMultiplier: 1.3 }, { arrows: 2, coinBonus: 0.1, draftBonus: 0, shield: false });
+    const merged = applyMeta({ ...NO_PERKS, bonusArrows: 1, coinMultiplier: 1.3 }, { arrows: 2, coinBonus: 0.1, draftBonus: 0, shield: false, feather: false });
     expect(merged.bonusArrows).toBe(3);
     expect(merged.coinMultiplier).toBeCloseTo(1.43, 5);
   });
@@ -96,7 +97,7 @@ describe('what the upgrades do', () => {
       coins: 1,
       attack: 3,
       seed: 1,
-      perks: applyMeta(NO_PERKS, { arrows: 2, coinBonus: 0, draftBonus: 1, shield: true }),
+      perks: applyMeta(NO_PERKS, { arrows: 2, coinBonus: 0, draftBonus: 1, shield: true, feather: false }),
       draftBonus: 1,
       startShield: true,
     });
@@ -117,5 +118,40 @@ describe('persistence', () => {
     const messy = parseStats('{"embers":-9,"forge":{"purse":99,"scribe":"x","nope":3,"ward":-1}}');
     expect(messy.embers).toBe(0);
     expect(messy.forge).toEqual({ purse: maxLevel('purse') });
+  });
+});
+
+describe('Fortune and the Phoenix start', () => {
+  it('Fortune raises the embers of every run by 15% per level', () => {
+    const run = { score: 2500, level: 5 };
+    const base = embersFor(run);
+    expect(embersFor(run, true, 1)).toBe(Math.round(base * 1.15));
+    expect(embersFor(run, true, 2)).toBe(Math.round(base * 1.3));
+    expect(embersFor(run, true, 99)).toBe(embersFor(run, true, 2)); // capped at the maximum level
+    expect(embersFor(run, false, 2)).toBe(0);
+  });
+
+  it('is applied when a run is saved', () => {
+    const owned = { ...EMPTY_STATS, forge: { fortune: 2 } };
+    const gained = mergeRun(owned, { score: 2500, level: 5 }).stats.embers;
+    expect(gained).toBe(embersFor({ score: 2500, level: 5 }, true, 2));
+  });
+
+  it('a run with the upgrade starts holding a Phoenix Feather that soaks the first deadly touch', () => {
+    const state = gameReducer(initialState, {
+      type: 'RESET',
+      character: { playerName: 'T' } as never,
+      rows: 5,
+      cols: 8,
+      entities: [{ index: 1, type: 'enemy' }, coin(39)],
+      coins: 1,
+      attack: 3,
+      seed: 1,
+      startRelics: ['phoenix'],
+    });
+    expect(state.relics).toEqual(['phoenix']);
+    const next = gameReducer(state, { type: 'MOVE', direction: 'RIGHT' });
+    expect(next.isGameOver).toBe(false);
+    expect(next.relics).toEqual([]);
   });
 });
