@@ -184,6 +184,8 @@ export const es: Record<TranslationKey, string> = {
   'settings.attackHint': 'En el lado opuesto, un pulgar mueve y el otro dispara. Las pantallas pequeñas lo mantienen en la cruceta.',
   'settings.swipe': 'Deslizar para mover',
   'settings.swipeHint': 'También puedes moverte deslizando sobre el tablero. La cruceta sigue funcionando.',
+  'settings.audioLog': 'Compartir registro de audio',
+  'settings.audioLogHint': 'Si un sonido falla, juega un minuto y envía este registro al desarrollador.',
   'settings.language': 'Idioma',
   'settings.languageAuto': 'Automático',
   'settings.languageEn': 'English',

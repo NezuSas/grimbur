@@ -5,6 +5,7 @@ import { SoundEvent } from "./soundEvents";
 import { useSoundStore } from "../state/sound/store";
 import { useSettingsStore } from "../state/settings/store";
 import { LegacySoundHandle } from "../state/sound/types";
+import { audioLog } from "./audioDiagnostics";
 
 // Dynamic volume offsets
 const MUSIC_VOL = 0.12;
@@ -85,7 +86,7 @@ export function useSoundManager(): void {
   const stopAllBackgroundMusic = (reason: string = "general") => {
     const s = soundsRef.current;
     if (!s) return;
-    if (__DEV__) console.log(`[SoundManager] stop all background audio: ${reason}`);
+    audioLog('music', `stop all background audio: ${reason}`);
     activeMusic.current = null;
     
     // Specifically target long-running tracks that can leak
@@ -100,12 +101,15 @@ export function useSoundManager(): void {
   const processEvent = (event: SoundEvent) => {
     const sounds = soundsRef.current;
     const soundEnabled = soundEnabledRef.current;
-    if (!sounds || !ready) return;
+    if (!sounds || !ready) {
+      audioLog('event', `${event} IGNORED (audio not ready)`);
+      return;
+    }
 
     const isStopEvent = event.includes('STOP') || event === 'QUIT' || event === 'GAME_MUSIC_STOP';
     if (!soundEnabled && !isStopEvent && event !== 'LEVEL_UP' && event !== 'GAME_OVER') return;
 
-    if (__DEV__) console.log(`[SoundManager] -> ${event}`);
+    audioLog('event', event);
 
     // Once a run ends or the player leaves, coming back to the app must not restart the gameplay loop.
     if (event === 'GAME_OVER' || event === 'GAME_MUSIC_STOP' || event === 'QUIT') lastMusicIntent.current = null;
@@ -144,14 +148,20 @@ export function useSoundManager(): void {
         break;
 
       case 'COVER_SCREEN_START':
-        if (activeMusic.current === event) break;
+        if (activeMusic.current === event) {
+          audioLog('music', 'cover already playing, start skipped');
+          break;
+        }
         stopAllBackgroundMusic("cover_start");
         startLoopingTrack(sounds.cover, MUSIC_VOL);
         activeMusic.current = event;
         break;
 
       case 'GAME_MUSIC_START':
-        if (activeMusic.current === event) break;
+        if (activeMusic.current === event) {
+          audioLog('music', 'gameplay already playing, start skipped');
+          break;
+        }
         stopAllBackgroundMusic("game_start");
         startLoopingTrack(sounds.gameplay, MUSIC_VOL);
         activeMusic.current = event;
@@ -166,7 +176,10 @@ export function useSoundManager(): void {
         break;
 
       case 'SELECTION_SCREEN_START':
-        if (activeMusic.current === event) break;
+        if (activeMusic.current === event) {
+          audioLog('music', 'selection already playing, start skipped');
+          break;
+        }
         stopAllBackgroundMusic("selection_start");
         startLoopingTrack(sounds.selection, MUSIC_VOL);
         activeMusic.current = event;
@@ -207,6 +220,7 @@ export function useSoundManager(): void {
     const unsubscribeBus = onSound(processEvent);
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      audioLog('app', nextAppState);
       if (nextAppState === 'active') void useSoundStore.getState().revive();
       if (nextAppState === 'active' && soundEnabledRef.current && lastMusicIntent.current) {
         activeMusic.current = null; // the OS may have paused the track while we were away: restart it

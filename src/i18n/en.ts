@@ -183,6 +183,8 @@ export const en = {
   'settings.attackHint': 'On the opposite side, one thumb moves and the other shoots. Small screens keep it in the pad.',
   'settings.swipe': 'Swipe to move',
   'settings.swipeHint': 'Also move by swiping on the board. The pad keeps working.',
+  'settings.audioLog': 'Share audio log',
+  'settings.audioLogHint': 'If a sound fails, play for a minute and then send this log to the developer.',
   'settings.language': 'Language',
   'settings.languageAuto': 'Automatic',
   'settings.languageEn': 'English',
