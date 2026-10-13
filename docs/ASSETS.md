@@ -35,6 +35,13 @@ still in git history (commit 1ddb572) if you ever want to compare.
 
 `icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png` (640×640, converted from JPEG to real PNG), `splash-icon.png` (1024×1024). Source: ?
 
+## Removed: Mario image
+
+`src/assets/sprites/backgrounds/Loading.png` was a Super Mario (Nintendo) render shown at startup. It is gone from the app (the loading
+screen is now drawn with the game's own gem icon and text). **It is still in git history** (early commits also contained Mario, Luigi, Toad and
+Pokémon sprites). Before publishing or open-sourcing the repository, either keep it private or rewrite/squash the history; never ship a build
+or a public repo that includes those commits.
+
 ## Files that nothing loads
 
 `assets/wumpa.wav` and `assets/laba.wav` are not referenced anywhere in the code. "Wumpa" is the fruit from the

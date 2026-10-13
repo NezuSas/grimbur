@@ -17,8 +17,10 @@ npm run android      # native build (needs Android Studio / SDK)
 | Script              | Purpose                                   |
 | ------------------- | ----------------------------------------- |
 | `npm run typecheck` | `tsc --noEmit`                            |
-| `npm test`          | Jest suite (engine, generator, scoring)   |
+| `npm test`          | Jest suite (engine, bosses, relics, i18n, leaderboard rules...) |
 | `npm run test:stress` | Randomised reducer invariants           |
+| `npx tsx scripts/simulate.ts` | Balance simulation with a deduction bot |
+| `node scripts/generateAudio.js` | Regenerate the original music and sound effects |
 
 ## Project layout
 
@@ -36,6 +38,7 @@ src/
 ├── hooks/        Screen-level hooks (session timer, proximity audio)
 ├── navigation/   Stack navigator + route param types
 ├── screens/      Screen orchestrators
+├── i18n/         English/Spanish dictionaries, translator, hooks
 ├── services/     Firebase high scores, local stats, analytics facade
 ├── shared/       Cross-cutting utilities
 ├── state/        Zustand stores (sound, settings)

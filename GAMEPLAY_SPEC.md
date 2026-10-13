@@ -79,8 +79,9 @@ called floors). **Floor 10 is the Wumpus lair**:
 
 - No gems. Killing the Wumpus clears the floor and wins the expedition (victory screen, +2,000 points).
 - The Wumpus has 3 hearts; each arrow removes one (+150 points per hit).
-- It hunts: after every 2nd player move it steps one tile toward the player, only onto empty tiles.
-- Touching it (or being reached by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives.
+- It hunts: after every 2nd player action (a move **or a shot**) it steps one tile toward the player, only onto empty tiles.
+- It needs a **wind-up**: when it reaches you it glows for one action before it can strike, which leaves a bare hero three shots at an adjacent Wumpus. If you move away it loses the charge and has to close in again.
+- Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives.
 - It counts as a guardian in the proximity clues, so the roar warns you as it closes in.
 
 ## 10. Heroes
@@ -109,3 +110,9 @@ After every cleared floor the game offers **3 different relics** and waits for t
 | Dragon Hoard | Clearing a floor pays +50% | 2 |
 | Frost Charm | The Wumpus moves one move later | 1 |
 | Trap Sense | Traps are disarmed without penalty | 1 |
+
+## 12. Tutorial
+The first expedition starts with a guided mini-floor (gem, clue, shooting a guardian, last gem) played on the real engine. It can be skipped and is replayable from the manual (`How to play`). Completion is stored in the settings (`tutorialSeen`).
+
+## 13. Languages and accessibility
+English and Spanish (follows the phone language; override in Settings). Settings also include vibration and *reduce flashes*. All controls have labels, touch targets are at least 46 dp and text never scales below 11 sp or above the caps set on the HUD and buttons.
