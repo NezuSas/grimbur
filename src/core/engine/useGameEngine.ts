@@ -6,6 +6,7 @@ import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
+import { omenFor } from './omens';
 import { getHeroPerks } from './heroes';
 import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
 import { RelicId } from './relics';
@@ -140,7 +141,7 @@ export function useGameEngine(): GameEngineInterface {
     const perks = applyMeta(getHeroPerks(options.heroIndex ?? 0), meta);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension });
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1) });
 
     pureDispatch({
       type: 'RESET',
@@ -164,7 +165,11 @@ export function useGameEngine(): GameEngineInterface {
     const nextLevel = stateRef.current.level + 1;
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
     const ascension = stateRef.current.ascension;
-    const board = generateBoard(nextLevel, seed, { boss: isBossFloor(stateRef.current.mode, nextLevel), ascension });
+    const board = generateBoard(nextLevel, seed, {
+      boss: isBossFloor(stateRef.current.mode, nextLevel),
+      ascension,
+      omen: omenFor(stateRef.current.runSeed, nextLevel),
+    });
 
     pureDispatch({
       type: 'LEVEL_UP',

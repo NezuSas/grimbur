@@ -141,6 +141,15 @@ export const en = {
   'over.embers_other': '+{count} embers',
   'a11y.settings': 'Settings',
 
+  'floor.banner': 'Floor {n}',
+  'floor.banner.lair': 'The Wumpus\'s lair',
+  'omen.bounty.name': 'Omen: Bounty',
+  'omen.bounty.rule': 'Gems are worth 50% more, but one more guardian lurks.',
+  'omen.calm.name': 'Omen: Calm',
+  'omen.calm.rule': 'One guardian and one vortex fewer. Catch your breath.',
+  'omen.arsenal.name': 'Omen: Arsenal',
+  'omen.arsenal.rule': '+2 arrows, but one more vortex.',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Settings',
   'settings.sound': 'Sound',
