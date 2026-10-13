@@ -12,7 +12,7 @@ describe('generateBoard', () => {
     for (let seed = 1; seed <= 15; seed++) {
       const board = generateBoard(level, seed * 7919);
       const total = board.rows * board.cols;
-      const safe = new Set(getSafeZoneIndices(board.rows, board.cols, 0, 0, 3));
+      const safe = new Set(getSafeZoneIndices(board.rows, board.cols, 0, 0, 2));
       const indices = board.entities.map(e => e.index);
 
       expect(new Set(indices).size).toBe(indices.length);

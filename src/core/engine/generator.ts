@@ -59,7 +59,7 @@ export function generateBoard(
   const spawnRow = 0;
   const spawnCol = 0;
   const spawnIndex = spawnRow * diff.cols + spawnCol;
-  const safeRadius = 3;
+  const safeRadius = 2;
   const safeIndices = getSafeZoneIndices(diff.rows, diff.cols, spawnRow, spawnCol, safeRadius);
   const safeSet = new Set(safeIndices);
 
