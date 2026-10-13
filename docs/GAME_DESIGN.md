@@ -66,3 +66,21 @@ mode. No forced ads. Optional rewarded revive can be tested after launch.
   month is blown), release candidate.
 
 Gate before spending on marketing (soft launch): D1 >= 30%, D7 >= 6%.
+
+## Balance tooling
+
+`npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor]` plays the real reducer with a careful bot that only uses what a
+human sees (clues, visible gems) plus Minesweeper-style deduction, and guesses only when nothing is provably safe.
+
+First run (old curve, safe radius 3): the bot cleared **99-100%** of floors 1-9 and almost never had to guess, i.e. the game
+had no tension for an attentive player. Current curve (safe radius 2; enemies/pits denser from floor 5):
+
+| Floors | Hazard density | Bot clears a floor | Board forces a guess |
+| --- | --- | --- | --- |
+| 1-4 | 10-15% | 95-97% | 3-15% |
+| 5-9 | 17-22% | 85-94% | 31-65% |
+
+Reading: a perfect bot reaches the Wumpus about 40% of the time without arrows, relics or hero perks; a human will make more mistakes,
+and relics/heroes/arrows add tools the bot does not use. Re-run after any change to `difficulty.ts`, the generator or the
+scoring. Targets to keep in mind: floors 1-3 forgiving (>= 95%), floors 7-9 genuinely risky (<= 90%) with the guess rate rising.
+

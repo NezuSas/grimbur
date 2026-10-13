@@ -16,7 +16,7 @@ describe('getDifficulty', () => {
   it('keeps hazards well below the number of free cells at every level', () => {
     for (let level = 1; level <= 300; level++) {
       const d = getDifficulty(level);
-      const freeCells = d.rows * d.cols - 25; // safe radius 3 covers at most 25 cells
+      const freeCells = d.rows * d.cols - 13; // safe radius 2 covers at most 13 cells
       const placed = d.enemies + d.pits + d.coins + d.traps + d.shields + d.ammoPickups;
       expect(placed).toBeLessThan(freeCells * 0.5);
     }
