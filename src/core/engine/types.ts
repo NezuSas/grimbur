@@ -94,6 +94,8 @@ export type GameAction =
       draftBonus?: number;
       /** Start the run with a shield (Forge upgrade). */
       startShield?: boolean;
+      /** Relics the run begins with (Forge: Phoenix Feather). */
+      startRelics?: RelicId[];
     }
   | {
       type: 'LEVEL_UP';

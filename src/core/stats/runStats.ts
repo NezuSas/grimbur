@@ -81,7 +81,7 @@ function accumulate(stats: LocalStats, run: RunResult) {
   return {
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
-    embers: stats.embers + embersFor(run, progressed),
+    embers: stats.embers + embersFor(run, progressed, stats.forge.fortune ?? 0),
   };
 }
 
