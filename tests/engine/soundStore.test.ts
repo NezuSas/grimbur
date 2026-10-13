@@ -1,0 +1,90 @@
+/**
+ * The sound store drives native players. These tests replace expo-audio with fakes that behave like the real
+ * Android player in the one way that matters here: right after a seek a player is "buffering" and reports
+ * `isLoaded === false`.
+ */
+interface FakePlayer {
+  id: number;
+  isLoaded: boolean;
+  playing: boolean;
+  volume: number;
+  loop: boolean;
+  plays: number;
+  play(): void;
+  pause(): void;
+  seekTo(t: number): void;
+  remove(): void;
+}
+
+const created: FakePlayer[] = [];
+let buffering = false; // when true, every new seek leaves the player buffering (isLoaded=false)
+
+jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
+jest.mock('expo-asset', () => ({
+  Asset: { fromModule: () => ({ localUri: 'file://x.wav', uri: 'file://x.wav', downloadAsync: async () => {} }) },
+}));
+jest.mock('expo-audio', () => ({
+  setAudioModeAsync: jest.fn(async () => {}),
+  createAudioPlayer: () => {
+    const p: FakePlayer = {
+      id: created.length,
+      isLoaded: true,
+      playing: false,
+      volume: 1,
+      loop: false,
+      plays: 0,
+      play() { this.plays += 1; this.playing = true; },
+      pause() { this.playing = false; },
+      seekTo() { if (buffering) this.isLoaded = false; },
+      remove() {},
+    };
+    created.push(p);
+    return p;
+  },
+}));
+
+import { setAudioModeAsync } from 'expo-audio';
+import { useSoundStore } from '../../src/state/sound/store';
+
+beforeAll(async () => {
+  await useSoundStore.getState().init();
+});
+
+describe('sound store', () => {
+  it('asks Android for no audio focus, so other sounds can never pause every player', () => {
+    expect(setAudioModeAsync).toHaveBeenCalledWith(expect.objectContaining({ interruptionMode: 'mixWithOthers' }));
+  });
+
+  it('builds each player exactly once, however often it is used afterwards', async () => {
+    const before = created.length;
+    const { sounds } = useSoundStore.getState();
+    buffering = true;
+    for (let i = 0; i < 20; i++) {
+      sounds.move!.playOneShot(0.4);
+      sounds.coin!.playOneShot(0.4); // leaves that voice buffering (isLoaded=false)
+      await sounds.coin!.setNumberOfLoops(0);
+    }
+    expect(created.length).toBe(before);
+    buffering = false;
+  });
+
+  it('still plays a footstep when every voice is buffering after a seek', () => {
+    const { sounds } = useSoundStore.getState();
+    buffering = true;
+    const voices = created.filter(p => p.plays >= 0);
+    const totalBefore = voices.reduce((n, p) => n + p.plays, 0);
+    for (let i = 0; i < 10; i++) sounds.move!.playOneShot(0.4);
+    const totalAfter = created.reduce((n, p) => n + p.plays, 0);
+    expect(totalAfter - totalBefore).toBe(10); // none of the ten steps was swallowed
+    buffering = false;
+  });
+
+  it('rotates effects across voices instead of restarting the one that just started', () => {
+    const { sounds } = useSoundStore.getState();
+    const before = created.map(p => p.plays);
+    sounds.attack!.playOneShot(0.7);
+    sounds.attack!.playOneShot(0.7);
+    const touched = created.filter((p, i) => p.plays !== before[i]);
+    expect(touched).toHaveLength(2);
+  });
+});
