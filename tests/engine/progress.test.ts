@@ -1,4 +1,4 @@
-import { chartRuns, trendOf } from '../../src/core/stats/progress';
+import { chartRuns, playedDays, recentList, trendOf, winRate } from '../../src/core/stats/progress';
 import { EMPTY_STATS, HISTORY_LIMIT, RunRecord, mergeDailyRun, mergeRun, parseStats } from '../../src/core/stats/runStats';
 
 const rec = (score: number, mode: RunRecord['mode'] = 'expedition', victory = false): RunRecord => ({ day: '2026-10-13', score, level: 3, victory, mode });
@@ -50,5 +50,27 @@ describe('chart with almost no data', () => {
   it('a single run gives a single run to draw (the screen keeps its bar a fixed width)', () => {
     expect(chartRuns([rec(1800)])).toHaveLength(1);
     expect(trendOf([rec(1800)])).toBeNull();
+  });
+});
+
+describe('progress helpers', () => {
+  it('win rate comes from the lifetime counters and never exceeds 100', () => {
+    expect(winRate(0, 0)).toBe(0);
+    expect(winRate(3, 26)).toBe(12);
+    expect(winRate(9, 4)).toBe(100);
+  });
+
+  it('marks the days with a stored run across the last two weeks, even over a month boundary', () => {
+    const history = [{ ...rec(10), day: '2026-10-31' }, { ...rec(10), day: '2026-10-29' }];
+    const days = playedDays(history, '2026-11-02', 5);
+    expect(days.map(d => d.day)).toEqual(['2026-10-29', '2026-10-30', '2026-10-31', '2026-11-01', '2026-11-02']);
+    expect(days.map(d => d.played)).toEqual([true, false, true, false, false]);
+  });
+
+  it('lists the newest runs first and stars only the best score', () => {
+    const list = recentList([rec(100), rec(900), rec(300), rec(50, 'endless')], 3);
+    expect(list.map(r => r.score)).toEqual([50, 300, 900]);
+    expect(list.map(r => r.best)).toEqual([false, false, true]);
+    expect(recentList([rec(0)])[0].best).toBe(false);
   });
 });

@@ -20,3 +20,31 @@ export function trendOf(runs: readonly RunRecord[]): Trend | null {
   const change = (after - before) / before;
   return change > 0.1 ? 'up' : change < -0.1 ? 'down' : 'flat';
 }
+
+/** Share of runs that ended in a victory (0 when nothing has been played). Uses the lifetime counters, so it is exact. */
+export const winRate = (victories: number, gamesPlayed: number): number =>
+  gamesPlayed > 0 ? Math.round((Math.min(victories, gamesPlayed) / gamesPlayed) * 100) : 0;
+
+/** The last `days` UTC days ending at `today`, oldest first, each marked when a stored run was played that day. */
+export function playedDays(history: readonly RunRecord[], today: string, days = 14): { day: string; played: boolean }[] {
+  const played = new Set(history.map(r => r.day));
+  const out: { day: string; played: boolean }[] = [];
+  const base = new Date(`${today}T00:00:00Z`);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(base);
+    d.setUTCDate(d.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: key, played: played.has(key) });
+  }
+  return out;
+}
+
+/** The newest `count` runs, newest first, each flagged when it is the best score of those stored. */
+export function recentList(history: readonly RunRecord[], count = 8): (RunRecord & { best: boolean })[] {
+  const scored = history.filter(r => r.mode !== 'endless');
+  const top = Math.max(0, ...scored.map(r => r.score));
+  return history
+    .slice(-count)
+    .reverse()
+    .map(r => ({ ...r, best: r.mode !== 'endless' && r.score > 0 && r.score === top }));
+}
