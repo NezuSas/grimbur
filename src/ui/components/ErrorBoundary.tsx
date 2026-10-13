@@ -4,16 +4,16 @@ import { analytics } from '../../services/analytics';
 import { translateNow } from '../../i18n/useT';
 
 type Props = { children: React.ReactNode };
-type State = { hasError: boolean };
+type State = { hasError: boolean; attempt: number };
 
 /**
  * Catches render errors anywhere below it, reports them and offers a way back
  * instead of leaving the player on a blank screen.
  */
 export default class ErrorBoundary extends React.Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false, attempt: 0 };
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromError(): Partial<State> {
     return { hasError: true };
   }
 
@@ -21,10 +21,12 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     analytics.recordError(error, info.componentStack ?? 'render');
   }
 
-  private restart = () => this.setState({ hasError: false });
+  // A new key remounts everything below, so a screen that failed starts again from its first route
+  // with fresh state instead of rendering the same broken tree.
+  private restart = () => this.setState(s => ({ hasError: false, attempt: s.attempt + 1 }));
 
   render() {
-    if (!this.state.hasError) return this.props.children;
+    if (!this.state.hasError) return <React.Fragment key={this.state.attempt}>{this.props.children}</React.Fragment>;
 
     return (
       <View style={styles.container}>

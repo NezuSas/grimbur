@@ -1,8 +1,20 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Direction, GameState } from '../core/engine/types';
+import { Direction, GameState, HUNTER_TYPES } from '../core/engine/types';
 import { travelPath } from '../core/engine/travel';
 
 const STEP_MS = 110;
+/** A roaming guardian or the Wumpus this close (in tiles) stops the walk. */
+const HUNTER_ALERT_DISTANCE = 3;
+
+const DELTA: Record<Direction, (cols: number) => number> = {
+  UP: cols => -cols,
+  DOWN: cols => cols,
+  LEFT: () => -1,
+  RIGHT: () => 1,
+};
+
+const distance = (a: number, b: number, cols: number) =>
+  Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));
 
 /**
  * Tap-to-travel: walks the player along an explored, empty route one step at a time, exactly as if
@@ -59,11 +71,25 @@ export function useTravel(state: GameState, move: (d: Direction) => void, enable
           cancel();
           return;
         }
-        const dir = path[step++];
+        const dir = path[step];
+        const next = expected + DELTA[dir](cur.cols);
+        // Something now sits on the tile ahead (a hunter stepped onto the route), or a hunter is close:
+        // hand control back to the player instead of walking into it.
+        // Only hunters the player can actually see (on explored tiles) count, so stopping never leaks hidden positions.
+        const hunterNear = cur.entities.some(
+          e =>
+            HUNTER_TYPES.includes(e.type) &&
+            cur.visited.includes(e.index) &&
+            distance(e.index, cur.playerIndex, cur.cols) <= HUNTER_ALERT_DISTANCE,
+        );
+        if (cur.entityMap[next] || hunterNear) {
+          cancel();
+          return;
+        }
+        step++;
         moveRef.current(dir);
         // Predict where this step lands; a mismatch on the next tick means something intervened.
-        const delta = { UP: -cur.cols, DOWN: cur.cols, LEFT: -1, RIGHT: 1 }[dir];
-        expected += delta;
+        expected = next;
         if (step >= path.length) cancel();
       }, STEP_MS);
     },

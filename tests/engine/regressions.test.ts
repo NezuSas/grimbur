@@ -166,3 +166,24 @@ describe('regressions found by the bug hunt', () => {
     });
   });
 });
+
+describe('one move never costs two protections or a cleared floor', () => {
+  const stalker = (index: number, charge = 0) => ({ index, type: 'stalker' as const, charge });
+
+  it('a shield that soaks the Wumpus does not also leave the player open to its strike', () => {
+    let state = createState({ entities: [{ index: 1, type: 'boss', hp: 3, charge: 1 }, coin(100)], coins: 1 });
+    state = { ...state, shield: true, turn: 1 }; // the Wumpus is due on the next action
+    const next = gameReducer(state, { type: 'MOVE', direction: 'RIGHT' });
+    expect(next.isGameOver).toBe(false);
+    expect(next.shield).toBe(false);
+    expect(next.playerIndex).toBe(0);
+  });
+
+  it('taking the last gem clears the floor even if a charged stalker is due to strike', () => {
+    let state = createState({ entities: [coin(1), stalker(2, 1)], coins: 1 });
+    state = { ...state, turn: 3 }; // stalkers act every 4th action
+    const next = gameReducer(state, { type: 'MOVE', direction: 'RIGHT' });
+    expect(next.isGameOver).toBe(false);
+    expect(next.isLevelUp).toBe(true);
+  });
+});

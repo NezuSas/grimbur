@@ -6,7 +6,7 @@ import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
-import * as Font from 'expo-font';
+import { useSettingsStore } from "./src/state/settings/store";
 
 import { useSoundStore } from "./src/state/sound/store";
 import { useSoundManager } from "./src/audio/soundManager";
@@ -19,6 +19,9 @@ import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
 
 installGlobalErrorHandler();
+
+/** Longest the splash waits for the audio engine before starting the app anyway. */
+const AUDIO_INIT_TIMEOUT_MS = 2500;
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -34,21 +37,20 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // 1. Initialise State
-        await useSoundStore.getState().init();
-
-        // 2. Pre-load Fonts (if any custom ones are added later, or Ionicons)
-        await Font.loadAsync({
-          // Add any specific fonts here
-        });
-
-        // 3. Download every illustration in parallel; ImageWarmup then decodes them off-screen.
-        await Promise.allSettled(
-          getPreloadImages().map(image =>
+        // Audio and illustrations load in parallel. Audio is capped: on a device where the audio engine never
+        // becomes ready the splash must not hang, and the sound manager copes with a late start.
+        const audio = Promise.race([
+          useSoundStore.getState().init(),
+          new Promise<void>(resolve => setTimeout(resolve, AUDIO_INIT_TIMEOUT_MS)),
+        ]).catch(err => console.warn("[App] Audio init failed:", err));
+        const settings = Promise.resolve(useSettingsStore.persist.rehydrate()).catch(() => {});
+        const images = Promise.allSettled(
+          warmImages.map(image =>
             Asset.fromModule(image as number).downloadAsync().catch(err => console.warn("[App] Failed to pre-load asset:", err)),
           ),
         );
-        setAssetsDownloaded(true);
+        await Promise.all([audio, settings, images]);
+        setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
         void prefetchLeaderboardThreshold(); // best effort, never blocks the splash
