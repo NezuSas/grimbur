@@ -25,10 +25,11 @@ import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import PauseOverlay from "../ui/components/game/PauseOverlay";
 import FloorBanner from "../ui/components/game/FloorBanner";
+import RelicIcon from "../ui/components/RelicIcon";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
-import { RELICS, RelicId, relicCount } from "../core/engine/relics";
+import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
@@ -501,9 +502,7 @@ export default function GameScreen({ navigation, route }: Props) {
           accessibilityLabel={t("a11y.relics", { names: relicNames })}
         >
           {state.relics.map((id, i) => (
-            <Text key={`${id}-${i}`} style={styles.relicIcon} maxFontSizeMultiplier={1.2}>
-              {RELICS[id].icon}
-            </Text>
+            <RelicIcon key={`${id}-${i}`} id={id} size={22} />
           ))}
         </View>
       )}
@@ -661,5 +660,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 2,
   },
-  relicIcon: { fontSize: 15 },
 });
