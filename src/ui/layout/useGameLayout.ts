@@ -1,5 +1,6 @@
 import { useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSettingsStore } from "../../state/settings/store";
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -12,6 +13,10 @@ export const GAME_ROW_PADDING = 12;
 
 /** The direction pad needs 4.26 button-widths: 3.1 for the middle row, plus gaps and padding. */
 export const PAD_WIDTH_IN_BUTTONS = 4.26;
+/** Without the attack button in the middle the pad is narrower. */
+export const PAD_WIDTH_IN_BUTTONS_SPLIT = 3.86;
+/** Windows narrower than this keep the attack button in the pad: the board needs the room. */
+export const MIN_WIDTH_FOR_SPLIT_ATTACK = 720;
 
 /**
  * Wumpus Adventures — Game Camera Layout Hook
@@ -24,16 +29,21 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
   const insets = useSafeAreaInsets();
 
   const isTablet = screenWidth >= 900;
+  const attackPlacement = useSettingsStore(s => s.attackButton);
+  const splitAttack = attackPlacement === 'side' && screenWidth >= MIN_WIDTH_FOR_SPLIT_ATTACK;
 
   // HUD: a fixed, predictable height (the ScoreBar renders exactly this tall).
   const hudHeight = clamp(screenHeight * 0.16, 54, 96);
 
   // Control panel: wide enough for the direction pad at a comfortable button size.
-  const controlPanelWidth = clamp(screenWidth * 0.22, MIN_TOUCH * PAD_WIDTH_IN_BUTTONS, 320);
-  const padButtonSize = clamp(controlPanelWidth / PAD_WIDTH_IN_BUTTONS, MIN_TOUCH, 76);
+  const padUnits = splitAttack ? PAD_WIDTH_IN_BUTTONS_SPLIT : PAD_WIDTH_IN_BUTTONS;
+  const controlPanelWidth = clamp(screenWidth * (splitAttack ? 0.19 : 0.22), MIN_TOUCH * padUnits, 320);
+  const padButtonSize = clamp(controlPanelWidth / padUnits, MIN_TOUCH, 76);
+  // The attack button gets its own column on the opposite side, a little bigger than a move button.
+  const attackPanelWidth = splitAttack ? clamp(screenWidth * 0.12, 72, 130) : 0;
 
   // Space left for the board once the HUD, control panel, insets and row padding are paid for.
-  const cameraWidth = screenWidth - controlPanelWidth - insets.left - insets.right - GAME_ROW_PADDING * 2;
+  const cameraWidth = screenWidth - controlPanelWidth - attackPanelWidth - insets.left - insets.right - GAME_ROW_PADDING * 2;
   const cameraHeight = screenHeight - hudHeight - insets.top - insets.bottom;
 
   const tileSize = Math.max(8, Math.min(cameraWidth / boardColumns, cameraHeight / boardRows));
@@ -44,7 +54,7 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
   const heroSize = controlPanelWidth * 0.45;
   const directionSize = padButtonSize;
   const buttonSize = padButtonSize;
-  const attackSize = padButtonSize * 1.1;
+  const attackSize = splitAttack ? Math.min(attackPanelWidth * 0.85, padButtonSize * 1.4) : padButtonSize * 1.1;
   const buttonGap = padButtonSize * 0.22;
   const iconSize = Math.min(hudHeight * 0.6, 34);
 
@@ -64,6 +74,8 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
     isTablet,
     hudHeight,
     controlPanelWidth,
+    attackPanelWidth,
+    splitAttack,
     padButtonSize,
     cameraWidth,
     cameraHeight,

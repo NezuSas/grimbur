@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
+import AttackPanel from "../ui/components/AttackPanel";
 import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
@@ -92,6 +93,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const combatFlash = useRef(new Animated.Value(0)).current;
   const vortexFlash = useRef(new Animated.Value(0)).current;
 
+  const swipeMove = useSettingsStore(s => s.swipeMove);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = omenFor(state.runSeed, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
@@ -529,6 +531,8 @@ export default function GameScreen({ navigation, route }: Props) {
           },
         ]}
       >
+        <AttackPanel onAttack={manualAttack} />
+
         <View accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <BoardView
             level={state.level}
@@ -544,6 +548,7 @@ export default function GameScreen({ navigation, route }: Props) {
             isAttacking={isAttacking}
             lastKilledEnemyCount={state.entities.filter(e => e.type === "enemy").length}
             onTilePress={travelTo}
+            onSwipe={swipeMove ? manualMove : undefined}
           />
         </View>
 

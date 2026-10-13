@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RootStackParamList } from "../navigation/types";
 import BoardView from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
+import AttackPanel from "../ui/components/AttackPanel";
 import { GAME_ROW_PADDING, MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { gameReducer, initialState } from "../core/engine/reducer";
 import { Direction } from "../core/engine/types";
@@ -192,6 +193,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           },
         ]}
       >
+        <AttackPanel onAttack={attack} />
         <BoardView
           level={1}
           rows={state.rows}

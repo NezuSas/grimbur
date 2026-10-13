@@ -1,9 +1,10 @@
 import React, { memo, useRef, useEffect, useMemo } from "react";
-import { Image, Pressable, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import { Image, PanResponder, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
-import { GameEntity } from "../../core/engine/types";
+import { Direction, GameEntity } from "../../core/engine/types";
+import BoardTouchLayer from "./BoardTouchLayer";
 import { getNearbyHazards, NearbyHazards } from "../../core/engine/proximity";
 
 type Props = {
@@ -24,6 +25,8 @@ type Props = {
   highlight?: readonly number[];
   /** Called with the tile index when the player taps the board (used for tap-to-travel). */
   onTilePress?: (index: number) => void;
+  /** When set, a swipe on the board moves one step; shorter touches still count as taps. */
+  onSwipe?: (direction: Direction) => void;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -207,7 +210,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight, onTilePress }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight, onTilePress, onSwipe }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -307,17 +310,8 @@ const BoardView: React.FC<Props> = memo(
             })}
           </View>
 
-          {onTilePress && (
-            <Pressable
-              style={[StyleSheet.absoluteFill, { zIndex: 30 }]}
-              onPress={e => {
-                const col = Math.floor(e.nativeEvent.locationX / tileSize);
-                const row = Math.floor(e.nativeEvent.locationY / tileSize);
-                if (row >= 0 && row < rows && col >= 0 && col < cols) onTilePress(row * cols + col);
-              }}
-              accessible={false}
-              importantForAccessibility="no"
-            />
+          {(onTilePress || onSwipe) && (
+            <BoardTouchLayer tileSize={tileSize} rows={rows} cols={cols} onTilePress={onTilePress} onSwipe={onSwipe} />
           )}
 
           {/* Player sprite */}
