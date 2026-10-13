@@ -200,6 +200,8 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.sectionContent}>
                 <InstructionRow label="Scoring" detail="Points are awarded for every Coin secured and every Guardian neutralized." />
                 <InstructionRow label="Efficiency" detail="In the Hall of Legends, speed is king. For identical scores, the fastest completion time earns the higher rank." value="NEW" valueColor="#2196f3" />
+                <InstructionRow label="Daily Challenge" detail="One cave per day, identical for every player. Chase your best score and keep your streak alive by playing on consecutive days. It does not count for the global Top 10." value="DAILY" valueColor="#4fc3f7" />
+                <InstructionRow label="Pause" detail="Tap the pause button or press Back to pause. The run also pauses if you leave the app." />
                 <InstructionRow label="Glory" detail="Master the grid to establish your legacy among the Top 10 Legends." value="TOP 10" valueColor="#4caf50" />
               </View>
 

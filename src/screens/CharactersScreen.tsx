@@ -27,7 +27,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const LOOP_MULT = 100;
 
-const CharactersScreen: React.FC<Props> = ({ navigation }) => {
+const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
+  const mode = route.params?.mode ?? "endless";
   const { spacing, titleSize, textSize, fontSize, isTablet } = useGameLayout();
   
   // Dimensions - Refined for better alignment
@@ -59,10 +60,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
     try {
-      navigation.navigate("GameScreen", { characterIndex });
+      navigation.navigate("GameScreen", { characterIndex, mode });
       emitSound('GAME_MUSIC_START');
     } catch (e) { console.warn("[CharactersScreen] nav error:", e); }
-  }, [navigation]);
+  }, [navigation, mode]);
 
   const RenderItem = memo(({ ch, index }: { ch: Character; index: number }) => {
     const inputRange = [(index - 1) * itemLength, index * itemLength, (index + 1) * itemLength];

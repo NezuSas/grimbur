@@ -83,6 +83,8 @@ export const initialState: GameState = {
   enemyCombo: 0,
   gameStatus: 'idle',
   seed: 0,
+  runSeed: 0,
+  mode: 'endless',
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
@@ -293,7 +295,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed } = action;
       return {
         ...initialState,
         selectedCharacter: character,
@@ -304,6 +306,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         coins,
         attack,
         seed: seed || Date.now(),
+        runSeed: runSeed ?? seed ?? 0,
+        mode: mode ?? 'endless',
         visited: [0],
         playerIndex: 0,
         totalCoins: 0,

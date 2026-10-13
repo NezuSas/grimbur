@@ -1,7 +1,9 @@
+import type { GameMode } from "../core/engine/seed";
+
 export type RootStackParamList = {
   CoverScreen: undefined;
-  CharactersScreen: undefined;
-  GameScreen: { characterIndex?: number; skipLoading?: boolean } | undefined;
+  CharactersScreen: { mode?: GameMode } | undefined;
+  GameScreen: { characterIndex?: number; skipLoading?: boolean; mode?: GameMode } | undefined;
   HighScoresScreen: undefined;
   LevelCompleteScreen: {
     score: number;

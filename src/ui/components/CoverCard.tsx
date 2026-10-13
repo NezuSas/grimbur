@@ -7,12 +7,13 @@ import { useGameLayout } from "../layout/useGameLayout";
 
 type Props = {
   onPressPlay: () => void;
+  onPressDaily: () => void;
   onPressScores: () => void;
   onPressInstructions: () => void;
   onPressSettings: () => void;
 };
 
-const CoverCard: React.FC<Props> = ({ onPressPlay, onPressScores, onPressInstructions, onPressSettings }) => {
+const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressSettings }) => {
   const { screenWidth, screenHeight, spacing, titleSize, textSize, isTablet } = useGameLayout();
   const ready = useSoundStore((s) => (s as any).ready ?? true);
 
@@ -43,6 +44,14 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressScores, onPressInstruc
               onPress={onPressScores} 
               variant="secondary"
               style={styles.gridButton}
+            />
+          </View>
+          <View style={styles.buttonRow}>
+            <CoverButton
+              label="DAILY CHALLENGE"
+              onPress={onPressDaily}
+              variant="primary"
+              style={styles.dailyButton}
             />
           </View>
           <View style={styles.buttonRow}>
@@ -122,6 +131,10 @@ const styles = StyleSheet.create({
   },
   gridButton: {
     width: 220,
+    marginHorizontal: 0,
+  },
+  dailyButton: {
+    width: '100%',
     marginHorizontal: 0,
   },
   footer: {

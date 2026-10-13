@@ -5,7 +5,9 @@ import {
   StatusBar,
   Dimensions,
   Animated,
+  AppState,
   BackHandler,
+  Share,
   ImageBackground,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -20,6 +22,7 @@ import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
+import PauseOverlay from "../ui/components/game/PauseOverlay";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
@@ -29,7 +32,8 @@ import { coinValue, killValue } from "../core/engine/scoring";
 import characters from "../data/characters";
 import { getDifficulty } from "../core/difficulty/difficulty";
 import { addHighscore, isTopTenScore } from "../services/highscores";
-import { recordRun } from "../services/localStats";
+import { recordRun, recordDailyRun } from "../services/localStats";
+import { dailyKey, dailySeed } from "../core/engine/seed";
 import { analytics } from "../services/analytics";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
@@ -48,13 +52,20 @@ export default function GameScreen({ navigation, route }: Props) {
   const { state, isAttacking, move, attack, reset, levelUp } = useGameEngine();
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
   const [killPopups, setKillPopups] = useState<{ id: number; points: number; type: PopupType }[]>([])
-  const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean } | null>(null);
+  const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean; streak?: number } | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
   const combatFlash = useRef(new Animated.Value(0)).current;
   const vortexFlash = useRef(new Animated.Value(0)).current;
 
-  const { time: sessionTime, reset: resetTimer } = useSessionTimer(!state.isGameOver && !state.isLevelUp);
+  const [paused, setPaused] = useState(false);
+  const { time: sessionTime, reset: resetTimer } = useSessionTimer(!state.isGameOver && !state.isLevelUp && !paused);
+
+  // Refs so the back-button / AppState listeners always see the latest values.
+  const pausedRef = useRef(false);
+  const canPauseRef = useRef(false);
+  pausedRef.current = paused;
+  canPauseRef.current = !state.isGameOver && !state.isLevelUp && !showGameOver && !showHighScoreEntry;
 
   // Refs for tracking changes
   const lastPlayerIndex = useRef(state.playerIndex);
@@ -77,19 +88,45 @@ export default function GameScreen({ navigation, route }: Props) {
     }, [])
   );
 
+  // The daily challenge fixes the board seed to today's UTC date (captured once per screen visit).
+  const mode = route.params?.mode ?? 'endless';
+  const isDaily = mode === 'daily';
+  const dailyDate = useRef(dailyKey()).current;
+
+  const startRun = useCallback(() => {
+    reset(selectedCharacter, isDaily ? { mode: 'daily', runSeed: dailySeed(dailyDate) } : {});
+  }, [reset, selectedCharacter, isDaily, dailyDate]);
+
   // Initialize game on mount
   useEffect(() => {
-    reset(selectedCharacter);
-    analytics.track('game_start', { mode: 'endless', character: characterIndex });
+    startRun();
+    analytics.track('game_start', { mode, character: characterIndex });
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Back pauses a running game, and resumes a paused one, instead of silently abandoning the run.
+      if (pausedRef.current) {
+        setPaused(false);
+        return true;
+      }
+      if (canPauseRef.current) {
+        setPaused(true);
+        return true;
+      }
       emitSound('GAME_MUSIC_STOP');
       emitSound('STOP_GUARDIAN_NEAR');
       emitSound('STOP_VORTEX_NEAR');
       return false; // Let navigation handle the actual back
     });
 
-    return () => backHandler.remove();
+    // Leaving the app mid-run pauses it.
+    const appStateSub = AppState.addEventListener('change', next => {
+      if (next !== 'active' && canPauseRef.current) setPaused(true);
+    });
+
+    return () => {
+      backHandler.remove();
+      appStateSub.remove();
+    };
   }, []);
 
   // ── VORTEX TELEPORT Flash ─────────────────────────────────────────────────
@@ -114,6 +151,16 @@ export default function GameScreen({ navigation, route }: Props) {
         time: sessionTime,
         cause: state.deathCause ?? 'unknown',
       });
+      if (isDaily) {
+        // Daily runs are tracked locally (best of the day + streak) and never enter the global top 10.
+        recordDailyRun({ score: state.score, level: state.level }, dailyDate)
+          .then(({ dailyBest, isNewDailyBest, streak }) =>
+            setRunResult({ bestScore: dailyBest, isNewBest: isNewDailyBest, streak }))
+          .catch(e => console.warn('[GameScreen] recordDailyRun error:', e));
+        const t = setTimeout(() => setShowGameOver(true), 400);
+        return () => clearTimeout(t);
+      }
+
       recordRun({ score: state.score, level: state.level })
         .then(({ stats, isNewBestScore }) => setRunResult({ bestScore: stats.bestScore, isNewBest: isNewBestScore }))
         .catch(e => console.warn('[GameScreen] recordRun error:', e));
@@ -156,14 +203,32 @@ export default function GameScreen({ navigation, route }: Props) {
     setRunResult(null);
     setShowGameOver(false);
     resetTimer();
-    reset(selectedCharacter);
+    setPaused(false);
+    startRun();
     
     setTimeout(() => { 
       isResetting.current = false; 
     }, 100);
-  }, [selectedCharacter, reset]);
+  }, [startRun]);
+
+  const handleShare = useCallback(async () => {
+    const streakText = runResult?.streak ? ` · 🔥 ${runResult.streak}-day streak` : '';
+    const message =
+      `Wumpus Adventures · Daily ${dailyDate}
+` +
+      `Level ${state.level} · ${state.score.toLocaleString()} pts · ${state.totalCoins} 💎${streakText}
+` +
+      `Same cave for everyone today. Can you beat me?`;
+    analytics.track('daily_shared', { score: state.score });
+    try {
+      await Share.share({ message });
+    } catch (e) {
+      console.warn('[GameScreen] share error:', e);
+    }
+  }, [dailyDate, runResult, state.level, state.score, state.totalCoins]);
 
   const handleMainMenu = useCallback(() => {
+    setPaused(false);
     setKillPopups([]);
     setShowGameOver(false);
     emitSound('GAME_MUSIC_STOP'); // Force stop on exit
@@ -288,6 +353,7 @@ export default function GameScreen({ navigation, route }: Props) {
           coins={state.coins}
           attackValue={state.attack}
           shield={state.shield}
+          onPause={canPauseRef.current ? () => setPaused(true) : undefined}
           level={state.level}
           character={selectedCharacter}
           time={sessionTime}
@@ -358,6 +424,13 @@ export default function GameScreen({ navigation, route }: Props) {
         pointerEvents="none" 
       />
 
+      <PauseOverlay
+        visible={paused}
+        onResume={() => setPaused(false)}
+        onRestart={handleRetry}
+        onMainMenu={handleMainMenu}
+      />
+
       <HighScoreEntryModal
         visible={showHighScoreEntry}
         score={state.score}
@@ -377,6 +450,9 @@ export default function GameScreen({ navigation, route }: Props) {
         deathCause={state.deathCause}
         bestScore={runResult?.bestScore}
         isNewBest={runResult?.isNewBest}
+        dailyLabel={isDaily ? dailyDate : undefined}
+        streak={runResult?.streak}
+        onShare={isDaily ? handleShare : undefined}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
       />

@@ -4,6 +4,7 @@ import { gameReducer, initialState } from './reducer';
 import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
+import { GameMode, deriveLevelSeed } from './seed';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
 import { recordAction } from '../replay/replay';
@@ -111,8 +112,10 @@ export function useGameEngine(): GameEngineInterface {
     setTimeout(() => setIsAttacking(false), 400);
   }, [pureDispatch]);
 
-  const reset = useCallback((character: Character) => {
-    const seed = Date.now();
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number } = {}) => {
+    const mode = options.mode ?? 'endless';
+    const runSeed = options.runSeed ?? Date.now();
+    const seed = deriveLevelSeed(runSeed, 1);
     const board = generateBoard(1, seed);
 
     pureDispatch({
@@ -124,12 +127,14 @@ export function useGameEngine(): GameEngineInterface {
       coins: board.coins,
       attack: board.attack,
       seed,
+      mode,
+      runSeed,
     });
   }, [pureDispatch]);
 
   const levelUp = useCallback(() => {
     const nextLevel = stateRef.current.level + 1;
-    const seed = Date.now();
+    const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
     const board = generateBoard(nextLevel, seed);
 
     pureDispatch({

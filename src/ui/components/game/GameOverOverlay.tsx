@@ -18,6 +18,9 @@ const GameOverOverlay = ({
   deathCause,
   bestScore,
   isNewBest,
+  dailyLabel,
+  streak,
+  onShare,
   onRetry,
   onMainMenu,
 }: {
@@ -30,6 +33,10 @@ const GameOverOverlay = ({
   deathCause: EntityType | null;
   bestScore?: number;
   isNewBest?: boolean;
+  /** Set for daily-challenge runs: the UTC day being played. */
+  dailyLabel?: string;
+  streak?: number;
+  onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
 }) => {
@@ -69,10 +76,15 @@ const GameOverOverlay = ({
         />
 
         <Text style={styles.gameOverTitle}>GAME OVER</Text>
+        {dailyLabel && (
+          <Text style={styles.dailyLabel}>
+            📅 DAILY {dailyLabel}{streak ? `  ·  🔥 ${streak}` : ''}
+          </Text>
+        )}
         {isNewBest ? (
-          <Text style={styles.newBest}>🏅 NEW PERSONAL BEST!</Text>
+          <Text style={styles.newBest}>{dailyLabel ? '🏅 NEW DAILY BEST!' : '🏅 NEW PERSONAL BEST!'}</Text>
         ) : bestScore ? (
-          <Text style={styles.bestScore}>BEST {bestScore.toLocaleString()}</Text>
+          <Text style={styles.bestScore}>{dailyLabel ? "TODAY'S BEST" : 'BEST'} {bestScore.toLocaleString()}</Text>
         ) : null}
 
         {/* Stats */}
@@ -107,6 +119,11 @@ const GameOverOverlay = ({
             <Text style={styles.menuButtonText}>🏠  MENU</Text>
           </TouchableOpacity>
         </View>
+        {onShare && (
+          <TouchableOpacity style={styles.shareButton} onPress={onShare} activeOpacity={0.8}>
+            <Text style={styles.shareButtonText}>📤  SHARE RESULT</Text>
+          </TouchableOpacity>
+        )}
 
       </Animated.View>
     </Animated.View>
@@ -141,6 +158,25 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     letterSpacing: 2,
+  },
+  dailyLabel: {
+    color: '#4FC3F7',
+    fontWeight: '800',
+    fontSize: 12,
+    letterSpacing: 1.5,
+  },
+  shareButton: {
+    width: '100%',
+    backgroundColor: '#4FC3F7',
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  shareButtonText: {
+    color: '#000',
+    fontWeight: '900',
+    fontSize: 14,
+    letterSpacing: 1,
   },
   newBest: {
     color: '#FFD700',
