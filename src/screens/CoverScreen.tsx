@@ -31,7 +31,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
       resizeMethod="none"
         source={require("../assets/sprites/backgrounds/Cover_Background.png")}
         style={StyleSheet.absoluteFill}
-        imageStyle={StyleSheet.absoluteFill}
+        imageStyle={{ width: "100%", height: "100%" }}
         resizeMode="cover"
       >
         <CoverCard
@@ -56,7 +56,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "black",
+    backgroundColor: "#0E0B1F",
   },
 });
 
