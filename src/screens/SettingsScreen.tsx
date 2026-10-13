@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   segment: {
     flex: 1,
-    minHeight: MIN_TOUCH - 6,
+    minHeight: MIN_TOUCH,
     borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",

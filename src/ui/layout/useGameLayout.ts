@@ -28,9 +28,10 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
-  const isTablet = screenWidth >= 900;
   const attackPlacement = useSettingsStore(s => s.attackButton);
-  const splitAttack = attackPlacement === 'side' && screenWidth >= MIN_WIDTH_FOR_SPLIT_ATTACK;
+  // The extra column needs a wide landscape window (portrait or tall split-screen windows keep the pad as is).
+  const splitAttack =
+    attackPlacement === 'side' && screenWidth >= MIN_WIDTH_FOR_SPLIT_ATTACK && screenWidth > screenHeight;
 
   // HUD: a fixed, predictable height (the ScoreBar renders exactly this tall).
   const hudHeight = clamp(screenHeight * 0.16, 54, 96);
@@ -52,18 +53,14 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
 
   // UI Element Sizing
   const heroSize = controlPanelWidth * 0.45;
-  const directionSize = padButtonSize;
-  const buttonSize = padButtonSize;
   const attackSize = splitAttack ? Math.min(attackPanelWidth * 0.85, padButtonSize * 1.4) : padButtonSize * 1.1;
   const buttonGap = padButtonSize * 0.22;
-  const iconSize = Math.min(hudHeight * 0.6, 34);
 
   // Font scaling helper: relative to screen width, never below a readable floor.
   const fontSize = (val: number) => Math.max(MIN_FONT_SIZE, (val / 1200) * screenWidth);
 
   // Typography scaling
   const titleSize = fontSize(32);
-  const textSize = fontSize(18);
 
   // Spacing helper (relative to screen height for landscape)
   const spacing = (val: number) => (val / 800) * screenHeight;
@@ -71,29 +68,20 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
   return {
     screenWidth,
     screenHeight,
-    isTablet,
     hudHeight,
     controlPanelWidth,
     attackPanelWidth,
     splitAttack,
     padButtonSize,
-    cameraWidth,
-    cameraHeight,
     tileSize,
     boardWidth,
     boardHeight,
     heroSize,
-    directionSize,
-    buttonSize,
     attackSize,
     buttonGap,
-    iconSize,
     spacing,
     fontSize,
     titleSize,
-    textSize,
     insets,
-    boardColumns,
-    boardRows,
   };
 };

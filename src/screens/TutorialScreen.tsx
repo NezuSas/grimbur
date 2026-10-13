@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -107,15 +107,17 @@ export default function TutorialScreen({ navigation, route }: Props) {
     }
     emitSound("GAME_MUSIC_START");
     // Replace the tutorial with the real game so Back does not return to it.
-    navigation.replace("GameScreen", { characterIndex, mode: "expedition" });
-  }, [navigation, setTutorialSeen, characterIndex, replay]);
+    navigation.replace("GameScreen", {
+      characterIndex,
+      mode: "expedition",
+      ascension: route.params?.ascension,
+      meta: route.params?.meta,
+    });
+  }, [navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 
-  const skip = useCallback(() => {
-    setTutorialSeen(true);
-    finish();
-  }, [setTutorialSeen, finish]);
+  const skip = finish; // finish() already marks the tutorial as seen
 
-  const highlight = useMemo(() => step.highlight, [step]);
+  const highlight = step.highlight;
 
   return (
     <ImageBackground
@@ -198,13 +200,11 @@ export default function TutorialScreen({ navigation, route }: Props) {
           level={1}
           rows={state.rows}
           cols={state.cols}
-          entities={state.entities}
           entityMap={state.entityMap}
           visited={state.visited}
           playerIndex={state.playerIndex}
           facingDir={state.facingDir}
           characterIndex={characterIndex}
-          isGameOver={state.isGameOver}
           isAttacking={isAttacking}
           highlight={highlight}
         />

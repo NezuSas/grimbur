@@ -31,6 +31,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const { fontSize, spacing, insets } = useGameLayout();
   const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -41,6 +42,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const buy = async (id: UpgradeId) => {
     if (busy) return;
     setBusy(true);
+    setError(false);
     try {
       const next = await buyUpgrade(id);
       if (next) {
@@ -48,6 +50,8 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
         emitSound("RELIC_PICKED");
         haptic.notify(NotificationFeedbackType.Success);
       }
+    } catch {
+      setError(true);
     } finally {
       setBusy(false);
     }
@@ -76,6 +80,11 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.balance} maxFontSizeMultiplier={1.3} accessibilityLiveRegion="polite">
               🔥 {plural("forge.balance", stats.embers)}
             </Text>
+            {error && (
+              <Text style={styles.error} accessibilityLiveRegion="assertive" maxFontSizeMultiplier={1.3}>
+                {t("forge.error")}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -165,6 +174,7 @@ const styles = StyleSheet.create({
   },
   title: { color: "#fff", fontWeight: "900", letterSpacing: 4, textAlign: "center" },
   balance: { color: "#FFAB40", fontWeight: "900", fontSize: 14, marginTop: 2 },
+  error: { color: "#FF5252", fontWeight: "800", fontSize: 12, marginTop: 2 },
   hint: { color: "#bdbdbd", fontSize: 12, textAlign: "center", marginBottom: 4 },
   card: {
     flexDirection: "row",
@@ -183,7 +193,7 @@ const styles = StyleSheet.create({
   pip: { width: 18, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.15)" },
   pipOn: { backgroundColor: "#FFAB40" },
   buyButton: {
-    minHeight: MIN_TOUCH - 6,
+    minHeight: MIN_TOUCH,
     borderRadius: 12,
     backgroundColor: "#FFAB40",
     alignItems: "center",

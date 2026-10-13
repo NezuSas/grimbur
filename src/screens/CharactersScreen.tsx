@@ -118,6 +118,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? "expedition";
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  // Until the saved stats arrive, every hero looks locked and the depth and Forge bonuses are unknown.
+  const [statsLoaded, setStatsLoaded] = useState(false);
   const [depth, setDepth] = useState(0);
   const depthInitialised = useRef(false);
 
@@ -133,13 +135,14 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       getLocalStats()
         .then(loaded => {
           setStats(loaded);
+          setStatsLoaded(true);
           // Start on the deepest unlocked depth the first time; the player can lower it.
           if (!depthInitialised.current) {
             depthInitialised.current = true;
             setDepth(GAME_CONFIG.dev.unlockAllHeroes ? 0 : loaded.maxAscension);
           }
         })
-        .catch(() => {});
+        .catch(() => setStatsLoaded(true)); // unreadable storage: play with the defaults
       return () => emitSound("SELECTION_SCREEN_STOP");
     }, []),
   );
@@ -152,15 +155,16 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleSelect = useCallback(
     (heroIndex: number) => {
+      if (!statsLoaded) return;
       // First-time players get the guided tutorial before their first expedition.
       if (!tutorialSeen && mode === "expedition") {
-        navigation.navigate("TutorialScreen", { characterIndex: heroIndex });
+        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, ascension: depth, meta: metaEffects(stats.forge) });
         return;
       }
       navigation.navigate("GameScreen", { characterIndex: heroIndex, mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, tutorialSeen, depth, stats.forge],
+    [navigation, mode, tutorialSeen, depth, stats.forge, statsLoaded],
   );
 
   return (
