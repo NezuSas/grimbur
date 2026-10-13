@@ -19,6 +19,8 @@ export interface SoundState {
   attack:     LegacySoundHandle | null;
   monster:    LegacySoundHandle | null;
   vortex:     LegacySoundHandle | null;
+  relic:      LegacySoundHandle | null;
+  roar:       LegacySoundHandle | null;
 }
 
 export interface SoundStore {

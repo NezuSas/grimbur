@@ -16,6 +16,8 @@ export type SoundEvent =
   | 'ENEMY_KILLED'      // Arrow eliminates an enemy
   | 'POWERUP'            // Player picks up a shield or extra arrows
   | 'TRAP_TRIGGERED'    // Player steps on a hidden trap
+  | 'RELIC_PICKED'      // Player takes a relic after clearing a floor
+  | 'BOSS_ROAR'         // The Wumpus lair begins
   | 'LEVEL_UP'          // All coins collected — level progression starts
   | 'LEVEL_RESUME'      // Level Up modal closes — in-game music resumes
   | 'GAME_OVER'         // Player collides with enemy or pit

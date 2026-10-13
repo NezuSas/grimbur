@@ -9,12 +9,17 @@ clean rights. If an asset cannot be proven, replace it.
 
 ## Audio (`src/assets/music`, `src/assets/sfx`)
 
-| File | Used by | Source / license |
-| --- | --- | --- |
-| music/cover.mp3 | Cover + selection screens | ? |
-| music/gameplay.mp3 | In-game loop | ? |
-| music/victory.mp3 | Level complete | ? |
-| sfx/attack.mp3, coin.mp3, death.mp3, monster.mp3, move.mp3, selection.mp3, vortex.mp3 | Sound manager | ? |
+**Original and license-free.** Every sound and music loop is synthesised from scratch by `scripts/generateAudio.js`
+(chiptune oscillators and noise, no samples). Re-run it with `node scripts/generateAudio.js`; the output is
+deterministic. Edit the script to retune any sound. The previous MP3 files (unknown provenance) were removed; they are
+still in git history (commit 1ddb572) if you ever want to compare.
+
+| File | Used by |
+| --- | --- |
+| music/cover.wav, selection.wav, gameplay.wav | Title, hero select, in-game loops |
+| music/victory.wav | Floor cleared / expedition won |
+| sfx/move, coin, attack, death, relic, roar .wav | Gameplay one-shots |
+| sfx/monster.wav, vortex.wav | Proximity loops (also the teleport sound) |
 
 ## Sprites (`src/assets/sprites`)
 

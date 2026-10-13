@@ -177,6 +177,8 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     attack:     null,
     monster:    null,
     vortex:     null,
+    relic:      null,
+    roar:       null,
   },
   ready: false,
 
@@ -214,16 +216,18 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       console.log("Audio Engine: Starting initialization...");
       
       const p = {
-        cover:      await prepare(require("../../assets/music/cover.mp3"), "cover"),
-        selection:  await prepare(require("../../assets/sfx/selection.mp3"), "selection"),
-        gameplay:   await prepare(require("../../assets/music/gameplay.mp3"), "gameplay"),
-        death:      await prepare(require("../../assets/sfx/death.mp3"), "death"),
-        coin:       await prepare(require("../../assets/sfx/coin.mp3"), "coin"),
-        victory:    await prepare(require("../../assets/music/victory.mp3"), "victory"),
-        move:       await prepare(require("../../assets/sfx/move.mp3"), "move"),
-        attack:     await prepare(require("../../assets/sfx/attack.mp3"), "attack"),
-        monster:    await prepare(require("../../assets/sfx/monster.mp3"), "monster"),
-        vortex:     await prepare(require("../../assets/sfx/vortex.mp3"), "vortex"),
+        cover:      await prepare(require("../../assets/music/cover.wav"), "cover"),
+        selection:  await prepare(require("../../assets/music/selection.wav"), "selection"),
+        gameplay:   await prepare(require("../../assets/music/gameplay.wav"), "gameplay"),
+        death:      await prepare(require("../../assets/sfx/death.wav"), "death"),
+        coin:       await prepare(require("../../assets/sfx/coin.wav"), "coin"),
+        victory:    await prepare(require("../../assets/music/victory.wav"), "victory"),
+        move:       await prepare(require("../../assets/sfx/move.wav"), "move"),
+        attack:     await prepare(require("../../assets/sfx/attack.wav"), "attack"),
+        monster:    await prepare(require("../../assets/sfx/monster.wav"), "monster"),
+        vortex:     await prepare(require("../../assets/sfx/vortex.wav"), "vortex"),
+        relic:      await prepare(require("../../assets/sfx/relic.wav"), "relic"),
+        roar:       await prepare(require("../../assets/sfx/roar.wav"), "roar"),
       };
 
       set({ sounds: p as any, ready: true });

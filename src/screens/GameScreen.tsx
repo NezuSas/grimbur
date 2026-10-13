@@ -324,6 +324,13 @@ export default function GameScreen({ navigation, route }: Props) {
 
   useProximityAudio(state);
 
+  // The Wumpus lair announces itself.
+  useEffect(() => {
+    if (mode !== 'endless' && state.level === GAME_CONFIG.expedition.floors && state.turn === 0) {
+      emitSound('BOSS_ROAR');
+    }
+  }, [state.level]);
+
   // Power-ups and traps: sound + floating label
   useEffect(() => {
     if (!state.lastPickup) return;
