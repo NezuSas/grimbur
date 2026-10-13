@@ -150,6 +150,10 @@ export const en = {
   'omen.arsenal.name': 'Omen: Arsenal',
   'omen.arsenal.rule': '+2 arrows, but one more vortex.',
 
+  'over.gemsLeft_one': 'Just {count} gem from clearing floor {floor}!',
+  'over.gemsLeft_other': 'Just {count} gems from clearing floor {floor}!',
+  'over.shortOfBest': '{points} points short of your best.',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Settings',
   'settings.sound': 'Sound',

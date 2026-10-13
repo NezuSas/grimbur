@@ -151,6 +151,10 @@ export const es: Record<TranslationKey, string> = {
   'omen.arsenal.name': 'Presagio: Arsenal',
   'omen.arsenal.rule': '+2 flechas, pero un vórtice más.',
 
+  'over.gemsLeft_one': '¡Solo {count} gema para superar el piso {floor}!',
+  'over.gemsLeft_other': '¡Solo {count} gemas para superar el piso {floor}!',
+  'over.shortOfBest': 'Te faltaron {points} puntos para tu récord.',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Ajustes',
   'settings.sound': 'Sonido',
