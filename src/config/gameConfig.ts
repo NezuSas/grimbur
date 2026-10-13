@@ -22,6 +22,11 @@ export const GAME_CONFIG = {
     maxCombo: 3,
   },
 
+  /** Development switches; keep every flag off for release builds. */
+  dev: {
+    unlockAllHeroes: false,
+  },
+
   expedition: {
     /** Floors in a run; the last one is the Wumpus lair. */
     floors: 10,

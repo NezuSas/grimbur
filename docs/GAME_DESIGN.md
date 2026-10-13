@@ -40,7 +40,8 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 | Moss Golem | **Stoneskin**: starts every floor with a shield |
 | Golden Rogue | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
 
-Unlocks (week 2): Cyan free; Knight after clearing floor 5; Golem after the first victory; Rogue after 10,000 points in one run.
+Unlocks (implemented): Cyan free; Knight after reaching floor 4; Golem after reaching floor 7; Rogue after winning an expedition.
+To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/gameConfig.ts` (never ship it on).
 
 ## The Wumpus (floor 10)
 
@@ -56,9 +57,9 @@ mode. No forced ads. Optional rewarded revive can be tested after launch.
 
 ## Four-week plan
 
-- **Week 1 - the spine**: expedition + Wumpus boss + victory (this branch), hero perks, floor counter UI, run summary.
-- **Week 2 - variety**: relic draft after every floor, unlock persistence, hero select with locks, new hazard (roaming
-  stalker), bot-driven balance simulation.
+- **Week 1 - the spine** (DONE): expedition + Wumpus boss + victory, hero perks, floor counter UI, generated audio, daily challenge, pause, analytics facade, leaderboard security.
+- **Week 2 - variety**: relic draft (DONE), hero unlocks and locked hero select (DONE), new hazard (roaming stalker), bot-driven
+  balance simulation, real art from `ART_BRIEF.md`.
 - **Week 3 - feel and onboarding**: juice pass, tutorial, ES/PT, accessibility, replace unlicensed audio/art, analytics SDK.
 - **Week 4 - ship**: balance pass from simulations, store assets, privacy policy, one-time unlock IAP, closed test
   (12 testers x 14 days is a Google requirement: the first test build must be uploaded by about day 10-12 or the

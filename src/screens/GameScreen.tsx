@@ -55,7 +55,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const { state, isAttacking, move, attack, reset, levelUp, pickRelic } = useGameEngine();
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
   const [killPopups, setKillPopups] = useState<{ id: number; points: number; type: PopupType }[]>([])
-  const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean; streak?: number } | null>(null);
+  const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean; streak?: number; unlocked?: number[] } | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
   const combatFlash = useRef(new Animated.Value(0)).current;
@@ -166,16 +166,17 @@ export default function GameScreen({ navigation, route }: Props) {
       }
       if (isDaily) {
         // Daily runs are tracked locally (best of the day + streak) and never enter the global top 10.
-        recordDailyRun({ score: state.score, level: state.level }, dailyDate)
-          .then(({ dailyBest, isNewDailyBest, streak }) =>
-            setRunResult({ bestScore: dailyBest, isNewBest: isNewDailyBest, streak }))
+        recordDailyRun({ score: state.score, level: state.level, victory: state.isVictory }, dailyDate)
+          .then(({ dailyBest, isNewDailyBest, streak, unlocked }) =>
+            setRunResult({ bestScore: dailyBest, isNewBest: isNewDailyBest, streak, unlocked }))
           .catch(e => console.warn('[GameScreen] recordDailyRun error:', e));
         const t = setTimeout(() => setShowGameOver(true), 400);
         return () => clearTimeout(t);
       }
 
-      recordRun({ score: state.score, level: state.level })
-        .then(({ stats, isNewBestScore }) => setRunResult({ bestScore: stats.bestScore, isNewBest: isNewBestScore }))
+      recordRun({ score: state.score, level: state.level, victory: state.isVictory })
+        .then(({ stats, isNewBestScore, unlocked }) =>
+          setRunResult({ bestScore: stats.bestScore, isNewBest: isNewBestScore, unlocked }))
         .catch(e => console.warn('[GameScreen] recordRun error:', e));
       
       const checkPromise = isTopTenScore(state.score, sessionTime);
@@ -490,6 +491,7 @@ export default function GameScreen({ navigation, route }: Props) {
         isNewBest={runResult?.isNewBest}
         dailyLabel={isDaily ? dailyDate : undefined}
         streak={runResult?.streak}
+        unlockedHeroes={runResult?.unlocked}
         onShare={isDaily ? handleShare : undefined}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}

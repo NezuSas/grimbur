@@ -5,6 +5,7 @@ import type { Character } from '../../../data/characters';
 import type { EntityType } from '../../../core/engine/types';
 import { formatTime } from '../../../shared/utils/formatTime';
 import { overlayStyles } from './overlayStyles';
+import characters from '../../../data/characters';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -21,6 +22,7 @@ const GameOverOverlay = ({
   isNewBest,
   dailyLabel,
   streak,
+  unlockedHeroes,
   onShare,
   onRetry,
   onMainMenu,
@@ -38,6 +40,8 @@ const GameOverOverlay = ({
   /** Set for daily-challenge runs: the UTC day being played. */
   dailyLabel?: string;
   streak?: number;
+  /** Hero indices unlocked by this run. */
+  unlockedHeroes?: number[];
   onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
@@ -90,6 +94,12 @@ const GameOverOverlay = ({
         ) : bestScore ? (
           <Text style={styles.bestScore}>{dailyLabel ? "TODAY'S BEST" : 'BEST'} {bestScore.toLocaleString()}</Text>
         ) : null}
+
+        {unlockedHeroes && unlockedHeroes.length > 0 && (
+          <Text style={styles.unlocked}>
+            🔓 UNLOCKED: {unlockedHeroes.map(i => characters[i]?.playerName.toUpperCase()).join(', ')}
+          </Text>
+        )}
 
         {/* Stats */}
         <View style={styles.gameOverStats}>
@@ -163,6 +173,7 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 2,
   },
+  unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   victoryCard: { borderColor: '#FFD700', shadowColor: '#FFD700' },
   victoryTitle: { color: '#FFD700' },
   dailyLabel: {
