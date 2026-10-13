@@ -189,9 +189,27 @@ interface FloorStats {
   guessDeaths: number;
   guesses: number;
   moves: number;
+  revisits: number;
+  explored: number;
+  clearedMoves: number;
+  clearedRevisits: number;
+  clearedExplored: number;
 }
 
-function playFloor(floor: number, seed: number): { cleared: boolean; died: boolean; stuck: boolean; guesses: number; guessDeath: boolean; moves: number } {
+interface FloorResult {
+  cleared: boolean;
+  died: boolean;
+  stuck: boolean;
+  guesses: number;
+  guessDeath: boolean;
+  moves: number;
+  /** Moves that step onto an already explored tile (pure walking, no new information). */
+  revisits: number;
+  /** Share of the board explored when the floor ended. */
+  explored: number;
+}
+
+function playFloor(floor: number, seed: number): FloorResult {
   const board = generateBoard(floor, seed, { ascension: DEPTH });
   let state: GameState = gameReducer(
     { ...initialState },
@@ -212,14 +230,21 @@ function playFloor(floor: number, seed: number): { cleared: boolean; died: boole
 
   let guesses = 0;
   let moves = 0;
+  let revisits = 0;
   let lastWasGuess = false;
+  const cells = state.rows * state.cols;
+  const done = (partial: Omit<FloorResult, 'revisits' | 'explored'>): FloorResult => ({
+    ...partial,
+    revisits,
+    explored: new Set(state.visited).size / cells,
+  });
 
   for (let step = 0; step < 800; step++) {
-    if (state.isGameOver) return { cleared: false, died: true, stuck: false, guesses, guessDeath: lastWasGuess, moves };
-    if (state.isLevelUp) return { cleared: true, died: false, stuck: false, guesses, guessDeath: false, moves };
+    if (state.isGameOver) return done({ cleared: false, died: true, stuck: false, guesses, guessDeath: lastWasGuess, moves });
+    if (state.isLevelUp) return done({ cleared: true, died: false, stuck: false, guesses, guessDeath: false, moves });
 
     const choice = choose(state);
-    if (!choice) return { cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves };
+    if (!choice) return done({ cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves });
 
     if ('attack' in choice) {
       state = gameReducer(state, { type: 'ATTACK' });
@@ -229,11 +254,12 @@ function playFloor(floor: number, seed: number): { cleared: boolean; died: boole
     }
 
     if (choice.guess) guesses++;
+    if (state.visited.includes(choice.next)) revisits++;
     lastWasGuess = choice.guess;
     state = gameReducer(state, { type: 'MOVE', direction: dirBetween(state.playerIndex, choice.next, state.cols) });
     moves++;
   }
-  return { cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves };
+  return done({ cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves });
 }
 
 const pct = (n: number, d: number) => (d === 0 ? '  -  ' : `${((100 * n) / d).toFixed(0).padStart(3)}%`);
@@ -242,8 +268,9 @@ console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (careful
 console.log('floor | size  | gems | enemies pits | dens | clear | needed a guess | died on a guess | stuck | avg moves');
 console.log('------+-------+------+--------------+------+-------+----------------+-----------------+-------+----------');
 
+const DETAIL: string[] = [];
 for (let floor = FIRST; floor <= LAST; floor++) {
-  const s: FloorStats = { runs: 0, clears: 0, deaths: 0, stuck: 0, forcedGuess: 0, guessDeaths: 0, guesses: 0, moves: 0 };
+  const s: FloorStats = { runs: 0, clears: 0, deaths: 0, stuck: 0, forcedGuess: 0, guessDeaths: 0, guesses: 0, moves: 0, revisits: 0, explored: 0, clearedMoves: 0, clearedRevisits: 0, clearedExplored: 0 };
   let dims = '';
   let gems = 0;
   let enemies = 0;
@@ -268,6 +295,13 @@ for (let floor = FIRST; floor <= LAST; floor++) {
     if (r.guessDeath) s.guessDeaths++;
     s.guesses += r.guesses;
     s.moves += r.moves;
+    s.revisits += r.revisits;
+    s.explored += r.explored;
+    if (r.cleared) {
+      s.clearedMoves += r.moves;
+      s.clearedRevisits += r.revisits;
+      s.clearedExplored += r.explored;
+    }
   }
 
   console.log(
@@ -275,5 +309,12 @@ for (let floor = FIRST; floor <= LAST; floor++) {
       `${pct((enemies + pits) / RUNS, cells)} | ` +
       `${pct(s.clears, s.runs)}  | ${pct(s.forcedGuess, s.runs)}            | ${pct(s.guessDeaths, s.runs)}             | ${pct(s.stuck, s.runs)}  | ${(s.moves / s.runs).toFixed(0).padStart(5)}`,
   );
+  if (s.clears > 0) {
+    DETAIL.push(
+      `  floor ${floor}: ${(s.clearedMoves / s.clears).toFixed(0).padStart(4)} moves | ${pct(s.clearedRevisits, s.clearedMoves)} walking | ${(100 * s.clearedExplored / s.clears).toFixed(0).padStart(3)}% explored`,
+    );
+  }
 }
 console.log('\n"needed a guess" = the board offered no provably safe tile at some point (Minesweeper-style luck).');
+console.log('\nPer cleared floor: moves, % of those moves spent walking over already explored tiles (no new information), % of the board explored.');
+for (const row of DETAIL) console.log(row);
