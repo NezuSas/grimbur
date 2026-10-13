@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from "react-native";
+import Text from "../Text";
 
 type Props = {
   /** Changes whenever a new floor starts; replays the banner. */

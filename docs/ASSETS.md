@@ -86,3 +86,7 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 `assets/emblem.png` (Wumpus head + gem) and `sprites/backgrounds/Cover_Background.png` were generated with ChatGPT's image tool on
 2026-10-13 (prompts in `docs/ART_PROMPTS.md` and the chat). `assets/icon.png`, `adaptive-icon.png`, `splash.png` and
 `favicon.png` are built from the emblem by `scripts/buildAppIcons.py`; this replaces the earlier icons whose source was unknown.
+
+## Typeface
+
+Fredoka (Google Fonts, SIL Open Font License 1.1) through the `@expo-google-fonts/fredoka` package: regular, medium, semi-bold and bold files. The licence permits embedding in apps and games; keep the licence text available if a store asks for third-party notices.

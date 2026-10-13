@@ -1,5 +1,6 @@
 import React, { memo } from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, View, TouchableOpacity } from "react-native";
+import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
@@ -90,7 +91,7 @@ const ScoreBar: React.FC<Props> = memo(
         <View style={styles.centerGroup}>
           <View style={styles.levelBadge}>
             <Text style={styles.levelLabel} maxFontSizeMultiplier={HUD_FONT_CAP} numberOfLines={1}>
-              {(floors ? t("hud.floor") : t("hud.level")).toLocaleUpperCase()}
+              {t("hud.floor").toLocaleUpperCase()}
             </Text>
             <Text
               style={[styles.levelText, { fontSize: floors ? 22 : 26 }]}

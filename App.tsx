@@ -9,6 +9,7 @@ import { Asset } from 'expo-asset';
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "./src/state/settings/store";
+import { FONT_FILES } from "./src/ui/fonts";
 
 import { useSoundStore } from "./src/state/sound/store";
 import { useSoundManager } from "./src/audio/soundManager";
@@ -53,7 +54,7 @@ export default function App() {
         );
         // The icon font loads before the first screen too: otherwise arrows, hint badges and buttons appear blank
         // for a moment the first time each one is drawn.
-        const fonts = Font.loadAsync(Ionicons.font).catch(err => console.warn("[App] Icon font failed:", err));
+        const fonts = Font.loadAsync({ ...Ionicons.font, ...FONT_FILES }).catch(err => console.warn("[App] Icon font failed:", err));
         await Promise.all([audio, settings, images, fonts]);
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 

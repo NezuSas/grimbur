@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ImageSourcePropType, Animated } from "react-native";
+import { View, StyleSheet, ImageSourcePropType, Animated } from "react-native";
+import Text from "./Text";
 import { useGameLayout } from "../layout/useGameLayout";
 import SpriteImage from "./SpriteImage";
 
@@ -45,7 +46,7 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, icon
       </View>
       <View style={[styles.content, { marginLeft: spacing(10) }]}>
         <Animated.Text
-          style={[styles.value, { transform: [{ scale: scaleAnim }] }]}
+          style={[styles.value, { fontFamily: "Fredoka_700Bold", fontWeight: undefined, transform: [{ scale: scaleAnim }] }]}
           maxFontSizeMultiplier={1.15}
           numberOfLines={1}
         >

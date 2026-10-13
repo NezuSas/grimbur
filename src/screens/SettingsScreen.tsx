@@ -1,7 +1,6 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   ImageBackground,
   useWindowDimensions,
 } from "react-native";
+import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";

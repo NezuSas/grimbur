@@ -8,7 +8,7 @@ import { UPGRADES, UpgradeId } from '../core/stats/forge';
 type T = (key: TranslationKey, params?: Params) => string;
 
 /** Localised hero text. Heroes are addressed by index, same as `data/characters.ts`. */
-export const heroText = (t: T, heroIndex: number, part: 'name' | 'perk' | 'desc') =>
+export const heroText = (t: T, heroIndex: number, part: 'name' | 'title' | 'perk' | 'desc') =>
   t(`hero.${heroIndex}.${part}` as TranslationKey);
 
 /** Localised relic text. */
@@ -26,6 +26,10 @@ export const unlockText = (t: T, heroIndex: number): string => {
 export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'): string => {
   const info = ACHIEVEMENTS.find(a => a.id === id);
   if (part === 'name') return t(`ach.${id}.name` as TranslationKey);
+  // A bespoke description (`ach.<id>.desc`) wins over the shared template.
+  const bespokeKey = `ach.${id}.desc` as TranslationKey;
+  const bespoke = t(bespokeKey, info?.params ?? {});
+  if (bespoke !== bespokeKey) return bespoke;
   if (info?.desc) {
     const params: Params = { ...(info.params ?? {}) };
     if (info.desc === 'depthWin') params.name = t(`ascension.label.${info.params.n}` as TranslationKey);

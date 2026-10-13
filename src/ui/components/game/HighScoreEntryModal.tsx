@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
   useWindowDimensions,
-} from 'react-native';
+} from "react-native";
+import Text from "../Text";
 
 import { formatTime } from '../../../shared/utils/formatTime';
 import { checkName } from '../../../core/leaderboard/validation';
@@ -89,7 +89,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
     <View style={styles.form}>
       <TextInput
         ref={inputRef}
-        style={styles.input}
+        style={[styles.input, { fontFamily: "Fredoka_600SemiBold" }]}
         placeholder={t('entry.placeholder')}
         placeholderTextColor="#8a8a8a"
         value={name}

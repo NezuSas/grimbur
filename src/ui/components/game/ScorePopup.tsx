@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text } from 'react-native';
+import { Animated, Easing, StyleSheet } from "react-native";
+import Text from "../Text";
 import { useT } from '../../../i18n/useT';
 
 export type PopupType = 'coin' | 'kill' | 'trap' | 'shield' | 'ammo';
