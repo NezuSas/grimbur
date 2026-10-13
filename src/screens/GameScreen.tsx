@@ -57,6 +57,8 @@ import { omenText, relicText } from "../i18n/keys";
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
+/** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
+const GAME_OVER_CARD_DELAY_MS = 850;
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
 
 type RunResult = {
@@ -96,6 +98,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const [paused, setPaused] = useState(false);
   const combatFlash = useRef(new Animated.Value(0)).current;
   const vortexFlash = useRef(new Animated.Value(0)).current;
+  // Red wash that appears the instant the hero dies and stays under the game-over card.
+  const deathFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
@@ -188,6 +192,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // ── Run bookkeeping ──────────────────────────────────────────────────────
   const startRun = useCallback(() => {
+    deathFlash.setValue(0);
     setRunNumber(n => n + 1); // replays the floor banner even when a daily restarts on the same seed
     reset(selectedCharacter, {
       heroIndex: characterIndex,
@@ -297,6 +302,13 @@ export default function GameScreen({ navigation, route }: Props) {
 
     const s = stateRef.current;
     const time = sessionTimeRef.current;
+    if (!s.isVictory) {
+      // Immediate feedback: the board shakes (see BoardView) and the screen flashes red, then settles.
+      Animated.sequence([
+        Animated.timing(deathFlash, { toValue: reduceFlash ? 0.3 : 0.65, duration: 90, useNativeDriver: true }),
+        Animated.timing(deathFlash, { toValue: 0.28, duration: 450, useNativeDriver: true }),
+      ]).start();
+    }
     if (s.isVictory) {
       emitSound("LEVEL_UP"); // victory fanfare
       analytics.track("expedition_won", { score: s.score, time, character: characterIndex, mode });
@@ -323,7 +335,7 @@ export default function GameScreen({ navigation, route }: Props) {
         new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
       ]);
       if (!cancelled && mounted.current && qualifies) setShowHighScoreEntry(true);
-    }, 400);
+    }, s.isVictory ? 700 : GAME_OVER_CARD_DELAY_MS);
 
     return () => {
       cancelled = true;
@@ -614,6 +626,7 @@ export default function GameScreen({ navigation, route }: Props) {
             onTilePress={travelTo}
             flags={flags}
             aimTiles={aimTiles}
+            dying={state.isGameOver && !state.isVictory}
             onTileLongPress={toggleFlag}
             onReady={() => setBootCover(false)}
             onSwipe={swipeMove ? manualMove : undefined}
@@ -659,6 +672,11 @@ export default function GameScreen({ navigation, route }: Props) {
         pointerEvents="none"
       />
 
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: deathFlash, zIndex: 997 }]}
+        pointerEvents="none"
+      />
+
       {/* Purple flash on vortex teleport */}
       <Animated.View
         style={[
@@ -696,6 +714,8 @@ export default function GameScreen({ navigation, route }: Props) {
         embers={runResult?.embers}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
+        floors={GAME_CONFIG.expedition.floors}
+        onForge={() => navigation.navigate("ForgeScreen")}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
       />

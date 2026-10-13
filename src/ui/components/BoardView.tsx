@@ -35,6 +35,8 @@ type Props = {
   onTileLongPress?: (index: number) => void;
   /** Called once every tile image of the current floor has been drawn. */
   onReady?: () => void;
+  /** True from the moment the hero dies: the board shakes hard once. */
+  dying?: boolean;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -260,7 +262,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -336,6 +338,18 @@ const BoardView: React.FC<Props> = memo(
         onReadyRef.current?.();
       }
     }, [level, tilesToLoad]);
+
+    // Death: one hard shake.
+    useEffect(() => {
+      if (!dying) return;
+      Animated.sequence([
+        Animated.timing(shakeAnim, { toValue: 9, duration: 45, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -9, duration: 60, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 6, duration: 55, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -4, duration: 55, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
+      ]).start();
+    }, [dying]);
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
