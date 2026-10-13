@@ -100,7 +100,7 @@ const ScoreBar: React.FC<Props> = memo(
           </View>
           {shield && (
             <View style={styles.shieldBadge} accessible accessibilityLabel={t("a11y.shieldActive")}>
-              <Ionicons name="shield-checkmark" size={18} color="#4FC3F7" />
+              <Image source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
             </View>
           )}
         </View>
@@ -114,7 +114,7 @@ const ScoreBar: React.FC<Props> = memo(
             a11yLabel={plural("a11y.gemsLeft", coins)}
           />
           <ScoreCounter
-            icon={character.attackImage}
+            icon={require("../../assets/sprites/items/Icon_Arrows.png")}
             value={attackValue}
             iconDim={statIconSize}
             a11yLabel={t("a11y.arrowsLeft", { count: attackValue })}

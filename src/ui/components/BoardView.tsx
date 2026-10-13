@@ -26,9 +26,12 @@ type Props = {
   onTilePress?: (index: number) => void;
 };
 
-const ASSETS: Record<"enemy" | "pit" | "coin" | "block" | "blockFog", ImageSourcePropType> = {
+const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
+  boss:     require("../../assets/sprites/enemies/Wumpus_Boss.png"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
+  shield:   require("../../assets/sprites/items/Icon_Shield.png"),
+  ammo:     require("../../assets/sprites/items/Icon_Arrows.png"),
   coin:     require("../../assets/sprites/items/Icon_Gem.png"),
   block:    require("../../assets/sprites/tiles/Tile_Revealed.png"),
   blockFog: require("../../assets/sprites/tiles/Tile_Hidden.png"),
@@ -137,8 +140,8 @@ const GridCell = memo(({
             pointerEvents="none"
           />
           <Image
-            style={{ width: tileSize * 1.05, height: tileSize * 1.05, position: 'absolute' }}
-            source={ASSETS.enemy}
+            style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
+            source={ASSETS.boss}
             resizeMode="contain"
           />
           <View style={styles.bossHp} pointerEvents="none">
@@ -184,12 +187,12 @@ const GridCell = memo(({
       {/* Power-ups (always visible, like gems). Traps stay hidden on purpose. */}
       {entity?.type === 'shield' && (
         <View style={styles.pickup} pointerEvents="none">
-          <Ionicons name="shield-checkmark" size={tileSize * 0.6} color="#4FC3F7" />
+          <Image source={ASSETS.shield} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
         </View>
       )}
       {entity?.type === 'ammo' && (
         <View style={styles.pickup} pointerEvents="none">
-          <Ionicons name="arrow-forward-circle" size={tileSize * 0.6} color="#FF9800" />
+          <Image source={ASSETS.ammo} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
         </View>
       )}
 
