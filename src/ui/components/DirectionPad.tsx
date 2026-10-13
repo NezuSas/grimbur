@@ -30,7 +30,7 @@ type PadButtonProps = {
 };
 
 /** One round pad button. Defined at module level so it is never remounted mid-touch. */
-const PadButton = memo(({ size, icon, label, variant, onPress }: PadButtonProps) => {
+export const PadButton = memo(({ size, icon, label, variant, onPress }: PadButtonProps) => {
   const scale = useRef(new Animated.Value(1)).current;
   const isAttack = variant === "attack";
 
@@ -70,7 +70,7 @@ const PadButton = memo(({ size, icon, label, variant, onPress }: PadButtonProps)
 
 const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack }) => {
   const { t } = useT();
-  const { padButtonSize: size, buttonGap } = useGameLayout();
+  const { padButtonSize: size, buttonGap, splitAttack } = useGameLayout();
 
   const up = useCallback(() => onMove("UP"), [onMove]);
   const down = useCallback(() => onMove("DOWN"), [onMove]);
@@ -85,9 +85,13 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack }) => {
 
       <View style={[styles.row, { marginBottom: buttonGap }]}>
         <PadButton size={size} icon="caret-back" label={t("a11y.moveLeft")} variant="move" onPress={left} />
-        <View style={{ marginHorizontal: buttonGap * 1.5 }}>
-          <PadButton size={size * 1.1} icon="flash" label={t("a11y.attack")} variant="attack" onPress={onAttack} />
-        </View>
+        {splitAttack ? (
+          <View style={{ width: size * 0.7, marginHorizontal: buttonGap * 1.5 }} />
+        ) : (
+          <View style={{ marginHorizontal: buttonGap * 1.5 }}>
+            <PadButton size={size * 1.1} icon="flash" label={t("a11y.attack")} variant="attack" onPress={onAttack} />
+          </View>
+        )}
         <PadButton size={size} icon="caret-forward" label={t("a11y.moveRight")} variant="move" onPress={right} />
       </View>
 

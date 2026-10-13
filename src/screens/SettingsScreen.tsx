@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
-import type { ControlPosition } from "../state/settings/types";
+import type { AttackButtonPlacement, ControlPosition } from "../state/settings/types";
 import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 
@@ -101,6 +101,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const reduceFlash = useSettingsStore(s => s.reduceFlash);
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const language = useSettingsStore(s => s.language);
+  const attackButton = useSettingsStore(s => s.attackButton);
+  const swipeMove = useSettingsStore(s => s.swipeMove);
+  const setAttackButton = useSettingsStore(s => s.setAttackButton);
+  const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
   const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
   const setHapticsEnabled = useSettingsStore(s => s.setHapticsEnabled);
   const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
@@ -112,6 +116,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlOptions: SegmentOption<ControlPosition>[] = [
     { value: "left", label: t("settings.left") },
     { value: "right", label: t("settings.right") },
+  ];
+  const attackOptions: SegmentOption<AttackButtonPlacement>[] = [
+    { value: "side", label: t("settings.attackSide") },
+    { value: "center", label: t("settings.attackCenter") },
   ];
   const languageOptions: SegmentOption<LanguagePreference>[] = [
     { value: "auto", label: t("settings.languageAuto") },
@@ -180,6 +188,28 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 value={controlPosition}
                 onChange={setControlPosition}
                 accessibilityLabel={t("settings.controls")}
+              />
+            </SettingRow>
+
+            <View style={styles.separator} />
+
+            <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" stacked>
+              <Segmented
+                options={attackOptions}
+                value={attackButton}
+                onChange={setAttackButton}
+                accessibilityLabel={t("settings.attackButton")}
+              />
+            </SettingRow>
+
+            <View style={styles.separator} />
+
+            <SettingRow label={t("settings.swipe")} hint={t("settings.swipeHint")} icon="swap-horizontal">
+              <Switch
+                value={swipeMove}
+                onValueChange={setSwipeMove}
+                trackColor={switchColors}
+                accessibilityLabel={t("settings.swipe")}
               />
             </SettingRow>
 
