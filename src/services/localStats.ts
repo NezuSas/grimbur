@@ -9,6 +9,7 @@ import {
 } from '../core/stats/runStats';
 import { dailyKey } from '../core/engine/seed';
 import { newlyUnlockedHeroes } from '../core/stats/heroUnlocks';
+import { newAchievements, withAchievements } from '../core/stats/achievements';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
 
@@ -23,18 +24,24 @@ async function save(stats: LocalStats) {
 /** Persists a finished expedition run and reports whether it beat the previous best score. */
 export async function recordRun(run: RunResult) {
   const before = await getLocalStats();
-  const { stats, isNewBestScore } = mergeRun(before, run);
+  const merged = mergeRun(before, run);
+  const achievements = newAchievements(merged.stats, run);
+  const stats = withAchievements(merged.stats, achievements, dailyKey());
   await save(stats);
-  return { stats, isNewBestScore, unlocked: newlyUnlockedHeroes(before, stats) };
+  return { stats, isNewBestScore: merged.isNewBestScore, unlocked: newlyUnlockedHeroes(before, stats), achievements };
 }
 
 /** Persists a finished daily-challenge run for the given UTC day (default: today). */
 export async function recordDailyRun(run: RunResult, key: string = dailyKey()) {
   const before = await getLocalStats();
-  const { stats, isNewDailyBest } = mergeDailyRun(before, key, run);
+  const merged = mergeDailyRun(before, key, run);
+  const achievements = newAchievements(merged.stats, run);
+  const stats = withAchievements(merged.stats, achievements, key);
+  const isNewDailyBest = merged.isNewDailyBest;
   await save(stats);
   return {
     stats,
+    achievements,
     unlocked: newlyUnlockedHeroes(before, stats),
     isNewDailyBest,
     dailyBest: stats.daily?.bestScore ?? 0,

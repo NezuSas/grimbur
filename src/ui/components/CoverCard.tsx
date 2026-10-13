@@ -11,10 +11,11 @@ type Props = {
   onPressDaily: () => void;
   onPressScores: () => void;
   onPressInstructions: () => void;
+  onPressAchievements: () => void;
   onPressSettings: () => void;
 };
 
-const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressSettings }) => {
+const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressAchievements, onPressSettings }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -61,7 +62,14 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, 
             <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" />
           </View>
         </View>
-        <CoverButton label={t("cover.settings")} onPress={onPressSettings} variant="secondary" />
+        <View style={styles.buttonRow}>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.achievements")} onPress={onPressAchievements} variant="secondary" />
+          </View>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.settings")} onPress={onPressSettings} variant="secondary" />
+          </View>
+        </View>
 
         {version ? (
           <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>

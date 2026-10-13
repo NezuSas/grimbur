@@ -7,7 +7,8 @@ import { formatTime } from '../../../shared/utils/formatTime';
 import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
-import { heroText } from '../../../i18n/keys';
+import { achievementText, heroText } from '../../../i18n/keys';
+import type { AchievementId } from '../../../core/stats/achievements';
 
 type Props = {
   visible: boolean;
@@ -25,6 +26,8 @@ type Props = {
   streak?: number;
   /** Hero indices unlocked by this run. */
   unlockedHeroes?: number[];
+  /** Achievement ids earned by this run. */
+  achievements?: string[];
   onShare?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
@@ -44,6 +47,7 @@ const GameOverOverlay = ({
   dailyLabel,
   streak,
   unlockedHeroes,
+  achievements,
   onShare,
   onRetry,
   onMainMenu,
@@ -118,6 +122,14 @@ const GameOverOverlay = ({
           {bestText.toLocaleUpperCase()}
         </Text>
       ) : null}
+      {achievements && achievements.length > 0 && (
+        <Text style={styles.achievement} maxFontSizeMultiplier={1.3}>
+          🏆{' '}
+          {plural('over.achievements', achievements.length, {
+            names: achievements.map(id => achievementText(t, id as AchievementId, 'name')).join(', '),
+          }).toLocaleUpperCase()}
+        </Text>
+      )}
       {unlockedHeroes && unlockedHeroes.length > 0 && (
         <Text style={styles.unlocked} maxFontSizeMultiplier={1.3}>
           🔓{' '}
@@ -235,6 +247,7 @@ const styles = StyleSheet.create({
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
   best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%' },
   statTile: {

@@ -11,6 +11,7 @@ import HighScoresScreen from "../screens/HighScoresScreen";
 import LevelCompleteScreen from "../screens/LevelCompleteScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import AchievementsScreen from "../screens/AchievementsScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,6 +34,7 @@ const StackNavigator: React.FC = () => {
         <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
         <Stack.Screen name="InstructionsScreen" component={InstructionsScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
+        <Stack.Screen name="AchievementsScreen" component={AchievementsScreen} />
       </Stack.Navigator>
     </>
   );

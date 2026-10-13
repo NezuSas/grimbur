@@ -18,5 +18,6 @@ export type RootStackParamList = {
     time: number;
   };
   InstructionsScreen: undefined;
+  AchievementsScreen: undefined;
   SettingsScreen: undefined;
 };
