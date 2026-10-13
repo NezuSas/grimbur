@@ -2,7 +2,13 @@ import { Character } from '../../data/characters';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo';
+
+/** Entities that kill the player on contact. */
+export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy'];
+
+/** What the player ran into on the last move (UI feedback only). */
+export type PickupKind = 'shield' | 'ammo' | 'trap';
 
 export interface GameEntity {
   index: number;
@@ -35,6 +41,8 @@ export interface GameState {
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
   wasTeleported: boolean;
+  /** Set for one move when the player stepped on a trap or collected a power-up. */
+  lastPickup: PickupKind | null;
 }
 
 export type GameAction =

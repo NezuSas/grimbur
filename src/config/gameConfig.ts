@@ -12,11 +12,18 @@ export const GAME_CONFIG = {
     newTile: 5,
     killEnemy: 250,
     missPenalty: -25,
+    trapPenalty: -75,
+    pickup: 50,
     levelClear: 500,
   },
 
   multipliers: {
     levelScale: 0.2,
     maxCombo: 3,
+  },
+
+  pickups: {
+    /** Arrows granted by an ammo pickup. */
+    ammoAmount: 2,
   },
 } as const;

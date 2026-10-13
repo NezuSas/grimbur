@@ -63,6 +63,18 @@ export function useGameEngine(): GameEngineInterface {
       hapticTriggered = true;
     }
 
+    // 3b. Traps and power-ups
+    if (state.lastPickup) {
+      if (state.lastPickup === 'trap') {
+        emitGameEvent('TRAP_TRIGGERED');
+        if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } else {
+        emitGameEvent('POWERUP_COLLECTED', { kind: state.lastPickup });
+        if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      hapticTriggered = true;
+    }
+
     // 4. MINOR: Move feedback & Haptics (Priority 4)
     if (state.playerIndex !== prevState.playerIndex) {
       emitGameEvent('PLAYER_MOVED', { from: prevState.playerIndex, to: state.playerIndex });

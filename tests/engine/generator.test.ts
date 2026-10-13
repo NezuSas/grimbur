@@ -34,6 +34,16 @@ describe('generateBoard', () => {
     }
   });
 
+  it('places the extras announced by the difficulty curve', () => {
+    const board = generateBoard(8, 99);
+    const diff = getDifficulty(8);
+    const count = (type: string) => board.entities.filter(e => e.type === type).length;
+
+    expect(count('trap')).toBe(diff.traps);
+    expect(count('shield')).toBe(diff.shields);
+    expect(count('ammo')).toBe(diff.ammoPickups);
+  });
+
   it('matches the difficulty curve for board size and ammo', () => {
     const board = generateBoard(9, 1);
     const diff = getDifficulty(9);

@@ -13,6 +13,23 @@ describe('getDifficulty', () => {
     }
   });
 
+  it('keeps hazards well below the number of free cells at every level', () => {
+    for (let level = 1; level <= 300; level++) {
+      const d = getDifficulty(level);
+      const freeCells = d.rows * d.cols - 25; // safe radius 3 covers at most 25 cells
+      const placed = d.enemies + d.pits + d.coins + d.traps + d.shields + d.ammoPickups;
+      expect(placed).toBeLessThan(freeCells * 0.5);
+    }
+  });
+
+  it('introduces traps and power-ups progressively', () => {
+    expect(getDifficulty(1).traps).toBe(0);
+    expect(getDifficulty(1).shields).toBe(0);
+    expect(getDifficulty(2).shields).toBe(1);
+    expect(getDifficulty(3).traps).toBeGreaterThan(0);
+    expect(getDifficulty(500).traps).toBe(4);
+  });
+
   it('respects the board and coin caps', () => {
     const late = getDifficulty(500);
     expect(late.rows).toBe(10);

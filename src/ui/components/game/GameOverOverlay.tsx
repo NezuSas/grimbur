@@ -16,6 +16,8 @@ const GameOverOverlay = ({
   time,
   character,
   deathCause,
+  bestScore,
+  isNewBest,
   onRetry,
   onMainMenu,
 }: {
@@ -26,6 +28,8 @@ const GameOverOverlay = ({
   time: number;
   character: Character;
   deathCause: EntityType | null;
+  bestScore?: number;
+  isNewBest?: boolean;
   onRetry: () => void;
   onMainMenu: () => void;
 }) => {
@@ -65,6 +69,11 @@ const GameOverOverlay = ({
         />
 
         <Text style={styles.gameOverTitle}>GAME OVER</Text>
+        {isNewBest ? (
+          <Text style={styles.newBest}>🏅 NEW PERSONAL BEST!</Text>
+        ) : bestScore ? (
+          <Text style={styles.bestScore}>BEST {bestScore.toLocaleString()}</Text>
+        ) : null}
 
         {/* Stats */}
         <View style={styles.gameOverStats}>
@@ -132,6 +141,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
     letterSpacing: 2,
+  },
+  newBest: {
+    color: '#FFD700',
+    fontWeight: '900',
+    fontSize: 13,
+    letterSpacing: 1.5,
+  },
+  bestScore: {
+    color: '#888',
+    fontWeight: '700',
+    fontSize: 12,
+    letterSpacing: 1.5,
   },
   gameOverStats: {
     width: '100%',
