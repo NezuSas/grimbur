@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { View } from "react-native";
@@ -11,7 +11,8 @@ import * as Font from 'expo-font';
 import { useSoundStore } from "./src/state/sound/store";
 import { useSoundManager } from "./src/audio/soundManager";
 import StackNavigator from "./src/navigation/StackNavigator";
-import characters from "./src/data/characters";
+import { getPreloadImages } from "./src/ui/preloadImages";
+import ImageWarmup from "./src/ui/components/ImageWarmup";
 import { prefetchLeaderboardThreshold } from "./src/services/highscores";
 import { installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
@@ -24,6 +25,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
+  const [assetsDownloaded, setAssetsDownloaded] = useState(false);
+  const warmImages = useMemo(() => getPreloadImages(), []);
   
   // Use the SoundManager globally
   useSoundManager();
@@ -39,35 +42,19 @@ export default function App() {
           // Add any specific fonts here
         });
 
-        // 3. Pre-load Images (Resilient sequential download)
-        const images = [
-          require("./src/assets/sprites/backgrounds/Cover_Background.png"),
-          require("./src/assets/sprites/enemies/Guardian_Enemy.png"),
-          require("./src/assets/sprites/tiles/Danger_Vortex.png"),
-          require("./src/assets/sprites/items/Icon_Gem.png"),
-          require("./src/assets/sprites/tiles/Tile_Revealed.png"),
-          require("./src/assets/sprites/tiles/Tile_Hidden.png"),
-          ...characters.map(c => c.scoreImage),
-          ...characters.map(c => c.attackImage),
-          ...characters.map(c => c.playerImage),
-          ...characters.map(c => c.winImage),
-          ...characters.map(c => c.loseImage),
-        ];
-
-        for (const image of images) {
-          try {
-            await Asset.fromModule(image).downloadAsync();
-          } catch (err) {
-            console.warn(`[App] Failed to pre-load asset:`, image, err);
-          }
-        }
+        // 3. Download every illustration in parallel; ImageWarmup then decodes them off-screen.
+        await Promise.allSettled(
+          getPreloadImages().map(image =>
+            Asset.fromModule(image as number).downloadAsync().catch(err => console.warn("[App] Failed to pre-load asset:", err)),
+          ),
+        );
+        setAssetsDownloaded(true);
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
         void prefetchLeaderboardThreshold(); // best effort, never blocks the splash
       } catch (e) {
         console.warn("[App] Critical preparation error:", e);
-      } finally {
-        setAppIsReady(true);
+        setAssetsDownloaded(true); // still run the warm-up (it has its own timeout) and start the app
       }
     }
 
@@ -82,7 +69,12 @@ export default function App() {
   }, [appIsReady]);
 
   if (!appIsReady) {
-    return <LoadingScreen />;
+    return (
+      <>
+        <LoadingScreen />
+        {assetsDownloaded && <ImageWarmup images={warmImages} onDone={() => setAppIsReady(true)} />}
+      </>
+    );
   }
 
   return (
