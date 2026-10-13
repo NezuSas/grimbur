@@ -14,6 +14,12 @@ export interface LocalStats {
   gamesPlayed: number;
   /** Expeditions won (the Wumpus slain). */
   victories: number;
+  /** Gems collected over all runs. */
+  totalGems: number;
+  /** Hero indices the player has played with. */
+  heroesUsed: number[];
+  /** Unlocked achievements: id -> UTC day (`YYYY-MM-DD`) it was earned. */
+  achievements: Record<string, string>;
   /** Today's daily-challenge progress (only the most recent day is kept). */
   daily: DailyProgress | null;
   /** Consecutive days with at least one daily-challenge run. */
@@ -26,6 +32,14 @@ export interface RunResult {
   level: number;
   /** True when the run ended by slaying the Wumpus. */
   victory?: boolean;
+  /** Gems collected in the run. */
+  gems?: number;
+  /** Relics held at the end of the run. */
+  relics?: number;
+  /** Run duration in seconds. */
+  time?: number;
+  /** Hero played. */
+  heroIndex?: number;
 }
 
 export const EMPTY_STATS: LocalStats = {
@@ -33,16 +47,29 @@ export const EMPTY_STATS: LocalStats = {
   bestLevel: 0,
   gamesPlayed: 0,
   victories: 0,
+  totalGems: 0,
+  heroesUsed: [],
+  achievements: {},
   daily: null,
   streak: 0,
   lastDailyDate: null,
 };
+
+/** Fields shared by every finished run: lifetime gems and the heroes tried. */
+function accumulate(stats: LocalStats, run: RunResult) {
+  const heroesUsed =
+    run.heroIndex !== undefined && !stats.heroesUsed.includes(run.heroIndex)
+      ? [...stats.heroesUsed, run.heroIndex].sort((a, b) => a - b)
+      : stats.heroesUsed;
+  return { totalGems: stats.totalGems + (run.gems ?? 0), heroesUsed };
+}
 
 /** Folds a finished expedition run into the stored stats. Pure, so it is easy to test. */
 export function mergeRun(stats: LocalStats, run: RunResult) {
   const isNewBestScore = run.score > stats.bestScore;
   const next: LocalStats = {
     ...stats,
+    ...accumulate(stats, run),
     bestScore: Math.max(stats.bestScore, run.score),
     bestLevel: Math.max(stats.bestLevel, run.level),
     gamesPlayed: stats.gamesPlayed + 1,
@@ -74,6 +101,7 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
   return {
     stats: {
       ...stats,
+      ...accumulate(stats, run),
       daily,
       streak,
       lastDailyDate: dateKey,
@@ -96,6 +124,15 @@ export function currentStreak(stats: LocalStats, todayKey: string): number {
   return alive ? stats.streak : 0;
 }
 
+function parseAchievements(value: unknown): Record<string, string> {
+  if (!value || typeof value !== 'object') return {};
+  const out: Record<string, string> = {};
+  for (const [id, day] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day)) out[id] = day;
+  }
+  return out;
+}
+
 /** Defensive parse for whatever was persisted (corrupt or older data included). */
 export function parseStats(raw: string | null): LocalStats {
   if (!raw) return EMPTY_STATS;
@@ -111,6 +148,11 @@ export function parseStats(raw: string | null): LocalStats {
       bestLevel: num(data.bestLevel),
       gamesPlayed: num(data.gamesPlayed),
       victories: num(data.victories),
+      totalGems: num(data.totalGems),
+      heroesUsed: Array.isArray(data.heroesUsed)
+        ? [...new Set<number>(data.heroesUsed.filter((v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < 16))].sort((a, b) => a - b)
+        : [],
+      achievements: parseAchievements(data.achievements),
       daily: dailyDate
         ? { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts) }
         : null,

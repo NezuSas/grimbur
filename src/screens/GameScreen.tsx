@@ -49,7 +49,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
 
-type RunResult = { bestScore: number; isNewBest: boolean; streak?: number; unlocked?: number[] };
+type RunResult = { bestScore: number; isNewBest: boolean; streak?: number; unlocked?: number[]; achievements?: string[] };
 
 // ── Main Screen ──────────────────────────────────────────────────────────
 export default function GameScreen({ navigation, route }: Props) {
@@ -129,19 +129,27 @@ export default function GameScreen({ navigation, route }: Props) {
     if (!progressed) return null;
     runRecorded.current = true;
 
-    const run = { score: s.score, level: s.level, victory: s.isVictory };
+    const run = {
+      score: s.score,
+      level: s.level,
+      victory: s.isVictory,
+      gems: s.totalCoins,
+      relics: s.relics.length,
+      time: sessionTimeRef.current,
+      heroIndex: characterIndex,
+    };
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements };
       }
       const r = await recordRun(run);
-      return { bestScore: r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked };
+      return { bestScore: r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
     }
-  }, [isDaily, dailyDate]);
+  }, [isDaily, dailyDate, characterIndex]);
 
   // Start the run on mount; save whatever was played when the screen goes away.
   useEffect(() => {
@@ -570,6 +578,7 @@ export default function GameScreen({ navigation, route }: Props) {
         dailyLabel={isDaily ? dailyDate : undefined}
         streak={runResult?.streak}
         unlockedHeroes={runResult?.unlocked}
+        achievements={runResult?.achievements}
         onShare={isDaily ? handleShare : undefined}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}

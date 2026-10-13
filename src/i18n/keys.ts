@@ -2,6 +2,7 @@ import type { TranslationKey } from './en';
 import type { Params } from './translate';
 import type { RelicId } from '../core/engine/relics';
 import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
+import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
 
 type T = (key: TranslationKey, params?: Params) => string;
 
@@ -18,4 +19,10 @@ export const unlockText = (t: T, heroIndex: number): string => {
   const rule = HERO_UNLOCKS[heroIndex];
   if (!rule || rule.kind === 'free') return '';
   return rule.kind === 'floor' ? t('heroes.unlockFloor', { floor: rule.floor }) : t('heroes.unlockVictory');
+};
+
+/** Localised achievement text; the description is interpolated with the real thresholds. */
+export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'): string => {
+  const params = ACHIEVEMENTS.find(a => a.id === id)?.params ?? {};
+  return t(`ach.${id}.${part}` as TranslationKey, params);
 };
