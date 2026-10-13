@@ -64,7 +64,7 @@ export const es: Record<TranslationKey, string> = {
   'relic.greed.name': 'Tesoro del dragón',
   'relic.greed.desc': 'Despejar un piso paga un 50 % más.',
   'relic.frost.name': 'Amuleto de escarcha',
-  'relic.frost.desc': 'El Wumpus actúa más despacio.',
+  'relic.frost.desc': 'El Wumpus y los acechadores actúan más despacio.',
   'relic.trap_sense.name': 'Olfato de trampas',
   'relic.trap_sense.desc': 'Las trampas se desactivan sin penalización.',
   'relic.kicker': 'Piso {floor} superado',
@@ -131,6 +131,7 @@ export const es: Record<TranslationKey, string> = {
   'over.share': 'Compartir resultado',
   'over.cause.enemy': 'Derrotado por un guardián',
   'over.cause.boss': 'Derrotado por el Wumpus',
+  'over.cause.stalker': 'Atrapado por un acechador',
   'over.cause.pit': 'Perdido en un vórtice',
 
   'pause.title': 'En pausa',
@@ -229,6 +230,10 @@ export const es: Record<TranslationKey, string> = {
   'manual.hazards.clues.label': 'Pistas',
   'manual.hazards.clues.detail':
     'Una casilla revelada muestra un icono de sonido cuando hay un guardián justo a su lado, y un icono de infinito si hay un vórtice. Aparece un número cuando hay dos o más del mismo tipo.',
+  'manual.hazards.stalker.label': 'Acechadores',
+  'manual.hazards.stalker.detail':
+    'Desde el piso {stalkerFloor}, algunos guardianes se mueven: cada {stalkerMoves} acciones un acechador da un paso hacia ti, y los iconos de pista a tu alrededor cambian mientras avanza. Como el Wumpus, brilla una acción antes de golpear. Una flecha lo derrota.',
+  'manual.hazards.stalker.badge': 'Se mueve',
   'manual.hazards.vortexInfo.label': 'Vórtice',
   'manual.hazards.vortexInfo.detail':
     'Pisar un vórtice no te mata: te teletransporta a una casilla segura, de preferencia sin explorar. Úsalo para saltar terreno peligroso, aunque puede dejarte lejos de las gemas.',
