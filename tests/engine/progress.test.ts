@@ -45,3 +45,10 @@ describe('progress chart', () => {
     expect(trendOf([200, 210, 190, 200, 205, 195].map(n => rec(n)))).toBe('flat');
   });
 });
+
+describe('chart with almost no data', () => {
+  it('a single run gives a single run to draw (the screen keeps its bar a fixed width)', () => {
+    expect(chartRuns([rec(1800)])).toHaveLength(1);
+    expect(trendOf([rec(1800)])).toBeNull();
+  });
+});
