@@ -93,6 +93,8 @@ export function useSoundManager(): void {
       case 'MOVE':           playSfx(sounds.move, 0.4); break;
       case 'COIN_COLLECTED': playSfx(sounds.coin); break;
       case 'POWERUP':        playSfx(sounds.coin, 0.6); break;
+      case 'RELIC_PICKED':   playSfx(sounds.relic, 0.7); break;
+      case 'BOSS_ROAR':      playOnce(sounds.roar, 0.8); break;
       case 'TRAP_TRIGGERED': playSfx(sounds.attack, 0.7); break;
       case 'ATTACK':
       case 'ENEMY_KILLED':   playSfx(sounds.attack); break;
