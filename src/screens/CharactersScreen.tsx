@@ -18,6 +18,7 @@ import { RootStackParamList } from "../navigation/types";
 import { useFocusEffect } from "@react-navigation/native";
 import { emitSound } from "../audio/audioEventBus";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { HEROES } from "../core/engine/heroes";
 import { useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -28,7 +29,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const LOOP_MULT = 100;
 
 const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
-  const mode = route.params?.mode ?? "endless";
+  const mode = route.params?.mode ?? "expedition";
   const { spacing, titleSize, textSize, fontSize, isTablet } = useGameLayout();
   
   // Dimensions - Refined for better alignment
@@ -103,6 +104,16 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 {ch.playerName.toUpperCase()}
               </Text>
               <View style={[styles.infoUnderline, { backgroundColor: ch.arrowColor }]} />
+              {HEROES[ch.id - 1] && (
+                <>
+                  <Text style={{ color: ch.arrowColor, fontWeight: '900', fontSize: fontSize(13), letterSpacing: 1 }}>
+                    {HEROES[ch.id - 1].perkName.toUpperCase()}
+                  </Text>
+                  <Text style={{ color: '#ccc', fontSize: fontSize(11), textAlign: 'center' }}>
+                    {HEROES[ch.id - 1].perkDescription}
+                  </Text>
+                </>
+              )}
             </View>
             
             <TouchableOpacity

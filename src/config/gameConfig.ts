@@ -22,6 +22,21 @@ export const GAME_CONFIG = {
     maxCombo: 3,
   },
 
+  expedition: {
+    /** Floors in a run; the last one is the Wumpus lair. */
+    floors: 10,
+  },
+
+  boss: {
+    hp: 3,
+    /** The Wumpus steps toward the player after every Nth player move. */
+    moveEvery: 2,
+    hitScore: 150,
+    killScore: 2000,
+    /** Minimum Manhattan distance from the spawn when it is placed. */
+    minSpawnDistance: 6,
+  },
+
   pickups: {
     /** Arrows granted by an ammo pickup. */
     ammoAmount: 2,

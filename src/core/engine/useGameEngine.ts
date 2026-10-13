@@ -5,6 +5,8 @@ import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
+import { getHeroPerks } from './heroes';
+import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
 import { recordAction } from '../replay/replay';
@@ -112,11 +114,15 @@ export function useGameEngine(): GameEngineInterface {
     setTimeout(() => setIsAttacking(false), 400);
   }, [pureDispatch]);
 
-  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number } = {}) => {
-    const mode = options.mode ?? 'endless';
+  /** The final floor of an expedition (and of a daily) is the Wumpus' lair. */
+  const isBossFloor = (mode: GameMode, level: number) =>
+    mode !== 'endless' && level === GAME_CONFIG.expedition.floors;
+
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number } = {}) => {
+    const mode = options.mode ?? 'expedition';
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed);
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1) });
 
     pureDispatch({
       type: 'RESET',
@@ -129,13 +135,14 @@ export function useGameEngine(): GameEngineInterface {
       seed,
       mode,
       runSeed,
+      perks: getHeroPerks(options.heroIndex ?? 0),
     });
   }, [pureDispatch]);
 
   const levelUp = useCallback(() => {
     const nextLevel = stateRef.current.level + 1;
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
-    const board = generateBoard(nextLevel, seed);
+    const board = generateBoard(nextLevel, seed, { boss: isBossFloor(stateRef.current.mode, nextLevel) });
 
     pureDispatch({
       type: 'LEVEL_UP',

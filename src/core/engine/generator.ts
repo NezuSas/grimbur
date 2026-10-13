@@ -1,5 +1,6 @@
 import { getDifficulty } from '../difficulty/difficulty';
 import { createPRNG } from '../random/prng';
+import { GAME_CONFIG } from '../../config/gameConfig';
 import { GameEntity, EntityType } from './types';
 
 export interface BoardConfig {
@@ -39,7 +40,17 @@ export function getSafeZoneIndices(
  * Procedural Board Generator for Wumpus Adventures.
  * Refined for Semantic Entities and Explicit Safe Zones.
  */
-export function generateBoard(level: number, seed: number = Math.floor(Math.random() * 100000)): BoardConfig {
+export interface GenerateOptions {
+  /** Lair floor: places the Wumpus and no gems. */
+  boss?: boolean;
+}
+
+export function generateBoard(
+  level: number,
+  seed: number = Math.floor(Math.random() * 100000),
+  options: GenerateOptions = {},
+): BoardConfig {
+  const withBoss = options.boss === true;
   const diff = getDifficulty(level);
   const prng = createPRNG(seed);
   const totalCells = diff.rows * diff.cols;
@@ -77,6 +88,22 @@ export function generateBoard(level: number, seed: number = Math.floor(Math.rand
       }
     };
 
+    // 0. The Wumpus lair: the boss sits far from the spawn.
+    if (withBoss) {
+      const free: number[] = [];
+      const far: number[] = [];
+      for (let i = 0; i < totalCells; i++) {
+        if (usedIndices.has(i) || safeSet.has(i)) continue;
+        free.push(i);
+        const distance = Math.floor(i / diff.cols) + (i % diff.cols); // spawn is the top-left corner
+        if (distance >= GAME_CONFIG.boss.minSpawnDistance) far.push(i);
+      }
+      const pool = far.length > 0 ? far : free;
+      const bossIndex = pool[Math.floor(prng() * pool.length)];
+      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp });
+      usedIndices.add(bossIndex);
+    }
+
     // 1. Enemies, avoiding clumps (max 1 adjacent enemy).
     placeEntities(enemyBudget, 'enemy', (idx) => {
       const currentEnemies = entities.filter(e => e.type === 'enemy').map(e => e.index);
@@ -88,7 +115,7 @@ export function generateBoard(level: number, seed: number = Math.floor(Math.rand
     placeEntities(pitBudget, 'pit');
 
     // 3. Coins
-    placeEntities(diff.coins, 'coin');
+    placeEntities(withBoss ? 0 : diff.coins, 'coin');
 
     // 4. Optional extras (never lethal, so they don't affect solvability)
     placeEntities(diff.traps, 'trap');

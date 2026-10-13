@@ -19,7 +19,7 @@ async function save(stats: LocalStats) {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
 }
 
-/** Persists a finished endless run and reports whether it beat the previous best score. */
+/** Persists a finished expedition run and reports whether it beat the previous best score. */
 export async function recordRun(run: RunResult) {
   const { stats, isNewBestScore } = mergeRun(await getLocalStats(), run);
   await save(stats);

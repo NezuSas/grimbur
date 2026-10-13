@@ -110,6 +110,21 @@ const GridCell = memo(({
         />
       )}
 
+      {/* The Wumpus: shown on explored tiles, with its remaining hearts */}
+      {entity?.type === 'boss' && (isVisited || isPlayerHere) && (
+        <>
+          <View style={[styles.bossAura, { width: tileSize, height: tileSize }]} pointerEvents="none" />
+          <Image
+            style={{ width: tileSize * 1.05, height: tileSize * 1.05, position: 'absolute' }}
+            source={ASSETS.enemy}
+            resizeMode="contain"
+          />
+          <View style={styles.bossHp} pointerEvents="none">
+            <Text style={[styles.bossHpText, { fontSize: tileSize * 0.22 }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
+          </View>
+        </>
+      )}
+
       {/* Hints: Roar/Heat (ENHANCED SIZE) */}
       {showHints && (
         <View style={styles.hintContainer} pointerEvents="none">
@@ -300,6 +315,9 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   cell: { alignItems: "center", justifyContent: "center" },
+  bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
+  bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
   playerHighlight: {
     position: "absolute",

@@ -14,13 +14,15 @@ type Props = {
   coins: number;
   character: Character;
   level: number;
+  /** Total floors of the expedition; shows `level/floors` when set. */
+  floors?: number;
   time: number;
   shield?: boolean;
   /** When provided, a pause button is shown next to the timer. */
   onPause?: () => void;
 };
 
-const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, time, shield = false, onPause }) => {
+const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, floors, time, shield = false, onPause }) => {
   const { spacing, fontSize } = useGameLayout();
 
   // Responsive scaling based on width
@@ -55,8 +57,8 @@ const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, 
       {/* CENTER: Level Indicator */}
       <View style={styles.centerGroup}>
         <View style={styles.levelBadge}>
-          <Text style={[styles.levelLabel, { fontSize: 12 }]}>LEVEL</Text>
-          <Text style={[styles.levelText, { fontSize: 26 }]}>{level}</Text>
+          <Text style={[styles.levelLabel, { fontSize: 12 }]}>{floors ? 'FLOOR' : 'LEVEL'}</Text>
+          <Text style={[styles.levelText, { fontSize: floors ? 22 : 26 }]}>{floors ? `${level}/${floors}` : level}</Text>
         </View>
         {shield && (
           <View style={styles.shieldBadge}>

@@ -33,7 +33,7 @@ export const EMPTY_STATS: LocalStats = {
   lastDailyDate: null,
 };
 
-/** Folds a finished endless run into the stored stats. Pure, so it is easy to test. */
+/** Folds a finished expedition run into the stored stats. Pure, so it is easy to test. */
 export function mergeRun(stats: LocalStats, run: RunResult) {
   const isNewBestScore = run.score > stats.bestScore;
   const next: LocalStats = {

@@ -58,3 +58,34 @@ describe('Engine stress', () => {
     }
   });
 });
+
+describe('Engine stress: Wumpus lair', () => {
+  it('random play keeps invariants while the boss hunts', () => {
+    for (let sim = 0; sim < 60; sim++) {
+      const rand = lcg(7000 + sim);
+      const board = generateBoard(10, 500 + sim, { boss: true });
+      let state: GameState = {
+        ...createState({
+          rows: board.rows,
+          cols: board.cols,
+          entities: board.entities,
+          coins: board.coins,
+          attack: 40,
+          seed: sim + 1,
+        }),
+        level: 10,
+      };
+
+      for (let step = 0; step < 250 && !state.isGameOver && !state.isLevelUp; step++) {
+        const action: GameAction =
+          rand() > 0.25
+            ? { type: 'MOVE', direction: DIRECTIONS[Math.floor(rand() * 4)] }
+            : { type: 'ATTACK' };
+        state = gameReducer(state, action);
+        assertInvariants(state);
+        expect(state.entities.filter(e => e.type === 'boss').length).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+});
+
