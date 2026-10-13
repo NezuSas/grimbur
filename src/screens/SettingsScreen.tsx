@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
 import type { AttackButtonPlacement, ControlPosition, ControlSize } from "../state/settings/types";
 import { getAudioLog } from "../audio/audioDiagnostics";
+import { resetLocalStats } from "../services/localStats";
 import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 
@@ -107,6 +108,19 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlSize = useSettingsStore(s => s.controlSize);
   const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
+  const [deleteStep, setDeleteStep] = React.useState<0 | 1 | 2>(0);
+  const onDelete = async () => {
+    if (deleteStep === 0) {
+      setDeleteStep(1);
+      setTimeout(() => setDeleteStep(step => (step === 1 ? 0 : step)), 4000); // the confirmation expires
+      return;
+    }
+    if (deleteStep === 1) {
+      await resetLocalStats().catch(() => {});
+      useSettingsStore.getState().setAchievementsSeen(0);
+      setDeleteStep(2);
+    }
+  };
   const setAttackButton = useSettingsStore(s => s.setAttackButton);
   const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
   const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
@@ -261,6 +275,20 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
             <View style={styles.separator} />
 
+            <SettingRow label={t("settings.delete")} hint={deleteStep === 2 ? t("settings.deleteDone") : t("settings.deleteHint")} icon="trash-outline">
+              <TouchableOpacity
+                style={[styles.deleteButton, deleteStep === 1 && { backgroundColor: "#FF5252" }]}
+                onPress={onDelete}
+                disabled={deleteStep === 2}
+                accessibilityRole="button"
+                accessibilityLabel={deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.delete")}
+              >
+                <Ionicons name={deleteStep === 2 ? "checkmark" : "trash"} size={20} color={deleteStep === 1 ? "#fff" : "#FF8A80"} />
+              </TouchableOpacity>
+            </SettingRow>
+
+            <View style={styles.separator} />
+
             <View style={styles.infoBox}>
               <Ionicons name="information-circle-outline" size={20} color="#aaa" />
               <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
@@ -330,6 +358,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
+  deleteButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, borderWidth: 1.5, borderColor: "#FF8A80", alignItems: "center", justifyContent: "center" },
   logButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#FFD700", alignItems: "center", justifyContent: "center" },
   segmentActive: { backgroundColor: "#FFD700" },
   segmentText: { color: "#d0d0d0", fontWeight: "900", fontSize: 12, letterSpacing: 1 },

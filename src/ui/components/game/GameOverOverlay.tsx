@@ -13,6 +13,8 @@ import { achievementText, heroText } from '../../../i18n/keys';
 import type { TranslationKey } from '../../../i18n/en';
 import { rewardFor, type AchievementId } from '../../../core/stats/achievements';
 import SpriteImage from '../SpriteImage';
+import Confetti from '../Confetti';
+import { useSettingsStore } from '../../../state/settings/store';
 
 type Props = {
   visible: boolean;
@@ -40,6 +42,8 @@ type Props = {
   achievements?: string[];
   /** Embers earned by this run (Forge currency). */
   embers?: number;
+  /** Part of `embers` that is the once-a-day bonus. */
+  dailyBonus?: number;
   /** Gems still on the floor when the run ended (for the near-miss line). */
   gemsLeft?: number;
   onShare?: () => void;
@@ -94,6 +98,7 @@ const GameOverOverlay = ({
   unlockedHeroes,
   achievements,
   embers,
+  dailyBonus,
   gemsLeft,
   onShare,
   onForge,
@@ -105,6 +110,7 @@ const GameOverOverlay = ({
   const cardAnim = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const shownScore = useCountUp(score, visible);
+  const calm = useSettingsStore(st => st.reduceFlash);
 
   useEffect(() => {
     if (visible) {
@@ -217,6 +223,12 @@ const GameOverOverlay = ({
         ) : null}
       </View>
 
+      {dailyBonus ? (
+        <Text style={styles.bonus} maxFontSizeMultiplier={1.2}>
+          🎁 {t('over.dailyBonus', { count: dailyBonus }).toLocaleUpperCase()}
+        </Text>
+      ) : null}
+
       {(nearGems || nearBest) && (
         <Text style={styles.nearMiss} maxFontSizeMultiplier={1.2}>
           {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
@@ -272,8 +284,12 @@ const GameOverOverlay = ({
     </View>
   );
 
+  // A victory or a new record is worth a little celebration.
+  const celebrate = !calm && (victory || !!isNewBest);
+
   return (
     <OverlayContainer>
+      {celebrate && <Confetti count={width >= 900 ? 60 : 40} />}
       <Animated.View
         style={[
           styles.card,
@@ -337,6 +353,7 @@ const styles = StyleSheet.create({
   statValue: { fontWeight: '900', fontSize: 16 },
   embersPill: { backgroundColor: 'rgba(255,171,64,0.16)' },
   embersText: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  bonus: { color: '#9ee37d', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13 },
   achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1 },

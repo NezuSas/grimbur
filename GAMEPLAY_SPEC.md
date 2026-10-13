@@ -202,3 +202,9 @@ All menu screens share one header (`ui/components/ScreenHeader.tsx`: back button
 ## 23. Cover hierarchy
 One thing to do first: a large golden PLAY button (the expedition) with the best score under it. Below it, smaller, the daily challenge (with the streak flame) and the endless descent; then the dock of round icons (Forge, Ranking, Achievements, How to play); an ember chip with the purse and the settings cog sit in the corner. A red dot marks the Forge when something is affordable and Achievements when new ones were unlocked since the screen was last opened. The Wumpus breathes on a lit medallion and a few embers float behind the menu (both off with *reduce flashes*). No popups, ads, rating or sign-in prompts before the first run.
 
+## 24. More value
+- **Pad feedback**: pressing a direction lights the whole quadrant under the thumb (gold wash from the centre to the rim), not only a circle around the arrow. A thumb covers the arrow it presses, so the lit wedge is what confirms which direction was read.
+- **Daily bonus**: the first finished run of each UTC day also pays 15 embers plus 5 per day of streak (up to 50). No timers, no loss if skipped: it is simply there the next day. The end-of-run card says it was included.
+- **Celebration**: a victory or a new record drops confetti on the end card (off with *reduce flashes*).
+- **Delete my data** (Settings): erases progress, embers, achievements and records from the device after a second tap to confirm (the confirmation expires after 4 s).
+

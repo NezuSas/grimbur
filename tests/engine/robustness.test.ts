@@ -45,3 +45,32 @@ describe('relic draft with nothing left to offer', () => {
     expect(next.pendingDraft).toBeNull();
   });
 });
+
+describe('the once-a-day ember bonus', () => {
+  const { dailyBonus } = require('../../src/core/stats/forge');
+  const { mergeRun } = require('../../src/core/stats/runStats');
+
+  it('grows with the streak and is capped', () => {
+    expect(dailyBonus(0)).toBe(15);
+    expect(dailyBonus(3)).toBe(30);
+    expect(dailyBonus(100)).toBe(50);
+    expect(dailyBonus(-4)).toBe(15);
+  });
+
+  it('is paid on the first finished run of a day only', () => {
+    const run = { score: 500, level: 3, day: '2026-10-13' };
+    const first = mergeRun(EMPTY_STATS, run).stats;
+    const second = mergeRun(first, run).stats;
+    const base = first.embers - dailyBonus(0);
+    expect(second.embers - first.embers).toBe(base); // no second bonus the same day
+    const nextDay = mergeRun(second, { ...run, day: '2026-10-14' }).stats;
+    expect(nextDay.embers - second.embers).toBe(base + dailyBonus(0));
+    expect(nextDay.lastBonusDate).toBe('2026-10-14');
+  });
+
+  it('is not paid for a run abandoned before it started', () => {
+    const stats = mergeRun(EMPTY_STATS, { score: 0, level: 1, day: '2026-10-13', progressed: false }).stats;
+    expect(stats.embers).toBe(0);
+    expect(stats.lastBonusDate).toBeNull();
+  });
+});

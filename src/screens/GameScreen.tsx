@@ -70,6 +70,7 @@ type RunResult = {
   unlocked?: number[];
   achievements?: string[];
   embers?: number;
+  bonus?: number;
 };
 
 // ── Main Screen ──────────────────────────────────────────────────────────
@@ -227,11 +228,11 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus };
       }
       const r = await recordRun(run);
       // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -717,6 +718,7 @@ export default function GameScreen({ navigation, route }: Props) {
         unlockedHeroes={runResult?.unlocked}
         achievements={runResult?.achievements}
         embers={runResult?.embers}
+        dailyBonus={runResult?.bonus}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
         floors={GAME_CONFIG.expedition.floors}

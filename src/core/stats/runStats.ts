@@ -1,6 +1,6 @@
 import { previousDayKey } from '../engine/seed';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
-import { UPGRADES, embersFor } from './forge';
+import { UPGRADES, dailyBonus, embersFor } from './forge';
 import { HERO_COUNT } from './achievements';
 
 export interface DailyProgress {
@@ -43,6 +43,8 @@ export interface LocalStats {
   /** Daily challenges played and won. */
   dailyRuns: number;
   dailyWins: number;
+  /** The UTC day on which the daily bonus was last paid. */
+  lastBonusDate: string | null;
 }
 
 export interface RunResult {
@@ -62,6 +64,8 @@ export interface RunResult {
   ascension?: number;
   /** Mode of the run; the endless descent keeps its own record instead of the expedition ones. */
   mode?: 'expedition' | 'daily' | 'endless';
+  /** UTC day the run was played; the first finished run of each day also pays a bonus. */
+  day?: string;
   /** False for a run abandoned before doing anything (earns no embers). */
   progressed?: boolean;
 }
@@ -85,6 +89,7 @@ export const EMPTY_STATS: LocalStats = {
   heroWins: Array.from({ length: HERO_COUNT }, () => 0),
   dailyRuns: 0,
   dailyWins: 0,
+  lastBonusDate: null,
 };
 
 /** Fields shared by every finished run: lifetime gems and the heroes tried. */
@@ -94,8 +99,10 @@ function accumulate(stats: LocalStats, run: RunResult) {
       ? [...stats.heroesUsed, run.heroIndex].sort((a, b) => a - b)
       : stats.heroesUsed;
   const progressed = run.progressed ?? true;
-  const earned = embersFor(run, progressed, stats.forge.fortune ?? 0);
+  const bonusDue = progressed && run.day !== undefined && stats.lastBonusDate !== run.day;
+  const earned = embersFor(run, progressed, stats.forge.fortune ?? 0) + (bonusDue ? dailyBonus(stats.streak) : 0);
   return {
+    lastBonusDate: bonusDue ? (run.day as string) : stats.lastBonusDate,
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
@@ -240,6 +247,7 @@ export function parseStats(raw: string | null): LocalStats {
       heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),
       dailyRuns: Math.trunc(num(data.dailyRuns)),
       dailyWins: Math.trunc(num(data.dailyWins)),
+      lastBonusDate: str(data.lastBonusDate),
     };
   } catch {
     return EMPTY_STATS;
