@@ -11,6 +11,8 @@ const MUSIC_VOL = 0.12;
 const SFX_VOL = 0.45;
 const HAZARD_VOL = 0.10;
 const VICTORIA_VOL = 0.30;
+/** The same effect is never started twice within this many milliseconds. */
+const MIN_REPEAT_MS = 45;
 
 /**
  * Every start/stop bumps a per-track counter. A start that is still waiting on the native player
@@ -44,14 +46,16 @@ export function useSoundManager(): void {
   useEffect(() => { soundsRef.current = currentSounds; }, [currentSounds]);
   useEffect(() => { soundEnabledRef.current = currentSoundEnabled; }, [currentSoundEnabled]);
 
-  /** Fast playback for SFX */
+  /** Effects that fire twice for one event (a shot that also kills) sound once. */
+  const lastPlayed = useRef(new WeakMap<LegacySoundHandle, number>());
+
+  /** Fast playback for SFX: synchronous, on the next free voice, never waits on another effect. */
   const playSfx = (handle: LegacySoundHandle | null, vol: number = SFX_VOL) => {
     if (!handle || !soundEnabledRef.current) return;
-    handle.setNumberOfLoops(0).then(() => {
-      handle.setVolume(vol).then(() => {
-        handle.play();
-      });
-    });
+    const now = Date.now();
+    if (now - (lastPlayed.current.get(handle) ?? 0) < MIN_REPEAT_MS) return;
+    lastPlayed.current.set(handle, now);
+    handle.playOneShot(vol);
   };
 
   /** One-shot play (stops loop, plays once at given volume) */
@@ -203,6 +207,7 @@ export function useSoundManager(): void {
     const unsubscribeBus = onSound(processEvent);
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') void useSoundStore.getState().revive();
       if (nextAppState === 'active' && soundEnabledRef.current && lastMusicIntent.current) {
         activeMusic.current = null; // the OS may have paused the track while we were away: restart it
         processEvent(lastMusicIntent.current);

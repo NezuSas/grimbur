@@ -1,10 +1,11 @@
-import React, { memo, useRef, useEffect, useMemo } from "react";
+import React, { memo, useCallback, useRef, useEffect, useMemo } from "react";
 import { StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
+import { stepTarget } from "../../core/engine/travel";
 import { getNearbyHazards, NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 
@@ -32,6 +33,8 @@ type Props = {
   aimTiles?: ReadonlySet<number>;
   /** Long press on a tile (toggles its flag). */
   onTileLongPress?: (index: number) => void;
+  /** Called once every tile image of the current floor has been drawn. */
+  onReady?: () => void;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -47,13 +50,16 @@ const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "bl
 
 const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };
 
-const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
-  up: "▲", right: "▶", down: "▼", left: "◀",
+const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
+  UP: "chevron-up",
+  DOWN: "chevron-down",
+  LEFT: "chevron-back",
+  RIGHT: "chevron-forward",
 };
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed
+  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded
 }: {
   index: number;
   tileSize: number;
@@ -70,6 +76,10 @@ const GridCell = memo(({
   flagged: boolean;
   /** An arrow would fly over this tile. */
   aimed: boolean;
+  /** Direction the hero faces when this is the tile in front of it (where a plain shot would go). */
+  facing: Direction | null;
+  /** The tile's base image has been drawn. */
+  onTileLoaded: () => void;
 }) => {
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
@@ -125,6 +135,7 @@ const GridCell = memo(({
         style={{ width: tileSize, height: tileSize, transform: [{ scale: revealScale }] }}
         source={backgroundAsset}
         resizeMode="contain"
+        onLoadEnd={onTileLoaded}
       />
 
       {/* Danger pulse tint */}
@@ -230,6 +241,12 @@ const GridCell = memo(({
         </View>
       )}
 
+      {facing && !aimed && !isPlayerHere && (
+        <View style={styles.facingMark} pointerEvents="none">
+          <Ionicons name={FACING_ICON[facing]} size={tileSize * 0.34} color="rgba(255,255,255,0.7)" />
+        </View>
+      )}
+
       {aimed && <View style={styles.aim} pointerEvents="none" />}
 
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
@@ -243,7 +260,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -301,6 +318,25 @@ const BoardView: React.FC<Props> = memo(
       ]).start();
     }, [guardianCount]);
 
+    // Tells the screen when every tile of this floor has been drawn (the start-up cover waits for it).
+    const tilesToLoad = rows * cols;
+    const loadedTiles = useRef({ level, count: 0, done: false });
+    const onReadyRef = useRef(onReady);
+    onReadyRef.current = onReady;
+    const onTileLoaded = useCallback(() => {
+      const progress = loadedTiles.current;
+      if (progress.level !== level) {
+        progress.level = level;
+        progress.count = 0;
+        progress.done = false;
+      }
+      progress.count += 1;
+      if (!progress.done && progress.count >= tilesToLoad) {
+        progress.done = true;
+        onReadyRef.current?.();
+      }
+    }, [level, tilesToLoad]);
+
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
@@ -308,6 +344,7 @@ const BoardView: React.FC<Props> = memo(
 
     const idleSource = characters[characterIndex]?.playerImage;
     const attackSource = characters[characterIndex]?.attackImage;
+    const facingTile = stepTarget(playerIndex, (facingDir || 'RIGHT').toUpperCase() as Direction, rows, cols);
     const currentFacing = (facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
 
     return (
@@ -338,6 +375,8 @@ const BoardView: React.FC<Props> = memo(
                   highlighted={highlightSet.has(i)}
                   flagged={!!flags && flags.has(i) && !visitedSet.has(i)}
                   aimed={!!aimTiles && aimTiles.has(i)}
+                  facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
+                  onTileLoaded={onTileLoaded}
                 />
               );
             })}
@@ -372,7 +411,18 @@ const BoardView: React.FC<Props> = memo(
             pointerEvents="none"
           >
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
-            <View style={{ width: tileSize * 0.8, height: tileSize * 0.8, transform: [{ scaleX: currentFacing === "left" ? -1 : 1 }] }}>
+            {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
+            <View
+              style={{
+                width: tileSize * 0.8,
+                height: tileSize * 0.8,
+                transform: [
+                  { scaleX: currentFacing === "left" ? -1 : 1 },
+                  { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
+                  { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
+                ],
+              }}
+            >
               {idleSource && (
                 <SpriteImage
                   style={[styles.heroLayer, { opacity: isAttacking ? 0 : 1 }]}
@@ -385,11 +435,6 @@ const BoardView: React.FC<Props> = memo(
                   source={attackSource}
                 />
               )}
-            </View>
-            <View style={[styles.arrowWrap, { top: -tileSize * 0.05, width: tileSize }]}>
-              <Text style={[styles.arrowText, { fontSize: tileSize * 0.35 }]}>
-                {DIR_CHAR[currentFacing]}
-              </Text>
             </View>
           </Animated.View>
         </Animated.View>
@@ -413,6 +458,7 @@ const styles = StyleSheet.create({
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
+  facingMark: { position: "absolute", left: 4, top: 4, right: 4, bottom: 4, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center", zIndex: 3 },
   aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.22)", zIndex: 7 },
   highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD700", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
@@ -425,14 +471,6 @@ const styles = StyleSheet.create({
   },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
   heroLayer: { position: "absolute", left: 0, top: 0, width: "100%", height: "100%", resizeMode: "contain" },
-  arrowWrap: { position: "absolute", alignItems: "center" },
-  arrowText: {
-    color: "#ffeb3b",
-    fontWeight: "bold",
-    textShadowColor: "#000",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
-  },
   hintContainer: {
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,

@@ -37,27 +37,34 @@ type CardProps = {
   hero: Character;
   heroIndex: number;
   cardWidth: number;
+  cardHeight: number;
   portraitSize: number;
   locked: boolean;
   onSelect: (heroIndex: number) => void;
 };
 
 /** One hero card. Defined at module level so the list never remounts it on state changes. */
-const HeroCard = memo(({ hero, heroIndex, cardWidth, portraitSize, locked, onSelect }: CardProps) => {
+const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, portraitSize, locked, onSelect }: CardProps) => {
   const { t } = useT();
-  const { fontSize, spacing } = useGameLayout();
+  const { spacing } = useGameLayout();
+  // Short windows (phones in landscape) get a compact card: one-line name, two-line description.
+  const compact = cardHeight < 300;
+  const nameSize = compact ? 16 : Math.max(16, Math.min(cardWidth * 0.095, 28));
+  const perkSize = compact ? 12 : Math.max(13, Math.min(cardWidth * 0.058, 17));
+  const descSize = compact ? 11 : Math.max(12, Math.min(cardWidth * 0.052, 16));
   const name = heroText(t, heroIndex, "name");
   const perk = heroText(t, heroIndex, "perk");
   const description = heroText(t, heroIndex, "desc");
   const requirement = unlockText(t, heroIndex);
 
   return (
-    <View style={[styles.itemWrapper, { width: cardWidth }]}>
+    <View style={[styles.itemWrapper, { width: cardWidth, height: cardHeight }]}>
       <ScrollView
         style={[styles.card, { borderColor: hero.arrowColor }]}
         contentContainerStyle={styles.cardContent}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.cardTop}>
         <View
           style={[
             styles.imageContainer,
@@ -74,20 +81,25 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, portraitSize, locked, onSel
         </View>
 
         <Text
-          style={[styles.heroName, { fontSize: fontSize(24), textShadowColor: hero.arrowColor }]}
+          style={[styles.heroName, { fontSize: nameSize, textShadowColor: hero.arrowColor }]}
+          numberOfLines={compact ? 1 : 2}
+          adjustsFontSizeToFit={compact}
           accessibilityRole="header"
           maxFontSizeMultiplier={1.3}
         >
           {name.toLocaleUpperCase()}
         </Text>
         <View style={[styles.underline, { backgroundColor: hero.arrowColor }]} />
+        </View>
 
-        <Text style={[styles.perkName, { color: hero.arrowColor, fontSize: fontSize(15) }]} maxFontSizeMultiplier={1.3}>
-          {perk.toLocaleUpperCase()}
-        </Text>
-        <Text style={[styles.perkDesc, { fontSize: fontSize(13) }]} maxFontSizeMultiplier={1.3}>
-          {description}
-        </Text>
+        <View style={styles.cardMiddle}>
+          <Text style={[styles.perkName, { color: hero.arrowColor, fontSize: perkSize }]} maxFontSizeMultiplier={1.3}>
+            {perk.toLocaleUpperCase()}
+          </Text>
+          <Text style={[styles.perkDesc, { fontSize: descSize }]} numberOfLines={compact ? 3 : undefined} maxFontSizeMultiplier={1.3}>
+            {description}
+          </Text>
+        </View>
 
         <TouchableOpacity
           activeOpacity={0.8}
@@ -102,7 +114,7 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, portraitSize, locked, onSel
             locked && { opacity: 0.55 },
           ]}
         >
-          <Text style={[styles.selectText, { fontSize: fontSize(locked ? 13 : 15) }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+          <Text style={[styles.selectText, { fontSize: Math.max(13, perkSize * (locked ? 0.9 : 1)) }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
             {(locked ? requirement : t("heroes.select")).toLocaleUpperCase()}
           </Text>
         </TouchableOpacity>
@@ -121,13 +133,23 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // Until the saved stats arrive, every hero looks locked and the depth and Forge bonuses are unknown.
   const [statsLoaded, setStatsLoaded] = useState(false);
   const [depth, setDepth] = useState(0);
+  // Height of the area the cards live in (what is left under the title and the depth picker).
+  const [listHeight, setListHeight] = useState(Math.max(200, height * 0.6));
   const depthInitialised = useRef(false);
 
-  // Cards adapt to the window: wide enough to read, never wider than the screen minus its margins.
-  const cardWidth = Math.min(Math.max(width * 0.3, 200), 290, width - 48);
+  // Cards adapt to the window. When all of them fit side by side they are shown in one centred row (no scrolling
+  // and no dead space around them); otherwise they scroll, one big card at a time. Either way a card is as tall
+  // as the area allows, so its content is spread out instead of huddling at the top.
   const itemMargin = 12;
-  const itemLength = cardWidth + itemMargin * 2;
-  const portraitSize = Math.min(Math.max(height * 0.22, 56), 110);
+  const gap = itemMargin * 2;
+  const sidePadding = Math.max(insets.left, insets.right, 12) + 12;
+  const usableWidth = width - sidePadding * 2;
+  const fitWidth = (usableWidth - gap * (characters.length - 1)) / characters.length;
+  const fitsAll = fitWidth >= 190;
+  const cardWidth = fitsAll ? Math.min(fitWidth, 320) : Math.min(Math.max(width * 0.3, 200), 290, width - 48);
+  const itemLength = cardWidth + gap;
+  const cardHeight = Math.max(170, Math.min(listHeight - 16, 620));
+  const portraitSize = cardHeight < 300 ? 48 : Math.max(56, Math.min(cardWidth * 0.72, cardHeight * 0.36));
 
   useFocusEffect(
     useCallback(() => {
@@ -224,21 +246,26 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             data={characters}
             horizontal
             showsHorizontalScrollIndicator={false}
-            snapToInterval={itemLength}
+            snapToInterval={fitsAll ? undefined : itemLength}
             decelerationRate="fast"
             keyExtractor={(_, i) => String(i)}
             style={styles.list}
+            onLayout={e => setListHeight(e.nativeEvent.layout.height)}
+            scrollEnabled={!fitsAll}
             contentContainerStyle={{
-              paddingHorizontal: Math.max((width - itemLength) / 2, 12),
-              alignItems: "stretch",
+              flexGrow: 1,
+              justifyContent: "center",
+              paddingHorizontal: fitsAll ? sidePadding : Math.max((width - itemLength) / 2, 12),
+              alignItems: "center",
               paddingVertical: 8,
             }}
-            ItemSeparatorComponent={() => <View style={{ width: itemMargin * 2 }} />}
+            ItemSeparatorComponent={() => <View style={{ width: gap }} />}
             renderItem={({ item, index }) => (
               <HeroCard
                 hero={item}
                 heroIndex={index}
                 cardWidth={cardWidth}
+                cardHeight={cardHeight}
                 portraitSize={portraitSize}
                 locked={isLocked(index)}
                 onSelect={handleSelect}
@@ -301,14 +328,16 @@ const styles = StyleSheet.create({
   depthName: { color: "#FF7043", fontWeight: "900", letterSpacing: 1.5, fontSize: 14 },
   depthRule: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
   list: { flex: 1 },
-  itemWrapper: { flex: 1 },
+  itemWrapper: {},
   card: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.78)",
     borderRadius: 26,
     borderWidth: 3,
   },
-  cardContent: { alignItems: "center", padding: 14, gap: 6 },
+  cardContent: { flexGrow: 1, alignItems: "center", justifyContent: "space-between", padding: 10, gap: 4 },
+  cardTop: { alignItems: "center", gap: 6 },
+  cardMiddle: { alignItems: "center", gap: 6, flexShrink: 1 },
   imageContainer: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     alignItems: "center",

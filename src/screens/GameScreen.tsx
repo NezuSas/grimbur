@@ -25,6 +25,7 @@ import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import PauseOverlay from "../ui/components/game/PauseOverlay";
 import FloorBanner from "../ui/components/game/FloorBanner";
+import RunLoadingCover from "../ui/components/game/RunLoadingCover";
 import RelicTray from "../ui/components/RelicTray";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
@@ -105,6 +106,12 @@ export default function GameScreen({ navigation, route }: Props) {
     accessibilityElementsHidden: overlayOpen,
   };
   const [runNumber, setRunNumber] = useState(0);
+  // Opaque cover until the first board has really been drawn (or a safety timeout): no black or half-painted board.
+  const [bootCover, setBootCover] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setBootCover(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = omenFor(state.runSeed, state.level);
   const isLair = state.mode !== "endless" && state.level === GAME_CONFIG.expedition.floors;
@@ -534,7 +541,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // The run starts in an effect, so the very first render still holds the engine's empty placeholder board.
   // Showing it would flash a wrong board for a moment: wait until the real run exists.
-  if (state.selectedCharacter === null) return <View style={styles.container} />;
+  if (state.selectedCharacter === null) return <RunLoadingCover visible />;
 
   return (
     <ImageBackground
@@ -566,7 +573,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
 
       <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
-      {!runEnded && !levelUpWindow && !state.pendingDraft && (
+      {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && (
         <FloorBanner
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
@@ -608,6 +615,7 @@ export default function GameScreen({ navigation, route }: Props) {
             flags={flags}
             aimTiles={aimTiles}
             onTileLongPress={toggleFlag}
+            onReady={() => setBootCover(false)}
             onSwipe={swipeMove ? manualMove : undefined}
           />
         </View>
@@ -691,6 +699,8 @@ export default function GameScreen({ navigation, route }: Props) {
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
       />
+
+      <RunLoadingCover visible={bootCover} />
 
       <HighScoreEntryModal
         visible={showHighScoreEntry}

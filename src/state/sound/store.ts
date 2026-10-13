@@ -18,7 +18,7 @@ const INITIALIZING_PLAYERS: Record<string, Promise<any> | undefined> = {};
  * With a single player, a second shot, step or gem arriving while the first is still sounding restarted
  * or swallowed it, which is why effects seemed to play only some of the time.
  */
-const EXTRA_VOICES: Record<string, number> = { move: 1, coin: 2, attack: 2, relic: 1 };
+const EXTRA_VOICES: Record<string, number> = { move: 2, coin: 2, attack: 2, relic: 1 };
 const voicesOf = (name: string): string[] => [
   name,
   ...Array.from({ length: EXTRA_VOICES[name] ?? 0 }, (_, i) => `${name}#${i + 1}`),
@@ -102,6 +102,36 @@ function toLegacyHandle(name: string): LegacySoundHandle {
   };
 
   return {
+    playOneShot: (volume: number) => {
+      const voices = voicesOf(name);
+      // Strict rotation: consecutive effects always land on different players, so the player that just
+      // started never has to be restarted. (`playing` is reported late by the native side, so it cannot be trusted.)
+      let tried = 0;
+      let voice = voices[0];
+      let p: any = null;
+      while (tried < voices.length) {
+        nextVoice[name] = ((nextVoice[name] ?? -1) + 1) % voices.length;
+        voice = voices[nextVoice[name]];
+        p = GLOBAL_PLAYERS[voice];
+        if (p && p.isLoaded) break;
+        p = null;
+        tried++;
+      }
+      if (!p) {
+        // Nothing is loaded (the load failed or Android dropped it): try again in the background for next time.
+        for (const v of voices) void ensurePlayer(v);
+        return;
+      }
+      try {
+        p.volume = Math.max(0, Math.min(1, volume));
+        p.loop = false;
+        p.seekTo(0);
+        p.play();
+      } catch (e) {
+        console.warn(`[AudioEngine:${name}] one-shot error:`, e);
+      }
+    },
+
     isPlaying: async () => {
       return voicesOf(name).some(v => GLOBAL_PLAYERS[v]?.playing === true);
     },
@@ -264,6 +294,18 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       console.log("Audio Engine: Ready.");
     } catch (err) {
       console.error("Audio Engine: Init error", err);
+    }
+  },
+
+  revive: async () => {
+    for (const voice of Object.keys(GLOBAL_SOURCES)) {
+      const p = GLOBAL_PLAYERS[voice];
+      if (p && p.isLoaded) continue;
+      try {
+        if (p) p.remove();
+      } catch {}
+      delete GLOBAL_PLAYERS[voice];
+      void ensurePlayer(voice);
     }
   },
 

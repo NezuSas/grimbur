@@ -145,6 +145,7 @@ export const en = {
   'over.embers_other': '+{count} embers',
   'a11y.settings': 'Settings',
 
+  'loading.cave': 'PREPARING THE CAVE…',
   'floor.banner': 'Floor {n}',
   'boss.goalTitle': 'Slay the Wumpus',
   'boss.goalRule': 'No gems here. Follow its roar, aim and shoot: it has {hearts} hearts and hunts you.',

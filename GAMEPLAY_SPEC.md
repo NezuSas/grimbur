@@ -171,3 +171,8 @@ Floors are generated until a careful player can collect every gem using only the
 - **Aimed shots**: pressing and dragging from the attack button toward a side turns the hero that way and fires without moving or paying a step; a plain tap still fires where the hero faces. While the button is held the board outlines the tiles the arrow would cross, and the button shows the chosen arrow. The button also prints the arrows left.
 - **The lair**: the banner states the goal ("Slay the Wumpus", how many hearts it has and that it hunts you) and fades as soon as the player moves; the gem counter becomes the Wumpus' hearts; the relic draft before it says the lair is next.
 - **Relics** collected so far sit in a tray (above the attack button on wide screens, above the pad on narrow ones) with a count for duplicates.
+- **Facing**: the hero is mirrored when it faces left, leans away (up) or toward (down) the viewer, and the tile in front of it carries a faint chevron: that is where a plain shot goes. There is no arrow over the hero's head.
+- **Start of a run**: an opaque "preparing the cave" cover stays up until the first board's tiles have been drawn (or 2.5 s), then fades out; the floor banner starts after it.
+- **No swipe-back**: the stack's edge-swipe back gesture is disabled on the game, tutorial and floor-complete screens, so a finger sliding across the board cannot abandon the run. The system Back gesture pauses the game.
+- **Hero select**: all four cards share one centred row when they fit (about 190 dp each); otherwise they scroll. Cards are as tall as the free area, with text sized to the card, and a compact card is used on short windows.
+

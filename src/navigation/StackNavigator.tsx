@@ -16,6 +16,13 @@ import ForgeScreen from "../screens/ForgeScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+/**
+ * A swipe from the screen edge goes back in a native stack. During a run that would silently throw the game
+ * away (a finger sliding across the board is enough), so the gesture is off there; the Back button/gesture
+ * of the system pauses the game instead (see GameScreen).
+ */
+const NO_SWIPE_BACK = { gestureEnabled: false, fullScreenGestureEnabled: false } as const;
+
 const StackNavigator: React.FC = () => {
   return (
     <>
@@ -29,10 +36,10 @@ const StackNavigator: React.FC = () => {
       >
         <Stack.Screen name="CoverScreen" component={CoverScreen} />
         <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
-        <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
-        <Stack.Screen name="GameScreen" component={GameScreen} />
+        <Stack.Screen name="TutorialScreen" component={TutorialScreen} options={NO_SWIPE_BACK} />
+        <Stack.Screen name="GameScreen" component={GameScreen} options={NO_SWIPE_BACK} />
         <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
-        <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
+        <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} options={NO_SWIPE_BACK} />
         <Stack.Screen name="InstructionsScreen" component={InstructionsScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
         <Stack.Screen name="AchievementsScreen" component={AchievementsScreen} />
