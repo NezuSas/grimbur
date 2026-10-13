@@ -34,7 +34,7 @@ export const es: Record<TranslationKey, string> = {
   'hero.0.name': 'Explorador Cian',
   'hero.1.name': 'Arquera Escarlata',
   'hero.2.name': 'Centinela de Musgo',
-  'hero.3.name': 'Explorador Dorado',
+  'hero.3.name': 'Rastreador Dorado',
   'hero.0.perk': 'Cazatrampas',
   'hero.1.perk': 'Flechas perforantes',
   'hero.2.perk': 'Piel de piedra',
@@ -146,6 +146,7 @@ export const es: Record<TranslationKey, string> = {
   'over.embers_other': '+{count} brasas',
   'a11y.settings': 'Ajustes',
 
+  'loading.cave': 'PREPARANDO LA CUEVA…',
   'floor.banner': 'Piso {n}',
   'boss.goalTitle': 'Vence al Wumpus',
   'boss.goalRule': 'Aquí no hay gemas. Sigue su rugido, apunta y dispara: tiene {hearts} corazones y te persigue.',
