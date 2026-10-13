@@ -91,6 +91,17 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           {t("scores.noRecord")}
         </Text>
       )}
+      <TouchableOpacity
+        style={styles.progressLink}
+        onPress={() => navigation.navigate("ProgressScreen")}
+        accessibilityRole="button"
+        accessibilityLabel={t("progress.open")}
+      >
+        <Ionicons name="trending-up" size={18} color="#1a1030" />
+        <Text style={styles.progressLinkText} maxFontSizeMultiplier={1.2}>
+          {t("progress.open").toLocaleUpperCase()}
+        </Text>
+      </TouchableOpacity>
       {tenth > 0 && (
         <View style={styles.threshold}>
           <Ionicons name="flag" size={14} color="#80DEEA" />
@@ -213,6 +224,8 @@ const styles = StyleSheet.create({
   recordCellValue: { color: "#fff", fontWeight: "900", fontSize: 20 },
   recordCellLabel: { color: "#9a95b8", fontSize: 10, fontWeight: "800", textAlign: "center" },
   recordEmpty: { color: "#c9c3e6", fontSize: 13, marginTop: 6 },
+  progressLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: MIN_TOUCH, borderRadius: 14, backgroundColor: "#F2C14E", marginTop: 8, paddingHorizontal: 12 },
+  progressLinkText: { color: "#1a1030", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   threshold: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 },
   thresholdText: { color: "#80DEEA", fontWeight: "800", fontSize: 12, flex: 1 },
   listPane: { flex: 1 },

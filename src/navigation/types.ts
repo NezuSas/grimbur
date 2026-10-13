@@ -7,6 +7,7 @@ export type RootStackParamList = {
   TutorialScreen: { characterIndex?: number; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   GameScreen: { characterIndex?: number; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
   HighScoresScreen: undefined;
+  ProgressScreen: undefined;
   LevelCompleteScreen: {
     score: number;
     level: number;

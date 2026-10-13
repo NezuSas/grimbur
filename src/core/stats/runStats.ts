@@ -45,7 +45,20 @@ export interface LocalStats {
   dailyWins: number;
   /** The UTC day on which the daily bonus was last paid. */
   lastBonusDate: string | null;
+  /** The most recent runs, oldest first. */
+  history: RunRecord[];
 }
+
+/** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
+export interface RunRecord {
+  day: string;
+  score: number;
+  level: number;
+  victory: boolean;
+  mode: 'expedition' | 'daily' | 'endless';
+}
+
+export const HISTORY_LIMIT = 30;
 
 export interface RunResult {
   score: number;
@@ -90,6 +103,7 @@ export const EMPTY_STATS: LocalStats = {
   dailyRuns: 0,
   dailyWins: 0,
   lastBonusDate: null,
+  history: [],
 };
 
 /** Fields shared by every finished run: lifetime gems and the heroes tried. */
@@ -103,6 +117,9 @@ function accumulate(stats: LocalStats, run: RunResult) {
   const earned = embersFor(run, progressed, stats.forge.fortune ?? 0) + (bonusDue ? dailyBonus(stats.streak) : 0);
   return {
     lastBonusDate: bonusDue ? (run.day as string) : stats.lastBonusDate,
+    history: progressed && run.day !== undefined
+      ? [...stats.history, { day: run.day, score: Math.max(0, Math.trunc(run.score) || 0), level: Math.max(1, Math.trunc(run.level) || 1), victory: run.victory === true, mode: run.mode ?? 'expedition' } as RunRecord].slice(-HISTORY_LIMIT)
+      : stats.history,
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
@@ -167,7 +184,7 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
   return {
     stats: {
       ...stats,
-      ...accumulate(stats, run),
+      ...accumulate(stats, { ...run, mode: 'daily' }),
       daily,
       dailyRuns: stats.dailyRuns + 1,
       dailyWins: stats.dailyWins + (run.victory ? 1 : 0),
@@ -203,6 +220,20 @@ function parseForge(value: unknown): Record<string, number> {
     }
   }
   return out;
+}
+
+function parseHistory(value: unknown): RunRecord[] {
+  if (!Array.isArray(value)) return [];
+  const out: RunRecord[] = [];
+  for (const r of value) {
+    if (!r || typeof r !== 'object') continue;
+    const { day, score, level, victory, mode } = r as Record<string, unknown>;
+    if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
+    if (typeof score !== 'number' || !Number.isFinite(score) || score < 0) continue;
+    if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue;
+    out.push({ day, score: Math.trunc(score), level: Math.trunc(level), victory: victory === true, mode: mode === 'daily' || mode === 'endless' ? mode : 'expedition' });
+  }
+  return out.slice(-HISTORY_LIMIT);
 }
 
 function parseAchievements(value: unknown): Record<string, string> {
@@ -248,6 +279,7 @@ export function parseStats(raw: string | null): LocalStats {
       dailyRuns: Math.trunc(num(data.dailyRuns)),
       dailyWins: Math.trunc(num(data.dailyWins)),
       lastBonusDate: str(data.lastBonusDate),
+      history: parseHistory(data.history),
     };
   } catch {
     return EMPTY_STATS;

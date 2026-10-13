@@ -56,7 +56,7 @@ async function recordRunNow(run: RunResult) {
 export const recordDailyRun = (run: RunResult, key: string = dailyKey()) => serialized(() => recordDailyRunNow(run, key));
 async function recordDailyRunNow(run: RunResult, key: string) {
   const before = await getLocalStats();
-  const merged = mergeDailyRun(before, key, { ...run, day: run.day ?? key });
+  const merged = mergeDailyRun(before, key, { ...run, mode: 'daily', day: run.day ?? key });
   const achievements = newAchievements(merged.stats, run);
   const stats = withAchievements(merged.stats, achievements, key);
   const isNewDailyBest = merged.isNewDailyBest;
