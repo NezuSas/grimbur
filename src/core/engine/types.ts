@@ -18,6 +18,8 @@ export interface GameEntity {
   type: EntityType;
   /** Remaining hit points (the boss only). */
   hp?: number;
+  /** The Wumpus' wind-up: it can only strike on the action after it arrives next to the player. */
+  charge?: number;
 }
 
 export interface GameState {

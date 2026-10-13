@@ -3,7 +3,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinValue, killValue, levelClearBonus } from './scoring';
 import { NO_PERKS } from './heroes';
-import { draftRelics, relicCount, removeRelic } from './relics';
+import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
@@ -46,6 +46,13 @@ const startingVisited = (cols: number, rows: number, lantern: boolean): number[]
   return tiles;
 };
 
+/** A shield, then a Phoenix Feather, soaks one deadly touch. */
+const tryAbsorb = (shield: boolean, relics: RelicId[]) => {
+  if (shield) return { ok: true, shield: false, relics };
+  if (relicCount(relics, 'phoenix') > 0) return { ok: true, shield, relics: removeRelic(relics, 'phoenix') };
+  return { ok: false, shield, relics };
+};
+
 const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
 
 /** The tile one step from `index` in `direction`, or -1 at the board edge. */
@@ -85,7 +92,7 @@ const pickTeleportDestination = (
   const visitedSet = new Set(visited);
 
   for (let idx = 0; idx < total; idx++) {
-    if (idx === vortexIndex) continue;
+    if (idx === vortexIndex || idx === state.playerIndex) continue;
     const entity = state.entityMap[idx];
     if (entity && LETHAL_TYPES.includes(entity.type)) continue;
     if (entity) {
@@ -102,8 +109,35 @@ const pickTeleportDestination = (
     emptyVisited.length > 0 ? emptyVisited :
     nonLethal;
 
-  if (pool.length === 0) return null;
+  // The only safe place left may be the tile the player just came from.
+  if (pool.length === 0) return state.entityMap[state.playerIndex] ? null : state.playerIndex;
   return pickDeterministic(pool, state.seed, vortexIndex * 31 + visited.length);
+};
+
+/**
+ * One Wumpus action: it steps toward the player; when already adjacent it first winds up
+ * (`charge`), and only strikes on its following action. Returns whether it struck.
+ */
+const bossAct = (
+  world: World,
+  playerIndex: number,
+  rows: number,
+  cols: number,
+): { world: World; hit: boolean } => {
+  const boss = world.entities.find(e => e.type === 'boss');
+  if (!boss) return { world, hit: false };
+
+  const step = bossStep(boss.index, playerIndex, rows, cols, world.entityMap);
+  if (step.kind === 'move') {
+    return { world: replaceEntityAt(world, boss.index, { ...boss, index: step.to, charge: 0 }), hit: false };
+  }
+  if (step.kind === 'attack') {
+    if ((boss.charge ?? 0) >= 1) {
+      return { world: replaceEntityAt(world, boss.index, { ...boss, charge: 0 }), hit: true };
+    }
+    return { world: replaceEntityAt(world, boss.index, { ...boss, charge: 1 }), hit: false };
+  }
+  return { world, hit: false };
 };
 
 /**
@@ -238,9 +272,10 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         case 'boss':
           if (absorbHit()) {
-            // Throws the player back; the Wumpus survives.
+            // Throws the player back; the Wumpus survives. No movement, so no step cost or bonus.
             nextIndex = state.playerIndex;
             newVisited = [...state.visited];
+            newScore = state.score;
           } else {
             newIsGameOver = true;
             newDeathCause = 'boss';
@@ -296,16 +331,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // The Wumpus hunts: every Nth move it steps toward the player.
       const newTurn = state.turn + 1;
       if (!newIsGameOver && hasBoss(world) && newTurn % (GAME_CONFIG.boss.moveEvery + has('frost')) === 0) {
-        const boss = world.entities.find(e => e.type === 'boss')!;
-        const step = bossStep(boss.index, nextIndex, rows, cols, world.entityMap);
-
-        if (step.kind === 'move') {
-          world = replaceEntityAt(world, boss.index, { ...boss, index: step.to });
-        } else if (step.kind === 'attack') {
-          if (!absorbHit()) {
-            newIsGameOver = true;
-            newDeathCause = 'boss';
-          }
+        const acted = bossAct(world, nextIndex, rows, cols);
+        world = acted.world;
+        if (acted.hit && !absorbHit()) {
+          newIsGameOver = true;
+          newDeathCause = 'boss';
         }
       }
 
@@ -393,6 +423,28 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         newEnemyCombo = 0;
       }
 
+      // Shooting is a turn: the hunting Wumpus keeps closing in while you aim.
+      let newShield = state.shield;
+      let newRelics = state.relics;
+      let newIsGameOver = false;
+      let newDeathCause: GameState['deathCause'] = null;
+      const newTurn = state.turn + 1;
+
+      if (!newIsLevelUp && hasBoss(world) && newTurn % (GAME_CONFIG.boss.moveEvery + relicCount(state.relics, 'frost')) === 0) {
+        const acted = bossAct(world, state.playerIndex, rows, cols);
+        world = acted.world;
+        if (acted.hit) {
+          const absorbed = tryAbsorb(newShield, newRelics);
+          if (absorbed.ok) {
+            newShield = absorbed.shield;
+            newRelics = absorbed.relics;
+          } else {
+            newIsGameOver = true;
+            newDeathCause = 'boss';
+          }
+        }
+      }
+
       return {
         ...state,
         attack: state.attack - 1,
@@ -402,11 +454,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         enemyCombo: newEnemyCombo,
         isLevelUp: newIsLevelUp,
         isVictory: newIsVictory,
+        isGameOver: newIsGameOver,
+        deathCause: newIsGameOver ? newDeathCause : null,
+        shield: newShield,
+        relics: newRelics,
+        turn: newTurn,
         lastPickup: null,
       };
     }
 
     case 'LEVEL_UP': {
+      // Only a cleared, non-final floor with no draft pending can advance (guards double dispatches).
+      if (!state.isLevelUp || state.isVictory || state.pendingDraft || state.isGameOver) return state;
       const { rows, cols, entities, coins, attack, seed } = action.payload;
       return {
         ...state,
