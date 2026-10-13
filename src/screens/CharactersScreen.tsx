@@ -28,6 +28,7 @@ import { useT } from "../i18n/useT";
 import { heroText, unlockText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
+import { metaEffects } from "../core/stats/forge";
 import type { TranslationKey } from "../i18n/en";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
@@ -156,10 +157,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate("TutorialScreen", { characterIndex: heroIndex });
         return;
       }
-      navigation.navigate("GameScreen", { characterIndex: heroIndex, mode, ascension: mode === "expedition" ? depth : 0 });
+      navigation.navigate("GameScreen", { characterIndex: heroIndex, mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, tutorialSeen, depth],
+    [navigation, mode, tutorialSeen, depth, stats.forge],
   );
 
   return (

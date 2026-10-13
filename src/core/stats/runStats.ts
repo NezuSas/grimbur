@@ -1,5 +1,6 @@
 import { previousDayKey } from '../engine/seed';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
+import { UPGRADES, embersFor } from './forge';
 
 export interface DailyProgress {
   /** UTC day (`YYYY-MM-DD`) this progress belongs to. */
@@ -17,6 +18,10 @@ export interface LocalStats {
   victories: number;
   /** Gems collected over all runs. */
   totalGems: number;
+  /** Embers (Forge currency) available to spend. */
+  embers: number;
+  /** Forge upgrade levels: id -> level. */
+  forge: Record<string, number>;
   /** Highest depth (ascension) the player may choose; 0 until the first victory. */
   maxAscension: number;
   /** Hero indices the player has played with. */
@@ -45,6 +50,8 @@ export interface RunResult {
   heroIndex?: number;
   /** Depth (ascension) the run was played at. */
   ascension?: number;
+  /** False for a run abandoned before doing anything (earns no embers). */
+  progressed?: boolean;
 }
 
 export const EMPTY_STATS: LocalStats = {
@@ -53,6 +60,8 @@ export const EMPTY_STATS: LocalStats = {
   gamesPlayed: 0,
   victories: 0,
   totalGems: 0,
+  embers: 0,
+  forge: {},
   maxAscension: 0,
   heroesUsed: [],
   achievements: {},
@@ -67,7 +76,12 @@ function accumulate(stats: LocalStats, run: RunResult) {
     run.heroIndex !== undefined && !stats.heroesUsed.includes(run.heroIndex)
       ? [...stats.heroesUsed, run.heroIndex].sort((a, b) => a - b)
       : stats.heroesUsed;
-  return { totalGems: stats.totalGems + (run.gems ?? 0), heroesUsed };
+  const progressed = run.progressed ?? true;
+  return {
+    totalGems: stats.totalGems + (run.gems ?? 0),
+    heroesUsed,
+    embers: stats.embers + embersFor(run, progressed),
+  };
 }
 
 /** Winning at a depth unlocks the next one (never lowers what was already unlocked). */
@@ -137,6 +151,18 @@ export function currentStreak(stats: LocalStats, todayKey: string): number {
   return alive ? stats.streak : 0;
 }
 
+function parseForge(value: unknown): Record<string, number> {
+  if (!value || typeof value !== 'object') return {};
+  const out: Record<string, number> = {};
+  for (const upgrade of UPGRADES) {
+    const level = (value as Record<string, unknown>)[upgrade.id];
+    if (typeof level === 'number' && Number.isInteger(level) && level > 0) {
+      out[upgrade.id] = Math.min(level, upgrade.costs.length);
+    }
+  }
+  return out;
+}
+
 function parseAchievements(value: unknown): Record<string, string> {
   if (!value || typeof value !== 'object') return {};
   const out: Record<string, string> = {};
@@ -163,6 +189,8 @@ export function parseStats(raw: string | null): LocalStats {
       victories: num(data.victories),
       totalGems: num(data.totalGems),
       maxAscension: Math.min(MAX_ASCENSION, Math.trunc(num(data.maxAscension))),
+      embers: Math.trunc(num(data.embers)),
+      forge: parseForge(data.forge),
       heroesUsed: Array.isArray(data.heroesUsed)
         ? [...new Set<number>(data.heroesUsed.filter((v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < 16))].sort((a, b) => a - b)
         : [],

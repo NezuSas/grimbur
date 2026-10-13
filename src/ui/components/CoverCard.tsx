@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CoverButton from "./CoverButton";
-import { useGameLayout } from "../layout/useGameLayout";
+import { MIN_TOUCH, useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
 
 type Props = {
@@ -11,11 +12,12 @@ type Props = {
   onPressDaily: () => void;
   onPressScores: () => void;
   onPressInstructions: () => void;
+  onPressForge: () => void;
   onPressAchievements: () => void;
   onPressSettings: () => void;
 };
 
-const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressAchievements, onPressSettings }) => {
+const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressForge, onPressAchievements, onPressSettings }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -34,6 +36,16 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, 
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.cardContainer, { width: cardWidth, padding: spacing(24) }]}>
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={onPressSettings}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={t("a11y.settings")}
+        >
+          <Ionicons name="settings-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+
         {/* Header */}
         <View style={[styles.header, { marginBottom: spacing(16) }]}>
           <Text
@@ -56,10 +68,10 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, 
 
         <View style={styles.buttonRow}>
           <View style={styles.half}>
-            <CoverButton label={t("cover.rankings")} onPress={onPressScores} variant="secondary" />
+            <CoverButton label={t("cover.forge")} onPress={onPressForge} variant="secondary" />
           </View>
           <View style={styles.half}>
-            <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" />
+            <CoverButton label={t("cover.rankings")} onPress={onPressScores} variant="secondary" />
           </View>
         </View>
         <View style={styles.buttonRow}>
@@ -67,7 +79,7 @@ const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, 
             <CoverButton label={t("cover.achievements")} onPress={onPressAchievements} variant="secondary" />
           </View>
           <View style={styles.half}>
-            <CoverButton label={t("cover.settings")} onPress={onPressSettings} variant="secondary" />
+            <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" />
           </View>
         </View>
 
@@ -95,7 +107,19 @@ const styles = StyleSheet.create({
     shadowRadius: 15,
     elevation: 20,
   },
-  header: { alignItems: "center" },
+  settingsButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: MIN_TOUCH - 6,
+    height: MIN_TOUCH - 6,
+    borderRadius: (MIN_TOUCH - 6) / 2,
+    backgroundColor: "rgba(255,255,255,0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  header: { alignItems: "center", paddingHorizontal: 40 },
   title: {
     color: "#FFD700",
     fontWeight: "900",

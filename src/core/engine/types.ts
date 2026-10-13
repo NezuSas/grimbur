@@ -2,6 +2,7 @@ import { Character } from '../../data/characters';
 import { GameMode } from './seed';
 import { HeroPerks } from './heroes';
 import { RelicId } from './relics';
+import type { MetaEffects } from '../stats/forge';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -53,6 +54,8 @@ export interface GameState {
   mode: GameMode;
   /** Depth of the run (0 = normal); see core/engine/ascension.ts. */
   ascension: number;
+  /** Extra relics offered per draft (Forge upgrade). */
+  draftBonus: number;
   totalCoins: number;
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
@@ -88,6 +91,9 @@ export type GameAction =
       runSeed?: number;
       perks?: HeroPerks;
       ascension?: number;
+      draftBonus?: number;
+      /** Start the run with a shield (Forge upgrade). */
+      startShield?: boolean;
     }
   | {
       type: 'LEVEL_UP';
@@ -106,7 +112,7 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: () => void;
-  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number }) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects }) => void;
   levelUp: () => void;
   pickRelic: (id: RelicId) => void;
 }

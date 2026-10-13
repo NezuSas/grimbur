@@ -7,6 +7,7 @@ import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
 import { getHeroPerks } from './heroes';
+import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
 import { RelicId } from './relics';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
@@ -130,10 +131,13 @@ export function useGameEngine(): GameEngineInterface {
   const isBossFloor = (mode: GameMode, level: number) =>
     mode !== 'endless' && level === GAME_CONFIG.expedition.floors;
 
-  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number } = {}) => {
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects } = {}) => {
     const mode = options.mode ?? 'expedition';
     // The daily challenge is the same cave for everyone, so it never uses a harder depth.
     const ascension = mode === 'daily' ? 0 : clampAscension(options.ascension ?? 0);
+    // Forge upgrades never apply to the daily challenge: it must be the same cave and the same tools for everyone.
+    const meta = mode === 'daily' ? NO_META : options.meta ?? NO_META;
+    const perks = applyMeta(getHeroPerks(options.heroIndex ?? 0), meta);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
     const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension });
@@ -150,7 +154,9 @@ export function useGameEngine(): GameEngineInterface {
       mode,
       runSeed,
       ascension,
-      perks: getHeroPerks(options.heroIndex ?? 0),
+      perks,
+      draftBonus: meta.draftBonus,
+      startShield: meta.shield,
     });
   }, [pureDispatch]);
 
