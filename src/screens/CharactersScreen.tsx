@@ -1,5 +1,5 @@
 // src/screens/CharactersScreen.tsx
-import React, { memo, useCallback, useMemo, useRef } from "react";
+import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
   Image,
   StatusBar,
@@ -19,6 +19,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { emitSound } from "../audio/audioEventBus";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HEROES } from "../core/engine/heroes";
+import { GAME_CONFIG } from "../config/gameConfig";
+import { getLocalStats } from "../services/localStats";
+import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
+import { describeUnlock, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
@@ -30,6 +34,9 @@ const LOOP_MULT = 100;
 
 const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? "expedition";
+  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const isLocked = (heroIndex: number) =>
+    !GAME_CONFIG.dev.unlockAllHeroes && !isHeroUnlocked(heroIndex, stats);
   const { spacing, titleSize, textSize, fontSize, isTablet } = useGameLayout();
   
   // Dimensions - Refined for better alignment
@@ -42,6 +49,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   useFocusEffect(
     useCallback(() => {
       emitSound('SELECTION_SCREEN_START');
+      getLocalStats().then(setStats).catch(() => {});
       return () => emitSound('SELECTION_SCREEN_STOP');
     }, [])
   );
@@ -60,11 +68,12 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       listRef.current?.scrollToIndex({ index: renderIndex, animated: true });
       return;
     }
+    if (isLocked(characterIndex)) return;
     try {
       navigation.navigate("GameScreen", { characterIndex, mode });
       emitSound('GAME_MUSIC_START');
     } catch (e) { console.warn("[CharactersScreen] nav error:", e); }
-  }, [navigation, mode]);
+  }, [navigation, mode, stats]);
 
   const RenderItem = memo(({ ch, index }: { ch: Character; index: number }) => {
     const inputRange = [(index - 1) * itemLength, index * itemLength, (index + 1) * itemLength];
@@ -95,7 +104,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               borderRadius: portraitSize / 2,
               borderColor: ch.arrowColor + '44' 
             }]}>
-               <Image source={ch.playerImage} style={{ width: portraitSize * 0.75, height: portraitSize * 0.75, resizeMode: 'contain' }} />
+               <Image source={ch.playerImage} style={{ width: portraitSize * 0.75, height: portraitSize * 0.75, resizeMode: 'contain', opacity: isLocked(ch.id - 1) ? 0.3 : 1 }} />
+               {isLocked(ch.id - 1) && (
+                 <Text style={{ position: 'absolute', fontSize: portraitSize * 0.4 }}>🔒</Text>
+               )}
             </View>
 
             {/* Character Info */}
@@ -119,9 +131,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => handlePlayPress(ch.id - 1, index)}
-              style={[styles.playButton, { backgroundColor: ch.arrowColor, paddingVertical: spacing(11), paddingHorizontal: spacing(35) }]}
+              style={[styles.playButton, { backgroundColor: ch.arrowColor, paddingVertical: spacing(11), paddingHorizontal: spacing(35) }, isLocked(ch.id - 1) && { opacity: 0.5 }]}
             >
-              <Text style={[styles.playButtonText, { fontSize: fontSize(15) }]}>SELECT</Text>
+              <Text style={[styles.playButtonText, { fontSize: fontSize(15) }]}>
+                {isLocked(ch.id - 1) ? describeUnlock(ch.id - 1).toUpperCase() : 'SELECT'}
+              </Text>
             </TouchableOpacity>
           </View>
         </Animated.View>

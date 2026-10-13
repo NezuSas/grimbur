@@ -12,6 +12,8 @@ export interface LocalStats {
   bestScore: number;
   bestLevel: number;
   gamesPlayed: number;
+  /** Expeditions won (the Wumpus slain). */
+  victories: number;
   /** Today's daily-challenge progress (only the most recent day is kept). */
   daily: DailyProgress | null;
   /** Consecutive days with at least one daily-challenge run. */
@@ -22,12 +24,15 @@ export interface LocalStats {
 export interface RunResult {
   score: number;
   level: number;
+  /** True when the run ended by slaying the Wumpus. */
+  victory?: boolean;
 }
 
 export const EMPTY_STATS: LocalStats = {
   bestScore: 0,
   bestLevel: 0,
   gamesPlayed: 0,
+  victories: 0,
   daily: null,
   streak: 0,
   lastDailyDate: null,
@@ -41,6 +46,7 @@ export function mergeRun(stats: LocalStats, run: RunResult) {
     bestScore: Math.max(stats.bestScore, run.score),
     bestLevel: Math.max(stats.bestLevel, run.level),
     gamesPlayed: stats.gamesPlayed + 1,
+    victories: stats.victories + (run.victory ? 1 : 0),
   };
   return { stats: next, isNewBestScore };
 }
@@ -66,7 +72,13 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
   }
 
   return {
-    stats: { ...stats, daily, streak, lastDailyDate: dateKey } as LocalStats,
+    stats: {
+      ...stats,
+      daily,
+      streak,
+      lastDailyDate: dateKey,
+      victories: stats.victories + (run.victory ? 1 : 0),
+    } as LocalStats,
     isNewDailyBest,
   };
 }
@@ -95,6 +107,7 @@ export function parseStats(raw: string | null): LocalStats {
       bestScore: num(data.bestScore),
       bestLevel: num(data.bestLevel),
       gamesPlayed: num(data.gamesPlayed),
+      victories: num(data.victories),
       daily: dailyDate
         ? { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts) }
         : null,
