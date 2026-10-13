@@ -10,6 +10,10 @@ interface FakePlayer {
   volume: number;
   loop: boolean;
   plays: number;
+  seeks: number;
+  listener?: (status: Record<string, unknown>) => void;
+  addListener(event: string, cb: (status: Record<string, unknown>) => void): void;
+  finish(): void;
   play(): void;
   pause(): void;
   seekTo(t: number): void;
@@ -33,9 +37,12 @@ jest.mock('expo-audio', () => ({
       volume: 1,
       loop: false,
       plays: 0,
+      seeks: 0,
+      addListener(_event: string, cb: (status: Record<string, unknown>) => void) { this.listener = cb; },
+      finish() { this.playing = false; this.listener?.({ playing: false, isLoaded: true, playbackState: 'ended', didJustFinish: true }); },
       play() { this.plays += 1; this.playing = true; },
       pause() { this.playing = false; },
-      seekTo() { if (buffering) this.isLoaded = false; },
+      seekTo() { this.seeks += 1; if (buffering) this.isLoaded = false; },
       remove() {},
     };
     created.push(p);
@@ -86,5 +93,21 @@ describe('sound store', () => {
     sounds.attack!.playOneShot(0.7);
     const touched = created.filter((p, i) => p.plays !== before[i]);
     expect(touched).toHaveLength(2);
+  });
+
+  it('rewinds an effect when it ends, so the next one starts at once with no seek (and no 100 ms re-buffer)', () => {
+    const { sounds } = useSoundStore.getState();
+    const voices = created.filter(p => p.plays >= 0);
+    // Play the step on both of its voices, let both end, then play two more: no seek may happen for those two.
+    sounds.move!.playOneShot(0.4);
+    sounds.move!.playOneShot(0.4);
+    sounds.move!.playOneShot(0.4);
+    const moveVoices = voices.filter(p => p.playing);
+    moveVoices.forEach(p => p.finish());
+    const seeksBefore = created.reduce((n, p) => n + p.seeks, 0);
+    sounds.move!.playOneShot(0.4);
+    sounds.move!.playOneShot(0.4);
+    const seeksAfter = created.reduce((n, p) => n + p.seeks, 0);
+    expect(seeksAfter).toBe(seeksBefore);
   });
 });
