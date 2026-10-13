@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinValue, killValue, levelClearBonus } from './scoring';
 import { NO_PERKS } from './heroes';
+import { draftRelics, relicCount, removeRelic } from './relics';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
@@ -31,6 +32,18 @@ const replaceEntityAt = (world: World, index: number, next: GameEntity): World =
     entities: world.entities.map(e => (e.index === index ? next : e)),
     entityMap,
   };
+};
+
+/** Tiles explored at the start of a floor; the Old Lantern reveals the area around the spawn. */
+const startingVisited = (cols: number, rows: number, lantern: boolean): number[] => {
+  if (!lantern) return [0];
+  const tiles: number[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (r + c <= 3) tiles.push(r * cols + c);
+    }
+  }
+  return tiles;
 };
 
 const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
@@ -147,6 +160,8 @@ export const initialState: GameState = {
   deathCause: null,
   wasTeleported: false,
   perks: NO_PERKS,
+  relics: [],
+  pendingDraft: null,
   turn: 0,
   isVictory: false,
   lastPickup: null,
@@ -160,9 +175,10 @@ export const initialState: GameState = {
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'MOVE': {
-      if (state.isGameOver || state.isLevelUp) return state;
+      if (state.isGameOver || state.isLevelUp || state.pendingDraft) return state;
 
       const { rows, cols, perks } = state;
+      const has = (id: Parameters<typeof relicCount>[1]) => relicCount(state.relics, id);
       const { direction } = action;
 
       let nextIndex = neighbour(state.playerIndex, direction, rows, cols);
@@ -175,7 +191,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ? [...state.visited, nextIndex]
         : [...state.visited];
 
-      let newScore = Math.max(0, state.score + GAME_CONFIG.scoring.stepCost);
+      let newScore = Math.max(0, state.score + (has('iron_boots') ? 0 : GAME_CONFIG.scoring.stepCost));
       if (isNewTile) newScore += GAME_CONFIG.scoring.newTile * perks.newTileMultiplier;
 
       let newIsGameOver: boolean = false;
@@ -183,10 +199,24 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newAttack = state.attack;
       let world: World = { entities: state.entities, entityMap: state.entityMap };
       let newShield = state.shield;
+      let newRelics = state.relics;
       let newTotalCoins = state.totalCoins;
       let newDeathCause: GameState['deathCause'] = null;
       let newWasTeleported = false;
       let newLastPickup: PickupKind | null = null;
+
+      /** A shield or a Phoenix Feather soaks one deadly touch. */
+      const absorbHit = (): boolean => {
+        if (newShield) {
+          newShield = false;
+          return true;
+        }
+        if (relicCount(newRelics, 'phoenix') > 0) {
+          newRelics = removeRelic(newRelics, 'phoenix');
+          return true;
+        }
+        return false;
+      };
 
       const consumeEntity = () => {
         world = removeEntityAt(world, nextIndex);
@@ -197,9 +227,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       switch (entityAtPoint?.type) {
         case 'enemy':
-          if (state.shield) {
-            // The shield shatters and takes the guardian with it.
-            newShield = false;
+          if (absorbHit()) {
+            // The shield (or feather) breaks and takes the guardian with it.
             consumeEntity();
           } else {
             newIsGameOver = true;
@@ -208,9 +237,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           break;
 
         case 'boss':
-          if (state.shield) {
-            // The shield breaks and throws the player back; the Wumpus survives.
-            newShield = false;
+          if (absorbHit()) {
+            // Throws the player back; the Wumpus survives.
             nextIndex = state.playerIndex;
             newVisited = [...state.visited];
           } else {
@@ -236,14 +264,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += Math.round(coinValue(state.level) * perks.coinMultiplier);
+          newScore += Math.round(coinValue(state.level) * perks.coinMultiplier * (1 + 0.25 * has('lucky_coin')));
           newCoins -= 1;
           newTotalCoins += 1;
           consumeEntity();
           break;
 
         case 'trap':
-          if (!perks.trapImmune) {
+          if (!perks.trapImmune && !has('trap_sense')) {
             newScore += GAME_CONFIG.scoring.trapPenalty;
             newLastPickup = 'trap';
           }
@@ -267,16 +295,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // The Wumpus hunts: every Nth move it steps toward the player.
       const newTurn = state.turn + 1;
-      if (!newIsGameOver && hasBoss(world) && newTurn % GAME_CONFIG.boss.moveEvery === 0) {
+      if (!newIsGameOver && hasBoss(world) && newTurn % (GAME_CONFIG.boss.moveEvery + has('frost')) === 0) {
         const boss = world.entities.find(e => e.type === 'boss')!;
         const step = bossStep(boss.index, nextIndex, rows, cols, world.entityMap);
 
         if (step.kind === 'move') {
           world = replaceEntityAt(world, boss.index, { ...boss, index: step.to });
         } else if (step.kind === 'attack') {
-          if (newShield) {
-            newShield = false; // absorbed; the Wumpus stays where it is
-          } else {
+          if (!absorbHit()) {
             newIsGameOver = true;
             newDeathCause = 'boss';
           }
@@ -285,7 +311,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       let newIsLevelUp: boolean = state.isLevelUp;
       if (newCoins === 0 && !newIsGameOver && !hasBoss(world)) {
-        newScore += levelClearBonus(state.level);
+        newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * has('greed')));
         newIsLevelUp = true;
       }
 
@@ -305,6 +331,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entityMap: world.entityMap,
         enemyCombo: 0,
         shield: newShield,
+        relics: newRelics,
         totalCoins: newTotalCoins,
         wasTeleported: newWasTeleported,
         lastPickup: newLastPickup,
@@ -314,14 +341,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'ATTACK': {
-      if (state.isGameOver || state.isLevelUp || state.attack <= 0) return state;
+      if (state.isGameOver || state.isLevelUp || state.pendingDraft || state.attack <= 0) return state;
 
       const { rows, cols } = state;
 
       // The arrow flies up to `arrowReach` tiles and hits the first hostile one.
       let targetIndex = -1;
       let cursor = state.playerIndex;
-      for (let step = 0; step < state.perks.arrowReach; step++) {
+      for (let step = 0; step < state.perks.arrowReach + relicCount(state.relics, 'long_bow'); step++) {
         cursor = neighbour(cursor, state.facingDir, rows, cols);
         if (cursor === -1) break;
         const type = state.entityMap[cursor]?.type;
@@ -348,14 +375,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           newScore += GAME_CONFIG.boss.killScore;
           world = removeEntityAt(world, targetIndex);
           if (state.coins === 0) {
-            newScore += levelClearBonus(state.level);
+            newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(state.relics, 'greed')));
             newIsLevelUp = true;
             newIsVictory = true;
           }
         }
         newEnemyCombo = 0;
       } else if (target?.type === 'enemy') {
-        newEnemyCombo = Math.min(state.enemyCombo + 1, GAME_CONFIG.multipliers.maxCombo);
+        newEnemyCombo = Math.min(
+          state.enemyCombo + 1,
+          GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'),
+        );
         newScore += killValue(newEnemyCombo);
         world = removeEntityAt(world, targetIndex);
       } else {
@@ -386,17 +416,35 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entities,
         entityMap: createEntityMap(entities),
         coins,
-        attack: attack + state.perks.bonusArrows,
-        shield: state.shield || state.perks.startShield,
+        attack: attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver'),
+        shield: state.shield || state.perks.startShield || relicCount(state.relics, 'bulwark') > 0,
         seed: seed || state.seed,
         playerIndex: 0,
-        visited: [0],
+        visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0),
+        pendingDraft: draftRelics(state.runSeed, state.level, state.relics),
         turn: 0,
         isLevelUp: false,
         isGameOver: false,
         enemyCombo: 0,
         deathCause: null,
         lastPickup: null,
+      };
+    }
+
+    case 'PICK_RELIC': {
+      if (!state.pendingDraft || !state.pendingDraft.includes(action.id)) return state;
+
+      const relics = [...state.relics, action.id];
+      return {
+        ...state,
+        relics,
+        pendingDraft: null,
+        // Relics with an immediate effect on the floor that is already loaded:
+        attack: action.id === 'quiver' ? state.attack + 2 : state.attack,
+        shield: action.id === 'bulwark' ? true : state.shield,
+        visited: action.id === 'lantern'
+          ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true)]))
+          : state.visited,
       };
     }
 

@@ -92,3 +92,20 @@ Each hero has a perk (`core/engine/heroes.ts`), shown on the selection screen:
 | Scarlet Knight | Piercing arrows: arrows fly 2 tiles |
 | Moss Golem | Stoneskin: starts every floor with a shield |
 | Golden Rogue | Treasure hunter: gems +30%, exploration bonus x2 |
+
+## 11. Relics
+After every cleared floor the game offers **3 different relics** and waits for the player to take one. They stack (up to each relic's limit) and last for the rest of the run. The offer is seeded, so a Daily Challenge shows every player the same draft.
+
+| Relic | Effect | Max |
+| :--- | :--- | :--- |
+| Bottomless Quiver | +2 arrows now, +1 arrow at the start of every floor | 3 |
+| Lucky Coin | Gems +25% | 3 |
+| Iron Boots | Walking costs no points | 1 |
+| Old Lantern | Each floor starts with the area around the spawn explored | 1 |
+| Phoenix Feather | Survives one deadly touch, then is consumed (a shield is spent first) | 1 |
+| Hunter's Mark | Kill combos can climb one step higher | 2 |
+| Long Bow | Arrows fly one tile farther | 1 |
+| Bulwark | Start every floor with a shield | 1 |
+| Dragon Hoard | Clearing a floor pays +50% | 2 |
+| Frost Charm | The Wumpus moves one move later | 1 |
+| Trap Sense | Traps are disarmed without penalty | 1 |

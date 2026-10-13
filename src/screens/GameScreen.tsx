@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
+  Text,
   StatusBar,
   Dimensions,
   Animated,
@@ -23,6 +24,8 @@ import DangerVignette from "../ui/components/game/DangerVignette";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import PauseOverlay from "../ui/components/game/PauseOverlay";
+import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
+import { RELICS, RelicId } from "../core/engine/relics";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
@@ -49,7 +52,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const characterIndex = (route.params as any)?.characterIndex ?? 0;
   const selectedCharacter = characters[characterIndex];
 
-  const { state, isAttacking, move, attack, reset, levelUp } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, levelUp, pickRelic } = useGameEngine();
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
   const [killPopups, setKillPopups] = useState<{ id: number; points: number; type: PopupType }[]>([])
   const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean; streak?: number } | null>(null);
@@ -59,13 +62,13 @@ export default function GameScreen({ navigation, route }: Props) {
   const vortexFlash = useRef(new Animated.Value(0)).current;
 
   const [paused, setPaused] = useState(false);
-  const { time: sessionTime, reset: resetTimer } = useSessionTimer(!state.isGameOver && !state.isLevelUp && !paused);
+  const { time: sessionTime, reset: resetTimer } = useSessionTimer(!state.isGameOver && !state.isLevelUp && !paused && !state.pendingDraft);
 
   // Refs so the back-button / AppState listeners always see the latest values.
   const pausedRef = useRef(false);
   const canPauseRef = useRef(false);
   pausedRef.current = paused;
-  canPauseRef.current = !state.isGameOver && !state.isLevelUp && !showGameOver && !showHighScoreEntry;
+  canPauseRef.current = !state.isGameOver && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
   // Refs for tracking changes
   const lastPlayerIndex = useRef(state.playerIndex);
@@ -221,6 +224,12 @@ export default function GameScreen({ navigation, route }: Props) {
     }, 100);
   }, [startRun]);
 
+  const handlePickRelic = useCallback((id: RelicId) => {
+    emitSound('RELIC_PICKED');
+    analytics.track('relic_picked', { relic: id, floor: state.level });
+    pickRelic(id);
+  }, [pickRelic, state.level]);
+
   const handleShare = useCallback(async () => {
     const streakText = runResult?.streak ? ` · 🔥 ${runResult.streak}-day streak` : '';
     const message =
@@ -364,6 +373,14 @@ export default function GameScreen({ navigation, route }: Props) {
       
       <StatusBar hidden />
 
+      {state.relics.length > 0 && (
+        <View style={[styles.relicRow, { top: insets.top + 62 }]} pointerEvents="none">
+          {state.relics.map((id, i) => (
+            <Text key={`${id}-${i}`} style={styles.relicIcon}>{RELICS[id].icon}</Text>
+          ))}
+        </View>
+      )}
+
       <View style={{ paddingTop: insets.top, zIndex: 10 }}>
         <ScoreBar
           score={state.score}
@@ -442,6 +459,8 @@ export default function GameScreen({ navigation, route }: Props) {
         pointerEvents="none" 
       />
 
+      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} onPick={handlePickRelic} />
+
       <PauseOverlay
         visible={paused}
         onResume={() => setPaused(false)}
@@ -491,6 +510,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingHorizontal: 20,
   },
+  relicRow: {
+    position: 'absolute',
+    left: 10,
+    zIndex: 11,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    maxWidth: '40%',
+    gap: 2,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+  },
+  relicIcon: { fontSize: 15 },
   controlsWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
