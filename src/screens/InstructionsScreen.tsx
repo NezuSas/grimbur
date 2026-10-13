@@ -135,10 +135,10 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                     </View>
                   </View>
                 </View>
-                <InstructionRow label="Situational Clues" detail="Ancient Runes signal danger: 🔊 for Guardians, ∞ for Vortexes." />
+                <InstructionRow label="Situational Clues" detail="Ancient Runes signal danger: 🔊 for Guardians, ∞ for Vortexes. When several hazards of one kind surround a tile, a number tells you how many." />
                 <InstructionRow 
                   label="Mystic Vortex" 
-                  detail="Stepping into a Vortex does NOT mean instant death — it tears open a rift and teleports you randomly to an unvisited cell. But beware: if you land on a Guardian, you perish instantly." 
+                  detail="Stepping into a Vortex does NOT mean instant death — it tears open a rift and teleports you to a safe, preferably unexplored cell. Use it to skip dangerous ground — but it can drop you far from the gems."
                   valueColor="#9c27b0" 
                   value="TELEPORT"
                 />
@@ -166,7 +166,18 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                   </View>
                 </View>
                 <InstructionRow label="The Strike" detail="Use the Attack Action to eliminate Guardians in the direction you are facing." />
-                <InstructionRow label="Ammo Control" detail="Attack charges are limited. Only strike when victory is certain." value="6 CHARGES" valueColor="#d32f2f" />
+                <InstructionRow label="Ammo Control" detail="Attack charges are limited and refresh every level. Only strike when victory is certain." value="LIMITED" valueColor="#d32f2f" />
+                <InstructionRow label="Combo" detail="Consecutive kills without moving or missing multiply the reward, up to x3." value="x3" valueColor="#ff5252" />
+              </View>
+
+              <View style={styles.separator} />
+
+              {/* 4b. POWER-UPS & TRAPS */}
+              <SectionHeader title="POWER-UPS & TRAPS" icon="🛡️" color="#4fc3f7" />
+              <View style={styles.sectionContent}>
+                <InstructionRow label="Shield" detail="Absorbs one Guardian hit and destroys it. It stays with you until used, even across levels." value="BLUE" valueColor="#4fc3f7" />
+                <InstructionRow label="Extra Arrows" detail="Orange arrow icons on the board give you +2 attack charges." value="+2" valueColor="#ff9800" />
+                <InstructionRow label="Hidden Traps" detail="From level 3, some tiles hide a trap. It costs points but is never lethal, and gives no warning." value="-75" valueColor="#ff9800" />
               </View>
 
               <View style={styles.separator} />
@@ -249,7 +260,8 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
               <SectionHeader title="PRO INSIGHTS" icon="💡" color="#4db6ac" />
               <View style={styles.tipBox}>
                   <Text style={[styles.tipText, { fontSize: fontSize(14) }]}>
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Vortex Gamble:</Text> Falling into a Vortex teleports you randomly. Use this strategically in tight spots — but never when Guardians are nearby!{"\n\n"}
+                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Vortex Gamble:</Text> Falling into a Vortex teleports you to a safe tile. Use it to escape tight spots when every direction looks risky.{"\n\n"}
+                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Shield First:</Text> Grab the shield before you start probing around Guardians — it turns a deadly mistake into a free kill.{"\n\n"}
                       • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Strategic Pauses:</Text> When a ROAR or VORTEX trigger occurs, stop and evaluate all four directions before moving.{"\n\n"}
                       • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Munition Thrift:</Text> Don't waste attacks on enemies you can simply bypass. Save them for tight corners.{"\n\n"}
                       • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Route Efficiency:</Text> Coins are often placed in dangerous paths. Use your prior steps to find the safest return route.

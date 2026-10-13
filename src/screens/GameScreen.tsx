@@ -20,7 +20,7 @@ import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
-import ScorePopup from "../ui/components/game/ScorePopup";
+import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
@@ -29,6 +29,8 @@ import { coinValue, killValue } from "../core/engine/scoring";
 import characters from "../data/characters";
 import { getDifficulty } from "../core/difficulty/difficulty";
 import { addHighscore, isTopTenScore } from "../services/highscores";
+import { recordRun } from "../services/localStats";
+import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 
@@ -44,7 +46,8 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const { state, isAttacking, move, attack, reset, levelUp } = useGameEngine();
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [killPopups, setKillPopups] = useState<{ id: number; points: number; type?: 'coin' | 'kill' }[]>([]);
+  const [killPopups, setKillPopups] = useState<{ id: number; points: number; type: PopupType }[]>([])
+  const [runResult, setRunResult] = useState<{ bestScore: number; isNewBest: boolean } | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
   const combatFlash = useRef(new Animated.Value(0)).current;
@@ -103,6 +106,9 @@ export default function GameScreen({ navigation, route }: Props) {
     if (state.isGameOver && !gameOverTriggered.current) {
       gameOverTriggered.current = true;
       emitSound('GAME_OVER');
+      recordRun({ score: state.score, level: state.level })
+        .then(({ stats, isNewBestScore }) => setRunResult({ bestScore: stats.bestScore, isNewBest: isNewBestScore }))
+        .catch(e => console.warn('[GameScreen] recordRun error:', e));
       
       const checkPromise = isTopTenScore(state.score, sessionTime);
       const t = setTimeout(async () => {
@@ -138,7 +144,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleRetry = useCallback(() => {
     isResetting.current = true;
     gameOverTriggered.current = false;
-    setKillPopups([]);            
+    setKillPopups([]);
+    setRunResult(null);
     setShowGameOver(false);
     resetTimer();
     reset(selectedCharacter);
@@ -233,6 +240,22 @@ export default function GameScreen({ navigation, route }: Props) {
 
   useProximityAudio(state);
 
+  // Power-ups and traps: sound + floating label
+  useEffect(() => {
+    if (!state.lastPickup) return;
+    const id = Date.now() + Math.random();
+    if (state.lastPickup === 'trap') {
+      emitSound('TRAP_TRIGGERED');
+      setKillPopups(prev => [...prev, { id, points: GAME_CONFIG.scoring.trapPenalty, type: 'trap' }]);
+    } else {
+      emitSound('POWERUP');
+      setKillPopups(prev => [
+        ...prev,
+        { id, points: state.lastPickup === 'ammo' ? GAME_CONFIG.pickups.ammoAmount : 0, type: state.lastPickup! },
+      ]);
+    }
+  }, [state]);
+
   const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
 
   const removeCoin = (id: number) => {
@@ -255,6 +278,7 @@ export default function GameScreen({ navigation, route }: Props) {
           score={state.score}
           coins={state.coins}
           attackValue={state.attack}
+          shield={state.shield}
           level={state.level}
           character={selectedCharacter}
           time={sessionTime}
@@ -342,6 +366,8 @@ export default function GameScreen({ navigation, route }: Props) {
         time={sessionTime}
         character={selectedCharacter}
         deathCause={state.deathCause}
+        bestScore={runResult?.bestScore}
+        isNewBest={runResult?.isNewBest}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
       />

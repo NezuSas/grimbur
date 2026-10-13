@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
 import { GameEntity } from "../../core/engine/types";
+import { getNearbyHazards, NearbyHazards } from "../../core/engine/proximity";
 
 type Props = {
   level: number;
@@ -29,13 +30,15 @@ const ASSETS: Record<"enemy" | "pit" | "coin" | "block" | "blockFog", ImageSourc
   blockFog: require("../../assets/sprites/tiles/Tile_Hidden.png"),
 };
 
+const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };
+
 const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
   up: "▲", right: "▶", down: "▼", left: "◀",
 };
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, rows, cols, isVisited, isPlayerHere, entity, roar, vortex 
+  index, tileSize, rows, cols, isVisited, isPlayerHere, entity, hints 
 }: {
   index: number;
   tileSize: number;
@@ -44,9 +47,10 @@ const GridCell = memo(({
   isVisited: boolean;
   isPlayerHere: boolean;
   entity?: GameEntity;
-  roar: boolean;
-  vortex: boolean;
+  hints: NearbyHazards;
 }) => {
+  const roar = hints.enemy;
+  const vortex = hints.pit;
   const pulseAnim = useRef(new Animated.Value(0)).current;
 
   // Background priority: visited block > fog
@@ -112,11 +116,13 @@ const GridCell = memo(({
           {roar && (
             <Animated.View style={[styles.hintBadge, styles.hintRoar, { transform: [{ scale: pulseAnim }] }]}>
               <Ionicons name="volume-high" size={tileSize * 0.42} color="#bf360c" />
+              {hints.enemyCount > 1 && <Text style={[styles.hintCount, { fontSize: tileSize * 0.26, color: "#bf360c" }]}>{hints.enemyCount}</Text>}
             </Animated.View>
           )}
           {vortex && (
             <Animated.View style={[styles.hintBadge, styles.hintVortex, { transform: [{ scale: pulseAnim }] }]}>
               <Ionicons name="infinite" size={tileSize * 0.42} color="#fff" />
+              {hints.pitCount > 1 && <Text style={[styles.hintCount, { fontSize: tileSize * 0.26, color: "#fff" }]}>{hints.pitCount}</Text>}
             </Animated.View>
           )}
         </View>
@@ -136,6 +142,18 @@ const GridCell = memo(({
           }} 
           resizeMode="contain"
         />
+      )}
+
+      {/* Power-ups (always visible, like gems). Traps stay hidden on purpose. */}
+      {entity?.type === 'shield' && (
+        <View style={styles.pickup} pointerEvents="none">
+          <Ionicons name="shield-checkmark" size={tileSize * 0.6} color="#4FC3F7" />
+        </View>
+      )}
+      {entity?.type === 'ammo' && (
+        <View style={styles.pickup} pointerEvents="none">
+          <Ionicons name="arrow-forward-circle" size={tileSize * 0.6} color="#FF9800" />
+        </View>
       )}
 
       {/* Player highlight glow */}
@@ -204,27 +222,6 @@ const BoardView: React.FC<Props> = memo(
     const visitedSet = useMemo(() => new Set(visited), [visited]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
-    // ── Hint adjacency check (O(1) lookups) ───────────────────────────────
-    const getHints = (idx: number) => {
-      const r = Math.floor(idx / cols);
-      const c = idx % cols;
-      const adj = [idx - cols, idx + cols, idx - 1, idx + 1];
-      // Filter out-of-bounds
-      const validAdj = adj.filter(n => {
-        const nr = Math.floor(n / cols);
-        const nc = n % cols;
-        return n >= 0 && n < rows * cols && Math.abs(r - nr) + Math.abs(c - nc) === 1;
-      });
-
-      let roar = false, vortex = false;
-      for (const n of validAdj) {
-        const ent = entityMap?.[n];
-        if (ent?.type === 'enemy') roar = true;
-        if (ent?.type === 'pit')   vortex = true;
-      }
-      return { roar, vortex };
-    };
-
     const playerSource = isAttacking 
       ? characters[characterIndex]?.attackImage 
       : characters[characterIndex]?.playerImage;
@@ -242,7 +239,7 @@ const BoardView: React.FC<Props> = memo(
           <View style={[StyleSheet.absoluteFill, { width: boardWidth, height: boardHeight }]}>
             {gridIndices.map(i => {
               // Recalculate hints for this specific cell in the current level layout
-              const { roar, vortex } = visitedSet.has(i) ? getHints(i) : { roar: false, vortex: false };
+              const hints = visitedSet.has(i) ? getNearbyHazards(i, rows, cols, entityMap) : NO_HINTS;
               
               return (
                 <GridCell
@@ -254,8 +251,7 @@ const BoardView: React.FC<Props> = memo(
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}
                   entity={entityMap?.[i]}
-                  roar={roar}
-                  vortex={vortex}
+                  hints={hints}
                 />
               );
             })}
@@ -304,6 +300,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   cell: { alignItems: "center", justifyContent: "center" },
+  pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
   playerHighlight: {
     position: "absolute",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -343,6 +340,15 @@ const styles = StyleSheet.create({
   },
   hintRoar:   { backgroundColor: "#ffcc80", borderColor: "#ef6c00" },
   hintVortex: { backgroundColor: "#9c27b0", borderColor: "#6a1b9a" },
+  hintCount: {
+    position: "absolute",
+    right: 1,
+    bottom: -1,
+    fontWeight: "900",
+    textShadowColor: "#000",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
   hintText: {
     color: "#fff",
     fontWeight: "900",

@@ -18,13 +18,22 @@ The game board contains several hidden threats:
 
 | Hazard | Behavior | Result |
 | :--- | :--- | :--- |
-| **Enemy (Guardian)** | Stationary. | **Game Over** on impact (a shield, when active, absorbs one hit). |
-| **Pit (Vortex)** | Stationary. | Teleports the player to a random safe tile (unvisited tiles first). Landing on an enemy is fatal. |
+| **Enemy (Guardian)** | Stationary. | **Game Over** on impact. With an active shield the shield breaks and the guardian is destroyed instead. |
+| **Pit (Vortex)** | Stationary. | Teleports the player to an empty tile (unexplored first). It never lands on a hazard. |
+| **Trap** | Hidden, no warning. | **-75 points** (never lethal); the trap is consumed. Appears from level 3 (max 4). |
 
-> **Planned, not implemented:** hidden *traps* (-75 points) and *power-ups* (shield pickups). The shield flag exists in the engine but nothing grants it yet.
+### Power-ups
+Visible on the board (unlike traps):
+
+| Item | Effect |
+| :--- | :--- |
+| **Shield** | Absorbs one guardian hit and destroys it. Carries over between levels. Appears from level 2. |
+| **Arrows** | +2 attack charges. Appears from level 2. |
+
+Collecting a power-up awards +50 points.
 
 ### Proximity Detection
-The player can "hear" hazards through audio loops:
+Visited tiles show a rune when a guardian (🔊) or vortex (∞) is orthogonally adjacent, with a number when two or more of the same kind surround the tile. The player can also "hear" hazards through audio loops:
 - **Monster Near**: Localized growling sounds.
 - **Lava Near**: Bubbling sounds indicating a pit is adjacent.
 
@@ -43,6 +52,8 @@ Final scores are calculated based on efficiency and risk-taking.
 | **New Tile** | +5 | No |
 | **Collect Coin** | +100 | **Yes (Level Multiplier)** |
 | **Kill Enemy** | +250 × combo | Combo only |
+| **Trap** | -75 | No |
+| **Power-up** | +50 | No |
 | **Attack Miss** | -25 | No |
 | **Level Clear** | +500 | **Yes (Level Multiplier)** |
 

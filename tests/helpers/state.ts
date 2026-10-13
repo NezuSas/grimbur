@@ -35,3 +35,6 @@ export function coin(index: number): GameEntity {
 }
 export const enemy = (index: number): GameEntity => ({ index, type: 'enemy' });
 export const pit = (index: number): GameEntity => ({ index, type: 'pit' });
+export const trap = (index: number): GameEntity => ({ index, type: 'trap' });
+export const shieldItem = (index: number): GameEntity => ({ index, type: 'shield' });
+export const ammoItem = (index: number): GameEntity => ({ index, type: 'ammo' });

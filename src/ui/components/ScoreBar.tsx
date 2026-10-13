@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { StyleSheet, View, Image, Text, Dimensions } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
@@ -14,9 +15,10 @@ type Props = {
   character: Character;
   level: number;
   time: number;
+  shield?: boolean;
 };
 
-const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, time }) => {
+const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, level, time, shield = false }) => {
   const { spacing, fontSize } = useGameLayout();
 
   // Responsive scaling based on width
@@ -44,6 +46,11 @@ const ScoreBar: React.FC<Props> = memo(({ score, attackValue, coins, character, 
           <Text style={[styles.levelLabel, { fontSize: 12 }]}>LEVEL</Text>
           <Text style={[styles.levelText, { fontSize: 26 }]}>{level}</Text>
         </View>
+        {shield && (
+          <View style={styles.shieldBadge}>
+            <Ionicons name="shield-checkmark" size={18} color="#4FC3F7" />
+          </View>
+        )}
       </View>
 
       {/* RIGHT: Stats Group */}
@@ -105,6 +112,16 @@ const styles = StyleSheet.create({
   centerGroup: {
     flex: 1,
     alignItems: "center",
+  },
+  shieldBadge: {
+    position: "absolute",
+    right: "8%",
+    top: 2,
+    padding: 4,
+    borderRadius: 14,
+    backgroundColor: "rgba(79, 195, 247, 0.18)",
+    borderWidth: 1,
+    borderColor: "#4FC3F7",
   },
   rightGroup: {
     flex: 2,

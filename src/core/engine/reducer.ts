@@ -1,4 +1,4 @@
-import { GameState, GameAction, GameEntity } from './types';
+import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinValue, killValue, levelClearBonus } from './scoring';
@@ -12,6 +12,13 @@ const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => 
   return map;
 };
 
+/** Returns new `entities` / `entityMap` without the entity at `index`. */
+const removeEntityAt = (state: GameState, index: number) => {
+  const entityMap = { ...state.entityMap };
+  delete entityMap[index];
+  return { entities: state.entities.filter(e => e.index !== index), entityMap };
+};
+
 /**
  * Deterministic pick so the reducer stays pure: the same state + action always
  * yields the same teleport destination.
@@ -20,6 +27,40 @@ const pickDeterministic = <T,>(pool: T[], seed: number, salt: number): T => {
   const next = createPRNG(seed + salt);
   next(); // discard the weakly-mixed first sample of the LCG
   return pool[Math.floor(next() * pool.length)];
+};
+
+/** Picks where a vortex sends the player. Prefers empty, unexplored tiles. */
+const pickTeleportDestination = (
+  state: GameState,
+  vortexIndex: number,
+  visited: number[],
+): number | null => {
+  const total = state.rows * state.cols;
+  const emptyUnvisited: number[] = [];
+  const emptyVisited: number[] = [];
+  const nonLethal: number[] = [];
+  const visitedSet = new Set(visited);
+
+  for (let idx = 0; idx < total; idx++) {
+    if (idx === vortexIndex) continue;
+    const entity = state.entityMap[idx];
+    if (entity && LETHAL_TYPES.includes(entity.type)) continue;
+    if (entity) {
+      nonLethal.push(idx);
+    } else if (visitedSet.has(idx)) {
+      emptyVisited.push(idx);
+    } else {
+      emptyUnvisited.push(idx);
+    }
+  }
+
+  const pool =
+    emptyUnvisited.length > 0 ? emptyUnvisited :
+    emptyVisited.length > 0 ? emptyVisited :
+    nonLethal;
+
+  if (pool.length === 0) return null;
+  return pickDeterministic(pool, state.seed, vortexIndex * 31 + visited.length);
 };
 
 // ─── Initial State ─────────────────────────────────────────────────────────
@@ -41,10 +82,11 @@ export const initialState: GameState = {
   shield: false,
   enemyCombo: 0,
   gameStatus: 'idle',
-  seed: 0, 
+  seed: 0,
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
+  lastPickup: null,
 };
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
@@ -73,7 +115,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (direction === 'RIGHT' && !isRight)  nextIndex += 1;
 
       if (nextIndex === state.playerIndex) {
-        return { ...state, facingDir: direction };
+        return { ...state, facingDir: direction, lastPickup: null };
       }
 
       const isNewTile = !state.visited.includes(nextIndex);
@@ -84,82 +126,78 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newScore = Math.max(0, state.score + GAME_CONFIG.scoring.stepCost);
       if (isNewTile) newScore += GAME_CONFIG.scoring.newTile;
 
-      let newIsGameOver: boolean = state.isGameOver;
+      let newIsGameOver: boolean = false;
       let newCoins = state.coins;
+      let newAttack = state.attack;
       let newEntities = state.entities;
       let newEntityMap = state.entityMap;
       let newShield = state.shield;
-      let newEnemyCombo = 0;
       let newTotalCoins = state.totalCoins;
+      let newDeathCause: GameState['deathCause'] = null;
+      let newWasTeleported = false;
+      let newLastPickup: PickupKind | null = null;
 
-      // O(1) Collision Check via Map
+      const consumeEntity = () => {
+        ({ entities: newEntities, entityMap: newEntityMap } = removeEntityAt(state, nextIndex));
+      };
+
+      // O(1) collision check via the entity map
       const entityAtPoint = state.entityMap[nextIndex];
 
-      let newDeathCause: typeof state.deathCause = null;
-      let newWasTeleported = false;
-
-      if (entityAtPoint?.type === 'enemy') {
-        // Direct enemy collision
-        if (state.shield) {
-          newShield = false;
-        } else {
-          newIsGameOver = true;
-          newDeathCause = 'enemy';
-        }
-      } else if (entityAtPoint?.type === 'pit') {
-        // ── Vortex Teleportation ──────────────────────────────────────────
-        // 1. Collect all safe destination cells (no pit, no enemy)
-        const totalCells = rows * cols;
-        const safeUnvisited: number[] = [];
-        const safeVisited:   number[] = [];
-
-        for (let idx = 0; idx < totalCells; idx++) {
-          const e = state.entityMap[idx];
-          const isSafe = !e || (e.type !== 'pit' && e.type !== 'enemy');
-          if (!isSafe || idx === nextIndex) continue; // skip current vortex cell
-          if (newVisited.includes(idx)) {
-            safeVisited.push(idx);
+      switch (entityAtPoint?.type) {
+        case 'enemy':
+          if (state.shield) {
+            // The shield shatters and takes the guardian with it.
+            newShield = false;
+            consumeEntity();
           } else {
-            safeUnvisited.push(idx);
-          }
-        }
-
-        // 2. Pick destination: unvisited first, then visited, then death
-        const pool = safeUnvisited.length > 0 ? safeUnvisited : safeVisited;
-
-        if (pool.length === 0) {
-          // No safe landing — vortex consumes the player
-          newIsGameOver = true;
-          newDeathCause = 'pit';
-        } else {
-          // Teleport!
-          const destIndex = pickDeterministic(pool, state.seed, nextIndex * 31 + newVisited.length);
-          const destEntity = state.entityMap[destIndex];
-
-          // If we land on a guardian after teleport → death
-          if (destEntity?.type === 'enemy') {
             newIsGameOver = true;
             newDeathCause = 'enemy';
-            nextIndex = destIndex; // Show player at enemy location on death screen
+          }
+          break;
+
+        case 'pit': {
+          // Vortex: teleport to a safe tile (never onto a hazard).
+          const destination = pickTeleportDestination(state, nextIndex, newVisited);
+          if (destination === null) {
+            newIsGameOver = true;
+            newDeathCause = 'pit';
           } else {
-            // Safe landing
-            nextIndex = destIndex;
+            nextIndex = destination;
             newWasTeleported = true;
-            if (!newVisited.includes(destIndex)) {
-              newVisited = [...newVisited, destIndex];
+            if (!newVisited.includes(destination)) {
+              newVisited = [...newVisited, destination];
             }
           }
+          break;
         }
-        // ─────────────────────────────────────────────────────────────────
-      } else if (entityAtPoint?.type === 'coin') {
-        newScore += coinValue(state.level);
-        newCoins -= 1;
-        newTotalCoins += 1;
-        
-        // Remove coin from entities and sync map
-        newEntities = state.entities.filter(e => e.index !== nextIndex);
-        newEntityMap = { ...state.entityMap };
-        delete newEntityMap[nextIndex];
+
+        case 'coin':
+          newScore += coinValue(state.level);
+          newCoins -= 1;
+          newTotalCoins += 1;
+          consumeEntity();
+          break;
+
+        case 'trap':
+          newScore += GAME_CONFIG.scoring.trapPenalty;
+          newLastPickup = 'trap';
+          consumeEntity();
+          break;
+
+        case 'shield':
+          newShield = true;
+          newScore += GAME_CONFIG.scoring.pickup;
+          newLastPickup = 'shield';
+          consumeEntity();
+          break;
+
+        case 'ammo':
+          newAttack += GAME_CONFIG.pickups.ammoAmount;
+          newScore += GAME_CONFIG.scoring.pickup;
+          newLastPickup = 'ammo';
+          consumeEntity();
+          break;
       }
 
       let newIsLevelUp: boolean = state.isLevelUp;
@@ -179,12 +217,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isGameOver: newIsGameOver,
         isLevelUp: newIsLevelUp,
         coins: newCoins,
+        attack: newAttack,
         entities: newEntities,
         entityMap: newEntityMap,
-        enemyCombo: newEnemyCombo,
+        enemyCombo: 0,
         shield: newShield,
         totalCoins: newTotalCoins,
         wasTeleported: newWasTeleported,
+        lastPickup: newLastPickup,
         deathCause: newIsGameOver ? newDeathCause : null,
       };
     }
@@ -210,36 +250,23 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newScore = state.score;
       let newEnemyCombo = state.enemyCombo;
 
-      if (targetIndex !== -1) {
-        const entityNearby = state.entityMap[targetIndex];
-        const isEnemy = entityNearby?.type === 'enemy';
-
-        if (isEnemy) {
-          newEnemyCombo = Math.min(state.enemyCombo + 1, GAME_CONFIG.multipliers.maxCombo);
-          newScore += killValue(newEnemyCombo);
-
-          // Remove enemy and sync map
-          newEntities = state.entities.filter(e => e.index !== targetIndex);
-          newEntityMap = { ...state.entityMap };
-          delete newEntityMap[targetIndex];
-        } else {
-          newScore += GAME_CONFIG.scoring.missPenalty;
-          newEnemyCombo = 0;
-        }
+      if (targetIndex !== -1 && state.entityMap[targetIndex]?.type === 'enemy') {
+        newEnemyCombo = Math.min(state.enemyCombo + 1, GAME_CONFIG.multipliers.maxCombo);
+        newScore += killValue(newEnemyCombo);
+        ({ entities: newEntities, entityMap: newEntityMap } = removeEntityAt(state, targetIndex));
       } else {
         newScore += GAME_CONFIG.scoring.missPenalty;
         newEnemyCombo = 0;
       }
 
-      newScore = Math.max(0, newScore);
-
       return {
         ...state,
         attack: state.attack - 1,
-        score: newScore,
+        score: Math.max(0, newScore),
         entities: newEntities,
         entityMap: newEntityMap,
         enemyCombo: newEnemyCombo,
+        lastPickup: null,
       };
     }
 
@@ -261,6 +288,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         isGameOver: false,
         enemyCombo: 0,
         deathCause: null,
+        lastPickup: null,
       };
     }
 

@@ -90,7 +90,12 @@ export function generateBoard(level: number, seed: number = Math.floor(Math.rand
     // 3. Coins
     placeEntities(diff.coins, 'coin');
 
-    // 4. Every coin must be reachable without crossing a lethal tile.
+    // 4. Optional extras (never lethal, so they don't affect solvability)
+    placeEntities(diff.traps, 'trap');
+    placeEntities(diff.shields, 'shield');
+    placeEntities(diff.ammoPickups, 'ammo');
+
+    // 5. Every coin must be reachable without crossing a lethal tile.
     const coinIndices = entities.filter(e => e.type === 'coin').map(e => e.index);
     const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy').map(e => e.index);
     if (validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols)) break;
