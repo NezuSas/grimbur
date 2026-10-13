@@ -14,7 +14,8 @@ export const LANGUAGES: readonly Language[] = ['en', 'es'];
 
 /** Resolves the preference to a concrete language; `auto` follows the device, falling back to English. */
 export function resolveLanguage(preference: LanguagePreference, deviceLanguageCode?: string | null): Language {
-  if (preference !== 'auto') return preference;
+  // A stored value that is not a known language (corrupted storage, a downgrade) behaves like `auto`.
+  if ((LANGUAGES as readonly string[]).includes(preference)) return preference as Language;
   const code = (deviceLanguageCode ?? '').toLowerCase().slice(0, 2);
   return (LANGUAGES as readonly string[]).includes(code) ? (code as Language) : 'en';
 }

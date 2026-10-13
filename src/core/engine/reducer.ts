@@ -55,6 +55,8 @@ const tryAbsorb = (shield: boolean, relics: RelicId[]) => {
   return { ok: false, shield, relics };
 };
 
+const nonEmpty = <T,>(items: T[]): T[] | null => (items.length > 0 ? items : null);
+
 const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
 
 /** The tile one step from `index` in `direction`, or -1 at the board edge. */
@@ -516,7 +518,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         seed: seed || state.seed,
         playerIndex: 0,
         visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0),
-        pendingDraft: draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus),
+        // With every relic maxed there is nothing to offer: no draft, rather than an empty one that blocks input.
+        pendingDraft: nonEmpty(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus)),
         turn: 0,
         isLevelUp: false,
         isGameOver: false,
