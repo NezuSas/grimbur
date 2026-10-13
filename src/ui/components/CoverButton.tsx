@@ -27,7 +27,7 @@ type Props = {
 const CoverButton: React.FC<Props> = memo(
   ({ label, onPress, disabled = false, fullWidth = false, variant = "primary", style, textStyle, testID }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
-    const { spacing, fontSize } = useGameLayout();
+    const { fontSize } = useGameLayout();
 
     const handlePressIn = () => {
       if (disabled) return;

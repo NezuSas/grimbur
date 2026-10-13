@@ -1,5 +1,5 @@
 import React, { memo, useRef, useEffect, useMemo } from "react";
-import { Image, PanResponder, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import { Image, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
@@ -11,16 +11,14 @@ type Props = {
   level: number;
   rows: number;
   cols: number;
-  entities: GameEntity[];
   entityMap: Record<number, GameEntity>;
   visited: number[];
   playerIndex: number;
   characterIndex: number;
   facingDir: "up" | "down" | "left" | "right" | "UP" | "DOWN" | "LEFT" | "RIGHT";
-  isGameOver?: boolean;
   isAttacking?: boolean;
-  /** Enemy count at last kill — passed from GameScreen to decouple shake from coin events */
-  lastKilledEnemyCount?: number;
+  /** Guardians still on the floor; the board shakes when this drops (a kill). */
+  guardianCount?: number;
   /** Tiles to outline (used by the tutorial). */
   highlight?: readonly number[];
   /** Called with the tile index when the player taps the board (used for tap-to-travel). */
@@ -48,11 +46,10 @@ const DIR_CHAR: Record<"up" | "right" | "down" | "left", string> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, rows, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted 
+  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted 
 }: {
   index: number;
   tileSize: number;
-  rows: number;
   cols: number;
   isVisited: boolean;
   isPlayerHere: boolean;
@@ -66,6 +63,8 @@ const GridCell = memo(({
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
   const pulseAnim = useRef(new Animated.Value(0)).current;
+  // The hint badge breathes between 85% and 100%: it must stay visible at every moment.
+  const hintScale = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] });
 
   // Background priority: visited block > fog
   let backgroundAsset = (isVisited || isPlayerHere) ? ASSETS.block : ASSETS.blockFog;
@@ -157,13 +156,13 @@ const GridCell = memo(({
       {showHints && (
         <View style={styles.hintContainer} pointerEvents="none">
           {roar && (
-            <Animated.View style={[styles.hintBadge, styles.hintRoar, { transform: [{ scale: pulseAnim }] }]}>
+            <Animated.View style={[styles.hintBadge, styles.hintRoar, { transform: [{ scale: hintScale }] }]}>
               <Ionicons name="volume-high" size={tileSize * 0.42} color="#bf360c" />
               {enemyCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#bf360c" }]}>{enemyCount}</Text>}
             </Animated.View>
           )}
           {vortex && (
-            <Animated.View style={[styles.hintBadge, styles.hintVortex, { transform: [{ scale: pulseAnim }] }]}>
+            <Animated.View style={[styles.hintBadge, styles.hintVortex, { transform: [{ scale: hintScale }] }]}>
               <Ionicons name="infinite" size={tileSize * 0.42} color="#fff" />
               {pitCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#fff" }]}>{pitCount}</Text>}
             </Animated.View>
@@ -210,7 +209,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight, onTilePress, onSwipe }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -219,7 +218,7 @@ const BoardView: React.FC<Props> = memo(
     // ── Animations ────────────────────────────────────────────────────────
     const playerPos  = useRef(new Animated.ValueXY({ x: colIndex * tileSize, y: rowIndex * tileSize })).current;
     const shakeAnim  = useRef(new Animated.Value(0)).current;
-    const shakeGuard = useRef<number | undefined>(lastKilledEnemyCount);
+    const shakeGuard = useRef<number | undefined>(guardianCount);
 
     // Player move animation
     const playerScale = useRef(new Animated.Value(1)).current;
@@ -250,15 +249,15 @@ const BoardView: React.FC<Props> = memo(
 
     // A new floor or a restart changes the guardian count without a kill: re-arm the guard silently.
     useEffect(() => {
-      shakeGuard.current = lastKilledEnemyCount;
+      shakeGuard.current = guardianCount;
     }, [level, rows, cols]);
 
     // Board Shake on kill
     useEffect(() => {
-      if (lastKilledEnemyCount === undefined) return;
+      if (guardianCount === undefined) return;
       const prev = shakeGuard.current;
-      shakeGuard.current = lastKilledEnemyCount;
-      if (prev === undefined || lastKilledEnemyCount >= prev) return;
+      shakeGuard.current = guardianCount;
+      if (prev === undefined || guardianCount >= prev) return;
 
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 3,  duration: 40, useNativeDriver: true }),
@@ -266,7 +265,7 @@ const BoardView: React.FC<Props> = memo(
         Animated.timing(shakeAnim, { toValue: 2,  duration: 30, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: 0,  duration: 30, useNativeDriver: true }),
       ]).start();
-    }, [lastKilledEnemyCount]);
+    }, [guardianCount]);
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
@@ -297,7 +296,6 @@ const BoardView: React.FC<Props> = memo(
                   key={`cell-L${level}-I${i}`} // Force full remount on Level Up to avoid stale grid alignments
                   index={i}
                   tileSize={tileSize}
-                  rows={rows}
                   cols={cols}
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}

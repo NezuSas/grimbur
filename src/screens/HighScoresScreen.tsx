@@ -110,12 +110,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             adjustsFontSizeToFit
             maxFontSizeMultiplier={1.2}
           >
-            {row.score.toLocaleString()}
+            {(Number(row.score) || 0).toLocaleString()}
           </Text>
         </View>
         <View style={[styles.cell, { flex: COLUMNS.gems }]}>
           <Text style={[styles.cellText, { fontSize: fontSize(15), color: "#00E5FF" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            💎 {row.coins || 0}
+            💎 {Number(row.coins) || 0}
           </Text>
         </View>
         <View style={[styles.cell, { flex: COLUMNS.time }]}>

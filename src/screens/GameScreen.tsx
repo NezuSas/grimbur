@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   StatusBar,
   Animated,
   AppState,
@@ -95,6 +94,14 @@ export default function GameScreen({ navigation, route }: Props) {
   const vortexFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
+  // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
+  // accessibilityViewIsModal).
+  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry;
+  const behindOverlay = {
+    importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
+    accessibilityElementsHidden: overlayOpen,
+  };
+  const [runNumber, setRunNumber] = useState(0);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = omenFor(state.runSeed, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
@@ -137,6 +144,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // ── Run bookkeeping ──────────────────────────────────────────────────────
   const startRun = useCallback(() => {
+    setRunNumber(n => n + 1); // replays the floor banner even when a daily restarts on the same seed
     reset(selectedCharacter, {
       heroIndex: characterIndex,
       ascension,
@@ -325,8 +333,15 @@ export default function GameScreen({ navigation, route }: Props) {
     navigation.popTo("CoverScreen");
   }, [navigation, recordCurrentRun]);
 
+  const relicPicked = useRef(false);
+  useEffect(() => {
+    relicPicked.current = false; // a new draft (or none) re-arms the guard
+  }, [state.pendingDraft]);
+
   const handlePickRelic = useCallback(
     (id: RelicId) => {
+      if (relicPicked.current) return; // a double tap must not play the sound or log the pick twice
+      relicPicked.current = true;
       emitSound("RELIC_PICKED");
       analytics.track("relic_picked", { relic: id, floor: stateRef.current.level });
       pickRelic(id);
@@ -369,7 +384,6 @@ export default function GameScreen({ navigation, route }: Props) {
         level: now.level,
         coins: floorStart.current.gems - now.coins,
         totalCoins: floorStart.current.gems,
-        sessionCoins: now.totalCoins,
         kills: Math.max(0, floorStart.current.enemies - enemiesLeft),
         totalEnemies: floorStart.current.enemies,
         time: sessionTimeRef.current,
@@ -465,6 +479,8 @@ export default function GameScreen({ navigation, route }: Props) {
     t("a11y.arrowsLeft", { count: state.attack }),
     state.shield ? t("a11y.shieldActive") : "",
     state.relics.length ? t("a11y.relics", { names: relicNames }) : "",
+    nearby.enemy ? t("a11y.nearGuardian") : "",
+    nearby.pit ? t("a11y.nearVortex") : "",
   ]
     .filter(Boolean)
     .join(". ");
@@ -483,7 +499,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
       <StatusBar hidden />
 
-      <View style={{ paddingTop: insets.top, zIndex: 10 }}>
+      <View style={{ paddingTop: insets.top, zIndex: 10 }} {...behindOverlay}>
         <ScoreBar
           score={state.score}
           coins={state.coins}
@@ -513,7 +529,7 @@ export default function GameScreen({ navigation, route }: Props) {
       <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
       {!runEnded && !levelUpWindow && !state.pendingDraft && (
         <FloorBanner
-          floorKey={`${state.runSeed}-${state.level}`}
+          floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
           title={state.level >= GAME_CONFIG.expedition.floors && state.mode !== "endless" ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={floorOmen ? omenText(t, floorOmen, "name") : undefined}
           omenRule={floorOmen ? omenText(t, floorOmen, "rule") : undefined}
@@ -522,6 +538,7 @@ export default function GameScreen({ navigation, route }: Props) {
       )}
 
       <View
+        {...behindOverlay}
         style={[
           styles.gameContent,
           {
@@ -539,15 +556,13 @@ export default function GameScreen({ navigation, route }: Props) {
             level={state.level}
             rows={state.rows}
             cols={state.cols}
-            entities={state.entities}
             entityMap={state.entityMap}
             playerIndex={state.playerIndex}
             visited={state.visited}
             facingDir={state.facingDir}
             characterIndex={characterIndex}
-            isGameOver={state.isGameOver}
             isAttacking={isAttacking}
-            lastKilledEnemyCount={countGuardians(state)}
+            guardianCount={countGuardians(state)}
             onTilePress={travelTo}
             onSwipe={swipeMove ? manualMove : undefined}
           />
