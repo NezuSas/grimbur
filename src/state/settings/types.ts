@@ -2,6 +2,8 @@ import type { LanguagePreference } from '../../i18n/translate';
 
 export type ControlPosition = 'left' | 'right';
 /** Where the attack button lives: on its own on the opposite side of the board, or in the middle of the pad. */
+/** Size of the on-screen controls. */
+export type ControlSize = 'small' | 'medium' | 'large';
 export type AttackButtonPlacement = 'side' | 'center';
 
 export interface SettingsState {
@@ -12,6 +14,7 @@ export interface SettingsState {
   reduceFlash: boolean;
   controlPosition: ControlPosition;
   attackButton: AttackButtonPlacement;
+  controlSize: ControlSize;
   /** Swipe on the board to move one step (the pad keeps working). */
   swipeMove: boolean;
   language: LanguagePreference;
@@ -21,6 +24,7 @@ export interface SettingsState {
   setHapticsEnabled: (enabled: boolean) => void;
   setReduceFlash: (enabled: boolean) => void;
   setControlPosition: (position: ControlPosition) => void;
+  setControlSize: (size: ControlSize) => void;
   setAttackButton: (placement: AttackButtonPlacement) => void;
   setSwipeMove: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;

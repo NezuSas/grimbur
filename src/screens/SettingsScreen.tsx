@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
-import type { AttackButtonPlacement, ControlPosition } from "../state/settings/types";
+import type { AttackButtonPlacement, ControlPosition, ControlSize } from "../state/settings/types";
 import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 
@@ -102,6 +102,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const language = useSettingsStore(s => s.language);
   const attackButton = useSettingsStore(s => s.attackButton);
+  const controlSize = useSettingsStore(s => s.controlSize);
+  const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const setAttackButton = useSettingsStore(s => s.setAttackButton);
   const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
@@ -116,6 +118,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlOptions: SegmentOption<ControlPosition>[] = [
     { value: "left", label: t("settings.left") },
     { value: "right", label: t("settings.right") },
+  ];
+  const sizeOptions: SegmentOption<ControlSize>[] = [
+    { value: "small", label: t("settings.sizeSmall") },
+    { value: "medium", label: t("settings.sizeMedium") },
+    { value: "large", label: t("settings.sizeLarge") },
   ];
   const attackOptions: SegmentOption<AttackButtonPlacement>[] = [
     { value: "side", label: t("settings.attackSide") },
@@ -188,6 +195,17 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 value={controlPosition}
                 onChange={setControlPosition}
                 accessibilityLabel={t("settings.controls")}
+              />
+            </SettingRow>
+
+            <View style={styles.separator} />
+
+            <SettingRow label={t("settings.controlSize")} icon="resize" stacked>
+              <Segmented
+                options={sizeOptions}
+                value={controlSize}
+                onChange={setControlSize}
+                accessibilityLabel={t("settings.controlSize")}
               />
             </SettingRow>
 
