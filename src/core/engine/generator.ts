@@ -3,6 +3,7 @@ import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { modifiersFor } from './ascension';
 import { OmenId, omenEffects } from './omens';
+import { isSolvableByDeduction } from './solver';
 import { GameEntity, EntityType } from './types';
 
 export interface BoardConfig {
@@ -71,7 +72,10 @@ export function generateBoard(
   const safeIndices = getSafeZoneIndices(diff.rows, diff.cols, spawnRow, spawnCol, safeRadius);
   const safeSet = new Set(safeIndices);
 
-  const MAX_ATTEMPTS = 10;
+  // Up to FAIR_ATTEMPTS boards are tried to find one a player can solve by deduction alone (no blind guess);
+  // after that, any board whose gems are reachable is accepted and the hazard budget is relaxed.
+  const FAIR_ATTEMPTS = 30;
+  const MAX_ATTEMPTS = FAIR_ATTEMPTS + 10;
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
   let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta);
   let pitBudget = Math.max(1, diff.pits + omen.pitDelta);
@@ -148,10 +152,11 @@ export function generateBoard(
         diff.rows,
         diff.cols,
       );
-    if (gemsReachable && bossReachable) break;
+    const fair = withBoss || attempt >= FAIR_ATTEMPTS || isSolvableByDeduction(diff.rows, diff.cols, entities, spawnIndex);
+    if (gemsReachable && bossReachable && fair) break;
 
     // Relax difficulty for the next attempt.
-    if (attempt >= 6) pitBudget = Math.max(1, pitBudget - 1);
+    if (attempt >= FAIR_ATTEMPTS + 6) pitBudget = Math.max(1, pitBudget - 1);
     if (attempt === MAX_ATTEMPTS - 2) {
       enemyBudget = 0;
       pitBudget = 0;

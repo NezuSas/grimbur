@@ -4,7 +4,7 @@
  */
 export function getDifficulty(level: number) {
   // Gentle early floors, a steeper climb later: enemies ~ 2, 3, 4, 6, 8, 10, 12 at floors 1, 3, 4, 5, 7, 8, 9.
-  const enemies = Math.min(12, 2 + Math.floor((level * level) / 12 + level * 0.4));
+  const enemies = Math.min(14, 2 + Math.floor((level * level) / 12 + level * 0.4) + (level >= 4 ? 1 : 0) + (level >= 7 ? 1 : 0));
   return {
     // Grid starts small (8x5) and grows gradually per level
     rows: Math.min(10, 5 + Math.floor(level / 3)),
@@ -13,7 +13,7 @@ export function getDifficulty(level: number) {
     coins: Math.min(8, 3 + Math.floor(level / 3)),
     // Hazards scale slowly (and cap) to prevent overcrowding
     enemies,
-    pits: Math.min(10, 2 + Math.floor(level * 0.8)),
+    pits: Math.min(11, 2 + Math.floor(level * 0.8) + (level >= 5 ? 1 : 0)),
     // Roaming stalkers are late-game spice (they break static Minesweeper deduction): one from floor 7, two from floor 11 (endless)
     stalkers: level >= 7 ? Math.min(2, 1 + Math.floor((level - 7) / 4)) : 0,
     // Hidden traps appear from level 3 and cap at 4
