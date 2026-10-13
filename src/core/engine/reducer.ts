@@ -1,4 +1,4 @@
-import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, Direction } from './types';
+import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinReward, killValue, levelClearBonus } from './scoring';
@@ -115,29 +115,56 @@ const pickTeleportDestination = (
 };
 
 /**
- * One Wumpus action: it steps toward the player; when already adjacent it first winds up
- * (`charge`), and only strikes on its following action. Returns whether it struck.
+ * One action of a hunter (the Wumpus or a stalker): it steps toward the player; when already
+ * adjacent it first winds up (`charge`) and only strikes on its following action.
  */
-const bossAct = (
+const hunterAct = (
   world: World,
+  hunterIndex: number,
   playerIndex: number,
   rows: number,
   cols: number,
 ): { world: World; hit: boolean } => {
-  const boss = world.entities.find(e => e.type === 'boss');
-  if (!boss) return { world, hit: false };
+  const hunter = world.entityMap[hunterIndex];
+  if (!hunter) return { world, hit: false };
 
-  const step = bossStep(boss.index, playerIndex, rows, cols, world.entityMap);
+  const step = bossStep(hunter.index, playerIndex, rows, cols, world.entityMap);
   if (step.kind === 'move') {
-    return { world: replaceEntityAt(world, boss.index, { ...boss, index: step.to, charge: 0 }), hit: false };
+    return { world: replaceEntityAt(world, hunter.index, { ...hunter, index: step.to, charge: 0 }), hit: false };
   }
   if (step.kind === 'attack') {
-    if ((boss.charge ?? 0) >= 1) {
-      return { world: replaceEntityAt(world, boss.index, { ...boss, charge: 0 }), hit: true };
+    if ((hunter.charge ?? 0) >= 1) {
+      return { world: replaceEntityAt(world, hunter.index, { ...hunter, charge: 0 }), hit: true };
     }
-    return { world: replaceEntityAt(world, boss.index, { ...boss, charge: 1 }), hit: false };
+    return { world: replaceEntityAt(world, hunter.index, { ...hunter, charge: 1 }), hit: false };
   }
   return { world, hit: false };
+};
+
+/**
+ * Lets every hunter that is due on `turn` act. Returns the types of the hunters that struck
+ * (each one has to be absorbed or kills the player).
+ */
+const huntersAct = (
+  world: World,
+  playerIndex: number,
+  rows: number,
+  cols: number,
+  turn: number,
+  slowdown: number,
+): { world: World; hits: EntityType[] } => {
+  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type }));
+  const hits: EntityType[] = [];
+  let current = world;
+
+  for (const hunter of hunters) {
+    const every = (hunter.type === 'boss' ? GAME_CONFIG.boss.moveEvery : GAME_CONFIG.stalker.moveEvery) + slowdown;
+    if (turn % every !== 0) continue;
+    const acted = hunterAct(current, hunter.index, playerIndex, rows, cols);
+    current = acted.world;
+    if (acted.hit) hits.push(hunter.type);
+  }
+  return { world: current, hits };
 };
 
 /**
@@ -261,12 +288,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       switch (entityAtPoint?.type) {
         case 'enemy':
+        case 'stalker':
           if (absorbHit()) {
             // The shield (or feather) breaks and takes the guardian with it.
             consumeEntity();
           } else {
             newIsGameOver = true;
-            newDeathCause = 'enemy';
+            newDeathCause = entityAtPoint.type;
           }
           break;
 
@@ -330,12 +358,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // The Wumpus hunts: every Nth move it steps toward the player.
       const newTurn = state.turn + 1;
-      if (!newIsGameOver && hasBoss(world) && newTurn % (GAME_CONFIG.boss.moveEvery + has('frost')) === 0) {
-        const acted = bossAct(world, nextIndex, rows, cols);
+      if (!newIsGameOver) {
+        const acted = huntersAct(world, nextIndex, rows, cols, newTurn, has('frost'));
         world = acted.world;
-        if (acted.hit && !absorbHit()) {
-          newIsGameOver = true;
-          newDeathCause = 'boss';
+        for (const hitter of acted.hits) {
+          if (!absorbHit()) {
+            newIsGameOver = true;
+            newDeathCause = hitter;
+            break;
+          }
         }
       }
 
@@ -382,7 +413,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         cursor = neighbour(cursor, state.facingDir, rows, cols);
         if (cursor === -1) break;
         const type = state.entityMap[cursor]?.type;
-        if (type === 'enemy' || type === 'boss') {
+        if (type === 'enemy' || type === 'boss' || type === 'stalker') {
           targetIndex = cursor;
           break;
         }
@@ -411,7 +442,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           }
         }
         newEnemyCombo = 0;
-      } else if (target?.type === 'enemy') {
+      } else if (target?.type === 'enemy' || target?.type === 'stalker') {
         newEnemyCombo = Math.min(
           state.enemyCombo + 1,
           GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'),
@@ -430,17 +461,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newDeathCause: GameState['deathCause'] = null;
       const newTurn = state.turn + 1;
 
-      if (!newIsLevelUp && hasBoss(world) && newTurn % (GAME_CONFIG.boss.moveEvery + relicCount(state.relics, 'frost')) === 0) {
-        const acted = bossAct(world, state.playerIndex, rows, cols);
+      if (!newIsLevelUp) {
+        const acted = huntersAct(world, state.playerIndex, rows, cols, newTurn, relicCount(state.relics, 'frost'));
         world = acted.world;
-        if (acted.hit) {
+        for (const hitter of acted.hits) {
           const absorbed = tryAbsorb(newShield, newRelics);
           if (absorbed.ok) {
             newShield = absorbed.shield;
             newRelics = absorbed.relics;
           } else {
             newIsGameOver = true;
-            newDeathCause = 'boss';
+            newDeathCause = hitter;
+            break;
           }
         }
       }

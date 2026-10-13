@@ -5,10 +5,13 @@ import { RelicId } from './relics';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker';
 
 /** Entities that kill the player on contact. */
-export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss'];
+export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker'];
+
+/** Monsters that walk toward the player (they wind up before striking). */
+export const HUNTER_TYPES: readonly EntityType[] = ['boss', 'stalker'];
 
 /** What the player ran into on the last move (UI feedback only). */
 export type PickupKind = 'shield' | 'ammo' | 'trap';

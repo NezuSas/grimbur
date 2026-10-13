@@ -14,6 +14,8 @@ export function getDifficulty(level: number) {
     // Hazards scale slowly (and cap) to prevent overcrowding
     enemies,
     pits: Math.min(10, 2 + Math.floor(level * 0.8)),
+    // Roaming stalkers are late-game spice (they break static Minesweeper deduction): one from floor 7, two from floor 11 (endless)
+    stalkers: level >= 7 ? Math.min(2, 1 + Math.floor((level - 7) / 4)) : 0,
     // Hidden traps appear from level 3 and cap at 4
     traps: level >= 3 ? Math.min(4, Math.floor((level - 1) / 2)) : 0,
     // One shield from level 2 on; one more every 8 levels (max 3)

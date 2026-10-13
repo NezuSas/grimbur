@@ -42,6 +42,13 @@ export const GAME_CONFIG = {
     minSpawnDistance: 6,
   },
 
+  /** Roaming hunters that appear from `minFloor` on. */
+  stalker: {
+    /** A stalker steps toward the player after every Nth player action. */
+    moveEvery: 4,
+    minFloor: 7,
+  },
+
   pickups: {
     /** Arrows granted by an ammo pickup. */
     ammoAmount: 2,

@@ -63,7 +63,7 @@ export const en = {
   'relic.greed.name': 'Dragon hoard',
   'relic.greed.desc': 'Clearing a floor pays 50% more.',
   'relic.frost.name': 'Frost charm',
-  'relic.frost.desc': 'The Wumpus acts more slowly.',
+  'relic.frost.desc': 'The Wumpus and the stalkers act more slowly.',
   'relic.trap_sense.name': 'Trap sense',
   'relic.trap_sense.desc': 'Traps are disarmed without penalty.',
   'relic.kicker': 'Floor {floor} cleared',
@@ -130,6 +130,7 @@ export const en = {
   'over.share': 'Share result',
   'over.cause.enemy': 'Slain by a guardian',
   'over.cause.boss': 'Slain by the Wumpus',
+  'over.cause.stalker': 'Caught by a stalker',
   'over.cause.pit': 'Lost in a vortex',
 
   'pause.title': 'Paused',
@@ -228,6 +229,10 @@ export const en = {
   'manual.hazards.clues.label': 'Clues',
   'manual.hazards.clues.detail':
     'A revealed tile shows a sound icon when a guardian is right next to it and an infinity icon for a vortex. A number appears when two or more of the same kind are adjacent.',
+  'manual.hazards.stalker.label': 'Stalkers',
+  'manual.hazards.stalker.detail':
+    'From floor {stalkerFloor}, some guardians roam: every {stalkerMoves} actions a stalker steps toward you, and the clue icons around you change as it moves. Like the Wumpus it glows for one action before it strikes. One arrow kills it.',
+  'manual.hazards.stalker.badge': 'Roams',
   'manual.hazards.vortexInfo.label': 'Vortex',
   'manual.hazards.vortexInfo.detail':
     'Stepping into a vortex does not kill you: it teleports you to a safe, preferably unexplored tile. Use it to skip dangerous ground, but it can drop you far from the gems.',

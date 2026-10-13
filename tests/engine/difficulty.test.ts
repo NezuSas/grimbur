@@ -17,7 +17,7 @@ describe('getDifficulty', () => {
     for (let level = 1; level <= 300; level++) {
       const d = getDifficulty(level);
       const freeCells = d.rows * d.cols - 13; // safe radius 2 covers at most 13 cells
-      const placed = d.enemies + d.pits + d.coins + d.traps + d.shields + d.ammoPickups;
+      const placed = d.enemies + d.stalkers + d.pits + d.coins + d.traps + d.shields + d.ammoPickups;
       expect(placed).toBeLessThan(freeCells * 0.5);
     }
   });

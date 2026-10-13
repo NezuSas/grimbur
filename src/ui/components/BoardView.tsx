@@ -108,10 +108,17 @@ const GridCell = memo(({
       )}
 
       {/* Pit / Enemy revealed when visited */}
-      {entity && (entity.type === 'pit' || entity.type === 'enemy') && (isVisited || isPlayerHere) && (
+      {entity?.type === 'stalker' && (isVisited || isPlayerHere) && (
+        <View
+          style={[styles.stalkerAura, { width: tileSize, height: tileSize }, (entity.charge ?? 0) >= 1 && styles.stalkerCharged]}
+          pointerEvents="none"
+        />
+      )}
+
+      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker') && (isVisited || isPlayerHere) && (
         <Image
           style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
-          source={entity.type === 'enemy' ? ASSETS.enemy : ASSETS.pit}
+          source={entity.type === 'pit' ? ASSETS.pit : ASSETS.enemy}
           resizeMode="contain"
         />
       )}
@@ -339,6 +346,8 @@ const styles = StyleSheet.create({
   },
   cell: { alignItems: "center", justifyContent: "center" },
   bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
+  stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
   highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD700", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },

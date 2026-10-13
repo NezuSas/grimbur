@@ -116,3 +116,9 @@ The first expedition starts with a guided mini-floor (gem, clue, shooting a guar
 
 ## 13. Languages and accessibility
 English and Spanish (follows the phone language; override in Settings). Settings also include vibration and *reduce flashes*. All controls have labels, touch targets are at least 46 dp and text never scales below 11 sp or above the caps set on the HUD and buttons.
+
+## 14. Stalkers
+From floor 7 one guardian per floor is a **stalker** (two from floor 11 in endless mode). It looks like a guardian with a violet glow but it walks: after every 4th action it steps toward the player (only onto empty tiles); when it is next to you it winds up for one of its own actions (brighter glow) and then strikes. One arrow kills it (it pays like a guardian), a shield or feather absorbs its strike, and the Frost Charm slows it. Because it moves, the clue icons around you change as it approaches, which is the signal to turn and shoot or walk away.
+
+Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. The balance simulation shows the deduction bot clearing about 65% of floors 7-9 (about 87-95% on floors 5-6 where there are none).
+

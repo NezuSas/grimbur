@@ -94,9 +94,45 @@ function pathTo(state: GameState, marks: Map<number, Mark>, target: number): num
   return path.reverse();
 }
 
-/** Picks the next tile to step onto, and whether that is a guess. */
-function choose(state: GameState): { next: number; guess: boolean } | null {
+type Choice = { next: number; guess: boolean } | { attack: true } | null;
+
+const manhattan = (a: number, b: number, cols: number) =>
+  Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));
+
+/**
+ * What a reasonable player does about roaming stalkers (who are visible to a player through the
+ * changing clues): shoot one that is right in front of you, step away from one next to you.
+ */
+function dealWithStalkers(state: GameState, marks: Map<number, Mark>): Choice | undefined {
+  const { rows, cols, playerIndex } = state;
+  const stalkers = state.entities.filter(e => e.type === 'stalker').map(e => e.index);
+  const adjacent = stalkers.filter(s => manhattan(s, playerIndex, cols) === 1);
+  if (adjacent.length === 0) return undefined;
+
+  const facing = adjacent.find(s => dirBetween(playerIndex, s, cols) === state.facingDir);
+  if (facing !== undefined && state.attack > 0) return { attack: true };
+
+  // Step to the neighbouring tile (explored or known safe) that is farthest from every stalker.
+  const visited = new Set(state.visited);
+  let best = -1;
+  let bestScore = -1;
+  for (const n of neighbours(playerIndex, rows, cols)) {
+    if (stalkers.includes(n) || marks.get(n) === 'danger') continue;
+    if (!visited.has(n) && marks.get(n) !== 'safe') continue;
+    const score = Math.min(...stalkers.map(s => manhattan(s, n, cols)));
+    if (score > bestScore) {
+      bestScore = score;
+      best = n;
+    }
+  }
+  return best === -1 ? undefined : { next: best, guess: false };
+}
+
+/** Picks the next action: a tile to step onto (and whether that is a guess), or a shot. */
+function choose(state: GameState): Choice {
   const marks = deduce(state);
+  const reaction = dealWithStalkers(state, marks);
+  if (reaction) return reaction;
   const visited = new Set(state.visited);
 
   const targets: number[] = [];
@@ -181,6 +217,13 @@ function playFloor(floor: number, seed: number): { cleared: boolean; died: boole
 
     const choice = choose(state);
     if (!choice) return { cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves };
+
+    if ('attack' in choice) {
+      state = gameReducer(state, { type: 'ATTACK' });
+      moves++;
+      lastWasGuess = false;
+      continue;
+    }
 
     if (choice.guess) guesses++;
     lastWasGuess = choice.guess;

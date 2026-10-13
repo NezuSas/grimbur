@@ -66,6 +66,7 @@ const SECTIONS: Section[] = [
     visual: "hazards",
     rows: [
       { key: "manual.hazards.clues" },
+      { key: "manual.hazards.stalker", badgeColor: "#ba68c8" },
       { key: "manual.hazards.vortexInfo", badgeColor: "#ce93d8" },
     ],
   },
@@ -112,6 +113,8 @@ const PARAMS: Params = {
   combo: GAME_CONFIG.multipliers.maxCombo,
   ammo: GAME_CONFIG.pickups.ammoAmount,
   trap: Math.abs(GAME_CONFIG.scoring.trapPenalty),
+  stalkerFloor: GAME_CONFIG.stalker.minFloor,
+  stalkerMoves: GAME_CONFIG.stalker.moveEvery,
 };
 
 const SectionHeader = ({

@@ -62,12 +62,12 @@ const GameOverOverlay = ({
   // Short landscape windows get a two-column card so it never outgrows the screen.
   const compact = height < 460;
   const accent = victory ? '#FFD700' : '#FF3B30';
-  const killer = deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'pit';
+  const killer = deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'stalker' || deathCause === 'pit';
   const imageSize = compact ? 56 : killer ? 84 : 72;
 
   const image = victory
     ? character.winImage
-    : deathCause === 'enemy' || deathCause === 'boss'
+    : deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'stalker'
     ? require('../../../assets/sprites/enemies/Guardian_Enemy.png')
     : deathCause === 'pit'
     ? require('../../../assets/sprites/tiles/Danger_Vortex.png')

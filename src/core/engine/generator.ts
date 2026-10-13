@@ -111,6 +111,9 @@ export function generateBoard(
       return neighborCount < 2;
     });
 
+    // 1b. Stalkers (roaming guardians)
+    placeEntities(diff.stalkers, 'stalker');
+
     // 2. Pits
     placeEntities(pitBudget, 'pit');
 
@@ -124,7 +127,7 @@ export function generateBoard(
 
     // 5. Every coin must be reachable without crossing a lethal tile.
     const coinIndices = entities.filter(e => e.type === 'coin').map(e => e.index);
-    const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy').map(e => e.index);
+    const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy' || e.type === 'stalker').map(e => e.index);
     const gemsReachable = validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols);
     // On the lair floor the Wumpus must be reachable too (guardians in the way can be shot, vortexes cannot).
     const bossEntity = entities.find(e => e.type === 'boss');
