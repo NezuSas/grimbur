@@ -29,7 +29,7 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 | Daily habit | Daily challenge + streak (done), daily-only relic seed | 1 (done) |
 | Juice | Screen shake, hit-stop, haptics, particle bursts, better audio | 3 |
 | Onboarding | Playable tutorial in floor 1, ES/PT localisation | 3 |
-| Readability / fairness | No-guess generation where possible, exact counts, colour-blind icons | 3 |
+| Readability / fairness | Boards solvable by deduction alone (done), exact counts, danger flags (done), colour-blind icons | 3 |
 
 ## Heroes (perks are engine flags, see `core/engine/heroes.ts`)
 

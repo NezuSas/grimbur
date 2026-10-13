@@ -39,7 +39,7 @@ Visited tiles show a rune when a guardian (🔊) or vortex (∞) is orthogonally
 
 ## 4. Combat Logic
 Players are equipped with arrows to defend themselves.
-- **Attack**: Firing an arrow consumes 1 attack charge and travels exactly 1 tile in the **Facing Direction**.
+- **Attack**: Firing an arrow consumes 1 attack charge. It flies up to 1 tile in the **Facing Direction** and hits the first hostile tile it meets; the Scarlet Knight (piercing arrows) and the Long Bow relic add reach (see sections 10 and 11).
 - **Hit**: Killing an enemy awards high points and increases the **Enemy Combo**.
 - **Miss**: Firing into an empty tile or a wall results in a **-25 point** penalty and resets the combo to zero.
 
@@ -80,8 +80,8 @@ called floors). **Floor 10 is the Wumpus lair**:
 - No gems. Killing the Wumpus clears the floor and wins the expedition (victory screen, +2,000 points).
 - The Wumpus has 3 hearts; each arrow removes one (+150 points per hit).
 - It hunts: after every 2nd player action (a move **or a shot**) it steps one tile toward the player, only onto empty tiles.
-- It needs a **wind-up**: when it reaches you it glows for one action before it can strike, which leaves a bare hero three shots at an adjacent Wumpus. If you move away it loses the charge and has to close in again.
-- Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives.
+- It needs a **wind-up**: when it reaches you it glows on its next action, and only on the action after that can it strike (about four player actions from arrival to strike), which leaves a bare hero three shots at an adjacent Wumpus. If you move away it loses the charge and has to close in again.
+- Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives. **A hit that was just absorbed stuns every hunter for that action**, so one move never costs both a shield and a second strike.
 - It counts as a guardian in the proximity clues, so the roar warns you as it closes in.
 
 ## 10. Heroes
@@ -118,9 +118,11 @@ The first expedition starts with a guided mini-floor (gem, clue, shooting a guar
 English and Spanish (follows the phone language; override in Settings). Settings also include vibration and *reduce flashes*. All controls have labels, touch targets are at least 46 dp and text never scales below 11 sp or above the caps set on the HUD and buttons.
 
 ## 14. Stalkers
-From floor 7 one guardian per floor is a **stalker** (two from floor 11 in endless mode). It looks like a guardian with a violet glow but it walks: after every 4th action it steps toward the player (only onto empty tiles); when it is next to you it winds up for one of its own actions (brighter glow) and then strikes. One arrow kills it (it pays like a guardian), a shield or feather absorbs its strike, and the Frost Charm slows it. Because it moves, the clue icons around you change as it approaches, which is the signal to turn and shoot or walk away.
+From floor 7 one extra roaming guardian per floor is a **stalker** (two from floor 11 in endless mode). It looks like a guardian with a violet glow but it walks: after every 4th action it steps toward the player (only onto empty tiles); when it is next to you it winds up for one of its own actions (brighter glow) and then strikes. One arrow kills it (it pays like a guardian), a shield or feather absorbs its strike, and the Frost Charm slows it. Because it moves, the clue icons around you change as it approaches, which is the signal to turn and shoot or walk away.
 
-Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. The balance simulation shows the deduction bot clearing about 65% of floors 7-9 (about 87-95% on floors 5-6 where there are none).
+Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. Boards are generated as if stalkers were absent (see section 18), so the deduction bot clears 100% of floors 1-6 and about 70-80% of floors 7-10, where stalkers and the Wumpus are the only unavoidable risk.
+
+Whenever the floor is cleared on the same move a hunter was due to strike, the clear wins and nothing strikes.
 
 ## 15. Depth (ascension)
 After winning an expedition the next **depth** unlocks (1 to 5). On the hero screen the player picks any unlocked depth (it defaults to the deepest). Each depth keeps the earlier penalties:
@@ -144,6 +146,25 @@ Every finished run earns **embers**, win or lose: `floor(score / 250) + 4 x floo
 | Coin purse | 3 (40, 90, 160) | Gems worth +10% per level |
 | Scribe | 1 (250) | Relic drafts offer 1 extra choice |
 | Ward | 1 (80) | Start every run with a shield |
+| Phoenix start | 1 (300) | Begin every run holding a Phoenix Feather |
+| Fortune | 2 (120, 240) | Every run earns +15% embers per level |
 
 Forge upgrades never apply to the Daily Challenge (same cave, same tools for everyone). Embers earned appear on the end-of-run card.
 
+## 17. Omens
+From floor 2 (never the lair) a floor may announce an **omen** in the banner shown as it starts. Chosen only from the run seed and the floor, so a daily challenge has the same omens for everyone: about 40% plain floors, 25% Bounty, 20% Calm, 15% Arsenal.
+
+| Omen | Effect |
+| :--- | :--- |
+| Bounty | Gems are worth 50% more, one more guardian |
+| Calm | One guardian and one vortex fewer (never fewer than one of each) |
+| Arsenal | +2 arrows, one more vortex |
+
+## 18. Fair boards
+Floors are generated until a careful player can collect every gem using only the clue numbers, never gambling on an unknown tile (`core/engine/solver.ts`, up to 30 tries per floor; boards that need a guess are accepted only if every try fails, which has not happened in 54,000 generated boards). Gems and power-ups are visible and count as known safe; stalkers are ignored by the check because they move. This is what lets the difficulty curve use dense hazards (about 23-25% of tiles from floor 5) without feeling unfair.
+
+## 19. Controls and aids
+- **Direction pad** (one step per tap) is the reference control. On windows at least 720 dp wide and landscape, the **attack button sits alone on the opposite side** of the board (Settings: opposite side / in the pad). Narrow windows keep it in the middle of the pad.
+- **Tap to travel**: tapping an explored, empty tile walks there along explored tiles only. It stops when a gem, pickup, shield or arrow count changes, when a wind-up appears, when something occupies the next tile, when a visible hunter is within 3 tiles, on a teleport, and on any control touch.
+- **Swipe to move** (Settings, off by default): a swipe of at least 28 dp (or 60% of a tile) moves one step, acting on release. Short drags and diagonal smears do nothing.
+- **Danger flags**: holding a finger on an unexplored tile marks it as dangerous. A marked tile cannot be stepped on (the pad warns with a vibration) until the mark is removed. Marks are cosmetic memory aids and are cleared on each floor.
