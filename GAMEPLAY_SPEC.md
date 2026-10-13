@@ -175,4 +175,6 @@ Floors are generated until a careful player can collect every gem using only the
 - **Start of a run**: an opaque "preparing the cave" cover stays up until the first board's tiles have been drawn (or 2.5 s), then fades out; the floor banner starts after it.
 - **No swipe-back**: the stack's edge-swipe back gesture is disabled on the game, tutorial and floor-complete screens, so a finger sliding across the board cannot abandon the run. The system Back gesture pauses the game.
 - **Hero select**: all four cards share one centred row when they fit (about 190 dp each); otherwise they scroll. Cards are as tall as the free area, with text sized to the card, and a compact card is used on short windows.
+- **Death**: the moment the hero dies the board shakes hard and the screen flashes red (softer with *reduce flashes*), the killer stays visible on its tile, and 0.85 s later the card appears (0.7 s after a victory).
+- **Game-over card**: names what killed you (with its picture), says on which floor you fell, shows a ten-pip progress bar, the score counting up, a new-best or near-miss line, gems, time and embers earned, one tip about that killer, a large Retry button, and Menu / Forge (when embers were earned) / Share below it.
 

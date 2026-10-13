@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import type { Character } from '../../../data/characters';
 import type { EntityType } from '../../../core/engine/types';
@@ -8,13 +9,16 @@ import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
 import { achievementText, heroText } from '../../../i18n/keys';
+import type { TranslationKey } from '../../../i18n/en';
 import type { AchievementId } from '../../../core/stats/achievements';
-import SpriteImage from "../SpriteImage";
+import SpriteImage from '../SpriteImage';
 
 type Props = {
   visible: boolean;
   score: number;
   level: number;
+  /** Floors of the expedition (the progress bar shows how far the run got). */
+  floors?: number;
   totalCoins: number;
   time: number;
   character: Character;
@@ -36,14 +40,43 @@ type Props = {
   /** Gems still on the floor when the run ended (for the near-miss line). */
   gemsLeft?: number;
   onShare?: () => void;
+  /** Opens the Forge (shown when the run earned embers). */
+  onForge?: () => void;
   onRetry: () => void;
   onMainMenu: () => void;
 };
+
+const KILLERS: Partial<Record<EntityType, number>> = {
+  enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
+  stalker: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
+  boss: require('../../../assets/sprites/enemies/Wumpus_Boss.png'),
+  pit: require('../../../assets/sprites/tiles/Danger_Vortex.png'),
+};
+
+/** Counts a number up to its value (a small reward moment for the score). */
+function useCountUp(target: number, active: boolean, durationMs = 900): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) {
+      setValue(0);
+      return;
+    }
+    const anim = new Animated.Value(0);
+    const id = anim.addListener(({ value: v }) => setValue(Math.round(v)));
+    Animated.timing(anim, { toValue: target, duration: durationMs, useNativeDriver: false }).start(() => setValue(target));
+    return () => {
+      anim.removeListener(id);
+      anim.stopAnimation();
+    };
+  }, [target, active, durationMs]);
+  return value;
+}
 
 const GameOverOverlay = ({
   visible,
   score,
   level,
+  floors = 10,
   totalCoins,
   time,
   character,
@@ -59,183 +92,172 @@ const GameOverOverlay = ({
   embers,
   gemsLeft,
   onShare,
+  onForge,
   onRetry,
   onMainMenu,
 }: Props) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
-  const cardAnim = useRef(new Animated.Value(0.85)).current;
+  const cardAnim = useRef(new Animated.Value(0.9)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  const shownScore = useCountUp(score, visible);
 
   useEffect(() => {
-    if (visible) Animated.spring(cardAnim, { toValue: 1, friction: 6, useNativeDriver: true }).start();
-    else cardAnim.setValue(0.85);
+    if (visible) {
+      Animated.parallel([
+        Animated.spring(cardAnim, { toValue: 1, friction: 7, useNativeDriver: true }),
+        Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }),
+      ]).start();
+    } else {
+      cardAnim.setValue(0.9);
+      fade.setValue(0);
+    }
   }, [visible]);
 
   if (!visible) return null;
 
-  // Short landscape windows get a two-column card so it never outgrows the screen.
+  const wide = width >= 560;
   const compact = height < 460;
-  const accent = victory ? '#FFD700' : '#FF3B30';
-  const killer = deathCause === 'enemy' || deathCause === 'boss' || deathCause === 'stalker' || deathCause === 'pit';
-  const imageSize = compact ? 56 : killer ? 84 : 72;
+  const accent = victory ? '#FFD54F' : '#FF5252';
+  const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
+  const heroSprite = victory ? character.winImage : (character.loseImage ?? character.scoreImage);
+  const sprite = killerSprite ?? heroSprite;
+  const spriteSize = compact ? 104 : 150;
+  const cardWidth = Math.min(width * 0.96, wide ? 820 : 400);
 
-  const image = victory
-    ? character.winImage
-    : deathCause === 'boss'
-    ? require('../../../assets/sprites/enemies/Wumpus_Boss.png')
-    : deathCause === 'enemy' || deathCause === 'stalker'
-    ? require('../../../assets/sprites/enemies/Guardian_Enemy.png')
-    : deathCause === 'pit'
-    ? require('../../../assets/sprites/tiles/Danger_Vortex.png')
-    : character.loseImage ?? character.scoreImage;
+  const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
+  const tip = !victory && deathCause ? t(`over.tip.${deathCause}` as TranslationKey) : null;
 
-  const causeText = !victory && killer ? t(`over.cause.${deathCause}` as 'over.cause.enemy') : null;
+  const title = victory ? t('over.victory') : t('over.fell', { floor: level });
+  const nearGems = !victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2;
+  const nearBest = !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
   const stats = [
-    { label: t('over.floor'), value: String(level), color: '#fff' },
-    { label: t('over.score'), value: score.toLocaleString(), color: '#FFD700' },
-    { label: t('over.gems'), value: String(totalCoins), color: '#FFD700' },
-    { label: t('over.time'), value: formatTime(time), color: '#00BFFF' },
+    { icon: 'diamond' as const, label: t('over.gems'), value: String(totalCoins), color: '#4FC3F7' },
+    { icon: 'time' as const, label: t('over.time'), value: formatTime(time), color: '#B39DDB' },
   ];
 
-  const bestText = dailyLabel
-    ? t('over.bestToday', { score: (bestScore ?? 0).toLocaleString() })
-    : t('over.best', { score: (bestScore ?? 0).toLocaleString() });
-
-  const header = (
-    <View style={styles.headerColumn}>
-      <SpriteImage source={image} style={{ width: imageSize, height: imageSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
-      <Text
-        style={[styles.title, { color: accent }]}
-        accessibilityRole="header"
-        maxFontSizeMultiplier={1.3}
-        numberOfLines={2}
-        adjustsFontSizeToFit
-      >
-        {(victory ? t('over.victory') : t('over.defeat')).toLocaleUpperCase()}
-      </Text>
-      {causeText && (
-        <Text style={styles.cause} maxFontSizeMultiplier={1.3}>
-          {causeText}
+  const left = (
+    <View style={[styles.left, wide && { width: '38%' }]}>
+      <View style={[styles.spriteRing, { borderColor: accent, width: spriteSize + 24, height: spriteSize + 24, borderRadius: (spriteSize + 24) / 2 }]}>
+        <SpriteImage source={sprite} style={{ width: spriteSize, height: spriteSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      </View>
+      {killerName && (
+        <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          {killerName.toLocaleUpperCase()}
         </Text>
       )}
       {depth > 0 && (
-        <Text style={styles.depth} maxFontSizeMultiplier={1.3}>
+        <Text style={styles.depth} maxFontSizeMultiplier={1.2}>
           🔥 {t('over.depth', { n: depth }).toLocaleUpperCase()}
         </Text>
       )}
       {dailyLabel && (
-        <Text style={styles.daily} maxFontSizeMultiplier={1.3}>
+        <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
           📅 {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
           {streak ? `  ·  🔥 ${plural('over.streak', streak)}` : ''}
-        </Text>
-      )}
-      {isNewBest ? (
-        <Text style={styles.newBest} maxFontSizeMultiplier={1.3}>
-          🏅 {(dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
-        </Text>
-      ) : bestScore ? (
-        <Text style={styles.best} maxFontSizeMultiplier={1.3}>
-          {bestText.toLocaleUpperCase()}
-        </Text>
-      ) : null}
-      {!victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2 ? (
-        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.3}>
-          {plural('over.gemsLeft', gemsLeft, { floor: level })}
-        </Text>
-      ) : null}
-      {!victory && !isNewBest && bestScore && score >= bestScore * 0.75 && score < bestScore ? (
-        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.3}>
-          {t('over.shortOfBest', { points: bestScore - score })}
-        </Text>
-      ) : null}
-      {embers && embers > 0 ? (
-        <Text style={styles.embers} maxFontSizeMultiplier={1.3}>
-          🔥 {plural('over.embers', embers).toLocaleUpperCase()}
-        </Text>
-      ) : null}
-      {achievements && achievements.length > 0 && (
-        <Text style={styles.achievement} maxFontSizeMultiplier={1.3}>
-          🏆{' '}
-          {plural('over.achievements', achievements.length, {
-            names: achievements.map(id => achievementText(t, id as AchievementId, 'name')).join(', '),
-          }).toLocaleUpperCase()}
-        </Text>
-      )}
-      {unlockedHeroes && unlockedHeroes.length > 0 && (
-        <Text style={styles.unlocked} maxFontSizeMultiplier={1.3}>
-          🔓{' '}
-          {plural('over.unlocked', unlockedHeroes.length, {
-            names: unlockedHeroes.map(i => heroText(t, i, 'name')).join(', '),
-          }).toLocaleUpperCase()}
         </Text>
       )}
     </View>
   );
 
-  const body = (
-    <View style={styles.bodyColumn}>
-      <View style={styles.statsGrid}>
+  const right = (
+    <View style={styles.right}>
+      <Text style={[styles.title, { color: accent }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+        {title.toLocaleUpperCase()}
+      </Text>
+
+      {/* How far the run got: one pip per floor */}
+      <View style={styles.pips} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
+        {Array.from({ length: floors }, (_, i) => (
+          <View key={i} style={[styles.pip, i < level && { backgroundColor: accent }, i === level - 1 && !victory && styles.pipLast]} />
+        ))}
+      </View>
+
+      <View style={styles.scoreRow} accessible accessibilityLabel={`${t('over.score')}: ${score}`}>
+        <Text style={styles.scoreLabel} maxFontSizeMultiplier={1.2}>{t('over.score').toLocaleUpperCase()}</Text>
+        <Text style={styles.scoreValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          {shownScore.toLocaleString()}
+        </Text>
+        {isNewBest ? (
+          <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
+            🏅 {(dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
+          </Text>
+        ) : bestScore ? (
+          <Text style={styles.best} maxFontSizeMultiplier={1.2}>
+            {(dailyLabel ? t('over.bestToday', { score: bestScore.toLocaleString() }) : t('over.best', { score: bestScore.toLocaleString() })).toLocaleUpperCase()}
+          </Text>
+        ) : null}
+      </View>
+
+      <View style={styles.statsRow}>
         {stats.map(s => (
-          <View key={s.label} style={styles.statTile} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
-            <Text style={styles.statLabel} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-              {s.label.toLocaleUpperCase()}
-            </Text>
-            <Text
-              style={[styles.statValue, { color: s.color }]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              maxFontSizeMultiplier={1.2}
-            >
+          <View key={s.label} style={styles.stat} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
+            <Ionicons name={s.icon} size={16} color={s.color} />
+            <Text style={[styles.statValue, { color: s.color }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
               {s.value}
             </Text>
           </View>
         ))}
+        {embers && embers > 0 ? (
+          <View style={[styles.stat, styles.embersPill]} accessible accessibilityLabel={plural('over.embers', embers)}>
+            <Text style={styles.embersText} maxFontSizeMultiplier={1.2}>🔥 {plural('over.embers', embers).toLocaleUpperCase()}</Text>
+          </View>
+        ) : null}
       </View>
 
-      <View style={styles.buttons}>
-        <TouchableOpacity
-          style={[styles.retryButton, { backgroundColor: accent }]}
-          onPress={onRetry}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('over.retry')}
-        >
-          <Text
-            style={[styles.retryText, victory && { color: '#000' }]}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            maxFontSizeMultiplier={1.3}
-          >
-            🔄  {t('over.retry').toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.menuButton}
-          onPress={onMainMenu}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('over.menu')}
-        >
-          <Text style={styles.menuText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-            🏠  {t('over.menu').toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {onShare && (
-        <TouchableOpacity
-          style={styles.shareButton}
-          onPress={onShare}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('over.share')}
-        >
-          <Text style={styles.shareText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-            📤  {t('over.share').toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
+      {(nearGems || nearBest) && (
+        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.2}>
+          {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
+        </Text>
       )}
+      {achievements && achievements.length > 0 && (
+        <Text style={styles.achievement} maxFontSizeMultiplier={1.2}>
+          🏆 {plural('over.achievements', achievements.length, { names: achievements.map(id => achievementText(t, id as AchievementId, 'name')).join(', ') }).toLocaleUpperCase()}
+        </Text>
+      )}
+      {unlockedHeroes && unlockedHeroes.length > 0 && (
+        <Text style={styles.unlocked} maxFontSizeMultiplier={1.2}>
+          🔓 {plural('over.unlocked', unlockedHeroes.length, { names: unlockedHeroes.map(i => heroText(t, i, 'name')).join(', ') }).toLocaleUpperCase()}
+        </Text>
+      )}
+      {tip && height >= 340 && (
+        <View style={styles.tip}>
+          <Ionicons name="bulb" size={16} color="#FFD54F" />
+          <Text style={styles.tipText} maxFontSizeMultiplier={1.2}>{tip}</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[styles.retry, { backgroundColor: accent }]}
+        onPress={onRetry}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('over.retry')}
+      >
+        <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
+        <Text style={[styles.retryText, victory && { color: '#000' }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          {t('over.retry').toLocaleUpperCase()}
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.secondary}>
+        <TouchableOpacity style={styles.sideButton} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
+          <Ionicons name="home" size={18} color="#fff" />
+          <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>
+        </TouchableOpacity>
+        {onForge && embers && embers > 0 ? (
+          <TouchableOpacity style={[styles.sideButton, styles.forgeButton]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
+            <Ionicons name="hammer" size={18} color="#FFAB40" />
+            <Text style={[styles.sideText, { color: '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>
+          </TouchableOpacity>
+        ) : null}
+        {onShare ? (
+          <TouchableOpacity style={[styles.sideButton, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
+            <Ionicons name="share-social" size={20} color="#4FC3F7" />
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   );
 
@@ -244,13 +266,12 @@ const GameOverOverlay = ({
       <Animated.View
         style={[
           styles.card,
-          { borderColor: accent, shadowColor: accent, width: Math.min(width * 0.94, compact ? 640 : 380) },
-          compact && styles.cardRow,
-          { transform: [{ scale: cardAnim }] },
+          { borderColor: accent, shadowColor: accent, width: cardWidth, opacity: fade, transform: [{ scale: cardAnim }] },
+          wide && styles.cardRow,
         ]}
       >
-        {header}
-        {body}
+        {left}
+        {right}
       </Animated.View>
     </OverlayContainer>
   );
@@ -260,73 +281,90 @@ export default GameOverOverlay;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 24,
+    backgroundColor: 'rgba(16, 12, 30, 0.97)',
+    borderRadius: 26,
     borderWidth: 2,
     padding: 16,
     alignItems: 'center',
     gap: 12,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 14,
-    elevation: 20,
+    shadowOpacity: 0.5,
+    shadowRadius: 18,
+    elevation: 24,
   },
-  cardRow: { flexDirection: 'row', alignItems: 'center' },
-  headerColumn: { alignItems: 'center', gap: 6, flex: 1 },
-  bodyColumn: { gap: 10, flex: 1.2, width: '100%' },
-  title: { fontSize: 20, fontWeight: '900', letterSpacing: 2, textAlign: 'center' },
-  cause: { color: '#bdbdbd', fontSize: 12, textAlign: 'center' },
+  cardRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
+  left: { alignItems: 'center', gap: 8 },
+  spriteRing: {
+    borderWidth: 3,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  killer: { fontWeight: '900', fontSize: 14, letterSpacing: 2, textAlign: 'center', maxWidth: '100%' },
   depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
-  newBest: { color: '#FFD700', fontWeight: '900', fontSize: 13, letterSpacing: 1.5, textAlign: 'center' },
-  best: { color: '#a8a8a8', fontWeight: '700', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
-  nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13, textAlign: 'center' },
-  embers: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
-  achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
-  unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%' },
-  statTile: {
-    flexGrow: 1,
-    flexBasis: '45%',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+  right: { flex: 1, width: '100%', gap: 8 },
+  title: { fontSize: 24, fontWeight: '900', letterSpacing: 2 },
+  pips: { flexDirection: 'row', gap: 4 },
+  pip: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)' },
+  pipLast: { borderWidth: 1, borderColor: '#fff' },
+  scoreRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 },
+  scoreLabel: { color: '#9a9ab0', fontWeight: '900', fontSize: 12, letterSpacing: 2 },
+  scoreValue: { color: '#FFD54F', fontWeight: '900', fontSize: 38, minWidth: 110 },
+  newBest: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.4 },
+  best: { color: '#8f8fa8', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  stat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.07)',
     borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
   },
-  statLabel: { color: '#9a9a9a', fontWeight: '900', fontSize: 11, letterSpacing: 1.5 },
-  statValue: { fontWeight: '900', fontSize: 20 },
-  buttons: { flexDirection: 'row', gap: 10, width: '100%' },
-  retryButton: {
-    flex: 1,
-    minHeight: MIN_TOUCH,
-    borderRadius: 14,
-    paddingHorizontal: 8,
+  statValue: { fontWeight: '900', fontSize: 16 },
+  embersPill: { backgroundColor: 'rgba(255,171,64,0.16)' },
+  embersText: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13 },
+  achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  tip: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,213,79,0.1)',
+    borderRadius: 12,
+    padding: 8,
+  },
+  tipText: { color: '#e6e0c8', fontSize: 12, flex: 1 },
+  retry: {
+    minHeight: MIN_TOUCH + 6,
+    borderRadius: 16,
+    flexDirection: 'row',
+    gap: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 3,
+    paddingHorizontal: 12,
+    borderBottomWidth: 4,
     borderBottomColor: 'rgba(0,0,0,0.3)',
   },
-  retryText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
-  menuButton: {
+  retryText: { color: '#fff', fontWeight: '900', fontSize: 18, letterSpacing: 2 },
+  secondary: { flexDirection: 'row', gap: 8 },
+  sideButton: {
     flex: 1,
     minHeight: MIN_TOUCH,
+    flexDirection: 'row',
+    gap: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 14,
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  menuText: { color: '#fff', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
-  shareButton: {
-    width: '100%',
-    minHeight: MIN_TOUCH,
-    backgroundColor: '#4FC3F7',
-    borderRadius: 14,
+    borderColor: 'rgba(255,255,255,0.22)',
     paddingHorizontal: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  shareText: { color: '#000', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
+  forgeButton: { borderColor: 'rgba(255,171,64,0.6)', backgroundColor: 'rgba(255,171,64,0.12)' },
+  iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: MIN_TOUCH, width: MIN_TOUCH, minWidth: MIN_TOUCH, paddingHorizontal: 0 },
+  sideText: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 });
