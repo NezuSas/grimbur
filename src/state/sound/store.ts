@@ -27,6 +27,8 @@ const voicesOf = (name: string): string[] => [
 /** The sound a voice belongs to (`coin#1` -> `coin`); volume and loop targets are shared per sound. */
 const baseOf = (voice: string) => voice.split('#')[0];
 const nextVoice: Record<string, number> = {};
+const lastRetry: Record<string, number> = {};
+const RETRY_AFTER_MS = 5000;
 
 /**
  * Ensures a player is loaded and syncs target state.
@@ -119,8 +121,14 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         tried++;
       }
       if (!p) {
-        // Nothing is loaded (the load failed or Android dropped it): try again in the background for next time.
-        for (const v of voices) void ensurePlayer(v);
+        // Nothing is loaded (the load failed or Android dropped it): try again in the background for next time,
+        // but at most every few seconds: creating players over and over during play is itself a known source
+        // of stalls in expo-audio (expo/expo#41852).
+        const now = Date.now();
+        if (now - (lastRetry[name] ?? 0) > RETRY_AFTER_MS) {
+          lastRetry[name] = now;
+          for (const v of voices) void ensurePlayer(v);
+        }
         return;
       }
       try {
