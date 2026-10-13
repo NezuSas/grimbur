@@ -13,6 +13,10 @@ import { useSoundManager } from "./src/audio/soundManager";
 import StackNavigator from "./src/navigation/StackNavigator";
 import characters from "./src/data/characters";
 import { prefetchLeaderboardThreshold } from "./src/services/highscores";
+import { installGlobalErrorHandler } from "./src/services/analytics";
+import ErrorBoundary from "./src/ui/components/ErrorBoundary";
+
+installGlobalErrorHandler();
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -97,7 +101,9 @@ export default function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           <NavigationContainer theme={DarkTheme}>
-            <StackNavigator />
+            <ErrorBoundary>
+              <StackNavigator />
+            </ErrorBoundary>
           </NavigationContainer>
         </SafeAreaProvider>
       </GestureHandlerRootView>

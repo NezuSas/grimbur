@@ -44,8 +44,8 @@ To ensure long-term scalability, the engine is instrumented with several structu
 ### A. Engine Event System (`src/core/events`)
 A centralized event emitter that decouples game logic from side-effects. It allows the audio system or UI to react to internal engine triggers (`COIN_COLLECTED`, `ENEMY_KILLED`) without direct coupling.
 
-### B. Telemetry & Analytics (`src/core/telemetry`)
-Provides granular logging of player behavior, level transitions, and engine states. This data is essential for balancing gameplay and debugging complex state interactions.
+### B. Analytics & Crash Reporting (`src/services/analytics.ts`)
+A vendor-neutral facade with typed events (`game_start`, `game_over`, `level_complete`, ...) and an `AnalyticsProvider` interface. By default events go to the dev console; plug in Firebase Analytics/Crashlytics with `setAnalyticsProvider`. An `ErrorBoundary` and a global JS error handler report crashes through the same facade.
 
 ### C. Difficulty Scaling (`src/core/difficulty`)
 Implements dynamic difficulty adjustment. It calculates score multipliers and potentially hazard density based on the current `level` index, ensuring a balanced difficulty curve.

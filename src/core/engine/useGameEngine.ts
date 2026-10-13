@@ -5,13 +5,13 @@ import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { emitGameEvent } from '../events/gameEvents';
-import { logGameEvent } from '../telemetry/telemetry';
+import { analytics } from '../../services/analytics';
 import { recordAction } from '../replay/replay';
 
 /**
  * Wumpus Adventures — Game Engine Hook
  * Orchestrates level generation (Side Effects) and dispatches to the pure Reducer.
- * Handles side-effects (events, telemetry, haptics) after state changes.
+ * Handles side-effects (events, analytics, haptics) after state changes.
  */
 export function useGameEngine(): GameEngineInterface {
   const [state, dispatch] = useReducer(gameReducer, initialState);
@@ -40,7 +40,6 @@ export function useGameEngine(): GameEngineInterface {
 
     // 1. CRITICAL: Game Over (Priority 1)
     if (state.isGameOver && !prevState.isGameOver) {
-      logGameEvent('GAME_OVER', { level: state.level, score: state.score });
       emitGameEvent('GAME_OVER');
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       hapticTriggered = true;
@@ -67,9 +66,11 @@ export function useGameEngine(): GameEngineInterface {
     if (state.lastPickup) {
       if (state.lastPickup === 'trap') {
         emitGameEvent('TRAP_TRIGGERED');
+        analytics.track('trap_triggered', { level: state.level });
         if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       } else {
         emitGameEvent('POWERUP_COLLECTED', { kind: state.lastPickup });
+        analytics.track('powerup_collected', { kind: state.lastPickup });
         if (!hapticTriggered) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       hapticTriggered = true;
@@ -94,7 +95,6 @@ export function useGameEngine(): GameEngineInterface {
     }
 
     if (state.isLevelUp && !prevState.isLevelUp) {
-      logGameEvent('LEVEL_UP', { nextLevel: state.level + 1, score: state.score });
       emitGameEvent('LEVEL_UP');
     }
 

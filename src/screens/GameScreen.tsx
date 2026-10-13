@@ -30,6 +30,7 @@ import characters from "../data/characters";
 import { getDifficulty } from "../core/difficulty/difficulty";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun } from "../services/localStats";
+import { analytics } from "../services/analytics";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
 import { useProximityAudio } from "../hooks/useProximityAudio";
@@ -79,6 +80,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // Initialize game on mount
   useEffect(() => {
     reset(selectedCharacter);
+    analytics.track('game_start', { mode: 'endless', character: characterIndex });
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       emitSound('GAME_MUSIC_STOP');
@@ -106,6 +108,12 @@ export default function GameScreen({ navigation, route }: Props) {
     if (state.isGameOver && !gameOverTriggered.current) {
       gameOverTriggered.current = true;
       emitSound('GAME_OVER');
+      analytics.track('game_over', {
+        level: state.level,
+        score: state.score,
+        time: sessionTime,
+        cause: state.deathCause ?? 'unknown',
+      });
       recordRun({ score: state.score, level: state.level })
         .then(({ stats, isNewBestScore }) => setRunResult({ bestScore: stats.bestScore, isNewBest: isNewBestScore }))
         .catch(e => console.warn('[GameScreen] recordRun error:', e));
@@ -133,7 +141,7 @@ export default function GameScreen({ navigation, route }: Props) {
         characterIndex,
         time: sessionTime,
       });
-      console.log("[GameScreen] Highscore submitted successfully with time:", sessionTime);
+      analytics.track('high_score_submitted', { level: state.level, score: state.score });
     } catch (e) {
       console.warn('[GameScreen] addHighscore error:', e);
     }
@@ -166,6 +174,7 @@ export default function GameScreen({ navigation, route }: Props) {
   useEffect(() => {
     if (state.isLevelUp) {
       emitSound('LEVEL_UP');
+      analytics.track('level_complete', { level: state.level, score: state.score, time: sessionTime });
       const diffLevel = getDifficulty(state.level);
       const remainingEnemies = state.entities.filter(e => e.type === 'enemy').length;
       const enemiesKilled = diffLevel.enemies - remainingEnemies;

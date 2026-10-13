@@ -32,12 +32,11 @@ src/
 │   ├── events/      Engine event emitter
 │   ├── random/      Seeded PRNG
 │   ├── replay/      Action recorder
-│   └── telemetry/   Event logging
 ├── data/         Static data (characters)
 ├── hooks/        Screen-level hooks (session timer, proximity audio)
 ├── navigation/   Stack navigator + route param types
 ├── screens/      Screen orchestrators
-├── services/     Firebase high scores
+├── services/     Firebase high scores, local stats, analytics facade
 ├── shared/       Cross-cutting utilities
 ├── state/        Zustand stores (sound, settings)
 └── ui/           Presentational components (ui/components/game for in-game overlays)
@@ -46,6 +45,6 @@ specs/            Spec-driven design notes
 ```
 
 Design rule: the reducer in `core/engine/reducer.ts` is pure and deterministic (no I/O, no `Math.random`);
-all side-effects (haptics, sound, telemetry) live in `useGameEngine` and the screens.
+all side-effects (haptics, sound, analytics) live in `useGameEngine` and the screens.
 See [architecture.md](architecture.md), [GAMEPLAY_SPEC.md](GAMEPLAY_SPEC.md) and
 [TECHNICAL_SPEC.md](TECHNICAL_SPEC.md) for details.
