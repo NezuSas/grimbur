@@ -48,7 +48,6 @@ src/
 │   ├── events/      # Internal engine event system
 │   ├── random/      # Deterministic PRNG and seed management
 │   ├── replay/      # Action history and recording
-│   └── telemetry/   # Game activity logging
 ├── data/            # Static game data (Character stats)
 ├── hooks/           # Reusable screen hooks (session timer, proximity audio)
 ├── shared/utils/    # Pure helpers (formatTime)
