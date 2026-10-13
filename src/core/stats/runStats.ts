@@ -1,6 +1,7 @@
 import { previousDayKey } from '../engine/seed';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, embersFor } from './forge';
+import { HERO_COUNT } from './achievements';
 
 export interface DailyProgress {
   /** UTC day (`YYYY-MM-DD`) this progress belongs to. */
@@ -120,8 +121,10 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
     attempts: before.attempts + 1,
   };
 
+  // A device clock set backwards must not reset the streak or move the last-played day back in time.
+  const clockWentBack = stats.lastDailyDate !== null && stats.lastDailyDate > dateKey;
   let streak = stats.streak;
-  if (stats.lastDailyDate !== dateKey) {
+  if (!clockWentBack && stats.lastDailyDate !== dateKey) {
     streak = stats.lastDailyDate === previousDayKey(dateKey) ? stats.streak + 1 : 1;
   }
 
@@ -131,8 +134,9 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
       ...accumulate(stats, run),
       daily,
       streak,
-      lastDailyDate: dateKey,
-      // Daily runs count towards hero unlocks (depth and victories) and games played.
+      lastDailyDate: clockWentBack ? stats.lastDailyDate : dateKey,
+      // Daily runs count towards hero unlocks (depth and victories) and games played. They never unlock a
+      // new depth: depths belong to expeditions (the daily is always depth 0).
       bestLevel: Math.max(stats.bestLevel, run.level),
       gamesPlayed: stats.gamesPlayed + 1,
       victories: stats.victories + (run.victory ? 1 : 0),
@@ -192,7 +196,7 @@ export function parseStats(raw: string | null): LocalStats {
       embers: Math.trunc(num(data.embers)),
       forge: parseForge(data.forge),
       heroesUsed: Array.isArray(data.heroesUsed)
-        ? [...new Set<number>(data.heroesUsed.filter((v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < 16))].sort((a, b) => a - b)
+        ? [...new Set<number>(data.heroesUsed.filter((v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < HERO_COUNT))].sort((a, b) => a - b)
         : [],
       achievements: parseAchievements(data.achievements),
       daily: dailyDate

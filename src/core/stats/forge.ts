@@ -28,7 +28,9 @@ export const maxLevel = (id: UpgradeId): number => UPGRADES.find(u => u.id === i
 /** Embers earned by a finished run. A run that never started earns nothing. */
 export function embersFor(run: RunResult, progressed = true): number {
   if (!progressed) return 0;
-  const base = Math.floor(Math.max(0, run.score) / 250) + Math.max(1, run.level) * 4;
+  const score = Number.isFinite(run.score) ? run.score : 0;
+  const level = Number.isFinite(run.level) ? run.level : 1;
+  const base = Math.floor(Math.max(0, score) / 250) + Math.max(1, level) * 4;
   const victory = run.victory ? 50 + 15 * (run.ascension ?? 0) : 0;
   return base + victory;
 }

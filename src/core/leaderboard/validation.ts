@@ -3,6 +3,8 @@
  * `firestore.rules`; keep both in sync when changing them.
  */
 
+import { HERO_COUNT } from '../stats/achievements';
+
 export const LEADERBOARD_LIMITS = {
   maxNameLength: 20,
   /** A full expedition is 10 floors; a little headroom for future floors. */
@@ -12,7 +14,7 @@ export const LEADERBOARD_LIMITS = {
   /** Difficulty caps coins at 8 per level. */
   maxCoinsPerLevel: 8,
   maxTimeSeconds: 24 * 60 * 60,
-  characterCount: 4,
+  characterCount: HERO_COUNT,
 } as const;
 
 export interface ScoreSubmission {
