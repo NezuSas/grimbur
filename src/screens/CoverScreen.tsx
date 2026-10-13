@@ -30,8 +30,8 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.root}>
       <ImageBackground
         source={require("../assets/sprites/backgrounds/Cover_Background.png")}
-        style={StyleSheet.absoluteFillObject}
-        imageStyle={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
+        imageStyle={StyleSheet.absoluteFill}
         resizeMode="cover"
       >
         <CoverCard
