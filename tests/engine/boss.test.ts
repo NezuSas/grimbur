@@ -83,15 +83,15 @@ describe('the Wumpus hunts', () => {
   });
 
   it('kills a player it reaches, unless a shield absorbs the touch', () => {
-    // The Wumpus is next to the spawn; the player steps away and back (2 moves => the boss acts).
-    let state = createState({ entities: [boss(1)], coins: 0 });
+    // A charged Wumpus is next to the spawn; the player steps away and back (2 moves => the boss acts).
+    let state = createState({ entities: [{ ...boss(1), charge: 1 }], coins: 0 });
     state = gameReducer(state, move('DOWN'));
     expect(state.isGameOver).toBe(false);
     state = gameReducer(state, move('UP'));
     expect(state.isGameOver).toBe(true);
     expect(state.deathCause).toBe('boss');
 
-    let shielded = { ...createState({ entities: [boss(1)], coins: 0 }), shield: true };
+    let shielded = { ...createState({ entities: [{ ...boss(1), charge: 1 }], coins: 0 }), shield: true };
     shielded = gameReducer(shielded, move('DOWN'));
     shielded = gameReducer(shielded, move('UP'));
     expect(shielded.isGameOver).toBe(false);

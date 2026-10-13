@@ -77,6 +77,9 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
       daily,
       streak,
       lastDailyDate: dateKey,
+      // Daily runs count towards hero unlocks (depth and victories) and games played.
+      bestLevel: Math.max(stats.bestLevel, run.level),
+      gamesPlayed: stats.gamesPlayed + 1,
       victories: stats.victories + (run.victory ? 1 : 0),
     } as LocalStats,
     isNewDailyBest,

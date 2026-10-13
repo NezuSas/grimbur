@@ -64,11 +64,12 @@ describe('daily progress and streak', () => {
     expect(later.stats.streak).toBe(1);
   });
 
-  it('does not touch the endless records', () => {
+  it('keeps the personal best score separate but counts depth and games for unlocks', () => {
     const base = { ...EMPTY_STATS, bestScore: 900, bestLevel: 5, gamesPlayed: 7 };
     const { stats } = mergeDailyRun(base, '2026-10-12', { score: 5000, level: 9 });
     expect(stats.bestScore).toBe(900);
-    expect(stats.gamesPlayed).toBe(7);
+    expect(stats.bestLevel).toBe(9);
+    expect(stats.gamesPlayed).toBe(8);
   });
 
   it('currentStreak shows a streak only while it is still alive', () => {

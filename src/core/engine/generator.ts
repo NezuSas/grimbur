@@ -125,7 +125,19 @@ export function generateBoard(
     // 5. Every coin must be reachable without crossing a lethal tile.
     const coinIndices = entities.filter(e => e.type === 'coin').map(e => e.index);
     const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy').map(e => e.index);
-    if (validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols)) break;
+    const gemsReachable = validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols);
+    // On the lair floor the Wumpus must be reachable too (guardians in the way can be shot, vortexes cannot).
+    const bossEntity = entities.find(e => e.type === 'boss');
+    const bossReachable =
+      !bossEntity ||
+      canReachNeighbourOf(
+        spawnIndex,
+        bossEntity.index,
+        entities.filter(e => e.type === 'pit').map(e => e.index),
+        diff.rows,
+        diff.cols,
+      );
+    if (gemsReachable && bossReachable) break;
 
     // Relax difficulty for the next attempt.
     if (attempt >= 6) pitBudget = Math.max(1, pitBudget - 1);
@@ -146,6 +158,25 @@ export function generateBoard(
     attack: diff.attackCharges,
     seed
   };
+}
+
+/** True when some tile next to `target` can be reached from `start` without crossing `blocked`. */
+function canReachNeighbourOf(start: number, target: number, blocked: number[], rows: number, cols: number): boolean {
+  const blockedSet = new Set(blocked);
+  const goals = new Set(getNeighbors(target, rows, cols).filter(n => !blockedSet.has(n)));
+  if (goals.has(start)) return true;
+
+  const seen = new Set<number>([start]);
+  const queue = [start];
+  for (let head = 0; head < queue.length; head++) {
+    for (const n of getNeighbors(queue[head], rows, cols)) {
+      if (seen.has(n) || blockedSet.has(n) || n === target) continue;
+      if (goals.has(n)) return true;
+      seen.add(n);
+      queue.push(n);
+    }
+  }
+  return false;
 }
 
 /** Helper to get orthogonal neighbors */
