@@ -37,6 +37,7 @@ import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
+import { clampAscension } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
@@ -66,6 +67,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const mode = route.params?.mode ?? "expedition";
   const isDaily = mode === "daily";
+  const ascension = isDaily ? 0 : clampAscension(route.params?.ascension ?? 0);
   // The daily challenge fixes the board seed to today's UTC date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
@@ -117,9 +119,10 @@ export default function GameScreen({ navigation, route }: Props) {
   const startRun = useCallback(() => {
     reset(selectedCharacter, {
       heroIndex: characterIndex,
+      ascension,
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
     });
-  }, [reset, selectedCharacter, characterIndex, isDaily, dailyDate]);
+  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate]);
 
   /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
   const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
@@ -137,6 +140,7 @@ export default function GameScreen({ navigation, route }: Props) {
       relics: s.relics.length,
       time: sessionTimeRef.current,
       heroIndex: characterIndex,
+      ascension,
     };
     try {
       if (isDaily) {
@@ -149,7 +153,7 @@ export default function GameScreen({ navigation, route }: Props) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
     }
-  }, [isDaily, dailyDate, characterIndex]);
+  }, [isDaily, dailyDate, characterIndex, ascension]);
 
   // Start the run on mount; save whatever was played when the screen goes away.
   useEffect(() => {
@@ -576,6 +580,7 @@ export default function GameScreen({ navigation, route }: Props) {
         bestScore={runResult?.bestScore}
         isNewBest={runResult?.isNewBest}
         dailyLabel={isDaily ? dailyDate : undefined}
+        depth={ascension}
         streak={runResult?.streak}
         unlockedHeroes={runResult?.unlocked}
         achievements={runResult?.achievements}

@@ -1,4 +1,5 @@
 import type { LocalStats, RunResult } from './runStats';
+import { MAX_ASCENSION } from '../engine/ascension';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -14,7 +15,9 @@ export type AchievementId =
   | 'high_roller'
   | 'collector'
   | 'daily_devotee'
-  | 'hero_variety';
+  | 'hero_variety'
+  | 'ascended'
+  | 'abyssal';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -52,6 +55,8 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   { id: 'collector', icon: '💎', params: { count: COLLECTOR_GEMS }, isMet: s => s.totalGems >= COLLECTOR_GEMS },
   { id: 'daily_devotee', icon: '📅', params: { days: DEVOTEE_DAYS }, isMet: s => s.streak >= DEVOTEE_DAYS },
   { id: 'hero_variety', icon: '🎭', params: {}, isMet: s => s.heroesUsed.length >= HERO_COUNT },
+  { id: 'ascended', icon: '🔥', params: { depth: 3 }, isMet: (_s, r) => r.victory === true && (r.ascension ?? 0) >= 3 },
+  { id: 'abyssal', icon: '🌋', params: { depth: MAX_ASCENSION }, isMet: (_s, r) => r.victory === true && (r.ascension ?? 0) >= MAX_ASCENSION },
 ];
 
 /** Achievements the player has not unlocked yet but just earned. */

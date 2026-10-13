@@ -5,6 +5,7 @@ import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
+import { clampAscension, modifiersFor } from './ascension';
 import { getHeroPerks } from './heroes';
 import { RelicId } from './relics';
 import { GAME_CONFIG } from '../../config/gameConfig';
@@ -129,11 +130,13 @@ export function useGameEngine(): GameEngineInterface {
   const isBossFloor = (mode: GameMode, level: number) =>
     mode !== 'endless' && level === GAME_CONFIG.expedition.floors;
 
-  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number } = {}) => {
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number } = {}) => {
     const mode = options.mode ?? 'expedition';
+    // The daily challenge is the same cave for everyone, so it never uses a harder depth.
+    const ascension = mode === 'daily' ? 0 : clampAscension(options.ascension ?? 0);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1) });
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension });
 
     pureDispatch({
       type: 'RESET',
@@ -142,10 +145,11 @@ export function useGameEngine(): GameEngineInterface {
       cols: board.cols,
       entities: board.entities,
       coins: board.coins,
-      attack: board.attack,
+      attack: Math.max(1, board.attack - modifiersFor(ascension).arrowPenalty),
       seed,
       mode,
       runSeed,
+      ascension,
       perks: getHeroPerks(options.heroIndex ?? 0),
     });
   }, [pureDispatch]);
@@ -153,7 +157,8 @@ export function useGameEngine(): GameEngineInterface {
   const levelUp = useCallback(() => {
     const nextLevel = stateRef.current.level + 1;
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
-    const board = generateBoard(nextLevel, seed, { boss: isBossFloor(stateRef.current.mode, nextLevel) });
+    const ascension = stateRef.current.ascension;
+    const board = generateBoard(nextLevel, seed, { boss: isBossFloor(stateRef.current.mode, nextLevel), ascension });
 
     pureDispatch({
       type: 'LEVEL_UP',
@@ -162,7 +167,7 @@ export function useGameEngine(): GameEngineInterface {
         cols: board.cols,
         entities: board.entities,
         coins: board.coins,
-        attack: board.attack,
+        attack: Math.max(1, board.attack - modifiersFor(ascension).arrowPenalty),
         seed,
       },
     });

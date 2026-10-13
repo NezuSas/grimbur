@@ -3,6 +3,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinReward, killValue, levelClearBonus } from './scoring';
 import { NO_PERKS } from './heroes';
+import { modifiersFor } from './ascension';
 import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -217,6 +218,7 @@ export const initialState: GameState = {
   seed: 0,
   runSeed: 0,
   mode: 'expedition',
+  ascension: 0,
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
@@ -335,7 +337,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
         case 'trap':
           if (!perks.trapImmune && !has('trap_sense')) {
-            newScore += GAME_CONFIG.scoring.trapPenalty;
+            newScore += GAME_CONFIG.scoring.trapPenalty * modifiersFor(state.ascension).trapPenaltyMultiplier;
             newLastPickup = 'trap';
           }
           consumeEntity();
@@ -512,7 +514,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         seed: seed || state.seed,
         playerIndex: 0,
         visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0),
-        pendingDraft: draftRelics(state.runSeed, state.level, state.relics),
+        pendingDraft: draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize),
         turn: 0,
         isLevelUp: false,
         isGameOver: false,
@@ -540,7 +542,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension } = action;
       const heroPerks = perks ?? NO_PERKS;
       return {
         ...initialState,
@@ -556,6 +558,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         seed: seed || Date.now(),
         runSeed: runSeed ?? seed ?? 0,
         mode: mode ?? 'expedition',
+        ascension: ascension ?? 0,
         visited: [0],
         playerIndex: 0,
         totalCoins: 0,

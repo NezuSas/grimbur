@@ -1,6 +1,7 @@
 import { getDifficulty } from '../difficulty/difficulty';
 import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
+import { modifiersFor } from './ascension';
 import { GameEntity, EntityType } from './types';
 
 export interface BoardConfig {
@@ -43,6 +44,8 @@ export function getSafeZoneIndices(
 export interface GenerateOptions {
   /** Lair floor: places the Wumpus and no gems. */
   boss?: boolean;
+  /** Depth of the run; harder depths add stalkers, traps and a tougher Wumpus. */
+  ascension?: number;
 }
 
 export function generateBoard(
@@ -51,6 +54,7 @@ export function generateBoard(
   options: GenerateOptions = {},
 ): BoardConfig {
   const withBoss = options.boss === true;
+  const mods = modifiersFor(options.ascension ?? 0);
   const diff = getDifficulty(level);
   const prng = createPRNG(seed);
   const totalCells = diff.rows * diff.cols;
@@ -100,7 +104,7 @@ export function generateBoard(
       }
       const pool = far.length > 0 ? far : free;
       const bossIndex = pool[Math.floor(prng() * pool.length)];
-      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp });
+      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp + mods.bossHpBonus });
       usedIndices.add(bossIndex);
     }
 
@@ -112,7 +116,7 @@ export function generateBoard(
     });
 
     // 1b. Stalkers (roaming guardians)
-    placeEntities(diff.stalkers, 'stalker');
+    placeEntities(Math.max(diff.stalkers, (options.ascension ?? 0) >= 2 && level >= mods.stalkerFloor ? 1 : 0), 'stalker');
 
     // 2. Pits
     placeEntities(pitBudget, 'pit');
@@ -121,7 +125,7 @@ export function generateBoard(
     placeEntities(withBoss ? 0 : diff.coins, 'coin');
 
     // 4. Optional extras (never lethal, so they don't affect solvability)
-    placeEntities(diff.traps, 'trap');
+    placeEntities(diff.traps + (level >= 3 ? mods.extraTraps : 0), 'trap');
     placeEntities(diff.shields, 'shield');
     placeEntities(diff.ammoPickups, 'ammo');
 

@@ -98,6 +98,27 @@ export const en = {
   'ach.hero_variety.name': 'Hero variety',
   'ach.hero_variety.desc': 'Play with every hero.',
 
+  'ascension.title': 'Depth',
+  'ascension.name': 'Depth {n}',
+  'ascension.0': 'Normal rules.',
+  'ascension.1': 'One arrow fewer on every floor.',
+  'ascension.2': 'Stalkers already from floor 5.',
+  'ascension.3': 'The Wumpus has one more heart.',
+  'ascension.4': 'Traps hurt twice as much and each floor has one more.',
+  'ascension.5': 'Relic drafts offer only 2 choices.',
+  'ascension.hint': 'Win an expedition to unlock the next depth.',
+  'over.depth': 'Depth {n}',
+  'a11y.depthLower': 'Lower the depth',
+  'a11y.depthRaise': 'Raise the depth',
+  'ach.ascended.name': 'Into the fire',
+  'ach.ascended.desc': 'Win an expedition on depth {depth} or deeper.',
+  'ach.abyssal.name': 'Abyssal',
+  'ach.abyssal.desc': 'Win an expedition on depth {depth}.',
+  'manual.mission.depth.label': 'Depth',
+  'manual.mission.depth.detail':
+    'After you win, harder depths unlock one at a time. Each keeps every earlier penalty, so depth {maxDepth} stacks them all. Choose it on the hero screen.',
+  'manual.mission.depth.badge': 'Depth 1-{maxDepth}',
+
   // ── settings ──────────────────────────────────────────────────────────
   'settings.title': 'Settings',
   'settings.sound': 'Sound',

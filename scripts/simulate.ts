@@ -5,7 +5,7 @@
  * human can see (clues on explored tiles, visible gems/power-ups) plus
  * Minesweeper-style deduction, and only guesses when nothing is provably safe.
  *
- *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor]
+ *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth]
  *
  * Output per floor: clear rate, how often the board forced a guess, and how
  * often a guess killed the bot. Use it to tune `core/difficulty/difficulty.ts`.
@@ -15,10 +15,12 @@ import { generateBoard } from '../src/core/engine/generator';
 import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
 import { NO_PERKS } from '../src/core/engine/heroes';
+import { modifiersFor } from '../src/core/engine/ascension';
 
 const RUNS = Number(process.argv[2] ?? 200);
 const FIRST = Number(process.argv[3] ?? 1);
 const LAST = Number(process.argv[4] ?? 9);
+const DEPTH = Number(process.argv[5] ?? 0);
 
 type Mark = 'safe' | 'danger';
 
@@ -190,7 +192,7 @@ interface FloorStats {
 }
 
 function playFloor(floor: number, seed: number): { cleared: boolean; died: boolean; stuck: boolean; guesses: number; guessDeath: boolean; moves: number } {
-  const board = generateBoard(floor, seed);
+  const board = generateBoard(floor, seed, { ascension: DEPTH });
   let state: GameState = gameReducer(
     { ...initialState },
     {
@@ -200,9 +202,10 @@ function playFloor(floor: number, seed: number): { cleared: boolean; died: boole
       cols: board.cols,
       entities: board.entities,
       coins: board.coins,
-      attack: board.attack,
+      attack: Math.max(1, board.attack - modifiersFor(DEPTH).arrowPenalty),
       seed,
       perks: NO_PERKS,
+      ascension: DEPTH,
     },
   );
   state = { ...state, level: floor };
@@ -235,7 +238,7 @@ function playFloor(floor: number, seed: number): { cleared: boolean; died: boole
 
 const pct = (n: number, d: number) => (d === 0 ? '  -  ' : `${((100 * n) / d).toFixed(0).padStart(3)}%`);
 
-console.log(`Balance simulation: ${RUNS} runs per floor (careful bot, no relics, no hero perks)\n`);
+console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (careful bot, no relics, no hero perks)\n`);
 console.log('floor | size  | gems | enemies pits | dens | clear | needed a guess | died on a guess | stuck | avg moves');
 console.log('------+-------+------+--------------+------+-------+----------------+-----------------+-------+----------');
 
@@ -249,7 +252,7 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 
   for (let i = 0; i < RUNS; i++) {
     const seed = floor * 100003 + i * 7919 + 1;
-    const board = generateBoard(floor, seed);
+    const board = generateBoard(floor, seed, { ascension: DEPTH });
     dims = `${board.rows}x${board.cols}`;
     cells = board.rows * board.cols;
     gems += board.coins;

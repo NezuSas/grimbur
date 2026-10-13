@@ -1,5 +1,5 @@
 // src/screens/CharactersScreen.tsx
-import React, { memo, useCallback, useState } from "react";
+import React, { memo, useCallback, useRef, useState } from "react";
 import {
   Image,
   StatusBar,
@@ -27,6 +27,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useT } from "../i18n/useT";
 import { heroText, unlockText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
+import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
+import type { TranslationKey } from "../i18n/en";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 
@@ -115,6 +117,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const mode = route.params?.mode ?? "expedition";
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [depth, setDepth] = useState(0);
+  const depthInitialised = useRef(false);
 
   // Cards adapt to the window: wide enough to read, never wider than the screen minus its margins.
   const cardWidth = Math.min(Math.max(width * 0.3, 200), 290, width - 48);
@@ -125,10 +129,22 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   useFocusEffect(
     useCallback(() => {
       emitSound("SELECTION_SCREEN_START");
-      getLocalStats().then(setStats).catch(() => {});
+      getLocalStats()
+        .then(loaded => {
+          setStats(loaded);
+          // Start on the deepest unlocked depth the first time; the player can lower it.
+          if (!depthInitialised.current) {
+            depthInitialised.current = true;
+            setDepth(GAME_CONFIG.dev.unlockAllHeroes ? 0 : loaded.maxAscension);
+          }
+        })
+        .catch(() => {});
       return () => emitSound("SELECTION_SCREEN_STOP");
     }, []),
   );
+
+  const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
+  const showDepth = mode === "expedition" && maxDepth > 0;
 
   const isLocked = (heroIndex: number) =>
     !GAME_CONFIG.dev.unlockAllHeroes && !isHeroUnlocked(heroIndex, stats);
@@ -140,10 +156,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate("TutorialScreen", { characterIndex: heroIndex });
         return;
       }
-      navigation.navigate("GameScreen", { characterIndex: heroIndex, mode });
+      navigation.navigate("GameScreen", { characterIndex: heroIndex, mode, ascension: mode === "expedition" ? depth : 0 });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, tutorialSeen],
+    [navigation, mode, tutorialSeen, depth],
   );
 
   return (
@@ -167,6 +183,37 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             </Text>
             <View style={styles.titleUnderline} />
           </View>
+
+          {showDepth && (
+            <View style={styles.depthRow}>
+              <TouchableOpacity
+                style={[styles.depthButton, depth <= 0 && { opacity: 0.35 }]}
+                onPress={() => setDepth(d => Math.max(0, d - 1))}
+                disabled={depth <= 0}
+                accessibilityRole="button"
+                accessibilityLabel={t("a11y.depthLower")}
+              >
+                <Ionicons name="remove" size={22} color="#fff" />
+              </TouchableOpacity>
+              <View style={styles.depthText} accessible accessibilityLabel={`${t("ascension.name", { n: depth })}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
+                <Text style={styles.depthName} maxFontSizeMultiplier={1.2}>
+                  🔥 {t("ascension.name", { n: depth }).toLocaleUpperCase()}
+                </Text>
+                <Text style={styles.depthRule} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                  {t(ascensionRuleKey(depth) as TranslationKey)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.depthButton, depth >= maxDepth && { opacity: 0.35 }]}
+                onPress={() => setDepth(d => Math.min(maxDepth, d + 1))}
+                disabled={depth >= maxDepth}
+                accessibilityRole="button"
+                accessibilityLabel={t("a11y.depthRaise")}
+              >
+                <Ionicons name="add" size={22} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           <FlatList
             data={characters}
@@ -226,6 +273,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   titleUnderline: { height: 4, width: 60, backgroundColor: "#FFD700", marginTop: 4, borderRadius: 2 },
+  depthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    gap: 10,
+    marginTop: 8,
+    paddingHorizontal: 8,
+    maxWidth: 560,
+  },
+  depthButton: {
+    width: MIN_TOUCH,
+    height: MIN_TOUCH,
+    borderRadius: MIN_TOUCH / 2,
+    backgroundColor: "rgba(255,112,67,0.35)",
+    borderWidth: 1,
+    borderColor: "#FF7043",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  depthText: { flexShrink: 1, alignItems: "center", minWidth: 140 },
+  depthName: { color: "#FF7043", fontWeight: "900", letterSpacing: 1.5, fontSize: 14 },
+  depthRule: { color: "#e0e0e0", fontSize: 12, textAlign: "center" },
   list: { flex: 1 },
   itemWrapper: { flex: 1 },
   card: {

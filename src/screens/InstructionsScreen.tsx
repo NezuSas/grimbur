@@ -17,6 +17,7 @@ import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../data/characters";
 import { GAME_CONFIG } from "../config/gameConfig";
+import { MAX_ASCENSION } from "../core/engine/ascension";
 import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
 import { useT } from "../i18n/useT";
@@ -49,6 +50,7 @@ const SECTIONS: Section[] = [
       { key: "manual.mission.wumpus", badgeColor: "#ff5252" },
       { key: "manual.mission.relics", badgeColor: "#ffd700" },
       { key: "manual.mission.heroes" },
+      { key: "manual.mission.depth", badgeColor: "#ff7043" },
       { key: "manual.mission.survival" },
     ],
   },
@@ -113,6 +115,7 @@ const PARAMS: Params = {
   combo: GAME_CONFIG.multipliers.maxCombo,
   ammo: GAME_CONFIG.pickups.ammoAmount,
   trap: Math.abs(GAME_CONFIG.scoring.trapPenalty),
+  maxDepth: MAX_ASCENSION,
   stalkerFloor: GAME_CONFIG.stalker.minFloor,
   stalkerMoves: GAME_CONFIG.stalker.moveEvery,
 };
