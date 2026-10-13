@@ -42,6 +42,7 @@ import { analytics } from "../services/analytics";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
 import { useProximityAudio } from "../hooks/useProximityAudio";
+import { useTravel } from "../hooks/useTravel";
 import { useT } from "../i18n/useT";
 import { relicText } from "../i18n/keys";
 
@@ -90,6 +91,11 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const runEnded = state.isGameOver || state.isVictory;
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+
+  // Tap an explored tile to walk there; any control press interrupts the walk.
+  const { travelTo, cancel: cancelTravel } = useTravel(state, move, !paused && !runEnded && !levelUpWindow && !state.pendingDraft);
+  const manualMove = useCallback((d: Parameters<typeof move>[0]) => { cancelTravel(); move(d); }, [cancelTravel, move]);
+  const manualAttack = useCallback(() => { cancelTravel(); attack(); }, [cancelTravel, attack]);
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
   const { time: sessionTime, reset: resetTimer } = useSessionTimer(
@@ -522,11 +528,12 @@ export default function GameScreen({ navigation, route }: Props) {
             isGameOver={state.isGameOver}
             isAttacking={isAttacking}
             lastKilledEnemyCount={state.entities.filter(e => e.type === "enemy").length}
+            onTilePress={travelTo}
           />
         </View>
 
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
-          <Controls onMove={move} onAttack={attack} />
+          <Controls onMove={manualMove} onAttack={manualAttack} />
         </View>
       </View>
 

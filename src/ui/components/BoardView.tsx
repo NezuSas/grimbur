@@ -1,5 +1,5 @@
 import React, { memo, useRef, useEffect, useMemo } from "react";
-import { Image, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
 import { useGameLayout } from "../layout/useGameLayout";
@@ -22,6 +22,8 @@ type Props = {
   lastKilledEnemyCount?: number;
   /** Tiles to outline (used by the tutorial). */
   highlight?: readonly number[];
+  /** Called with the tile index when the player taps the board (used for tap-to-travel). */
+  onTilePress?: (index: number) => void;
 };
 
 const ASSETS: Record<"enemy" | "pit" | "coin" | "block" | "blockFog", ImageSourcePropType> = {
@@ -202,7 +204,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, lastKilledEnemyCount, isAttacking, highlight, onTilePress }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -301,6 +303,19 @@ const BoardView: React.FC<Props> = memo(
               );
             })}
           </View>
+
+          {onTilePress && (
+            <Pressable
+              style={[StyleSheet.absoluteFill, { zIndex: 30 }]}
+              onPress={e => {
+                const col = Math.floor(e.nativeEvent.locationX / tileSize);
+                const row = Math.floor(e.nativeEvent.locationY / tileSize);
+                if (row >= 0 && row < rows && col >= 0 && col < cols) onTilePress(row * cols + col);
+              }}
+              accessible={false}
+              importantForAccessibility="no"
+            />
+          )}
 
           {/* Player sprite */}
           <Animated.View
