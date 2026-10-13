@@ -1,10 +1,13 @@
 import {
   HERO_UNLOCKS,
-  describeUnlock,
   isHeroUnlocked,
   newlyUnlockedHeroes,
 } from '../../src/core/stats/heroUnlocks';
 import { HEROES } from '../../src/core/engine/heroes';
+import { en, TranslationKey } from '../../src/i18n/en';
+import { es } from '../../src/i18n/es';
+import { createTranslator } from '../../src/i18n/translate';
+import { unlockText } from '../../src/i18n/keys';
 import { EMPTY_STATS, mergeDailyRun, mergeRun } from '../../src/core/stats/runStats';
 
 describe('hero unlocks', () => {
@@ -46,10 +49,14 @@ describe('hero unlocks', () => {
     expect(mergeRun(EMPTY_STATS, { score: 10, level: 2 }).stats.victories).toBe(0);
   });
 
-  it('describes how to unlock each locked hero', () => {
-    expect(describeUnlock(0)).toBe('');
-    expect(describeUnlock(1)).toBe('Reach floor 4');
-    expect(describeUnlock(2)).toBe('Reach floor 7');
-    expect(describeUnlock(3)).toBe('Win an expedition');
+  it('translates how to unlock each locked hero', () => {
+    const tEn = createTranslator<TranslationKey>({ en, es }, 'en').t;
+    const tEs = createTranslator<TranslationKey>({ en, es }, 'es').t;
+    expect(unlockText(tEn, 0)).toBe('');
+    expect(unlockText(tEn, 1)).toBe('Reach floor 4');
+    expect(unlockText(tEn, 2)).toBe('Reach floor 7');
+    expect(unlockText(tEn, 3)).toBe('Win an expedition');
+    expect(unlockText(tEs, 1)).toBe('Llega al piso 4');
+    expect(unlockText(tEs, 3)).toBe('Gana una expedición');
   });
 });

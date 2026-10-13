@@ -29,12 +29,6 @@ export function isHeroUnlocked(heroIndex: number, stats: LocalStats): boolean {
   return rule ? isRuleMet(rule, stats) : false;
 }
 
-export function describeUnlock(heroIndex: number): string {
-  const rule = HERO_UNLOCKS[heroIndex];
-  if (!rule || rule.kind === 'free') return '';
-  return rule.kind === 'floor' ? `Reach floor ${rule.floor}` : 'Win an expedition';
-}
-
 /** Heroes that became available between two snapshots of the stats. */
 export function newlyUnlockedHeroes(before: LocalStats, after: LocalStats): number[] {
   return HERO_UNLOCKS.map((_, i) => i).filter(i => !isHeroUnlocked(i, before) && isHeroUnlocked(i, after));

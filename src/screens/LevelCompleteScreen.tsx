@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo, useState } from "react";
 import {
   Animated,
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,18 +15,21 @@ import { RootStackParamList } from "../navigation/types";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import characters from "../data/characters";
-import { useGameLayout } from "../ui/layout/useGameLayout";
+import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
+import { useT } from "../i18n/useT";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
 const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { score, level, coins, totalCoins, characterIndex, kills = 0, totalEnemies = 6 } = route.params;
-  const character = characters[characterIndex];
-  const { screenWidth, screenHeight, spacing, titleSize, textSize, fontSize, isTablet } = useGameLayout();
+  const { t } = useT();
+  const { score, level, coins, totalCoins, characterIndex, kills = 0, totalEnemies = 0, time = 0 } = route.params;
+  const character = characters[characterIndex] ?? characters[0];
+  const { width, height } = useWindowDimensions();
 
-  const [buttonEnabled, setButtonEnabled] = useState(false);
+  const [animationDone, setAnimationDone] = useState(false);
+  const leaving = useRef(false);
 
   // Animation values
   const cardScale = useRef(new Animated.Value(0)).current;
@@ -33,158 +37,130 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const star2 = useRef(new Animated.Value(0)).current;
   const star3 = useRef(new Animated.Value(0)).current;
 
-  // Rating logic:
-  // 1 star  -> level completed
-  // 2 stars -> all coins collected
-  // 3 stars -> all coins collected + at least 50% of monsters killed (3/6)
+  // Rating: 1 star = floor cleared, 2 = every gem collected, 3 = every gem + every guardian.
   const starsEarned = useMemo(() => {
     const allCoins = coins === totalCoins;
     const allKilled = kills === totalEnemies;
-
     if (allCoins && allKilled) return 3;
     if (allCoins) return 2;
     return 1;
   }, [coins, totalCoins, kills, totalEnemies]);
 
   useEffect(() => {
-    // Initial entry animation
-    Animated.spring(cardScale, {
-      toValue: 1,
-      friction: 6,
-      useNativeDriver: true,
-    }).start(() => {
-      // Sequential star animations — always show 3 stars one by one
+    Animated.spring(cardScale, { toValue: 1, friction: 6, useNativeDriver: true }).start(() => {
       Animated.sequence([
         Animated.delay(300),
         Animated.spring(star1, { toValue: 1, friction: 3, useNativeDriver: true }),
         Animated.spring(star2, { toValue: 1, friction: 3, useNativeDriver: true }),
         Animated.spring(star3, { toValue: 1, friction: 3, useNativeDriver: true }),
-      ]).start(() => {
-        setButtonEnabled(true);
-      });
+      ]).start(() => setAnimationDone(true));
     });
   }, []);
 
-  const handleContinue = () => {
+  // Leaves once, however many taps arrive before the screen unmounts.
+  const leave = () => {
+    if (leaving.current) return;
+    leaving.current = true;
+    emitSound("LEVEL_RESUME"); // stop the fanfare and resume the in-game music
     navigation.goBack();
   };
 
-  // Skip: complete all animations instantly, stop ceremony audio, and go back
-  const handleSkip = () => {
-    cardScale.setValue(1);
-    star1.setValue(1);
-    star2.setValue(1);
-    star3.setValue(1);
-    if (!buttonEnabled) setButtonEnabled(true);
-    emitSound('LEVEL_RESUME'); // Stop level-up audio and resume in-game music
-    navigation.goBack();
-  };
-
-  // Responsive sizes
-  const cardWidth = Math.min(screenWidth * 0.9, 850);
-  const cardMaxHeight = screenHeight * 0.92;
-  const imageHeight = Math.min(spacing(160), screenHeight * 0.35);
+  // Sizes derive from the live window, so the card fits small landscape phones and tablets alike.
+  const compact = height < 420;
+  const cardWidth = Math.min(width * 0.94, 850);
+  const imageHeight = Math.min(Math.max(height * 0.28, 70), 180);
+  const starSize = compact ? 30 : 40;
+  const accessibilityStars = t("complete.title") + ` ${starsEarned}/3`;
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Tap anywhere to skip */}
-      <TouchableOpacity
-        style={StyleSheet.absoluteFill}
-        activeOpacity={1}
-        onPress={handleSkip}
-      />
+      {/* Tap anywhere to continue */}
+      <Pressable style={StyleSheet.absoluteFill} onPress={leave} accessibilityRole="button" accessibilityLabel={t("complete.next")} />
 
-      <Animated.View style={[
-        styles.card,
-        {
-          transform: [{ scale: cardScale }],
-          width: cardWidth,
-          maxHeight: cardMaxHeight,
-          borderColor: character.arrowColor,
-        }
-      ]}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
-          <View style={[styles.row, { padding: spacing(20) }]}>
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          styles.card,
+          { transform: [{ scale: cardScale }], width: cardWidth, maxHeight: height * 0.94, borderColor: character.arrowColor },
+        ]}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
+          <View style={[styles.row, { padding: compact ? 12 : 20 }]}>
+            {/* Left column: title, image, stars */}
+            <View style={[styles.column, { flex: 1, paddingRight: 10 }]}>
+              <Text
+                style={[styles.title, { color: character.arrowColor }]}
+                accessibilityRole="header"
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                maxFontSizeMultiplier={1.3}
+              >
+                {t("complete.title").toLocaleUpperCase()}
+              </Text>
+              <Text style={styles.levelText} maxFontSizeMultiplier={1.3}>
+                {t("complete.floor", { n: level })}
+              </Text>
 
-            {/* Left Column: Title, Image, and Stars */}
-            <View style={[styles.column, { flex: 1, paddingRight: spacing(10) }]}>
-              <View style={styles.header}>
-                <Text style={[styles.title, { fontSize: titleSize, color: character.arrowColor }]}>LEVEL COMPLETE</Text>
-                <Text style={[styles.levelText, { fontSize: textSize, marginBottom: spacing(5) }]}>Level {level}</Text>
+              <View style={{ width: "100%", height: imageHeight, marginVertical: 8 }}>
+                <Image source={character.winImage} style={styles.winImage} resizeMode="contain" accessibilityIgnoresInvertColors />
               </View>
 
-              <View style={[styles.imageContainer, { height: imageHeight, marginBottom: spacing(10) }]}>
-                <Image source={character.winImage} style={styles.winImage} resizeMode="contain" />
-              </View>
-
-              <View style={styles.starsContainer}>
+              <View style={styles.starsContainer} accessible accessibilityLabel={accessibilityStars}>
                 <Animated.View style={{ transform: [{ scale: star1 }] }}>
-                  <Ionicons name="star" size={spacing(45)} color="#FFD700" />
+                  <Ionicons name="star" size={starSize} color="#FFD700" />
                 </Animated.View>
                 <Animated.View style={{ transform: [{ scale: star2 }] }}>
                   <Ionicons
                     name={starsEarned >= 2 ? "star" : "star-outline"}
-                    size={spacing(60)}
-                    color={starsEarned >= 2 ? "#FFD700" : "#444"}
-                    style={{ marginHorizontal: spacing(15) }}
+                    size={starSize * 1.3}
+                    color={starsEarned >= 2 ? "#FFD700" : "#777"}
+                    style={{ marginHorizontal: 10 }}
                   />
                 </Animated.View>
                 <Animated.View style={{ transform: [{ scale: star3 }] }}>
-                  <Ionicons
-                    name={starsEarned >= 3 ? "star" : "star-outline"}
-                    size={spacing(45)}
-                    color={starsEarned >= 3 ? "#FFD700" : "#444"}
-                  />
+                  <Ionicons name={starsEarned >= 3 ? "star" : "star-outline"} size={starSize} color={starsEarned >= 3 ? "#FFD700" : "#777"} />
                 </Animated.View>
               </View>
 
-              {/* Skip hint — shows until animation finishes */}
-              {!buttonEnabled && (
-                <Text style={styles.skipHint}>TAP ANYWHERE TO SKIP</Text>
+              {!animationDone && (
+                <Text style={styles.skipHint} maxFontSizeMultiplier={1.2}>
+                  {t("complete.skip").toLocaleUpperCase()}
+                </Text>
               )}
             </View>
 
-            {/* Right Column: Stats and Button */}
-            <View style={[styles.column, { flex: 1.2, paddingLeft: spacing(10) }]}>
-
-              <View style={[styles.statsContainer, { padding: spacing(15), marginBottom: spacing(25) }]}>
-                <View style={styles.statRow}>
-                  <Text style={[styles.statLabel, { fontSize: textSize * 0.7 }]}>SCORE</Text>
-                  <Text style={[styles.statValue, { fontSize: textSize * 1.1 }]}>{score.toLocaleString()}</Text>
-                </View>
-                <View style={styles.statRow}>
-                  <Text style={[styles.statLabel, { fontSize: textSize * 0.6 }]}>GEMS</Text>
-                  <Text style={[styles.statValue, { color: "#FFD700", fontSize: fontSize(20) }]}>{coins} / {totalCoins}</Text>
-                </View>
-                <View style={styles.statRow}>
-                  <Text style={[styles.statLabel, { fontSize: textSize * 0.6 }]}>KILLS</Text>
-                  <Text style={[styles.statValue, { color: "#FF3D00", fontSize: fontSize(20) }]}>{kills} / {totalEnemies}</Text>
-                </View>
-                <View style={styles.statRow}>
-                  <Text style={[styles.statLabel, { fontSize: textSize * 0.6 }]}>TIME</Text>
-                  <Text style={[styles.statValue, { color: "#00BFFF", fontSize: fontSize(20) }]}>{formatTime(route.params.time ?? 0)}</Text>
-                </View>
+            {/* Right column: stats and button */}
+            <View style={[styles.column, { flex: 1.2, paddingLeft: 10 }]}>
+              <View style={styles.statsContainer}>
+                {[
+                  { label: t("complete.score"), value: score.toLocaleString(), color: "#fff" },
+                  { label: t("complete.gems"), value: `${coins} / ${totalCoins}`, color: "#FFD700" },
+                  { label: t("complete.kills"), value: `${kills} / ${totalEnemies}`, color: "#FF6E40" },
+                  { label: t("complete.time"), value: formatTime(time), color: "#4FC3F7" },
+                ].map(stat => (
+                  <View key={stat.label} style={styles.statRow} accessible accessibilityLabel={`${stat.label}: ${stat.value}`}>
+                    <Text style={styles.statLabel} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {stat.label.toLocaleUpperCase()}
+                    </Text>
+                    <Text style={[styles.statValue, { color: stat.color }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {stat.value}
+                    </Text>
+                  </View>
+                ))}
               </View>
 
               <TouchableOpacity
-                style={[
-                  styles.button,
-                  {
-                    backgroundColor: character.arrowColor,
-                    paddingVertical: spacing(20),
-                  }
-                ]}
-                onPress={handleSkip}
+                style={[styles.button, { backgroundColor: character.arrowColor }]}
+                onPress={leave}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={t("complete.next")}
               >
-                <Text style={[styles.buttonText, { fontSize: textSize }]}>NEXT LEVEL →</Text>
+                <Text style={styles.buttonText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+                  {t("complete.next").toLocaleUpperCase()} →
+                </Text>
               </TouchableOpacity>
             </View>
-
           </View>
         </ScrollView>
       </Animated.View>
@@ -193,15 +169,10 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.92)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "rgba(0,0,0,0.92)", justifyContent: "center", alignItems: "center" },
   card: {
     backgroundColor: "#111",
-    borderRadius: 36,
+    borderRadius: 32,
     borderWidth: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
@@ -210,24 +181,11 @@ const styles = StyleSheet.create({
     elevation: 25,
     overflow: "hidden",
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  column: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    alignItems: "center",
-    width: "100%",
-  },
+  scrollContent: { flexGrow: 1, justifyContent: "center" },
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  column: { justifyContent: "center", alignItems: "center" },
   title: {
+    fontSize: 24,
     fontWeight: "900",
     letterSpacing: 1,
     textAlign: "center",
@@ -235,68 +193,33 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
   },
-  levelText: {
-    color: "#aaa",
-    fontWeight: "bold",
-    letterSpacing: 1,
-    textAlign: "center",
-  },
-  imageContainer: {
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  winImage: {
-    height: "100%",
-    width: "100%",
-  },
-  starsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  levelText: { color: "#bdbdbd", fontWeight: "bold", fontSize: 15, letterSpacing: 1, textAlign: "center" },
+  winImage: { height: "100%", width: "100%" },
+  starsContainer: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
   statsContainer: {
     width: "100%",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 24,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.06)",
+    padding: 12,
+    marginBottom: 14,
   },
-  statRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 6,
-  },
-  statLabel: {
-    color: "#777",
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
-  statValue: {
-    color: "#fff",
-    fontWeight: "900",
-    letterSpacing: 1,
-  },
+  statRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 5, gap: 8 },
+  statLabel: { color: "#a0a0a0", fontWeight: "900", letterSpacing: 1, fontSize: 12 },
+  statValue: { fontWeight: "900", letterSpacing: 1, fontSize: 18, flexShrink: 1 },
   button: {
-    borderRadius: 24,
+    minHeight: MIN_TOUCH,
+    borderRadius: 20,
     width: "100%",
     alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 12,
     borderBottomWidth: 4,
     borderBottomColor: "rgba(0,0,0,0.3)",
   },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "900",
-    letterSpacing: 2,
-  },
-  skipHint: {
-    color: "rgba(255,255,255,0.35)",
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
-    marginTop: 10,
-  },
+  buttonText: { color: "#111", fontWeight: "900", letterSpacing: 2, fontSize: 16 },
+  skipHint: { color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: "700", letterSpacing: 2, marginTop: 8, textAlign: "center" },
 });
 
 export default LevelCompleteScreen;

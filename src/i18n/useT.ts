@@ -1,0 +1,34 @@
+import { useMemo } from 'react';
+import { getLocales } from 'expo-localization';
+import { en, TranslationKey } from './en';
+import { es } from './es';
+import { createTranslator, resolveLanguage, Language, Params } from './translate';
+import { useSettingsStore } from '../state/settings/store';
+
+const dictionaries: Record<Language, Record<TranslationKey, string>> = { en, es };
+
+/** Language code of the phone (e.g. `es`), or null when it cannot be read. */
+export function getDeviceLanguageCode(): string | null {
+  try {
+    return getLocales()[0]?.languageCode ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Translator bound to the user's language choice (Settings) or, on `auto`, to the phone's language. */
+export function useT() {
+  const preference = useSettingsStore(s => s.language);
+  const language = resolveLanguage(preference, getDeviceLanguageCode());
+
+  return useMemo(
+    () => ({ language, ...createTranslator<TranslationKey>(dictionaries, language) }),
+    [language],
+  );
+}
+
+/** For code outside React (e.g. building a share message). */
+export function translateNow(key: TranslationKey, params?: Params): string {
+  const language = resolveLanguage(useSettingsStore.getState().language, getDeviceLanguageCode());
+  return createTranslator<TranslationKey>(dictionaries, language).t(key, params);
+}

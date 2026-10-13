@@ -38,6 +38,12 @@
       ],
       "expo-asset",
       [
+        "expo-localization",
+        {
+          "supportedLocales": ["en", "es"]
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash.png",

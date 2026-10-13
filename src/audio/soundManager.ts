@@ -12,9 +12,22 @@ const SFX_VOL = 0.45;
 const HAZARD_VOL = 0.10;
 const VICTORIA_VOL = 0.30;
 
+/**
+ * Every start/stop bumps a per-track counter. A start that is still waiting on the native player
+ * checks it again before playing, so a quick STOP right after a START always wins.
+ */
+const epochs = new WeakMap<LegacySoundHandle, number>();
+const epochOf = (handle: LegacySoundHandle) => epochs.get(handle) ?? 0;
+const bumpEpoch = (handle: LegacySoundHandle) => {
+  const next = epochOf(handle) + 1;
+  epochs.set(handle, next);
+  return next;
+};
+
 /** Utility to stop a track without crashing if busy */
 const stopTrack = (handle: LegacySoundHandle | null) => {
   if (!handle) return;
+  bumpEpoch(handle);
   handle.stop().catch(e => console.warn("[SoundManager] stop error:", e));
 };
 
@@ -52,8 +65,11 @@ export function useSoundManager(): void {
   /** Fast looping for BGM */
   const startLoopingTrack = (handle: LegacySoundHandle | null, vol: number = MUSIC_VOL) => {
     if (!handle || !soundEnabledRef.current) return;
+    const ticket = bumpEpoch(handle);
     handle.setNumberOfLoops(-1).then(() => {
+      if (epochOf(handle) !== ticket) return; // stopped (or restarted) while loading
       handle.setVolume(vol).then(() => {
+        if (epochOf(handle) !== ticket) return;
         handle.play();
       });
     });
@@ -63,7 +79,7 @@ export function useSoundManager(): void {
   const stopAllBackgroundMusic = (reason: string = "general") => {
     const s = soundsRef.current;
     if (!s) return;
-    console.log(`[SoundManager] Nuclear Stop. Reason: ${reason}`);
+    if (__DEV__) console.log(`[SoundManager] stop all background audio: ${reason}`);
     
     // Specifically target long-running tracks that can leak
     stopTrack(s.cover);
@@ -82,7 +98,11 @@ export function useSoundManager(): void {
     const isStopEvent = event.includes('STOP') || event === 'QUIT' || event === 'GAME_MUSIC_STOP';
     if (!soundEnabled && !isStopEvent && event !== 'LEVEL_UP' && event !== 'GAME_OVER') return;
 
-    console.log(`[SoundManager] -> ${event}`);
+    if (__DEV__) console.log(`[SoundManager] -> ${event}`);
+
+    // Once a run ends or the player leaves, coming back to the app must not restart the gameplay loop.
+    if (event === 'GAME_OVER' || event === 'GAME_MUSIC_STOP' || event === 'QUIT') lastMusicIntent.current = null;
+    if (event === 'LEVEL_RESUME') lastMusicIntent.current = 'GAME_MUSIC_START';
 
     // Update intent for global BGM tracks
     if (['COVER_SCREEN_START', 'GAME_MUSIC_START', 'SELECTION_SCREEN_START'].includes(event)) {

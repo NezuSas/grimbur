@@ -1,9 +1,9 @@
 import React from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
-import { overlayStyles } from './overlayStyles';
-
-const { width: screenWidth } = Dimensions.get('window');
+import OverlayContainer from './OverlayContainer';
+import { MIN_TOUCH } from '../../layout/useGameLayout';
+import { useT } from '../../../i18n/useT';
 
 type Props = {
   visible: boolean;
@@ -13,27 +13,56 @@ type Props = {
 };
 
 const PauseOverlay = ({ visible, onResume, onRestart, onMainMenu }: Props) => {
+  const { t } = useT();
+  const { width } = useWindowDimensions();
+
   if (!visible) return null;
 
   return (
-    <View style={overlayStyles.overlay}>
-      <View style={styles.card}>
-        <Text style={styles.title}>PAUSED</Text>
+    <OverlayContainer>
+      <View style={[styles.card, { width: Math.min(width * 0.8, 340) }]}>
+        <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+          {t('pause.title').toLocaleUpperCase()}
+        </Text>
 
-        <TouchableOpacity style={styles.resumeButton} onPress={onResume} activeOpacity={0.8}>
-          <Text style={styles.resumeText}>▶  RESUME</Text>
+        <TouchableOpacity
+          style={styles.resumeButton}
+          onPress={onResume}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('pause.resume')}
+        >
+          <Text style={styles.resumeText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+            ▶  {t('pause.resume').toLocaleUpperCase()}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.row}>
-          <TouchableOpacity style={styles.secondaryButton} onPress={onRestart} activeOpacity={0.8}>
-            <Text style={styles.secondaryText}>🔄  RESTART</Text>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={onRestart}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('pause.restart')}
+          >
+            <Text style={styles.secondaryText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+              🔄  {t('pause.restart').toLocaleUpperCase()}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondaryButton} onPress={onMainMenu} activeOpacity={0.8}>
-            <Text style={styles.secondaryText}>🏠  MENU</Text>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={onMainMenu}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('pause.menu')}
+          >
+            <Text style={styles.secondaryText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+              🏠  {t('pause.menu').toLocaleUpperCase()}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </OverlayContainer>
   );
 };
 
@@ -45,23 +74,19 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 2,
     borderColor: '#4FC3F7',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     alignItems: 'center',
-    width: Math.min(screenWidth * 0.7, 320),
     gap: 12,
   },
-  title: {
-    color: '#4FC3F7',
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: 3,
-  },
+  title: { color: '#4FC3F7', fontSize: 20, fontWeight: '900', letterSpacing: 3 },
   resumeButton: {
     width: '100%',
+    minHeight: MIN_TOUCH,
     backgroundColor: '#FFD700',
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'rgba(0,0,0,0.2)',
@@ -70,9 +95,11 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 10, width: '100%' },
   secondaryButton: {
     flex: 1,
+    minHeight: MIN_TOUCH,
     backgroundColor: 'rgba(255,255,255,0.1)',
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 8,
+    justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.25)',

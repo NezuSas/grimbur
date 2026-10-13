@@ -54,6 +54,8 @@ async function ensurePlayer(name: string): Promise<any> {
                 if (TARGET_LOOPS[name] !== undefined) player.loop = TARGET_LOOPS[name];
                 return player;
             }
+            // Never became ready: release it instead of leaking a native player on every retry.
+            try { player.remove(); } catch {}
             return null;
         } catch (e) {
             console.error(`[AudioEngine:${name}] Init failed:`, e);

@@ -1,0 +1,287 @@
+import type { TranslationKey } from './en';
+
+/**
+ * Spanish dictionary (neutral Latin American, "tú").
+ * Glossary: piso (floor), gema (gem), expedición (expedition), clasificación (leaderboard),
+ * reliquia (relic), guardián, vórtice, escudo, flecha, héroe, reto diario, trampa.
+ * The type forces every English key to exist here.
+ */
+export const es: Record<TranslationKey, string> = {
+  // ── common ────────────────────────────────────────────────────────────
+  'common.back': 'Atrás',
+  'common.close': 'Cerrar',
+  'common.skip': 'Omitir',
+  'common.loading': 'Cargando…',
+  'common.retry': 'Reintentar',
+  'common.gems_one': '{count} gema',
+  'common.gems_other': '{count} gemas',
+
+  // ── cover ─────────────────────────────────────────────────────────────
+  'cover.tagline': 'Desciende. Deduce. Vence al Wumpus.',
+  'cover.play': 'Iniciar expedición',
+  'cover.daily': 'Reto diario',
+  'cover.rankings': 'Clasificación',
+  'cover.manual': 'Cómo jugar',
+  'cover.settings': 'Ajustes',
+  'cover.version': 'v{version}',
+
+  // ── hero select ───────────────────────────────────────────────────────
+  'heroes.title': 'Elige tu héroe',
+  'heroes.select': 'Elegir',
+  'heroes.locked': 'Bloqueado',
+  'heroes.unlockFloor': 'Llega al piso {floor}',
+  'heroes.unlockVictory': 'Gana una expedición',
+  'hero.0.name': 'Explorador Cian',
+  'hero.1.name': 'Caballero Escarlata',
+  'hero.2.name': 'Gólem de Musgo',
+  'hero.3.name': 'Pícaro Dorado',
+  'hero.0.perk': 'Cazatrampas',
+  'hero.1.perk': 'Flechas perforantes',
+  'hero.2.perk': 'Piel de piedra',
+  'hero.3.perk': 'Cazatesoros',
+  'hero.0.desc': 'Las trampas no dañan. +1 flecha en cada piso.',
+  'hero.1.desc': 'Las flechas vuelan 2 casillas.',
+  'hero.2.desc': 'Empieza cada piso con un escudo.',
+  'hero.3.desc': 'Las gemas valen +30 %. Explorar paga el doble.',
+
+  // ── relics ────────────────────────────────────────────────────────────
+  'relic.quiver.name': 'Carcaj sin fondo',
+  'relic.quiver.desc': '+2 flechas ahora y +1 flecha al empezar cada piso.',
+  'relic.lucky_coin.name': 'Moneda de la suerte',
+  'relic.lucky_coin.desc': 'Las gemas valen un 25 % más.',
+  'relic.iron_boots.name': 'Botas de hierro',
+  'relic.iron_boots.desc': 'Caminar ya no cuesta puntos.',
+  'relic.lantern.name': 'Linterna vieja',
+  'relic.lantern.desc': 'Cada piso empieza con la zona a tu alrededor ya explorada.',
+  'relic.phoenix.name': 'Pluma de fénix',
+  'relic.phoenix.desc': 'Sobrevives a un toque mortal y luego se deshace.',
+  'relic.hunter.name': 'Marca del cazador',
+  'relic.hunter.desc': 'Los combos de bajas pueden subir un nivel más.',
+  'relic.long_bow.name': 'Arco largo',
+  'relic.long_bow.desc': 'Las flechas vuelan una casilla más lejos.',
+  'relic.bulwark.name': 'Baluarte',
+  'relic.bulwark.desc': 'Empiezas cada piso con un escudo.',
+  'relic.greed.name': 'Tesoro del dragón',
+  'relic.greed.desc': 'Despejar un piso paga un 50 % más.',
+  'relic.frost.name': 'Amuleto de escarcha',
+  'relic.frost.desc': 'El Wumpus actúa más despacio.',
+  'relic.trap_sense.name': 'Olfato de trampas',
+  'relic.trap_sense.desc': 'Las trampas se desactivan sin penalización.',
+  'relic.kicker': 'Piso {floor} superado',
+  'relic.title': 'Elige una reliquia',
+  'relic.hint': 'Las reliquias duran toda la expedición',
+
+  // ── settings ──────────────────────────────────────────────────────────
+  'settings.title': 'Ajustes',
+  'settings.sound': 'Sonido',
+  'settings.haptics': 'Vibración',
+  'settings.reduceFlash': 'Reducir destellos',
+  'settings.reduceFlashHint': 'Suaviza los destellos de pantalla al derrotar enemigos y al teletransportarte.',
+  'settings.controls': 'Posición de los controles',
+  'settings.left': 'Izq.',
+  'settings.right': 'Der.',
+  'settings.language': 'Idioma',
+  'settings.languageAuto': 'Automático',
+  'settings.languageEn': 'English',
+  'settings.languageEs': 'Español',
+  'settings.autosave': 'Los ajustes se guardan automáticamente.',
+
+  // ── leaderboard ───────────────────────────────────────────────────────
+  'scores.title': 'Clasificación',
+  'scores.col.rank': 'Puesto',
+  'scores.col.hero': 'Héroe',
+  'scores.col.name': 'Nombre',
+  'scores.col.floor': 'Piso',
+  'scores.col.score': 'Puntos',
+  'scores.col.gems': 'Gemas',
+  'scores.col.time': 'Tiempo',
+  'scores.floorShort': 'P{n}',
+  'scores.noTime': 'N/D',
+  'scores.loading': 'Cargando puntajes…',
+  'scores.empty': 'Aún no hay puntajes. ¡Sé el primero!',
+  'scores.error': 'No se pudo cargar la clasificación. Revisa tu conexión.',
+
+  // ── level complete / game over / pause / entry ────────────────────────
+  'complete.title': 'Piso superado',
+  'complete.floor': 'Piso {n}',
+  'complete.skip': 'Toca en cualquier lugar para continuar',
+  'complete.score': 'Puntos',
+  'complete.gems': 'Gemas',
+  'complete.kills': 'Bajas',
+  'complete.time': 'Tiempo',
+  'complete.next': 'Siguiente piso',
+
+  'over.victory': 'Expedición completada',
+  'over.defeat': 'Fin del juego',
+  'over.daily': 'Reto {date}',
+  'over.streak_one': 'Racha de {count} día',
+  'over.streak_other': 'Racha de {count} días',
+  'over.newDailyBest': '¡Nuevo récord del día!',
+  'over.newBest': '¡Nuevo récord personal!',
+  'over.bestToday': 'Mejor de hoy {score}',
+  'over.best': 'Mejor {score}',
+  'over.unlocked_one': 'Desbloqueado: {names}',
+  'over.unlocked_other': 'Desbloqueados: {names}',
+  'over.floor': 'Piso',
+  'over.score': 'Puntos',
+  'over.gems': 'Gemas',
+  'over.time': 'Tiempo',
+  'over.retry': 'Reintentar',
+  'over.menu': 'Menú',
+  'over.share': 'Compartir resultado',
+  'over.cause.enemy': 'Derrotado por un guardián',
+  'over.cause.boss': 'Derrotado por el Wumpus',
+  'over.cause.pit': 'Perdido en un vórtice',
+
+  'pause.title': 'En pausa',
+  'pause.resume': 'Continuar',
+  'pause.restart': 'Reiniciar',
+  'pause.menu': 'Menú',
+
+  'entry.badge': '¡Top 10!',
+  'entry.title': 'Nuevo récord',
+  'entry.points': '{score} pts',
+  'entry.subtitle': 'Piso {floor} · {gems} · {time}',
+  'entry.placeholder': 'Escribe tu nombre…',
+  'entry.errBlocked': 'Ese nombre no está permitido. Prueba con otro.',
+  'entry.errEmpty': 'Escribe un nombre.',
+  'entry.errFailed': 'No se pudo guardar tu puntaje. Revisa tu conexión.',
+  'entry.save': 'Guardar puntaje',
+  'entry.saving': 'Guardando…',
+
+  'share.daily':
+    'Wumpus Adventures · Reto {date}\nPiso {floor} · {score} pts · {gems}{streak}\nLa misma cueva para todos hoy. ¿Puedes superarme?',
+  'share.streak_one': ' · racha de {count} día',
+  'share.streak_other': ' · racha de {count} días',
+
+  // ── HUD, errors, popups ───────────────────────────────────────────────
+  'hud.time': 'Tiempo',
+  'hud.floor': 'Piso',
+  'hud.level': 'Nivel',
+  'hud.floorOf': '{level}/{floors}',
+  'popup.shield': 'ESCUDO',
+  'error.title': 'Algo salió mal',
+  'error.body': 'La cueva se derrumbó. Tu mejor puntaje está a salvo.',
+  'error.retry': 'Intentar de nuevo',
+
+  // ── accessibility labels ──────────────────────────────────────────────
+  'a11y.moveUp': 'Mover arriba',
+  'a11y.moveDown': 'Mover abajo',
+  'a11y.moveLeft': 'Mover a la izquierda',
+  'a11y.moveRight': 'Mover a la derecha',
+  'a11y.attack': 'Disparar una flecha',
+  'a11y.pause': 'Pausa',
+  'a11y.back': 'Volver',
+  'a11y.shieldActive': 'Escudo activo',
+  'a11y.arrowsLeft': '{count} flechas restantes',
+  'a11y.gemsLeft_one': 'Queda {count} gema',
+  'a11y.gemsLeft_other': 'Quedan {count} gemas',
+  'a11y.relics': 'Reliquias: {names}',
+
+  // ── tutorial ──────────────────────────────────────────────────────────
+  'tutorial.title': 'Entrenamiento',
+  'tutorial.step': 'Paso {n} de {total}',
+  'tutorial.walk': 'Usa el panel de flechas para caminar a la derecha y tomar la gema brillante.',
+  'tutorial.clue':
+    'Un icono de sonido significa que hay un guardián justo al lado de esta casilla. Lo estás mirando: ¡nunca pises su casilla!',
+  'tutorial.shoot': 'Toca el botón rojo de ataque para disparar al guardián que tienes enfrente.',
+  'tutorial.finish': '¡Bien hecho! Ahora toma la última gema. Los peligros siguen ocultos; las gemas, nunca.',
+  'tutorial.done':
+    '¡Piso superado! En una expedición real eliges una reliquia tras cada piso y te enfrentas al Wumpus en el piso {floors}.',
+  'tutorial.retry': '¡Pisaste al guardián! Intentémoslo otra vez.',
+  'tutorial.skip': 'Omitir tutorial',
+  'tutorial.play': 'Empezar a jugar',
+
+  // ── manual ────────────────────────────────────────────────────────────
+  'manual.title': 'Cómo jugar',
+  'manual.replayTutorial': 'Repetir el tutorial',
+
+  'manual.mission.title': 'La misión',
+  'manual.mission.goal.label': 'Objetivo',
+  'manual.mission.goal.detail':
+    'Recoge todas las gemas de un piso para pasar a la siguiente cueva, más difícil. Una partida es una expedición de {floors} pisos.',
+  'manual.mission.wumpus.label': 'El Wumpus',
+  'manual.mission.wumpus.detail':
+    'El piso {floors} es la guarida del Wumpus. Tiene {hearts} corazones y te persigue: cada {moves} acciones se acerca un paso y, cuando está a tu lado, se prepara (brilla) antes de golpear. Dispárale {hearts} veces para ganar. Un escudo o una pluma absorbe un golpe.',
+  'manual.mission.wumpus.badge': 'Piso {floors}',
+  'manual.mission.relics.label': 'Reliquias',
+  'manual.mission.relics.detail':
+    'Tras cada piso eliges 1 de 3 reliquias. Se acumulan y duran toda la expedición.',
+  'manual.mission.relics.badge': 'Elección',
+  'manual.mission.heroes.label': 'Héroes',
+  'manual.mission.heroes.detail':
+    'Cada héroe tiene un poder. Desbloquea a los demás llegando a pisos más profundos y ganando una expedición.',
+  'manual.mission.survival.label': 'Supervivencia',
+  'manual.mission.survival.detail':
+    'Tocar a un guardián o al Wumpus es mortal. Los vórtices solo te teletransportan. Lee las pistas antes de pisar.',
+
+  'manual.explore.title': 'Exploración',
+  'manual.explore.hidden': 'Oculta',
+  'manual.explore.revealed': 'Revelada',
+  'manual.explore.tiles': 'Las casillas empiezan ocultas. Pisa una para revelarla.',
+  'manual.explore.pace.label': 'Planea tu camino',
+  'manual.explore.pace.detail':
+    'Las gemas siempre se ven; los peligros, nunca. Cada paso cuesta un punto, así que camina con intención.',
+
+  'manual.hazards.title': 'Leer las pistas',
+  'manual.hazards.guardian': 'Guardián',
+  'manual.hazards.vortex': 'Vórtice',
+  'manual.hazards.clues.label': 'Pistas',
+  'manual.hazards.clues.detail':
+    'Una casilla revelada muestra un icono de sonido cuando hay un guardián justo a su lado, y un icono de infinito si hay un vórtice. Aparece un número cuando hay dos o más del mismo tipo.',
+  'manual.hazards.vortexInfo.label': 'Vórtice',
+  'manual.hazards.vortexInfo.detail':
+    'Pisar un vórtice no te mata: te teletransporta a una casilla segura, de preferencia sin explorar. Úsalo para saltar terreno peligroso, aunque puede dejarte lejos de las gemas.',
+  'manual.hazards.vortexInfo.badge': 'Teletransporte',
+  'manual.hazards.note': 'Las pistas cuentan los peligros que tocan una casilla, no de qué lado están.',
+
+  'manual.combat.title': 'Combate',
+  'manual.combat.strike.label': 'Disparar',
+  'manual.combat.strike.detail':
+    'Pulsa el botón de ataque para disparar a la casilla que tienes enfrente. Miras hacia donde te moviste por última vez, y chocar con una pared te hace girar. Las flechas golpean al primer guardián a su alcance.',
+  'manual.combat.ammo.label': 'Flechas',
+  'manual.combat.ammo.detail': 'Las flechas son limitadas y se renuevan en cada piso. Fallar cuesta puntos.',
+  'manual.combat.ammo.badge': 'Limitadas',
+  'manual.combat.combo.label': 'Combo',
+  'manual.combat.combo.detail':
+    'Las bajas seguidas, sin moverte ni fallar, multiplican la recompensa hasta x{combo}.',
+  'manual.combat.combo.badge': 'x{combo}',
+
+  'manual.powerups.title': 'Potenciadores y trampas',
+  'manual.powerups.shield.label': 'Escudo',
+  'manual.powerups.shield.detail':
+    'Absorbe un toque mortal y destruye al guardián. Dura hasta que lo uses, incluso entre pisos.',
+  'manual.powerups.ammo.label': 'Flechas',
+  'manual.powerups.ammo.detail': 'Los haces de flechas del tablero te dan +{ammo} flechas.',
+  'manual.powerups.traps.label': 'Trampas',
+  'manual.powerups.traps.detail':
+    'Desde el piso 3, algunas casillas esconden una trampa. Cuesta {trap} puntos pero nunca mata, y no avisa.',
+
+  'manual.scoring.title': 'Puntos y clasificación',
+  'manual.scoring.points.label': 'Puntuación',
+  'manual.scoring.points.detail':
+    'Las gemas, las bajas, superar pisos y explorar dan puntos. Los pasos y los fallos los restan.',
+  'manual.scoring.board.label': 'Clasificación',
+  'manual.scoring.board.detail': 'El top 10 global se ordena por puntos. Los empates los gana la partida más rápida.',
+  'manual.scoring.daily.label': 'Reto diario',
+  'manual.scoring.daily.detail':
+    'Una cueva por día, igual para todos los jugadores. Mantén tu racha jugando días seguidos. Las partidas del reto diario no entran en la clasificación global.',
+  'manual.scoring.daily.badge': 'Diario',
+  'manual.scoring.pause.label': 'Pausa',
+  'manual.scoring.pause.detail':
+    'Toca el botón de pausa o pulsa Atrás. La partida también se pausa cuando sales de la app.',
+
+  'manual.tips.title': 'Consejos',
+  'manual.tips.vortex.title': 'Aprovecha el vórtice',
+  'manual.tips.vortex.body': 'Caer en un vórtice es una escapatoria segura cuando todas las direcciones parecen arriesgadas.',
+  'manual.tips.shield.title': 'Escudo primero',
+  'manual.tips.shield.body':
+    'Toma un escudo antes de explorar cerca de los guardianes: convierte un error mortal en una baja gratis.',
+  'manual.tips.ammo.title': 'Ahorra flechas',
+  'manual.tips.ammo.body': 'No dispares a lo que puedes rodear. Guarda las flechas para los rincones y para el Wumpus.',
+  'manual.tips.route.title': 'Piensa en el regreso',
+  'manual.tips.route.body': 'Las gemas suelen estar en lugares arriesgados. Recuerda las casillas seguras que usaste.',
+  'manual.tips.wumpus.title': 'Enfrenta al Wumpus',
+  'manual.tips.wumpus.body':
+    'Solo puedes disparar hacia donde miras. Alíneate con él, dispara y aprovecha su preparación para acabarlo.',
+};

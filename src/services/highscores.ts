@@ -1,6 +1,7 @@
 // src/services/highscores.ts
 import { db } from "../lib/firebase";
 import { checkName, validateSubmission } from "../core/leaderboard/validation";
+import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
 import {
   collection,
   addDoc,
@@ -10,9 +11,9 @@ import {
   query,
 } from "firebase/firestore";
 
-export type HighscoreRow = { 
-  level: number; 
-  score: number; 
+export type HighscoreRow = {
+  level: number;
+  score: number;
   name: string;
   coins: number;
   characterIndex: number;
@@ -20,55 +21,57 @@ export type HighscoreRow = {
 };
 export type Doc = { id: string; data: () => HighscoreRow };
 
-let _cachedThreshold: { count: number; minScore: number; maxTime: number } | null = null;
+/** Network calls never hang the UI: they fail after this long. */
+const REQUEST_TIMEOUT_MS = 8000;
+/** The cached top-10 threshold is re-fetched after this long. */
+const THRESHOLD_TTL_MS = 60_000;
 
-export async function prefetchLeaderboardThreshold() {
+let cachedThreshold: { value: Threshold; at: number } | null = null;
+
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`[Highscores] ${label} timed out`)), ms);
+    work.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      error => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
+/**
+ * Fetches the global top 10. Throws when the network or Firestore fails, so callers can show an
+ * error instead of an empty (and wrong) leaderboard.
+ */
+export async function fetchTop10(): Promise<Doc[]> {
+  // Ordered by score only: avoids a composite index and keeps legacy rows without `time`.
+  const q = query(collection(db, "highscores"), orderBy("score", "desc"), limit(20));
+  const snap = await withTimeout(getDocs(q), REQUEST_TIMEOUT_MS, "fetchTop10");
+  const docs = snap.docs.map(d => ({ id: d.id, data: () => d.data() as HighscoreRow }));
+  // Ties on score are broken in memory: faster time first, missing time last.
+  const ranked = rankRows(docs.map(d => ({ doc: d, score: d.data().score, time: d.data().time })));
+  return ranked.map(r => r.doc).slice(0, 10);
+}
+
+/** Warms the threshold cache. Never throws and never caches a failure. */
+export async function prefetchLeaderboardThreshold(): Promise<void> {
   try {
     const top10 = await fetchTop10();
-    if (top10.length < 10) {
-      _cachedThreshold = { count: top10.length, minScore: 0, maxTime: 999999 };
-    } else {
-      const tenth = top10[9].data();
-      // If tenth place has no time, use a large default (999999)
-      const tenthTime = (tenth.time !== undefined && tenth.time !== null) ? tenth.time : 999999;
-      _cachedThreshold = { count: 10, minScore: tenth.score, maxTime: tenthTime };
-    }
+    const rows = top10.map(d => d.data());
+    cachedThreshold = { value: thresholdFromTop10(rows), at: Date.now() };
   } catch (e) {
     console.warn("[Highscores] Prefetch threshold failed", e);
   }
 }
 
-export async function fetchTop10(): Promise<Doc[]> {
-  // Fetch by score only to avoid Firestore index requirement 
-  // and exclusion of legacy documents that lack the 'time' field.
-  const q = query(
-    collection(db, "highscores"), 
-    orderBy("score", "desc"), 
-    limit(20) // Get more to handle tie-breaks in memory
-  );
-  try {
-    const snap = await getDocs(q);
-    const docs = snap.docs.map((d) => ({ id: d.id, data: () => d.data() as HighscoreRow }));
-    
-    // Sort in memory: Score DESC, then Time ASC (missing time treated as very large)
-    return docs.sort((a, b) => {
-      const da = a.data();
-      const db = b.data();
-      if (da.score !== db.score) return db.score - da.score;
-      
-      const ta = (da.time !== undefined && da.time !== null) ? da.time : 999999;
-      const tb = (db.time !== undefined && db.time !== null) ? db.time : 999999;
-      return ta - tb;
-    }).slice(0, 10);
-  } catch (e) {
-    console.warn("[Highscores] fetchTop10 failed:", e);
-    return [];
-  }
-}
+export async function addHighscore(row: HighscoreRow): Promise<void> {
+  cachedThreshold = null; // the board is about to change
 
-export async function addHighscore(row: HighscoreRow) {
-  _cachedThreshold = null; // Invalidate cache so it recalculates
-  
   // Guard: time is at least 1 second (avoids 00:00 entries) and always an integer.
   const safeTime = Number.isFinite(row.time) ? Math.max(Math.round(row.time), 1) : 1;
   const nameCheck = checkName(row.name);
@@ -76,21 +79,18 @@ export async function addHighscore(row: HighscoreRow) {
 
   const safeRow: HighscoreRow = { ...row, name: nameCheck.name, time: safeTime };
   const problems = validateSubmission(safeRow);
-  if (problems.length > 0) throw new Error(`[Highscores] Invalid submission: ${problems.join(', ')}`);
+  if (problems.length > 0) throw new Error(`[Highscores] Invalid submission: ${problems.join(", ")}`);
 
-  await addDoc(collection(db, "highscores"), safeRow);
+  await withTimeout(addDoc(collection(db, "highscores"), safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
 }
 
-/** Returns true instantly using a cached threshold. */
+/**
+ * Whether a run would enter the top 10. Returns false when the board cannot be read
+ * (offline): we never invite the player to submit a score that could not be saved.
+ */
 export async function isTopTenScore(score: number, time: number): Promise<boolean> {
-  if (!_cachedThreshold) {
-    await prefetchLeaderboardThreshold();
-  }
-  
-  if (!_cachedThreshold) return false; // Fallback safely if network fails
-  
-  if (_cachedThreshold.count < 10) return true;
-  if (score > _cachedThreshold.minScore) return true;
-  if (score === _cachedThreshold.minScore && time < _cachedThreshold.maxTime) return true;
-  return false;
+  const fresh = cachedThreshold && Date.now() - cachedThreshold.at < THRESHOLD_TTL_MS;
+  if (!fresh) await prefetchLeaderboardThreshold();
+  if (!cachedThreshold) return false;
+  return qualifies(cachedThreshold.value, score, time);
 }

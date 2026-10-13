@@ -1,7 +1,7 @@
 import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, Direction } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
-import { coinValue, killValue, levelClearBonus } from './scoring';
+import { coinReward, killValue, levelClearBonus } from './scoring';
 import { NO_PERKS } from './heroes';
 import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
 
@@ -299,7 +299,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += Math.round(coinValue(state.level) * perks.coinMultiplier * (1 + 0.25 * has('lucky_coin')));
+          newScore += coinReward(state.level, perks.coinMultiplier, has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
           consumeEntity();

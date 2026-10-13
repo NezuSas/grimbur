@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, useWindowDimensions, StyleSheet } from "react-native";
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from "react-native";
+import Constants from "expo-constants";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CoverButton from "./CoverButton";
-import { useSoundStore } from "../../state/sound/store";
-import { emitSound } from "../../audio/audioEventBus";
 import { useGameLayout } from "../layout/useGameLayout";
+import { useT } from "../../i18n/useT";
 
 type Props = {
   onPressPlay: () => void;
@@ -14,96 +15,81 @@ type Props = {
 };
 
 const CoverCard: React.FC<Props> = ({ onPressPlay, onPressDaily, onPressScores, onPressInstructions, onPressSettings }) => {
-  const { screenWidth, screenHeight, spacing, titleSize, textSize, isTablet } = useGameLayout();
-  const ready = useSoundStore((s) => (s as any).ready ?? true);
+  const { t } = useT();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const { spacing, titleSize } = useGameLayout();
 
-  // Card proportional but with topes — Wider to accommodate 2-column buttons
-  const cardWidth = Math.min(screenWidth * 0.9, 520);
-  const cardHeight = Math.min(screenHeight * 0.9, 450);
+  const cardWidth = Math.min(width - Math.max(insets.left, 12) - Math.max(insets.right, 12) - 16, 540);
+  const version = Constants.expoConfig?.version ?? "";
 
   return (
-    <View style={styles.root}>
-      <View style={[styles.cardContainer, { width: cardWidth, padding: spacing(28) }]}>
-        {/* Header Section */}
-        <View style={[styles.header, { marginBottom: spacing(24) }]}>
-          <Text style={[styles.title, { fontSize: titleSize * 0.95 }]}>WUMPUS ADVENTURES</Text>
-          <Text style={[styles.subtitle, { fontSize: titleSize * 0.6 }]}>ADVENTURE</Text>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: Math.max(insets.top, 8), paddingBottom: Math.max(insets.bottom, 8) },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={[styles.cardContainer, { width: cardWidth, padding: spacing(24) }]}>
+        {/* Header */}
+        <View style={[styles.header, { marginBottom: spacing(16) }]}>
+          <Text
+            style={[styles.title, { fontSize: Math.min(titleSize * 0.95, 34) }]}
+            accessibilityRole="header"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            maxFontSizeMultiplier={1.2}
+          >
+            WUMPUS ADVENTURES
+          </Text>
+          <Text style={styles.tagline} maxFontSizeMultiplier={1.3}>
+            {t("cover.tagline")}
+          </Text>
         </View>
 
-        {/* Action Buttons Section */}
-        <View style={styles.buttonList}>
-          <View style={styles.buttonRow}>
-            <CoverButton 
-              label="START MISSION" 
-              onPress={onPressPlay} 
-              variant="primary"
-              style={styles.gridButton}
-            />
-            <CoverButton 
-              label="RANKINGS" 
-              onPress={onPressScores} 
-              variant="secondary"
-              style={styles.gridButton}
-            />
-          </View>
-          <View style={styles.buttonRow}>
-            <CoverButton
-              label="DAILY CHALLENGE"
-              onPress={onPressDaily}
-              variant="primary"
-              style={styles.dailyButton}
-            />
-          </View>
-          <View style={styles.buttonRow}>
-            <CoverButton 
-              label="GAME MANUAL" 
-              onPress={onPressInstructions} 
-              variant="secondary"
-              style={styles.gridButton}
-            />
-            <CoverButton 
-              label="SETTINGS" 
-              onPress={onPressSettings} 
-              variant="secondary"
-              style={styles.gridButton}
-            />
-          </View>
-        </View>
+        {/* Primary actions */}
+        <CoverButton label={t("cover.play")} onPress={onPressPlay} variant="primary" />
+        <CoverButton label={t("cover.daily")} onPress={onPressDaily} variant="primary" />
 
-        {/* Footer info */}
-        <View style={[styles.footer, { marginTop: spacing(10) }]}>
-          <Text style={[styles.versionText, { fontSize: textSize * 0.6 }]}>v2.0 UI UPGRADE</Text>
+        <View style={styles.buttonRow}>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.rankings")} onPress={onPressScores} variant="secondary" />
+          </View>
+          <View style={styles.half}>
+            <CoverButton label={t("cover.manual")} onPress={onPressInstructions} variant="secondary" />
+          </View>
         </View>
+        <CoverButton label={t("cover.settings")} onPress={onPressSettings} variant="secondary" />
+
+        {version ? (
+          <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>
+            {t("cover.version", { version })}
+          </Text>
+        ) : null}
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  root: { 
-    flex: 1, 
-    alignItems: "center", 
-    justifyContent: "center",
-  },
+  scroll: { flex: 1, width: "100%" },
+  content: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
   cardContainer: {
     backgroundColor: "rgba(0, 0, 0, 0.75)",
     borderRadius: 30,
     borderWidth: 2,
     borderColor: "rgba(255, 255, 255, 0.2)",
-    justifyContent: "space-between",
-    // Shadow for iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 15,
-    // Elevation for Android
     elevation: 20,
   },
-  header: {
-    alignItems: "center",
-  },
+  header: { alignItems: "center" },
   title: {
-    color: "#FFD700", // Gold
+    color: "#FFD700",
     fontWeight: "900",
     textAlign: "center",
     textShadowColor: "rgba(0,0,0,0.8)",
@@ -111,39 +97,23 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
     letterSpacing: 2,
   },
-  subtitle: {
-    color: "#fff",
+  tagline: {
+    color: "#e6e6e6",
     fontWeight: "600",
-    letterSpacing: 8,
-    textShadowColor: "rgba(0,0,0,0.5)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  buttonList: {
-    width: "100%",
-    justifyContent: "center",
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginBottom: 10,
-  },
-  gridButton: {
-    width: 220,
-    marginHorizontal: 0,
-  },
-  dailyButton: {
-    width: '100%',
-    marginHorizontal: 0,
-  },
-  footer: {
-    alignItems: "center",
-  },
-  versionText: {
-    color: "rgba(255, 255, 255, 0.4)",
-    fontWeight: "bold",
+    fontSize: 13,
     letterSpacing: 1,
+    textAlign: "center",
+    marginTop: 4,
+  },
+  buttonRow: { flexDirection: "row", gap: 10 },
+  half: { flex: 1 },
+  versionText: {
+    color: "rgba(255, 255, 255, 0.55)",
+    fontWeight: "bold",
+    fontSize: 11,
+    letterSpacing: 1,
+    textAlign: "center",
+    marginTop: 8,
   },
 });
 

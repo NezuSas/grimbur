@@ -1,278 +1,309 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ImageBackground } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  ImageBackground,
+  ImageSourcePropType,
+  useWindowDimensions,
+} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useGameLayout } from "../ui/layout/useGameLayout";
+import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../data/characters";
+import { GAME_CONFIG } from "../config/gameConfig";
+import type { TranslationKey } from "../i18n/en";
+import type { Params } from "../i18n/translate";
+import { useT } from "../i18n/useT";
 
 type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 
-const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
-  const { spacing, titleSize, textSize, fontSize, screenWidth } = useGameLayout();
+type Row = {
+  key: string; // `manual.<key>.label|detail|badge`
+  badgeColor?: string;
+};
 
-  const cardWidth = Math.min(screenWidth * 0.9, 1000);
+type Section = {
+  id: string;
+  color: string;
+  icon?: string;
+  image?: ImageSourcePropType;
+  visual?: "tiles" | "hazards";
+  rows: Row[];
+};
 
-  const SectionHeader = ({ title, icon, image, color = "#FFD700" }: { title: string, icon?: string, image?: any, color?: string }) => (
-    <View style={styles.sectionHeader}>
-      <View style={[styles.iconContainer, { backgroundColor: color + '22' }]}>
-        {image ? (
-          <Image source={image} style={{ width: 52, height: 52 }} resizeMode="contain" />
-        ) : (
-          <Text style={[styles.sectionIcon, { fontSize: fontSize(26) }]}>{icon}</Text>
-        )}
-      </View>
-      <Text style={[styles.sectionTitle, { fontSize: fontSize(22), color }]}>{title}</Text>
-    </View>
-  );
+const asKey = (key: string) => key as TranslationKey;
 
-  const InstructionRow = ({ label, detail, value, valueColor = "#4caf50" }: { label: string, detail: string, value?: string, valueColor?: string }) => (
-    <View style={styles.row}>
-      <View style={styles.rowTextContainer}>
-        <Text style={[styles.rowLabel, { fontSize: fontSize(20) }]}>{label}</Text>
-        <Text style={[styles.rowDetail, { fontSize: fontSize(16) }]}>{detail}</Text>
-      </View>
-      {value && (
-        <View style={[styles.valueBadge, { backgroundColor: valueColor }]}>
-          <Text style={[styles.valueText, { fontSize: fontSize(12) }]}>{value}</Text>
-        </View>
+const SECTIONS: Section[] = [
+  {
+    id: "mission",
+    color: "#ff5252",
+    image: require("../assets/sprites/items/Icon_Gem.png"),
+    rows: [
+      { key: "manual.mission.goal" },
+      { key: "manual.mission.wumpus", badgeColor: "#ff5252" },
+      { key: "manual.mission.relics", badgeColor: "#ffd700" },
+      { key: "manual.mission.heroes" },
+      { key: "manual.mission.survival" },
+    ],
+  },
+  {
+    id: "explore",
+    color: "#4fc3f7",
+    icon: "🗺️",
+    visual: "tiles",
+    rows: [{ key: "manual.explore.pace" }],
+  },
+  {
+    id: "hazards",
+    color: "#ffa726",
+    icon: "📡",
+    visual: "hazards",
+    rows: [
+      { key: "manual.hazards.clues" },
+      { key: "manual.hazards.vortexInfo", badgeColor: "#ce93d8" },
+    ],
+  },
+  {
+    id: "combat",
+    color: "#ff5252",
+    icon: "⚔️",
+    rows: [
+      { key: "manual.combat.strike" },
+      { key: "manual.combat.ammo", badgeColor: "#ef5350" },
+      { key: "manual.combat.combo", badgeColor: "#ff7043" },
+    ],
+  },
+  {
+    id: "powerups",
+    color: "#4fc3f7",
+    icon: "🛡️",
+    rows: [
+      { key: "manual.powerups.shield" },
+      { key: "manual.powerups.ammo", badgeColor: "#ffb74d" },
+      { key: "manual.powerups.traps", badgeColor: "#ffb74d" },
+    ],
+  },
+  {
+    id: "scoring",
+    color: "#81c784",
+    icon: "🏆",
+    rows: [
+      { key: "manual.scoring.points" },
+      { key: "manual.scoring.board" },
+      { key: "manual.scoring.daily", badgeColor: "#4fc3f7" },
+      { key: "manual.scoring.pause" },
+    ],
+  },
+];
+
+const TIPS = ["vortex", "shield", "ammo", "route", "wumpus"];
+
+/** Row values that depend on the real game balance, so the copy never drifts from the rules. */
+const PARAMS: Params = {
+  floors: GAME_CONFIG.expedition.floors,
+  hearts: GAME_CONFIG.boss.hp,
+  moves: GAME_CONFIG.boss.moveEvery,
+  combo: GAME_CONFIG.multipliers.maxCombo,
+  ammo: GAME_CONFIG.pickups.ammoAmount,
+  trap: Math.abs(GAME_CONFIG.scoring.trapPenalty),
+};
+
+const SectionHeader = ({
+  title,
+  icon,
+  image,
+  color,
+  size,
+}: {
+  title: string;
+  icon?: string;
+  image?: ImageSourcePropType;
+  color: string;
+  size: number;
+}) => (
+  <View style={styles.sectionHeader}>
+    <View style={[styles.iconContainer, { backgroundColor: color + "22" }]}>
+      {image ? (
+        <Image source={image} style={styles.sectionImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+      ) : (
+        <Text style={styles.sectionIcon}>{icon}</Text>
       )}
     </View>
-  );
+    <Text
+      style={[styles.sectionTitle, { fontSize: size, color }]}
+      accessibilityRole="header"
+      maxFontSizeMultiplier={1.3}
+      numberOfLines={2}
+    >
+      {title.toLocaleUpperCase()}
+    </Text>
+  </View>
+);
 
-  const VisualRow = ({ leftImage, rightImage, label }: { leftImage: any, rightImage: any, label: string }) => (
+const InstructionRow = ({
+  label,
+  detail,
+  badge,
+  badgeColor,
+  size,
+}: {
+  label: string;
+  detail: string;
+  badge?: string;
+  badgeColor?: string;
+  size: number;
+}) => (
+  <View style={styles.row}>
+    <View style={styles.rowTextContainer}>
+      <Text style={[styles.rowLabel, { fontSize: size + 3 }]} maxFontSizeMultiplier={1.3}>
+        {label}
+      </Text>
+      <Text style={[styles.rowDetail, { fontSize: size }]} maxFontSizeMultiplier={1.3}>
+        {detail}
+      </Text>
+    </View>
+    {badge ? (
+      <View style={[styles.valueBadge, { backgroundColor: badgeColor ?? "#81c784" }]}>
+        <Text style={styles.valueText} maxFontSizeMultiplier={1.2} numberOfLines={2}>
+          {badge.toLocaleUpperCase()}
+        </Text>
+      </View>
+    ) : null}
+  </View>
+);
+
+const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
+  const { t } = useT();
+  const { width } = useWindowDimensions();
+  const { spacing, fontSize, insets } = useGameLayout();
+
+  const cardWidth = Math.min(width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16, 1000);
+  const body = Math.max(13, Math.min(fontSize(15), 17));
+  const sectionSize = Math.max(16, Math.min(fontSize(20), 24));
+
+  const tiles = (
     <View style={styles.visualRow}>
       <View style={styles.visualComparison}>
         <View style={styles.visualItem}>
-          <Image source={leftImage} style={{ width: 60, height: 60 }} resizeMode="contain" />
-          <Text style={styles.visualText}>HIDDEN</Text>
+          <Image source={require("../assets/sprites/tiles/Tile_Hidden.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <Text style={styles.visualText}>{t("manual.explore.hidden").toLocaleUpperCase()}</Text>
         </View>
-        <Ionicons name="arrow-forward" size={28} color="#555" style={{ marginHorizontal: 25 }} />
+        <Ionicons name="arrow-forward" size={26} color="#888" style={{ marginHorizontal: 22 }} />
         <View style={styles.visualItem}>
-          <Image source={rightImage} style={{ width: 60, height: 60 }} resizeMode="contain" />
-          <Text style={styles.visualText}>REVEALED</Text>
+          <Image source={require("../assets/sprites/tiles/Tile_Revealed.png")} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <Text style={styles.visualText}>{t("manual.explore.revealed").toLocaleUpperCase()}</Text>
         </View>
       </View>
-      <Text style={[styles.visualDetail, { fontSize: fontSize(14) }]}>{label}</Text>
+      <Text style={[styles.visualDetail, { fontSize: body }]} maxFontSizeMultiplier={1.3}>
+        {t("manual.explore.tiles")}
+      </Text>
+    </View>
+  );
+
+  const hazards = (
+    <View style={styles.hazardVisual}>
+      <View style={styles.visualItem}>
+        <Image source={require("../assets/sprites/enemies/Guardian_Enemy.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <Text style={styles.visualText}>{t("manual.hazards.guardian").toLocaleUpperCase()}</Text>
+        <View style={[styles.hintIconContainer, { backgroundColor: "#ffcc80" }]}>
+          <Ionicons name="volume-high" size={16} color="#bf360c" />
+        </View>
+      </View>
+      <View style={[styles.visualItem, { marginLeft: 40 }]}>
+        <Image source={require("../assets/sprites/tiles/Danger_Vortex.png")} style={styles.hazardImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <Text style={styles.visualText}>{t("manual.hazards.vortex").toLocaleUpperCase()}</Text>
+        <View style={[styles.hintIconContainer, { backgroundColor: "#9c27b0" }]}>
+          <Ionicons name="infinite" size={16} color="#fff" />
+        </View>
+      </View>
     </View>
   );
 
   return (
     <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
         <View style={{ flex: 1, alignItems: "center" }}>
-          
-          <View style={[styles.header, { paddingVertical: spacing(20) }]}>
-            <TouchableOpacity 
-              style={[styles.backButton, { left: spacing(20) }]} 
+          <View style={[styles.header, { paddingVertical: spacing(12) }]}>
+            <TouchableOpacity
+              style={[styles.backButton, { left: Math.max(insets.left, 12) }]}
               onPress={() => navigation.goBack()}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t("a11y.back")}
             >
-              <Ionicons name="arrow-back" size={spacing(28)} color="#fff" />
+              <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
-            <Text style={[styles.title, { fontSize: titleSize }]}>GAME MANUAL</Text>
+            <Text style={[styles.title, { fontSize: fontSize(26) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+              {t("manual.title").toLocaleUpperCase()}
+            </Text>
           </View>
 
-          <View style={[styles.mainCard, { width: cardWidth, padding: spacing(25) }]}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing(60) }}>
-              
-              {/* 0. PLAYER IDENTITY */}
-              <SectionHeader 
-                  title="YOU (THE PLAYER)" 
-                  image={characters[1].winImage} 
-                  color="#00e5ff" 
-              />
-              <View style={styles.sectionContent}>
-                  <Text style={[styles.rowDetail, { color: '#ccc', fontSize: fontSize(17), marginBottom: 10 }]}>
-                      You control this character. Every move reveals the unknown and determines your survival. Use the D-Pad to explore and the Action Buttons to respond to threats.
-                  </Text>
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 1. GAME MISSION */}
-              <SectionHeader 
-                title="THE MISSION" 
-                image={require("../assets/sprites/items/Icon_Gem.png")} 
-                color="#ff5252" 
-              />
-              <View style={styles.sectionContent}>
-                <InstructionRow label="Primary Goal" detail="Navigate the grid to secure every Mystic Gem. Only then do you descend to the next, harder cave." />
-                <InstructionRow label="The Wumpus" detail="Floor 10 is the Wumpus lair. It has 3 hearts and hunts you, stepping closer every two moves. Shoot it three times to win the expedition. Touching it is deadly (a shield bounces you back once)." value="FLOOR 10" valueColor="#ff1744" />
-                <InstructionRow label="Relics" detail="Clear a floor and choose 1 of 3 relics: extra arrows, richer gems, a Phoenix Feather that saves you once, a slower Wumpus and more. They stack and last the whole expedition." value="DRAFT" valueColor="#ffd700" />
-                <InstructionRow label="Heroes" detail="Each hero has a perk shown on the selection screen: Trapfinder, Piercing arrows, Stoneskin and Treasure hunter." />
-                <InstructionRow label="Survival" detail="Avoid lethal pits and hostile guardians. One wrong step ends the run." />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 2. EXPLORATION */}
-              <SectionHeader title="EXPLORATION" icon="🗺️" color="#4fc3f7" />
-              <View style={styles.sectionContent}>
-                <VisualRow 
-                  leftImage={require("../assets/sprites/tiles/Tile_Hidden.png")}
-                  rightImage={require("../assets/sprites/tiles/Tile_Revealed.png")}
-                  label="Tiles are initially hidden. Step on them to reveal the path beneath."
-                />
-                <InstructionRow label="Tactical Pace" detail="Every move counts. Blind rushing leads to the void; plan your path carefully." />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 3. HAZARD DETECTION */}
-              <SectionHeader title="HAZARD DETECTION" icon="📡" color="#ffa726" />
-              <View style={styles.sectionContent}>
-                <View style={styles.hazardVisual}>
-                  <View style={styles.visualItem}>
-                    <Image source={require("../assets/sprites/enemies/Guardian_Enemy.png")} style={{ width: 60, height: 60 }} />
-                    <Text style={styles.hazardLabel}>GUARDIAN</Text>
-                    <View style={[styles.hintIconContainer, { backgroundColor: '#ffcc80' }]}>
-                       <Ionicons name="volume-high" size={16} color="#bf360c" />
-                    </View>
-                  </View>
-                  <View style={[styles.visualItem, { marginLeft: 50 }]}>
-                    <Image source={require("../assets/sprites/tiles/Danger_Vortex.png")} style={{ width: 60, height: 60 }} />
-                    <Text style={styles.hazardLabel}>MYSTIC VORTEX</Text>
-                    <View style={[styles.hintIconContainer, { backgroundColor: '#9c27b0' }]}>
-                       <Ionicons name="infinite" size={16} color="#fff" />
-                    </View>
-                  </View>
+          <View style={[styles.mainCard, { width: cardWidth }]}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 18, paddingBottom: spacing(50) + insets.bottom }}>
+              {SECTIONS.map((section, sectionIndex) => (
+                <View key={section.id}>
+                  {sectionIndex > 0 && <View style={styles.separator} />}
+                  <SectionHeader
+                    title={t(asKey(`manual.${section.id === "hazards" ? "hazards" : section.id}.title`))}
+                    icon={section.icon}
+                    image={section.image}
+                    color={section.color}
+                    size={sectionSize}
+                  />
+                  {section.visual === "tiles" && tiles}
+                  {section.visual === "hazards" && hazards}
+                  {section.rows.map(row => {
+                    const badgeKey = asKey(`${row.key}.badge`);
+                    const hasBadge = Boolean(t(badgeKey, PARAMS) !== badgeKey);
+                    return (
+                      <InstructionRow
+                        key={row.key}
+                        label={t(asKey(`${row.key}.label`), PARAMS)}
+                        detail={t(asKey(`${row.key}.detail`), PARAMS)}
+                        badge={hasBadge ? t(badgeKey, PARAMS) : undefined}
+                        badgeColor={row.badgeColor}
+                        size={body}
+                      />
+                    );
+                  })}
+                  {section.id === "hazards" && (
+                    <Text style={[styles.note, { fontSize: body - 1 }]} maxFontSizeMultiplier={1.3}>
+                      {t("manual.hazards.note")}
+                    </Text>
+                  )}
                 </View>
-                <InstructionRow label="Situational Clues" detail="Ancient Runes signal danger: 🔊 for Guardians, ∞ for Vortexes. When several hazards of one kind surround a tile, a number tells you how many." />
-                <InstructionRow 
-                  label="Mystic Vortex" 
-                  detail="Stepping into a Vortex does NOT mean instant death — it tears open a rift and teleports you to a safe, preferably unexplored cell. Use it to skip dangerous ground — but it can drop you far from the gems."
-                  valueColor="#9c27b0" 
-                  value="TELEPORT"
-                />
-                <Text style={[styles.rowDetail, { fontSize: fontSize(14), fontStyle: 'italic', color: '#666' }]}>
-                  *Hints are omni-directional; they reveal proximity, not exact location.
-                </Text>
-              </View>
+              ))}
 
               <View style={styles.separator} />
-
-              {/* 4. COMBAT TACTICS */}
-              <SectionHeader 
-                title="COMBAT TACTICS" 
-                icon="⚔️"
-                color="#ff5252" 
-              />
-              <View style={styles.sectionContent}>
-                <View style={[styles.hazardVisual, { backgroundColor: 'transparent', padding: 10 }]}>
-                  <View style={styles.visualItem}>
-                    <Image source={characters[1].playerImage} style={{ width: 55, height: 55 }} />
-                  </View>
-                  <Ionicons name="arrow-forward" size={30} color="#ff5252" style={{ marginHorizontal: 20 }} />
-                  <View style={styles.visualItem}>
-                    <Image source={require("../assets/sprites/enemies/Guardian_Enemy.png")} style={{ width: 52, height: 52, opacity: 0.6 }} />
-                  </View>
-                </View>
-                <InstructionRow label="The Strike" detail="Use the Attack Action to eliminate Guardians in the direction you are facing." />
-                <InstructionRow label="Ammo Control" detail="Attack charges are limited and refresh every level. Only strike when victory is certain." value="LIMITED" valueColor="#d32f2f" />
-                <InstructionRow label="Combo" detail="Consecutive kills without moving or missing multiply the reward, up to x3." value="x3" valueColor="#ff5252" />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 4b. POWER-UPS & TRAPS */}
-              <SectionHeader title="POWER-UPS & TRAPS" icon="🛡️" color="#4fc3f7" />
-              <View style={styles.sectionContent}>
-                <InstructionRow label="Shield" detail="Absorbs one Guardian hit and destroys it. It stays with you until used, even across levels." value="BLUE" valueColor="#4fc3f7" />
-                <InstructionRow label="Extra Arrows" detail="Orange arrow icons on the board give you +2 attack charges." value="+2" valueColor="#ff9800" />
-                <InstructionRow label="Hidden Traps" detail="From level 3, some tiles hide a trap. It costs points but is never lethal, and gives no warning." value="-75" valueColor="#ff9800" />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 5. ECONOMY & GROWTH */}
-              <SectionHeader 
-                title="ECONOMY & GROWTH" 
-                image={require("../assets/sprites/items/Icon_Gem.png")} 
-                color="#FFD700" 
-              />
-              <View style={styles.sectionContent}>
-                <InstructionRow label="Local Bounty" detail="Coins collected within a level are required for completion." />
-                <InstructionRow label="Global Wealth" detail="Your total coins accumulate across all sessions to define your legacy." value="PERSISTENT" valueColor="#FFD700" />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 6. THE LEADERBOARD */}
-              <SectionHeader title="THE LEADERBOARD" icon="🏆" color="#4caf50" />
-              <View style={styles.sectionContent}>
-                <InstructionRow label="Scoring" detail="Points are awarded for every Coin secured and every Guardian neutralized." />
-                <InstructionRow label="Efficiency" detail="In the Hall of Legends, speed is king. For identical scores, the fastest completion time earns the higher rank." value="NEW" valueColor="#2196f3" />
-                <InstructionRow label="Daily Challenge" detail="One cave per day, identical for every player. Chase your best score and keep your streak alive by playing on consecutive days. It does not count for the global Top 10." value="DAILY" valueColor="#4fc3f7" />
-                <InstructionRow label="Pause" detail="Tap the pause button or press Back to pause. The run also pauses if you leave the app." />
-                <InstructionRow label="Glory" detail="Master the grid to establish your legacy among the Top 10 Legends." value="TOP 10" valueColor="#4caf50" />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 7. SENSORY AWARENESS */}
-              <SectionHeader title="SENSORY AWARENESS" icon="🌀" color="#ba68c8" />
-              <View style={styles.sectionContent}>
-                <InstructionRow label="Danger Glow" detail="A subtle edge-glow appears when you are in a high-threat proximity." />
-                <InstructionRow label="Haptic Feedback" detail="Tactile vibrations signal movement impact and critical hazard proximity." />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 8. ENGAGEMENT */}
-              <SectionHeader title="ENGAGEMENT" icon="📜" color="#81d4fa" />
-              <View style={styles.sectionContent}>
-                  <View style={styles.engagementRow}>
-                      <View style={{ width: 40, alignItems: 'center' }}>
-                          <Image source={require("../assets/sprites/items/Icon_Gem.png")} style={{ width: 24, height: 24 }} />
-                      </View>
-                      <Text style={[styles.engagementText, { fontSize: fontSize(15) }]}>
-                          <Text style={{fontWeight:'bold', color: '#fff'}}>VICTORY:</Text> Collect 100% of Gold Coins and reach the extraction exit.
-                      </Text>
-                  </View>
-                  <View style={[styles.engagementRow, { marginTop: 10 }]}>
-                      <View style={{ width: 40, alignItems: 'center' }}>
-                          <Image source={require("../assets/sprites/tiles/Danger_Vortex.png")} style={{ width: 24, height: 24 }} />
-                      </View>
-                      <Text style={[styles.engagementText, { fontSize: fontSize(15) }]}>
-                          <Text style={{fontWeight:'bold', color: '#fff'}}>DEFEAT:</Text> Touching a Guardian without attacking, or being teleported from a Vortex directly onto a Guardian.
-                      </Text>
-                  </View>
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 9. PERSONALIZATION */}
-              <SectionHeader title="PERSONALIZATION" icon="⚙️" color="#9e9e9e" />
-              <View style={styles.sectionContent}>
-                <InstructionRow 
-                  label="Audio Control" 
-                  detail="Toggle Global Sound in Settings to enable/disable music and effects across all screens." 
-                  value="SOUND" 
-                  valueColor="#4caf50" 
-                />
-                <InstructionRow 
-                  label="Ergonomics" 
-                  detail="Switch the Control Position between Left and Right to find your ideal hand placement." 
-                  value="CONTROLS" 
-                  valueColor="#1e88e5" 
-                />
-              </View>
-
-              <View style={styles.separator} />
-
-              {/* 10. VETERAN INSIGHTS */}
-              <SectionHeader title="PRO INSIGHTS" icon="💡" color="#4db6ac" />
+              <SectionHeader title={t("manual.tips.title")} icon="💡" color="#4db6ac" size={sectionSize} />
               <View style={styles.tipBox}>
-                  <Text style={[styles.tipText, { fontSize: fontSize(14) }]}>
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Vortex Gamble:</Text> Falling into a Vortex teleports you to a safe tile. Use it to escape tight spots when every direction looks risky.{"\n\n"}
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Shield First:</Text> Grab the shield before you start probing around Guardians — it turns a deadly mistake into a free kill.{"\n\n"}
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Strategic Pauses:</Text> When a ROAR or VORTEX trigger occurs, stop and evaluate all four directions before moving.{"\n\n"}
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Munition Thrift:</Text> Don't waste attacks on enemies you can simply bypass. Save them for tight corners.{"\n\n"}
-                      • <Text style={{fontWeight:'900', color: '#4db6ac'}}>Route Efficiency:</Text> Coins are often placed in dangerous paths. Use your prior steps to find the safest return route.
+                {TIPS.map(tip => (
+                  <Text key={tip} style={[styles.tipText, { fontSize: body }]} maxFontSizeMultiplier={1.3}>
+                    • <Text style={styles.tipTitle}>{t(asKey(`manual.tips.${tip}.title`))}: </Text>
+                    {t(asKey(`manual.tips.${tip}.body`))}
                   </Text>
+                ))}
               </View>
 
+              <TouchableOpacity
+                style={styles.tutorialButton}
+                onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0 })}
+                accessibilityRole="button"
+                accessibilityLabel={t("manual.replayTutorial")}
+              >
+                <Ionicons name="school-outline" size={20} color="#000" />
+                <Text style={styles.tutorialText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+                  {t("manual.replayTutorial").toLocaleUpperCase()}
+                </Text>
+              </TouchableOpacity>
+
+              <Image source={characters[1].winImage} style={styles.footerImage} resizeMode="contain" accessibilityIgnoresInvertColors />
             </ScrollView>
           </View>
         </View>
@@ -282,179 +313,104 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  container: {
-    flex: 1,
-    alignItems: "center",
-  },
+  root: { flex: 1, backgroundColor: "#000" },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    backgroundColor: "transparent",
     borderBottomWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
   },
   backButton: {
     position: "absolute",
-    width: 44,
-    height: 44,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: 22,
+    width: MIN_TOUCH,
+    height: MIN_TOUCH,
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderRadius: MIN_TOUCH / 2,
     justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    color: "#fff",
-    fontWeight: "900",
-    textAlign: "center",
-    letterSpacing: 4,
-  },
+  title: { color: "#fff", fontWeight: "900", textAlign: "center", letterSpacing: 4 },
   mainCard: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.02)",
-    marginTop: 15,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.05)",
-    marginBottom: 20,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  iconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 20,
-  },
-  sectionIcon: {},
-  sectionTitle: {
-    fontWeight: "900",
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  sectionContent: {
-    paddingLeft: 10,
-  },
-  visualRow: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  visualComparison: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  visualItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  visualText: {
-    color: '#666',
-    fontSize: 9,
-    fontWeight: '900',
-    marginTop: 6,
-    letterSpacing: 1,
-  },
-  visualDetail: {
-    color: '#aaa',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  hazardVisual: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  hazardLabel: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '900',
-    marginTop: 8,
-    letterSpacing: 1,
-  },
-  tipBox: {
-    backgroundColor: 'rgba(77, 182, 172, 0.05)',
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(77, 182, 172, 0.15)',
-  },
-  tipText: {
-    color: '#ccc',
-    lineHeight: 22,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  rowTextContainer: {
-    flex: 1,
-  },
-  rowLabel: {
-    color: "#fff",
-    fontWeight: "800",
-  },
-  rowDetail: {
-    color: "#999",
-    fontWeight: "500",
-    marginTop: 4,
-  },
-  valueBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginLeft: 10,
-  },
-  valueText: {
-    color: "#fff",
-    fontWeight: "900",
-  },
-  engagementRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  engagementText: {
-    color: "#aaa",
-    marginLeft: 5,
-    flex: 1,
-  },
-  separator: {
-    height: 1,
     backgroundColor: "rgba(255, 255, 255, 0.03)",
-    marginVertical: 25,
+    marginTop: 12,
+    borderRadius: 26,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.06)",
+    marginBottom: 12,
+    overflow: "hidden",
   },
+  sectionHeader: { flexDirection: "row", alignItems: "center", marginBottom: 16, gap: 14 },
+  iconContainer: { width: 56, height: 56, borderRadius: 16, justifyContent: "center", alignItems: "center" },
+  sectionImage: { width: 42, height: 42 },
+  sectionIcon: { fontSize: 26 },
+  sectionTitle: { fontWeight: "900", letterSpacing: 1.5, flexShrink: 1 },
+  visualRow: {
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+  },
+  visualComparison: { flexDirection: "row", alignItems: "center", justifyContent: "center", marginBottom: 10 },
+  visualItem: { alignItems: "center", justifyContent: "center" },
+  visualImage: { width: 56, height: 56 },
+  visualText: { color: "#b0b0b0", fontSize: 11, fontWeight: "900", marginTop: 6, letterSpacing: 1 },
+  visualDetail: { color: "#c4c4c4", textAlign: "center", lineHeight: 20 },
+  hazardVisual: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 16,
+  },
+  hazardImage: { width: 56, height: 56 },
   hintIconContainer: {
     marginTop: 6,
     padding: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
   },
+  note: { color: "#a9a9a9", fontStyle: "italic", marginTop: 2 },
+  tipBox: {
+    backgroundColor: "rgba(77, 182, 172, 0.06)",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(77, 182, 172, 0.2)",
+    gap: 10,
+  },
+  tipText: { color: "#d4d4d4", lineHeight: 22 },
+  tipTitle: { fontWeight: "900", color: "#80cbc4" },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, gap: 10 },
+  rowTextContainer: { flex: 1 },
+  rowLabel: { color: "#fff", fontWeight: "800" },
+  rowDetail: { color: "#b8b8b8", fontWeight: "500", marginTop: 4, lineHeight: 21 },
+  valueBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, maxWidth: 110, alignSelf: "flex-start" },
+  valueText: { color: "#000", fontWeight: "900", fontSize: 11, textAlign: "center" },
+  separator: { height: 1, backgroundColor: "rgba(255, 255, 255, 0.05)", marginVertical: 22 },
+  tutorialButton: {
+    marginTop: 22,
+    minHeight: MIN_TOUCH,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#FFD700",
+    borderRadius: 14,
+    paddingHorizontal: 16,
+  },
+  tutorialText: { color: "#000", fontWeight: "900", letterSpacing: 1 },
+  footerImage: { width: 80, height: 80, alignSelf: "center", opacity: 0.8, marginTop: 20 },
 });
 
 export default InstructionsScreen;

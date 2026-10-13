@@ -12,6 +12,10 @@ const levelMultiplier = (level: number): number =>
 export const coinValue = (level: number): number =>
   Math.round(GAME_CONFIG.coins.value * levelMultiplier(level));
 
+/** Points for one gem including the hero multiplier and Lucky Coin stacks. */
+export const coinReward = (level: number, heroMultiplier: number, luckyCoins: number): number =>
+  Math.round(coinValue(level) * heroMultiplier * (1 + 0.25 * luckyCoins));
+
 /** Points for killing an enemy at the given (already incremented) combo. */
 export const killValue = (combo: number): number =>
   Math.round(GAME_CONFIG.scoring.killEnemy * combo);

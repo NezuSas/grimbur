@@ -10,7 +10,7 @@ import {
   Animated,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import * as Haptics from "expo-haptics";
+import { haptic } from "../../shared/haptics";
 import { useGameLayout } from "../layout/useGameLayout";
 
 type Props = {
@@ -31,7 +31,7 @@ const CoverButton: React.FC<Props> = memo(
 
     const handlePressIn = () => {
       if (disabled) return;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      haptic.impact();
       Animated.spring(scaleAnim, {
         toValue: 0.95,
         useNativeDriver: true,
@@ -70,19 +70,24 @@ const CoverButton: React.FC<Props> = memo(
               colors={gradientColors as any}
               style={[
                 styles.button,
-                { height: 52, borderRadius: 14, borderColor },
-                fullWidth ? { width: '100%' } : { minWidth: 160 },
+                { minHeight: 52, borderRadius: 14, borderColor, paddingHorizontal: 12, paddingVertical: 6 },
+                fullWidth ? { width: '100%' } : null,
                 disabled && styles.disabled,
                 style,
               ]}
             >
-              <Text style={[
-                styles.text, 
-                { fontSize: fontSize(22), color: variant === "primary" ? "#FFD700" : "#fff" }, 
-                disabled && styles.textDisabled, 
-                textStyle
-              ]}>
-                {label.toUpperCase()}
+              <Text
+                style={[
+                  styles.text,
+                  { fontSize: Math.max(14, fontSize(20)), color: variant === "primary" ? "#FFD700" : "#fff" },
+                  disabled && styles.textDisabled,
+                  textStyle,
+                ]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                maxFontSizeMultiplier={1.2}
+              >
+                {label.toLocaleUpperCase()}
               </Text>
             </LinearGradient>
           </Pressable>
@@ -93,7 +98,7 @@ const CoverButton: React.FC<Props> = memo(
 );
 
 const styles = StyleSheet.create({
-  wrapper: { alignSelf: "center", marginVertical: 8 },
+  wrapper: { alignSelf: "stretch", marginVertical: 6 },
   button: {
     alignItems: "center",
     justifyContent: "center",
