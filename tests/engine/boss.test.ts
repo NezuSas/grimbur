@@ -133,3 +133,40 @@ describe('the Wumpus next to ordinary guardians', () => {
     expect(bossOf(next)).toBeDefined();
   });
 });
+
+describe('the endless descent', () => {
+  it('meets the Wumpus again every tenth floor, with one more heart each time', async () => {
+    const { isLairFloor, lairHeartBonus } = await import('../../src/core/engine/lair');
+    expect([10, 20, 30].every(l => isLairFloor('endless', l))).toBe(true);
+    expect([1, 9, 11, 19].some(l => isLairFloor('endless', l))).toBe(false);
+    expect(lairHeartBonus('endless', 10)).toBe(0);
+    expect(lairHeartBonus('endless', 20)).toBe(1);
+    expect(lairHeartBonus('endless', 30)).toBe(2);
+    expect(isLairFloor('expedition', 20)).toBe(false);
+    expect(lairHeartBonus('expedition', 20)).toBe(0);
+  });
+
+  it('slaying the Wumpus opens the next floor instead of ending the run', () => {
+    let state = createState({ entities: [boss(1, 1)], coins: 0, attack: 3 });
+    state = { ...state, mode: 'endless', level: 10 };
+    state = gameReducer(state, { type: 'ATTACK' });
+    expect(state.isLevelUp).toBe(true);
+    expect(state.isVictory).toBe(false);
+  });
+
+  it('the same kill in an expedition is the victory', () => {
+    let state = createState({ entities: [boss(1, 1)], coins: 0, attack: 3 });
+    state = { ...state, level: 10 };
+    state = gameReducer(state, { type: 'ATTACK' });
+    expect(state.isVictory).toBe(true);
+  });
+
+  it('floors beyond the tenth grow harder, and the lair boss gets extra hearts', () => {
+    const plain = generateBoard(12, 5, { endless: false });
+    const deep = generateBoard(24, 5, { endless: true });
+    const count = (b: typeof plain, type: string) => b.entities.filter(e => e.type === type).length;
+    expect(count(deep, 'enemy')).toBeGreaterThanOrEqual(count(plain, 'enemy'));
+    const lair = generateBoard(20, 9, { boss: true, endless: true, bossHeartBonus: 1 });
+    expect(lair.entities.find(e => e.type === 'boss')?.hp).toBe(GAME_CONFIG.boss.hp + 1);
+  });
+});

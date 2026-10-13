@@ -3,6 +3,7 @@ import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { modifiersFor } from './ascension';
 import { OmenId, omenEffects } from './omens';
+import { endlessPressure } from './lair';
 import { isSolvableByDeduction } from './solver';
 import { GameEntity, EntityType } from './types';
 
@@ -50,6 +51,10 @@ export interface GenerateOptions {
   ascension?: number;
   /** The floor's omen (see omens.ts). */
   omen?: OmenId | null;
+  /** Extra hearts for the Wumpus (the endless descent grows it). */
+  bossHeartBonus?: number;
+  /** Past the designed floors the endless descent adds more guardians and vortexes. */
+  endless?: boolean;
 }
 
 export function generateBoard(
@@ -77,8 +82,9 @@ export function generateBoard(
   const FAIR_ATTEMPTS = 30;
   const MAX_ATTEMPTS = FAIR_ATTEMPTS + 10;
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
-  let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta);
-  let pitBudget = Math.max(1, diff.pits + omen.pitDelta);
+  const pressure = options.endless ? endlessPressure(level) : { enemies: 0, pits: 0 };
+  let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + pressure.enemies);
+  let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits);
 
   let entities: GameEntity[] = [];
 
@@ -112,7 +118,7 @@ export function generateBoard(
       }
       const pool = far.length > 0 ? far : free;
       const bossIndex = pool[Math.floor(prng() * pool.length)];
-      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp + mods.bossHpBonus });
+      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp + mods.bossHpBonus + (options.bossHeartBonus ?? 0) });
       usedIndices.add(bossIndex);
     }
 

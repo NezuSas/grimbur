@@ -331,7 +331,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level)).gemMultiplier, has('lucky_coin'));
+          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level, state.mode)).gemMultiplier, has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
           consumeEntity();
@@ -446,7 +446,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           if (state.coins === 0) {
             newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(state.relics, 'greed')));
             newIsLevelUp = true;
-            newIsVictory = true;
+            // The endless descent has no final lair: slaying the Wumpus just opens the next floor.
+            newIsVictory = state.mode !== 'endless';
           }
         }
         newEnemyCombo = 0;

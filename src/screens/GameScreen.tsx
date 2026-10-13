@@ -41,6 +41,7 @@ import type { Direction } from "../core/engine/types";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import { omenEffects, omenFor } from "../core/engine/omens";
+import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
@@ -117,8 +118,8 @@ export default function GameScreen({ navigation, route }: Props) {
     return () => clearTimeout(timer);
   }, []);
   const runEnded = state.isGameOver || state.isVictory;
-  const floorOmen = omenFor(state.runSeed, state.level);
-  const isLair = state.mode !== "endless" && state.level === GAME_CONFIG.expedition.floors;
+  const floorOmen = omenFor(state.runSeed, state.level, state.mode);
+  const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
 
   // Tap an explored tile to walk there; any control press interrupts the walk.
@@ -199,6 +200,7 @@ export default function GameScreen({ navigation, route }: Props) {
       ascension,
       meta: route.params?.meta,
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
+      ...(mode === "endless" ? { mode: "endless" as const } : {}),
     });
   }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, route.params?.meta]);
 
@@ -219,6 +221,7 @@ export default function GameScreen({ navigation, route }: Props) {
       time: sessionTimeRef.current,
       heroIndex: characterIndex,
       ascension,
+      mode,
     };
     try {
       if (isDaily) {
@@ -226,12 +229,13 @@ export default function GameScreen({ navigation, route }: Props) {
         return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
       }
       const r = await recordRun(run);
-      return { bestScore: r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
+      // The endless descent keeps its own record, measured in floors.
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
     }
-  }, [isDaily, dailyDate, characterIndex, ascension]);
+  }, [isDaily, dailyDate, characterIndex, ascension, mode]);
 
   // Start the run on mount; save whatever was played when the screen goes away.
   useEffect(() => {
@@ -328,8 +332,8 @@ export default function GameScreen({ navigation, route }: Props) {
       const result = await resultPromise;
       if (!cancelled && mounted.current && result) setRunResult(result);
 
-      // Daily runs never enter the global top 10.
-      if (isDaily) return;
+      // Daily and endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
+      if (isDaily || mode === "endless") return;
       const qualifies = await Promise.race([
         isTopTenScore(s.score, time).catch(() => false),
         new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
@@ -479,7 +483,7 @@ export default function GameScreen({ navigation, route }: Props) {
       emitSound("COIN_COLLECTED");
       const points = coinReward(
         state.level,
-        state.perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level)).gemMultiplier,
+        state.perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level, state.mode)).gemMultiplier,
         relicCount(state.relics, "lucky_coin"),
       );
       setPopups(prev => [...prev, { id: Date.now() + Math.random(), points, type: "coin" }]);
@@ -514,7 +518,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // The Wumpus lair announces itself.
   useEffect(() => {
-    if (mode !== "endless" && state.level === GAME_CONFIG.expedition.floors && state.turn === 0) {
+    if (isLairFloor(state.mode, state.level) && state.turn === 0) {
       emitSound("BOSS_ROAR");
     }
   }, [state.level]);
@@ -590,7 +594,7 @@ export default function GameScreen({ navigation, route }: Props) {
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : undefined}
-          omenRule={isLair ? t("boss.goalRule", { hearts: GAME_CONFIG.boss.hp + modifiersFor(ascension).bossHpBonus }) : floorOmen ? omenText(t, floorOmen, "rule") : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : undefined}
           long={isLair}
           dismiss={state.turn > 0}
           calm={reduceFlash}
@@ -715,6 +719,7 @@ export default function GameScreen({ navigation, route }: Props) {
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
         floors={GAME_CONFIG.expedition.floors}
+        endless={mode === "endless"}
         onForge={() => navigation.navigate("ForgeScreen")}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}

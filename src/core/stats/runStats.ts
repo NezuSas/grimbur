@@ -34,6 +34,10 @@ export interface LocalStats {
   /** Consecutive days with at least one daily-challenge run. */
   streak: number;
   lastDailyDate: string | null;
+  /** Deepest floor reached in the endless descent (0 until it is played). */
+  bestEndlessFloor: number;
+  /** Every ember ever earned (the balance goes down when spending; this never does). */
+  lifetimeEmbers: number;
 }
 
 export interface RunResult {
@@ -51,6 +55,8 @@ export interface RunResult {
   heroIndex?: number;
   /** Depth (ascension) the run was played at. */
   ascension?: number;
+  /** Mode of the run; the endless descent keeps its own record instead of the expedition ones. */
+  mode?: 'expedition' | 'daily' | 'endless';
   /** False for a run abandoned before doing anything (earns no embers). */
   progressed?: boolean;
 }
@@ -69,6 +75,8 @@ export const EMPTY_STATS: LocalStats = {
   daily: null,
   streak: 0,
   lastDailyDate: null,
+  bestEndlessFloor: 0,
+  lifetimeEmbers: 0,
 };
 
 /** Fields shared by every finished run: lifetime gems and the heroes tried. */
@@ -78,10 +86,12 @@ function accumulate(stats: LocalStats, run: RunResult) {
       ? [...stats.heroesUsed, run.heroIndex].sort((a, b) => a - b)
       : stats.heroesUsed;
   const progressed = run.progressed ?? true;
+  const earned = embersFor(run, progressed, stats.forge.fortune ?? 0);
   return {
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
-    embers: stats.embers + embersFor(run, progressed, stats.forge.fortune ?? 0),
+    embers: stats.embers + earned,
+    lifetimeEmbers: stats.lifetimeEmbers + earned,
   };
 }
 
@@ -93,6 +103,16 @@ function unlockedDepth(stats: LocalStats, run: RunResult): number {
 
 /** Folds a finished expedition run into the stored stats. Pure, so it is easy to test. */
 export function mergeRun(stats: LocalStats, run: RunResult) {
+  if (run.mode === 'endless') {
+    // The endless descent has its own record; it never touches the expedition's best score, floor or victories.
+    const next: LocalStats = {
+      ...stats,
+      ...accumulate(stats, run),
+      bestEndlessFloor: Math.max(stats.bestEndlessFloor, run.level),
+      gamesPlayed: stats.gamesPlayed + 1,
+    };
+    return { stats: next, isNewBestScore: run.level > stats.bestEndlessFloor };
+  }
   const isNewBestScore = run.score > stats.bestScore;
   const next: LocalStats = {
     ...stats,
@@ -204,6 +224,8 @@ export function parseStats(raw: string | null): LocalStats {
         : null,
       streak: num(data.streak),
       lastDailyDate: str(data.lastDailyDate),
+      bestEndlessFloor: Math.trunc(num(data.bestEndlessFloor)),
+      lifetimeEmbers: Math.trunc(num(data.lifetimeEmbers)),
     };
   } catch {
     return EMPTY_STATS;
