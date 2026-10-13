@@ -15,6 +15,14 @@ Why the sound used to "disappear", and how the current design avoids it. Evidenc
    synchronous.
 4. **Repeated starts** of the same music (screen focus fires twice) restarted the track. Fix: starts are idempotent.
 
+5. **`isLoaded` is not "exists".** On Android `isLoaded` is `false` while a player is buffering, which happens right after
+   `seekTo(0)`. The store treated that as "not loaded": footsteps were skipped when both voices had just been restarted
+   (steps sounded, stopped, sounded again), and `ensurePlayer` built a brand new native player every time it met a
+   buffering one (churn, leaks and stalls). Fix: a voice that exists is always usable and is never rebuilt; the flag is
+   only used while a player is first loading, and that wait is 6 s instead of 2 s.
+6. **A music start was lost for good** if the player was not ready yet (slow phone, Expo Go). Now `play` retries up to
+   8 times, 750 ms apart, while the sound is still wanted.
+
 ## Rules for new sounds
 
 - Create every player once, at start-up; never create or `remove()` players during play (expo/expo#41852).
@@ -22,6 +30,7 @@ Why the sound used to "disappear", and how the current design avoids it. Evidenc
   `startLoopingTrack`.
 - Each expo-audio player is an ExoPlayer plus a MediaSession on Android: keep the number of voices small
   (`EXTRA_VOICES` in the store).
+- Never use `player.isLoaded` to decide whether a voice exists or can be played.
 - Going to the background pauses every player (expo-audio does it). On return `revive()` recreates dropped players and
   the manager restarts the current music; `useProximityAudio` restarts the hazard loops.
 

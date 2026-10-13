@@ -27,6 +27,8 @@ const voicesOf = (name: string): string[] => [
 /** The sound a voice belongs to (`coin#1` -> `coin`); volume and loop targets are shared per sound. */
 const baseOf = (voice: string) => voice.split('#')[0];
 const nextVoice: Record<string, number> = {};
+/** How long a player may take to become ready (x 100 ms): slow phones and Expo Go need more than 2 s. */
+const LOAD_WAIT_ATTEMPTS = 60;
 const lastRetry: Record<string, number> = {};
 const RETRY_AFTER_MS = 5000;
 
@@ -38,8 +40,10 @@ async function ensurePlayer(name: string): Promise<any> {
     const source = GLOBAL_SOURCES[name];
     if (!source) return null;
 
-    // 1. Success case: already loaded and ready
-    if (GLOBAL_PLAYERS[name]?.isLoaded) {
+    // 1. Success case: the voice already exists. A player that is momentarily buffering (right after a seek) reports
+    //    `isLoaded === false`, so that flag must NOT be used here: it used to make us build a new native player (and
+    //    leak the old one) over and over during play, which is what made sounds stutter and drop.
+    if (GLOBAL_PLAYERS[name]) {
         return GLOBAL_PLAYERS[name];
     }
 
@@ -59,7 +63,7 @@ async function ensurePlayer(name: string): Promise<any> {
             
             // Wait for internal engine to confirm readiness
             let attempts = 0;
-            while (!player.isLoaded && attempts < 20) {
+            while (!player.isLoaded && attempts < LOAD_WAIT_ATTEMPTS) {
                 await new Promise(r => setTimeout(r, 100));
                 attempts++;
             }
@@ -87,6 +91,21 @@ async function ensurePlayer(name: string): Promise<any> {
 
 const SHOULD_BE_PLAYING: Record<string, boolean> = {};
 
+/** Calls `play` again while the sound is still wanted and its player was not ready: up to 8 tries, 750 ms apart. */
+function retryPlay(name: string, attempt: number) {
+  if (attempt >= 8) return;
+  setTimeout(() => {
+    if (!SHOULD_BE_PLAYING[name]) return;
+    if (GLOBAL_PLAYERS[name]) {
+      void HANDLES[name]?.play();
+    } else {
+      void ensurePlayer(name).then(() => retryPlay(name, attempt + 1));
+    }
+  }, 750);
+}
+
+const HANDLES: Record<string, LegacySoundHandle> = {};
+
 function toLegacyHandle(name: string): LegacySoundHandle {
   /**
    * Aggressive volume reinforcement.
@@ -104,7 +123,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
     setTimeout(() => hammerVolumeLoop(count + 1), 100);
   };
 
-  return {
+  const handle: LegacySoundHandle = {
     playOneShot: (volume: number) => {
       const voices = voicesOf(name);
       // Strict rotation: consecutive effects always land on different players, so the player that just
@@ -116,8 +135,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         nextVoice[name] = ((nextVoice[name] ?? -1) + 1) % voices.length;
         voice = voices[nextVoice[name]];
         p = GLOBAL_PLAYERS[voice];
-        if (p && p.isLoaded) break;
-        p = null;
+        if (p) break; // existing = usable; `isLoaded` flips to false while a voice is buffering after a seek
         tried++;
       }
       if (!p) {
@@ -159,7 +177,13 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         if (!p) {
           p = await ensurePlayer(voice);
         }
-        if (!p || !SHOULD_BE_PLAYING[name]) return;
+        if (!SHOULD_BE_PLAYING[name]) return;
+        if (!p) {
+          // The player is not there yet (slow device, load still running): keep trying for a few seconds so music
+          // that was asked for at start-up is not lost for good.
+          retryPlay(name, 0);
+          return;
+        }
 
         const vol = TARGET_VOLUMES[name] ?? 1.0;
 
@@ -212,7 +236,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         TARGET_VOLUMES[name] = v;
         for (const voice of voicesOf(name)) {
           const p = GLOBAL_PLAYERS[voice];
-          if (p && p.isLoaded) p.volume = v;
+          if (p) p.volume = v;
         }
       } catch (e) {
         console.error(`[AudioEngine:${name}] setVolume error:`, e);
@@ -227,6 +251,8 @@ function toLegacyHandle(name: string): LegacySoundHandle {
       }
     },
   };
+  HANDLES[name] = handle;
+  return handle;
 }
 
 export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) => ({
@@ -314,14 +340,10 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
   },
 
   revive: async () => {
+    // Only builds voices that do not exist (a failed load). A player that exists is never removed or rebuilt: while it
+    // is buffering after a seek it reports isLoaded=false, and rebuilding players during play makes expo-audio stall.
     for (const voice of Object.keys(GLOBAL_SOURCES)) {
-      const p = GLOBAL_PLAYERS[voice];
-      if (p && p.isLoaded) continue;
-      try {
-        if (p) p.remove();
-      } catch {}
-      delete GLOBAL_PLAYERS[voice];
-      void ensurePlayer(voice);
+      if (!GLOBAL_PLAYERS[voice] && !INITIALIZING_PLAYERS[voice]) void ensurePlayer(voice);
     }
   },
 
