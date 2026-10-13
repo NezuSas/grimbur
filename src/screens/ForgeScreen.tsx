@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, FlatList, ImageBackground, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -8,7 +8,10 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList } from "../navigation/types";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
-import { UPGRADES, UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../core/stats/forge";
+import { UPGRADES, UPGRADE_CATEGORIES, UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../core/stats/forge";
+import { RELIC_IMAGES } from "../ui/relicImages";
+import SpriteImage from "../ui/components/SpriteImage";
+import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { buyUpgrade, getLocalStats } from "../services/localStats";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
@@ -88,7 +91,11 @@ const UpgradeCard = React.memo(({ info, stats, columns, busy, justBought, onBuy 
     >
       <View style={styles.cardTop}>
         <View style={[styles.badge, maxed && styles.badgeMaxed]}>
-          <Text style={styles.badgeIcon}>{info.icon}</Text>
+          {info.relic ? (
+            <SpriteImage source={RELIC_IMAGES[info.relic]} style={styles.badgeImage} resizeMode="contain" accessibilityIgnoresInvertColors />
+          ) : (
+            <Text style={styles.badgeIcon}>{info.icon}</Text>
+          )}
         </View>
         <View style={styles.cardText}>
           <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
@@ -194,34 +201,51 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
           right={<Balance value={stats.embers} label={plural("forge.balance", stats.embers)} />}
         />
 
-        <FlatList
-          key={columns}
-          data={UPGRADES}
-          numColumns={columns}
-          keyExtractor={u => u.id}
+        <ScrollView
           style={{ alignSelf: "center", width: cardWidth }}
           contentContainerStyle={{ padding: 8, paddingBottom: 24 + insets.bottom, gap: 10 }}
-          columnWrapperStyle={columns > 1 ? { gap: 10 } : undefined}
-          ListHeaderComponent={
-            error ? (
-              <Text style={styles.error} accessibilityLiveRegion="assertive">
-                {t("forge.error")}
-              </Text>
-            ) : goal ? (
-              <Text style={styles.goal} maxFontSizeMultiplier={1.2}>
-                {t("forge.goal", { name: forgeText(t, goal.id, "name"), missing: (nextCost(stats, goal.id) as number) - stats.embers })}
-              </Text>
-            ) : null
-          }
-          ListFooterComponent={
-            <Text style={styles.footer} maxFontSizeMultiplier={1.2}>
-              {t("forge.dailyNote")}
+          showsVerticalScrollIndicator={false}
+        >
+          {error ? (
+            <Text style={styles.error} accessibilityLiveRegion="assertive">
+              {t("forge.error")}
             </Text>
-          }
-          renderItem={({ item }) => (
-            <UpgradeCard info={item} stats={stats} columns={columns} busy={busy} justBought={bought === item.id} onBuy={buy} />
-          )}
-        />
+          ) : goal ? (
+            <Text style={styles.goal} maxFontSizeMultiplier={1.2}>
+              {t("forge.goal", { name: forgeText(t, goal.id, "name"), missing: (nextCost(stats, goal.id) as number) - stats.embers })}
+            </Text>
+          ) : null}
+
+          {UPGRADE_CATEGORIES.map(category => {
+            const items = UPGRADES.filter(u => u.category === category);
+            const rows: UpgradeInfo[][] = [];
+            for (let i = 0; i < items.length; i += columns) rows.push(items.slice(i, i + columns));
+            return (
+              <View key={category} style={{ gap: 10 }}>
+                <Text style={styles.sectionTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
+                  {t(`forge.cat.${category}` as TranslationKey).toLocaleUpperCase()}
+                </Text>
+                {category === "relics" && (
+                  <Text style={styles.sectionHint} maxFontSizeMultiplier={1.2}>
+                    {t("forge.cat.relics.hint")}
+                  </Text>
+                )}
+                {rows.map((row, r) => (
+                  <View key={r} style={styles.sectionRow}>
+                    {row.map(item => (
+                      <UpgradeCard key={item.id} info={item} stats={stats} columns={columns} busy={busy} justBought={bought === item.id} onBuy={buy} />
+                    ))}
+                    {row.length < columns && Array.from({ length: columns - row.length }, (_, k) => <View key={`pad${k}`} style={{ flex: 1 }} />)}
+                  </View>
+                ))}
+              </View>
+            );
+          })}
+
+          <Text style={styles.footer} maxFontSizeMultiplier={1.2}>
+            {t("forge.dailyNote")}
+          </Text>
+        </ScrollView>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -268,6 +292,10 @@ const styles = StyleSheet.create({
   },
   badgeMaxed: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.16)" },
   badgeIcon: { fontSize: 32 },
+  badgeImage: { width: 46, height: 46 },
+  sectionTitle: { color: "#F2C14E", fontWeight: "900", letterSpacing: 2, fontSize: 14, marginTop: 6 },
+  sectionHint: { color: "#a8a2c4", fontSize: 12, marginBottom: 2 },
+  sectionRow: { flexDirection: "row", gap: 10 },
   cardText: { flex: 1, gap: 3 },
   name: { color: "#fff", fontWeight: "900", fontSize: 17 },
   desc: { color: "#cfc9e8", fontSize: 13 },

@@ -71,18 +71,20 @@ describe('buying upgrades', () => {
 describe('what the upgrades do', () => {
   it('translates levels into run bonuses', () => {
     expect(metaEffects({})).toEqual(NO_META);
-    expect(metaEffects({ whetstone: 2, purse: 3, scribe: 1, ward: 1, feather: 1 })).toEqual({
+    expect(metaEffects({ whetstone: 2, purse: 3, scribe: 1, ward: 1, feather: 1, eagle_eye: 1, explorer: 2 })).toEqual({
       arrows: 2,
       coinBonus: expect.closeTo(0.3, 5),
       draftBonus: 1,
       shield: true,
-      feather: true,
+      startRelics: ['phoenix'],
+      reach: 1,
+      exploreBonus: 0.5,
     });
     expect(metaEffects({ whetstone: 99 }).arrows).toBe(maxLevel('whetstone'));
   });
 
   it('merges with the hero perks', () => {
-    const merged = applyMeta({ ...NO_PERKS, bonusArrows: 1, coinMultiplier: 1.3 }, { arrows: 2, coinBonus: 0.1, draftBonus: 0, shield: false, feather: false });
+    const merged = applyMeta({ ...NO_PERKS, bonusArrows: 1, coinMultiplier: 1.3 }, { ...NO_META, arrows: 2, coinBonus: 0.1 });
     expect(merged.bonusArrows).toBe(3);
     expect(merged.coinMultiplier).toBeCloseTo(1.43, 5);
   });
@@ -97,7 +99,7 @@ describe('what the upgrades do', () => {
       coins: 1,
       attack: 3,
       seed: 1,
-      perks: applyMeta(NO_PERKS, { arrows: 2, coinBonus: 0, draftBonus: 1, shield: true, feather: false }),
+      perks: applyMeta(NO_PERKS, { ...NO_META, arrows: 2, draftBonus: 1, shield: true }),
       draftBonus: 1,
       startShield: true,
     });
@@ -153,5 +155,47 @@ describe('Fortune and the Phoenix start', () => {
     const next = gameReducer(state, { type: 'MOVE', direction: 'RIGHT' });
     expect(next.isGameOver).toBe(false);
     expect(next.relics).toEqual([]);
+  });
+});
+
+describe('relics you begin with', () => {
+  const start = (relics: string[]) =>
+    gameReducer(initialState, {
+      type: 'RESET',
+      character: { playerName: 'T' } as never,
+      rows: 5,
+      cols: 8,
+      entities: [coin(39)],
+      coins: 1,
+      attack: 3,
+      seed: 1,
+      startRelics: relics as never,
+    });
+
+  it('every start relic upgrade names a real relic and none repeats', () => {
+    const relics = UPGRADES.filter(u => u.relic).map(u => u.relic);
+    expect(new Set(relics).size).toBe(relics.length);
+    expect(relics.length).toBeGreaterThanOrEqual(10);
+  });
+
+  it('the Bulwark gives its shield, the Quiver its arrows and the Lantern its explored area from the first move', () => {
+    expect(start(['bulwark']).shield).toBe(true);
+    expect(start(['quiver']).attack).toBe(start([]).attack + 2);
+    expect(start(['lantern']).visited.length).toBeGreaterThan(1);
+    expect(start([]).visited).toEqual([0]);
+  });
+
+  it('reach and exploration upgrades change the hero perks', () => {
+    const perks = applyMeta(NO_PERKS, { ...NO_META, reach: 1, exploreBonus: 0.5 });
+    expect(perks.arrowReach).toBe(NO_PERKS.arrowReach + 1);
+    expect(perks.newTileMultiplier).toBeCloseTo(1.5, 5);
+  });
+
+  it('upgrades are grouped and every one has a cost', () => {
+    for (const u of UPGRADES) {
+      expect(['power', 'economy', 'relics']).toContain(u.category);
+      expect(u.costs.length).toBeGreaterThan(0);
+    }
+    expect(UPGRADES.length).toBeGreaterThanOrEqual(18);
   });
 });

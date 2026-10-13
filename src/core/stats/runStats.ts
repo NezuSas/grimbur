@@ -38,6 +38,11 @@ export interface LocalStats {
   bestEndlessFloor: number;
   /** Every ember ever earned (the balance goes down when spending; this never does). */
   lifetimeEmbers: number;
+  /** Expeditions and dailies won with each hero (same order as the roster). */
+  heroWins: number[];
+  /** Daily challenges played and won. */
+  dailyRuns: number;
+  dailyWins: number;
 }
 
 export interface RunResult {
@@ -77,6 +82,9 @@ export const EMPTY_STATS: LocalStats = {
   lastDailyDate: null,
   bestEndlessFloor: 0,
   lifetimeEmbers: 0,
+  heroWins: Array.from({ length: HERO_COUNT }, () => 0),
+  dailyRuns: 0,
+  dailyWins: 0,
 };
 
 /** Fields shared by every finished run: lifetime gems and the heroes tried. */
@@ -90,6 +98,7 @@ function accumulate(stats: LocalStats, run: RunResult) {
   return {
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
+    heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
     embers: stats.embers + earned,
     lifetimeEmbers: stats.lifetimeEmbers + earned,
   };
@@ -153,6 +162,8 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
       ...stats,
       ...accumulate(stats, run),
       daily,
+      dailyRuns: stats.dailyRuns + 1,
+      dailyWins: stats.dailyWins + (run.victory ? 1 : 0),
       streak,
       lastDailyDate: clockWentBack ? stats.lastDailyDate : dateKey,
       // Daily runs count towards hero unlocks (depth and victories) and games played. They never unlock a
@@ -226,6 +237,9 @@ export function parseStats(raw: string | null): LocalStats {
       lastDailyDate: str(data.lastDailyDate),
       bestEndlessFloor: Math.trunc(num(data.bestEndlessFloor)),
       lifetimeEmbers: Math.trunc(num(data.lifetimeEmbers)),
+      heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),
+      dailyRuns: Math.trunc(num(data.dailyRuns)),
+      dailyWins: Math.trunc(num(data.dailyWins)),
     };
   } catch {
     return EMPTY_STATS;

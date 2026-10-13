@@ -553,6 +553,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'RESET': {
       const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics } = action;
       const heroPerks = perks ?? NO_PERKS;
+      const startingRelics: RelicId[] = startRelics ? [...startRelics] : [];
+      const withRelic = (id: RelicId) => relicCount(startingRelics, id) > 0;
       return {
         ...initialState,
         selectedCharacter: character,
@@ -561,16 +563,18 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         entities,
         entityMap: createEntityMap(entities),
         coins,
-        attack: attack + heroPerks.bonusArrows,
-        shield: heroPerks.startShield || startShield === true,
+        // Relics the run begins with act at once, exactly as if they had just been picked: the Quiver adds its two
+        // arrows, the Bulwark its shield and the Lantern lights the area around the start.
+        attack: attack + heroPerks.bonusArrows + (withRelic('quiver') ? 2 : 0),
+        shield: heroPerks.startShield || startShield === true || withRelic('bulwark'),
         perks: heroPerks,
         seed: seed || Date.now(),
         runSeed: runSeed ?? seed ?? 0,
         mode: mode ?? 'expedition',
         ascension: ascension ?? 0,
         draftBonus: draftBonus ?? 0,
-        relics: startRelics ? [...startRelics] : [],
-        visited: [0],
+        relics: startingRelics,
+        visited: startingVisited(cols, rows, withRelic('lantern')),
         playerIndex: 0,
         totalCoins: 0,
       };

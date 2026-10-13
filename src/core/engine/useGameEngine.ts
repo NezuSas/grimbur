@@ -167,7 +167,7 @@ export function useGameEngine(): GameEngineInterface {
       perks,
       draftBonus: meta.draftBonus,
       startShield: meta.shield,
-      startRelics: meta.feather ? ['phoenix'] : [],
+      startRelics: meta.startRelics,
     });
   }, [pureDispatch]);
 

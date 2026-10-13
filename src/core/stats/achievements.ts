@@ -26,10 +26,71 @@ export type AchievementId =
   // Habits
   | 'daily_devotee' | 'week_streak' | 'fortnight_streak' | 'hero_variety' | 'dedicated' | 'obsessed'
   // Endless descent
-  | 'beyond' | 'deeper_still' | 'second_lair' | 'abyss_walker' | 'bottomless';
+  | 'beyond' | 'deeper_still' | 'second_lair' | 'abyss_walker' | 'bottomless'
+  // More
+  | 'ten_runs'
+  | 'fifty_runs'
+  | 'two_fifty_runs'
+  | 'five_hundred_runs'
+  | 'depth_4'
+  | 'depth_6'
+  | 'depth_7'
+  | 'depth_9'
+  | 'gems_250'
+  | 'gems_1000'
+  | 'gems_2500'
+  | 'gems_5000'
+  | 'score_10000'
+  | 'score_50000'
+  | 'relics_7'
+  | 'forge_2'
+  | 'forge_6'
+  | 'forge_10'
+  | 'forge_15'
+  | 'forge_20'
+  | 'embers_100'
+  | 'embers_1000'
+  | 'embers_10000'
+  | 'embers_25000'
+  | 'wins_2'
+  | 'wins_3'
+  | 'wins_10'
+  | 'wins_25'
+  | 'wins_50'
+  | 'streak_5'
+  | 'streak_21'
+  | 'streak_30'
+  | 'streak_60'
+  | 'streak_100'
+  | 'endless_12'
+  | 'endless_13'
+  | 'endless_25'
+  | 'endless_35'
+  | 'endless_50'
+  | 'depth_win_2'
+  | 'depth_win_4'
+  | 'daily_1'
+  | 'daily_5'
+  | 'daily_10'
+  | 'daily_25'
+  | 'daily_50'
+  | 'daily_win_1'
+  | 'daily_win_5'
+  | 'swift'
+  | 'blink'
+  | 'trophies_10'
+  | 'trophies_25'
+  | 'trophies_50'
+  | 'trophies_75'
+  | 'trophies_100'
+  | 'win_vael'
+  | 'win_sera'
+  | 'win_borin'
+  | 'win_auric'
+  | 'all_hero_wins';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -163,19 +224,105 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('second_lair', '👹', 'hard', 'endless', 20, s => s.bestEndlessFloor),
   counted('abyss_walker', '🕸️', 'legend', 'endless', 30, s => s.bestEndlessFloor),
   counted('bottomless', '♾️', 'legend', 'endless', 40, s => s.bestEndlessFloor),
+
+  // ── More: ladders for every counter, per-hero and daily goals, speed, trophies ─────────
+  counted('ten_runs', '🎲', 'easy', 'games', 10, s => s.gamesPlayed),
+  counted('fifty_runs', '🧩', 'medium', 'games', 50, s => s.gamesPlayed),
+  counted('two_fifty_runs', '🔁', 'hard', 'games', 250, s => s.gamesPlayed),
+  counted('five_hundred_runs', '🏰', 'legend', 'games', 500, s => s.gamesPlayed),
+  counted('depth_4', '🪨', 'easy', 'floor', 4, s => s.bestLevel),
+  counted('depth_6', '🧱', 'medium', 'floor', 6, s => s.bestLevel),
+  counted('depth_7', '🌑', 'medium', 'floor', 7, s => s.bestLevel),
+  counted('depth_9', '🔦', 'medium', 'floor', 9, s => s.bestLevel),
+  counted('gems_250', '🔷', 'medium', 'gems', 250, s => s.totalGems),
+  counted('gems_1000', '🪩', 'hard', 'gems', 1000, s => s.totalGems),
+  counted('gems_2500', '🏔️', 'hard', 'gems', 2500, s => s.totalGems),
+  counted('gems_5000', '🌈', 'legend', 'gems', 5000, s => s.totalGems),
+  inRun('score_10000', '🎆', 'hard', 'score', 10000, r => r.score >= 10000 && (r.mode ?? 'expedition') !== 'endless'),
+  inRun('score_50000', '🌟', 'legend', 'score', 50000, r => r.score >= 50000 && (r.mode ?? 'expedition') !== 'endless'),
+  inRun('relics_7', '🪬', 'hard', 'relics', 7, r => (r.relics ?? 0) >= 7),
+  counted('forge_2', '🔧', 'easy', 'forge', 2, forgeLevels),
+  counted('forge_6', '⚙️', 'medium', 'forge', 6, forgeLevels),
+  counted('forge_10', '🏭', 'hard', 'forge', 10, forgeLevels),
+  counted('forge_15', '🔱', 'hard', 'forge', 15, forgeLevels),
+  counted('forge_20', '⭐', 'legend', 'forge', 20, forgeLevels),
+  counted('embers_100', '🔥', 'easy', 'embers', 100, s => s.lifetimeEmbers),
+  counted('embers_1000', '🧨', 'medium', 'embers', 1000, s => s.lifetimeEmbers),
+  counted('embers_10000', '🌞', 'hard', 'embers', 10000, s => s.lifetimeEmbers),
+  counted('embers_25000', '☀️', 'legend', 'embers', 25000, s => s.lifetimeEmbers),
+  counted('wins_2', '🥈', 'hard', 'wins', 2, s => s.victories),
+  counted('wins_3', '🥉', 'hard', 'wins', 3, s => s.victories),
+  counted('wins_10', '🎖️', 'hard', 'wins', 10, s => s.victories),
+  counted('wins_25', '🏵️', 'legend', 'wins', 25, s => s.victories),
+  counted('wins_50', '💀', 'legend', 'wins', 50, s => s.victories),
+  counted('streak_5', '🌤️', 'easy', 'streak', 5, s => s.streak),
+  counted('streak_21', '🌙', 'hard', 'streak', 21, s => s.streak),
+  counted('streak_30', '📆', 'hard', 'streak', 30, s => s.streak),
+  counted('streak_60', '🌕', 'legend', 'streak', 60, s => s.streak),
+  counted('streak_100', '💯', 'legend', 'streak', 100, s => s.streak),
+  counted('endless_12', '🚶', 'medium', 'endless', 12, s => s.bestEndlessFloor),
+  counted('endless_13', '🐈‍⬛', 'medium', 'endless', 13, s => s.bestEndlessFloor),
+  counted('endless_25', '🧭', 'hard', 'endless', 25, s => s.bestEndlessFloor),
+  counted('endless_35', '🪂', 'legend', 'endless', 35, s => s.bestEndlessFloor),
+  counted('endless_50', '🎇', 'legend', 'endless', 50, s => s.bestEndlessFloor),
+  inRun('depth_win_2', '🌪️', 'hard', 'depthWin', 2, r => victoryAt(r, 2)),
+  inRun('depth_win_4', '🐲', 'legend', 'depthWin', 4, r => victoryAt(r, 4)),
+  counted('daily_1', '🗺️', 'easy', 'dailyRuns', 1, s => s.dailyRuns),
+  counted('daily_5', '📌', 'easy', 'dailyRuns', 5, s => s.dailyRuns),
+  counted('daily_10', '🧭', 'medium', 'dailyRuns', 10, s => s.dailyRuns),
+  counted('daily_25', '📚', 'hard', 'dailyRuns', 25, s => s.dailyRuns),
+  counted('daily_50', '🏛️', 'legend', 'dailyRuns', 50, s => s.dailyRuns),
+  counted('daily_win_1', '🏆', 'medium', 'dailyWins', 1, s => s.dailyWins),
+  counted('daily_win_5', '👑', 'hard', 'dailyWins', 5, s => s.dailyWins),
+  { id: 'swift', icon: '🐇', tier: 'hard', desc: 'winTime', params: { n: 8 }, isMet: (_s, r) => r.victory === true && (r.mode ?? 'expedition') !== 'endless' && r.time !== undefined && r.time < 8 * 60 },
+  { id: 'blink', icon: '💨', tier: 'legend', desc: 'winTime', params: { n: 5 }, isMet: (_s, r) => r.victory === true && (r.mode ?? 'expedition') !== 'endless' && r.time !== undefined && r.time < 5 * 60 },
+  counted('trophies_10', '🏅', 'easy', 'achCount', 10, s => Object.keys(s.achievements).length),
+  counted('trophies_25', '🥇', 'medium', 'achCount', 25, s => Object.keys(s.achievements).length),
+  counted('trophies_50', '🏛️', 'hard', 'achCount', 50, s => Object.keys(s.achievements).length),
+  counted('trophies_75', '💎', 'legend', 'achCount', 75, s => Object.keys(s.achievements).length),
+  counted('trophies_100', '🌠', 'legend', 'achCount', 100, s => Object.keys(s.achievements).length),
+  { id: 'win_vael', icon: '🧙', tier: 'hard', desc: 'heroWin', params: { n: 0 }, isMet: s => (s.heroWins[0] ?? 0) >= 1 },
+  { id: 'win_sera', icon: '🏹', tier: 'hard', desc: 'heroWin', params: { n: 1 }, isMet: s => (s.heroWins[1] ?? 0) >= 1 },
+  { id: 'win_borin', icon: '🛡️', tier: 'hard', desc: 'heroWin', params: { n: 2 }, isMet: s => (s.heroWins[2] ?? 0) >= 1 },
+  { id: 'win_auric', icon: '💰', tier: 'hard', desc: 'heroWin', params: { n: 3 }, isMet: s => (s.heroWins[3] ?? 0) >= 1 },
+  { id: 'all_hero_wins', icon: '🏛️', tier: 'legend', params: {}, isMet: s => s.heroWins.length >= HERO_COUNT && s.heroWins.every(n => n >= 1), progress: s => ({ current: s.heroWins.filter(n => n >= 1).length, target: HERO_COUNT }) },
 ];
+
+/** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */
+export const ACHIEVEMENT_REWARD: Record<AchievementTier, number> = { easy: 10, medium: 25, hard: 60, legend: 150 };
 
 export const TIER_ORDER: Record<AchievementTier, number> = { easy: 0, medium: 1, hard: 2, legend: 3 };
 
-/** Achievements the player has not unlocked yet but just earned. */
+/**
+ * Achievements the player has not unlocked yet but just earned. Repeats until nothing new appears, because some
+ * achievements count the others (the trophy ones).
+ */
 export function newAchievements(stats: LocalStats, run: RunResult): AchievementId[] {
-  return ACHIEVEMENTS.filter(a => !(a.id in stats.achievements) && a.isMet(stats, run)).map(a => a.id);
+  const known: Record<string, string> = { ...stats.achievements };
+  const earned: AchievementId[] = [];
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const probe = { ...stats, achievements: known };
+    for (const a of ACHIEVEMENTS) {
+      if (a.id in known || !a.isMet(probe, run)) continue;
+      known[a.id] = 'pending';
+      earned.push(a.id);
+      changed = true;
+    }
+  }
+  return earned;
 }
 
-/** Returns `stats` with the given achievements marked as unlocked on `dateKey`. */
+/** Embers an unlocked set of achievements pays. */
+export const rewardFor = (ids: readonly AchievementId[]): number =>
+  ids.reduce((sum, id) => sum + ACHIEVEMENT_REWARD[ACHIEVEMENTS.find(a => a.id === id)?.tier ?? 'easy'], 0);
+
+/** Returns `stats` with the given achievements marked as unlocked on `dateKey` and their embers paid. */
 export function withAchievements(stats: LocalStats, ids: readonly AchievementId[], dateKey: string): LocalStats {
   if (ids.length === 0) return stats;
   const achievements = { ...stats.achievements };
   for (const id of ids) achievements[id] = dateKey;
-  return { ...stats, achievements };
+  const reward = rewardFor(ids);
+  return { ...stats, achievements, embers: stats.embers + reward, lifetimeEmbers: stats.lifetimeEmbers + reward };
 }
