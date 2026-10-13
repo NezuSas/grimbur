@@ -7,6 +7,8 @@ import CoverCard from "../ui/components/CoverCard";
 import { EMPTY_STATS, LocalStats, currentStreak } from "../core/stats/runStats";
 import { getLocalStats } from "../services/localStats";
 import { dailyKey } from "../core/engine/seed";
+import { UPGRADES, canAfford } from "../core/stats/forge";
+import { useSettingsStore } from "../state/settings/store";
 
 import { emitSound } from "../audio/audioEventBus";
 
@@ -23,6 +25,8 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const today = dailyKey();
+  const achievementsSeen = useSettingsStore(st => st.achievementsSeen);
+  const unlocked = Object.keys(stats.achievements).length;
 
   return (
     <View style={styles.root}>
@@ -42,6 +46,12 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           dailyDone={stats.daily?.date === today}
           endlessUnlocked={stats.victories >= 1}
           bestEndlessFloor={stats.bestEndlessFloor}
+          embers={stats.embers}
+          bestScore={stats.bestScore}
+          bestFloor={stats.bestLevel}
+          firstRun={stats.gamesPlayed === 0}
+          forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
+          achievementsBadge={unlocked > achievementsSeen}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
           onPressInstructions={() => navigation.navigate("InstructionsScreen")}
           onPressForge={() => navigation.navigate("ForgeScreen")}

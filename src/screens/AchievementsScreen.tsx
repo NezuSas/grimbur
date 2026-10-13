@@ -12,6 +12,7 @@ import { ACHIEVEMENTS, ACHIEVEMENT_REWARD, TIER_ORDER, AchievementTier } from ".
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats } from "../services/localStats";
 import { useT } from "../i18n/useT";
+import { useSettingsStore } from "../state/settings/store";
 import { achievementText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -27,11 +28,17 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
   const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const setAchievementsSeen = useSettingsStore(st => st.setAchievementsSeen);
   const [filter, setFilter] = useState<"all" | "todo" | "done">("all");
 
   useFocusEffect(
     useCallback(() => {
-      getLocalStats().then(setStats).catch(() => {});
+      getLocalStats()
+        .then(loaded => {
+          setStats(loaded);
+          setAchievementsSeen(Object.keys(loaded.achievements).length); // clears the red dot on the cover
+        })
+        .catch(() => {});
     }, []),
   );
 
