@@ -293,7 +293,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.tutorialButton}
-                onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0 })}
+                onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0, replay: true })}
                 accessibilityRole="button"
                 accessibilityLabel={t("manual.replayTutorial")}
               >

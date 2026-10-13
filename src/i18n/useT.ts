@@ -8,18 +8,23 @@ import { useSettingsStore } from '../state/settings/store';
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { en, es };
 
 /** Language code of the phone (e.g. `es`), or null when it cannot be read. */
+let cachedDeviceLanguage: string | null | undefined;
+
 export function getDeviceLanguageCode(): string | null {
-  try {
-    return getLocales()[0]?.languageCode ?? null;
-  } catch {
-    return null;
+  if (cachedDeviceLanguage === undefined) {
+    try {
+      cachedDeviceLanguage = getLocales()[0]?.languageCode ?? null;
+    } catch {
+      cachedDeviceLanguage = null;
+    }
   }
+  return cachedDeviceLanguage;
 }
 
 /** Translator bound to the user's language choice (Settings) or, on `auto`, to the phone's language. */
 export function useT() {
   const preference = useSettingsStore(s => s.language);
-  const language = resolveLanguage(preference, getDeviceLanguageCode());
+  const language = resolveLanguage(preference, preference === 'auto' ? getDeviceLanguageCode() : null);
 
   return useMemo(
     () => ({ language, ...createTranslator<TranslationKey>(dictionaries, language) }),

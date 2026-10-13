@@ -74,6 +74,8 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
 
 /** Moves forward over every step the current state already satisfies. */
 export function advanceTutorial(stepIndex: number, state: GameState): number {
+  // Clearing the floor in any order finishes the lesson (the reducer freezes input once cleared).
+  if (state.isLevelUp) return TUTORIAL_STEPS.length - 1;
   let index = stepIndex;
   while (index < TUTORIAL_STEPS.length - 1 && TUTORIAL_STEPS[index].isDone(state)) index++;
   return index;

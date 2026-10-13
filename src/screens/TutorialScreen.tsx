@@ -97,12 +97,17 @@ export default function TutorialScreen({ navigation, route }: Props) {
     attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
   }, []);
 
+  const replay = route.params?.replay === true;
   const finish = useCallback(() => {
     setTutorialSeen(true);
+    if (replay) {
+      navigation.goBack(); // came from the manual: go back there
+      return;
+    }
     emitSound("GAME_MUSIC_START");
     // Replace the tutorial with the real game so Back does not return to it.
     navigation.replace("GameScreen", { characterIndex, mode: "expedition" });
-  }, [navigation, setTutorialSeen, characterIndex]);
+  }, [navigation, setTutorialSeen, characterIndex, replay]);
 
   const skip = useCallback(() => {
     setTutorialSeen(true);
@@ -126,7 +131,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           styles.banner,
           {
             marginTop: insets.top,
-            minHeight: hudHeight,
+            height: hudHeight,
             paddingLeft: insets.left + 14,
             paddingRight: insets.right + 14,
           },
@@ -138,7 +143,14 @@ export default function TutorialScreen({ navigation, route }: Props) {
             {t("tutorial.title").toLocaleUpperCase()}
             {!isLast ? `  ·  ${t("tutorial.step", { n: stepIndex + 1, total: totalInteractive })}` : ""}
           </Text>
-          <Text style={styles.instruction} maxFontSizeMultiplier={1.25} accessibilityRole="header">
+          <Text
+            style={styles.instruction}
+            maxFontSizeMultiplier={1.25}
+            accessibilityRole="header"
+            numberOfLines={2}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+          >
             {showRetry ? t("tutorial.retry") : t(step.textKey as "tutorial.walk", { floors: GAME_CONFIG.expedition.floors })}
           </Text>
         </View>
@@ -216,7 +228,7 @@ const styles = StyleSheet.create({
   },
   bannerText: { flex: 1, gap: 2 },
   stepLabel: { color: "#FFD700", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
-  instruction: { color: "#fff", fontWeight: "700", fontSize: 15, lineHeight: 20 },
+  instruction: { color: "#fff", fontWeight: "700", fontSize: 15 },
   playButton: {
     minHeight: MIN_TOUCH,
     minWidth: 120,

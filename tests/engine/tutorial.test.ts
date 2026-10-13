@@ -64,6 +64,15 @@ describe('tutorial walkthrough with the real reducer', () => {
     expect(TUTORIAL_STEPS[step].id).toBe('done');
   });
 
+  it('finishes even when the floor is cleared out of order (no soft-lock)', () => {
+    // Take the gem at tile 2, then reach the last gem without ever standing on the clue tile.
+    let state = play(start(), right, right);
+    expect(advanceTutorial(0, state)).toBeGreaterThan(0);
+    const cleared = { ...state, isLevelUp: true };
+    expect(advanceTutorial(1, cleared)).toBe(TUTORIAL_STEPS.length - 1);
+    expect(advanceTutorial(0, cleared)).toBe(TUTORIAL_STEPS.length - 1);
+  });
+
   it('never softlocks: the guardian is only dangerous if the player walks into it', () => {
     const state = play(start(), right, right, right, right);
     expect(state.isGameOver).toBe(true); // stepping onto the guardian is lethal, the screen restarts the tutorial
