@@ -31,7 +31,7 @@ export const en = {
   'cover.mode.endless.sub': 'How deep can you go?',
   'cover.mode.endless.locked': 'Slay the Wumpus in an expedition to unlock it.',
   'cover.mode.endless.best': 'Deepest floor: {floor}',
-  'cover.streak.done': 'Done for today!',
+  'cover.streak.done': "Today's challenge is complete. Come back tomorrow!",
   'cover.streak.risk': 'Play today to keep your streak!',
   'cover.streak.none': 'Play today to start a streak.',
   'a11y.streak': 'Daily streak: {count} days',
