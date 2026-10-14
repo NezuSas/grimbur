@@ -29,6 +29,8 @@ export interface SettingsState {
   hintsSeen: string[];
   /** Epoch ms of the last store-rating request (0 = never asked). */
   reviewAskedAt: number;
+  /** The hero chosen last, so the hero screen opens on it. */
+  lastHero: number;
   setSoundEnabled: (enabled: boolean) => void;
   setMusicVolume: (level: number) => void;
   setSfxVolume: (level: number) => void;
@@ -43,4 +45,5 @@ export interface SettingsState {
   setAchievementsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
   markReviewAsked: (at: number) => void;
+  setLastHero: (heroIndex: number) => void;
 }

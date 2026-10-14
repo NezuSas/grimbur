@@ -21,6 +21,7 @@ export const useSettingsStore = create<SettingsState>()(
       achievementsSeen: 0,
       hintsSeen: [],
       reviewAskedAt: 0,
+      lastHero: 0,
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setMusicVolume: (level) => set({ musicVolume: clampVolume(level) }),
       setSfxVolume: (level) => set({ sfxVolume: clampVolume(level) }),
@@ -34,6 +35,7 @@ export const useSettingsStore = create<SettingsState>()(
       setTutorialSeen: (seen) => set({ tutorialSeen: seen }),
       setAchievementsSeen: (count) => set({ achievementsSeen: count }),
       markReviewAsked: (at) => set({ reviewAskedAt: at }),
+      setLastHero: (heroIndex) => set({ lastHero: heroIndex }),
       markHintSeen: (id) => set(s => (s.hintsSeen.includes(id) ? s : { hintsSeen: [...s.hintsSeen, id] })),
     }),
     {
