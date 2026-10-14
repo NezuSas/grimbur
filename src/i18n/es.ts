@@ -33,7 +33,7 @@ export const es: Record<TranslationKey, string> = {
   'cover.mode.endless.locked': 'Vence al Wumpus en una expedición para desbloquearlo.',
   'cover.mode.endless.best': 'Piso más hondo: {floor}',
   'cover.streak.done': 'Reto de hoy completado. ¡Vuelve mañana!',
-  'cover.streak.risk': '¡Juega hoy y mantén tu racha!',
+  'cover.streak.risk': '¡Mantén tu racha viva!',
   'cover.streak.none': 'Juega hoy para empezar una racha.',
   'a11y.streak': 'Racha diaria: {count} días',
   'cover.play': 'Iniciar expedición',

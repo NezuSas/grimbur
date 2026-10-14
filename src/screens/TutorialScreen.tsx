@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -43,6 +43,9 @@ export default function TutorialScreen({ navigation, route }: Props) {
   const { t } = useT();
   const insets = useSafeAreaInsets();
   const { controlPanelWidth, hudHeight } = useGameLayout();
+  const { width: winWidth, height: winHeight } = useWindowDimensions();
+  // Phones keep the base sizes; roomier windows grow the banner text up to 1.5x.
+  const ui = Math.max(1, Math.min(1.5, winWidth / 900, winHeight / 540));
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const setTutorialSeen = useSettingsStore(s => s.setTutorialSeen);
 
@@ -177,12 +180,12 @@ export default function TutorialScreen({ navigation, route }: Props) {
         accessibilityLiveRegion="polite"
       >
         <View style={styles.bannerText}>
-          <Text style={styles.stepLabel} maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.stepLabel, { fontSize: 11 * ui }]} maxFontSizeMultiplier={1.2}>
             {t("tutorial.title").toLocaleUpperCase()}
             {!isLast ? `  ·  ${t("tutorial.step", { n: stepIndex + 1, total: totalInteractive })}` : ""}
           </Text>
           <Text
-            style={[styles.instruction, hudHeight < 70 && { fontSize: 13 }]}
+            style={[styles.instruction, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]}
             maxFontSizeMultiplier={1.25}
             accessibilityRole="header"
             numberOfLines={2}
