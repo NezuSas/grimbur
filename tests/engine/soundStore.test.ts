@@ -11,6 +11,10 @@ interface FakePlayer {
   loop: boolean;
   plays: number;
   seeks: number;
+  /** ExoPlayer's playWhenReady: still true after a track ends, so a seek to 0 restarts playback. */
+  wantsPlay: boolean;
+  /** Times the player started sounding without anybody calling play (a seek after the end, with wantsPlay on). */
+  selfStarts: number;
   listener?: (status: Record<string, unknown>) => void;
   addListener(event: string, cb: (status: Record<string, unknown>) => void): void;
   finish(): void;
@@ -38,11 +42,17 @@ jest.mock('expo-audio', () => ({
       loop: false,
       plays: 0,
       seeks: 0,
+      wantsPlay: false,
+      selfStarts: 0,
       addListener(_event: string, cb: (status: Record<string, unknown>) => void) { this.listener = cb; },
       finish() { this.playing = false; this.listener?.({ playing: false, isLoaded: true, playbackState: 'ended', didJustFinish: true }); },
-      play() { this.plays += 1; this.playing = true; },
-      pause() { this.playing = false; },
-      seekTo() { this.seeks += 1; if (buffering) this.isLoaded = false; },
+      play() { this.plays += 1; this.playing = true; this.wantsPlay = true; },
+      pause() { this.playing = false; this.wantsPlay = false; },
+      seekTo() {
+        this.seeks += 1;
+        if (buffering) this.isLoaded = false;
+        if (this.wantsPlay && !this.playing) { this.playing = true; this.selfStarts += 1; }
+      },
       remove() {},
     };
     created.push(p);
@@ -93,6 +103,19 @@ describe('sound store', () => {
     sounds.attack!.playOneShot(0.7);
     const touched = created.filter((p, i) => p.plays !== before[i]);
     expect(touched).toHaveLength(2);
+  });
+
+  it('never lets a finished effect start playing again by itself (the Android loop bug)', () => {
+    const { sounds } = useSoundStore.getState();
+    // ExoPlayer keeps "play when ready" after a track ends, so rewinding it without pausing replays it forever.
+    sounds.coin!.playOneShot(0.7);
+    sounds.coin!.playOneShot(0.7);
+    const sounding = created.filter(p => p.playing);
+    expect(sounding.length).toBeGreaterThan(0);
+    sounding.forEach(p => p.finish());
+    // Nothing was started by the rewind: no player restarted by itself and none is sounding.
+    expect(created.reduce((n, p) => n + p.selfStarts, 0)).toBe(0);
+    expect(created.some(p => p.playing)).toBe(false);
   });
 
   it('rewinds an effect when it ends, so the next one starts at once with no seek (and no 100 ms re-buffer)', () => {
