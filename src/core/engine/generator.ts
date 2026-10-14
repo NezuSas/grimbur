@@ -88,9 +88,29 @@ export function generateBoard(
   const FAIR_ATTEMPTS = 30;
   const MAX_ATTEMPTS = FAIR_ATTEMPTS + 10;
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
-  const pressure = options.endless ? endlessPressure(level) : { enemies: 0, pits: 0 };
-  let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + pressure.enemies);
+  const pressure = options.endless ? endlessPressure(level) : { enemies: 0, pits: 0, stalkers: 0 };
+  // The arsenal's roaming stalker only joins from the floor stalkers start; before that it is one more guardian.
+  const stalkersAllowed = level >= GAME_CONFIG.stalker.earlyFloor;
+  let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + (stalkersAllowed ? 0 : omen.stalkerDelta) + pressure.enemies);
   let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits + biome.extraPits + (options.extraPits ?? 0));
+  // The lair is a fight with the Wumpus, not a minefield with a Wumpus in it.
+  if (withBoss) {
+    enemyBudget = Math.min(enemyBudget, GAME_CONFIG.boss.lairGuardians);
+    pitBudget = Math.min(pitBudget, GAME_CONFIG.boss.lairPits);
+  }
+
+  // Roaming stalkers: the floor's guaranteed ones, one more with the arsenal omen, those the endless descent adds,
+  // and from floor 4 a single one with some chance rolled from the floor seed (so the same cave always has the same hunters).
+  const earlyRoll = createPRNG((seed ^ 0x57a1c3) >>> 0);
+  earlyRoll(); // discard the weakly-mixed first sample
+  const earlyStalker = diff.stalkerChance > 0 && earlyRoll() < diff.stalkerChance ? 1 : 0;
+  const ascendedStalker = (options.ascension ?? 0) >= 2 && level >= mods.stalkerFloor ? 1 : 0;
+  let stalkerBudget = Math.min(
+    GAME_CONFIG.stalker.maxPerFloor,
+    Math.max(diff.stalkers + pressure.stalkers, earlyStalker, ascendedStalker) + (stalkersAllowed ? omen.stalkerDelta : 0),
+  );
+  if (withBoss) stalkerBudget = Math.min(stalkerBudget, 1);
+  const coinBudget = withBoss ? 0 : Math.max(2, diff.coins + omen.coinDelta);
 
   let entities: GameEntity[] = [];
 
@@ -135,20 +155,20 @@ export function generateBoard(
       return neighborCount < 2;
     });
 
-    // 1a. From the sixth floor one guardian sleeps: it stands still until the player comes close.
+    // 1a. From the sleeper floor (see gameConfig) one guardian sleeps: it stands still until the player comes close.
     if (level >= GAME_CONFIG.sleeper.minFloor && !withBoss) {
       const sleepers = entities.filter(e => e.type === 'enemy');
       if (sleepers.length >= 2) sleepers[sleepers.length - 1].type = 'sleeper';
     }
 
     // 1b. Stalkers (roaming guardians)
-    placeEntities(Math.max(diff.stalkers, (options.ascension ?? 0) >= 2 && level >= mods.stalkerFloor ? 1 : 0), 'stalker');
+    placeEntities(stalkerBudget, 'stalker');
 
     // 2. Pits
     placeEntities(pitBudget, 'pit');
 
     // 3. Coins
-    placeEntities(withBoss ? 0 : diff.coins, 'coin');
+    placeEntities(coinBudget, 'coin');
 
     // 4. Optional extras (never lethal, so they don't affect solvability)
     placeEntities(diff.traps + (level >= 3 ? mods.extraTraps : 0), 'trap');

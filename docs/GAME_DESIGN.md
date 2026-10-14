@@ -47,6 +47,8 @@ To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/
 
 - 3 HP, one arrow = 1 damage. No gems on this floor: killing the Wumpus clears the floor and wins.
 - It hunts: after every 2nd player move it steps one tile toward the player (only onto empty tiles).
+- Fury: on its last heart it moves after every action; a hit that does not kill it may call a stalker (50%, max 2 per fight).
+- The lair keeps at most 8 guardians and 7 vortexes (it is a fight, not a minefield).
 - Touching it is lethal; a shield absorbs one touch and bounces the player back (the Wumpus survives).
 - Counts as a guardian for the proximity clues, so the roar gets louder as it closes in.
 
@@ -69,18 +71,23 @@ Gate before spending on marketing (soft launch): D1 >= 30%, D7 >= 6%.
 
 ## Balance tooling
 
-`npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor]` plays the real reducer with a careful bot that only uses what a
+`npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth] [aim]` plays the real reducer with a careful bot that only uses what a
 human sees (clues, visible gems) plus Minesweeper-style deduction, and guesses only when nothing is provably safe.
 
 First run (old curve, safe radius 3): the bot cleared **99-100%** of floors 1-9 and almost never had to guess, i.e. the game
-had no tension for an attentive player. Current curve (safe radius 2; enemies/pits denser from floor 5):
+had no tension for an attentive player. Current curve (safe radius 2; enemies/pits denser from floor 3; arrows = 0.7 per
+guardian + 1 with up to 4 carried over; early stalkers on floors 4-5; sleepers from floor 6), 150 runs per floor:
 
-| Floors | Hazard density | Bot clears a floor | Board forces a guess |
-| --- | --- | --- | --- |
-| 1-4 | 10-15% | 95-97% | 3-15% |
-| 5-9 | 17-22% | 85-94% | 31-65% |
+| Floor | Hazard density | Standard bot clears | Aiming bot clears | Board forces a guess |
+| --- | --- | --- | --- | --- |
+| 1-3 | 10-16% | 100% | 100% | 0% |
+| 4-5 | 17-23% | 85-86% | 99-100% | 0-1% |
+| 6 | 18% | 74% | 99% | 1% |
+| 7-10 | 22-24% | 57-68% | 97-99% | 3-8% |
+| 11-30 (endless) | 23% -> 27% | 51% -> 18% | 99% -> 83% | 6% -> 43% |
 
-Reading: a perfect bot reaches the Wumpus about 40% of the time without arrows, relics or hero perks; a human will make more mistakes,
-and relics/heroes/arrows add tools the bot does not use. Re-run after any change to `difficulty.ts`, the generator or the
-scoring. Targets to keep in mind: floors 1-3 forgiving (>= 95%), floors 7-9 genuinely risky (<= 90%) with the guess rate rising.
-
+"Standard bot" only shoots a stalker it is already facing; "aiming" (`npx tsx scripts/simulate.ts 150 1 10 0 aim`) turns to shoot any
+adjacent stalker, as a quick person would, so it is close to a ceiling for a careful human. Deaths of the standard bot are almost
+all stalkers (sleepers wake into stalkers), not blind guesses. Re-run after any change to `difficulty.ts`, the generator or the
+scoring (`simulate.ts` also prints deaths by cause and arrows left). Targets: floors 1-3 forgiving (>= 95%), floor 4 the first close call
+(85-95% for the standard bot), floors 7-10 genuinely risky.

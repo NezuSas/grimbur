@@ -1,7 +1,7 @@
 import { gameReducer } from '../../src/core/engine/reducer';
 import { generateBoard } from '../../src/core/engine/generator';
 import { NO_PERKS, HeroPerks } from '../../src/core/engine/heroes';
-import { forkDoors, SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, ABILITY_COOLDOWN } from '../../src/core/engine/shop';
+import { forkDoors, SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, ABILITY_COOLDOWNS } from '../../src/core/engine/shop';
 import { biomeFor, isNewBiome } from '../../src/core/engine/biomes';
 import { draftRelics, RELICS, CURSED_RELICS, RelicId } from '../../src/core/engine/relics';
 import { isLairFloor } from '../../src/core/engine/lair';
@@ -44,7 +44,7 @@ describe('gems and the shop', () => {
     s = gameReducer(s, { type: 'BUY', item: 'arrows' });
     expect(s.gems).toBe(20 - SHOP_PRICES.arrows);
     expect(s.pendingArrows).toBe(SHOP_ARROWS);
-    const next = gameReducer({ ...s, relics: ['glass_bow'], pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack: 4 } });
+    const next = gameReducer({ ...s, attack: 0, relics: ['glass_bow'], pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack: 4 } });
     expect(next.attack).toBe(2 + SHOP_ARROWS);
     expect(next.pendingArrows).toBe(0);
   });
@@ -121,7 +121,7 @@ describe('hero abilities', () => {
     const s0 = createState({ perks: perksWith('brace'), entities: [coin(100)] });
     const s1 = gameReducer(s0, { type: 'USE_ABILITY' });
     expect(s1.shield).toBe(true);
-    expect(s1.abilityCd).toBe(ABILITY_COOLDOWN);
+    expect(s1.abilityCd).toBe(ABILITY_COOLDOWNS.brace);
     expect(s1.turn).toBe(1);
     expect(gameReducer({ ...s1, shield: false }, { type: 'USE_ABILITY' }).shield).toBe(false); // still recharging
   });
@@ -129,7 +129,7 @@ describe('hero abilities', () => {
   it('the cooldown counts down with every action and the ability is ready again', () => {
     let s = gameReducer(createState({ perks: perksWith('brace'), entities: [coin(100)] }), { type: 'USE_ABILITY' });
     s = { ...s, shield: false };
-    for (let i = 0; i < ABILITY_COOLDOWN; i++) s = gameReducer(s, move(i % 2 === 0 ? 'RIGHT' : 'LEFT'));
+    for (let i = 0; i < ABILITY_COOLDOWNS.brace; i++) s = gameReducer(s, move(i % 2 === 0 ? 'RIGHT' : 'LEFT'));
     expect(s.abilityCd).toBe(0);
     expect(gameReducer(s, { type: 'USE_ABILITY' }).shield).toBe(true);
   });
@@ -272,7 +272,7 @@ describe('cursed relics', () => {
     const base = gameReducer(createState({ entities: [coin(1), coin(100)], coins: 2 }), move('RIGHT'));
     const pact = gameReducer(withRelics(createState({ entities: [coin(1), coin(100)], coins: 2 }), 'blood_pact'), move('RIGHT'));
     expect(pact.score).toBeGreaterThan(base.score);
-    const lvl = (s: GameState, attack: number) => gameReducer({ ...s, isLevelUp: true, pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack } });
+    const lvl = (s: GameState, attack: number) => gameReducer({ ...s, attack: 0, isLevelUp: true, pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack } });
     expect(lvl(withRelics(createState(), 'blood_pact'), 4).attack).toBe(3);
     expect(lvl(withRelics(createState(), 'blood_pact'), 1).attack).toBe(1);
   });
@@ -295,7 +295,7 @@ describe('cursed relics', () => {
   it('Glass Bow flies two tiles farther but halves the arrows', () => {
     const s = withRelics(createState({ entities: [enemy(3), coin(100)], coins: 1 }), 'glass_bow');
     expect(gameReducer(s, { type: 'ATTACK' }).entityMap[3]).toBeUndefined(); // reach 1 + 2
-    const lvl = gameReducer({ ...s, isLevelUp: true, pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack: 5 } });
+    const lvl = gameReducer({ ...s, attack: 0, isLevelUp: true, pendingDraft: null }, { type: 'LEVEL_UP', payload: { ...nextFloor, attack: 5 } });
     expect(lvl.attack).toBe(2);
   });
 

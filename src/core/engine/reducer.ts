@@ -6,7 +6,8 @@ import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
-import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, ABILITY_COOLDOWN } from './shop';
+import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
+import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS } from './abilities';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -59,6 +60,12 @@ const tryAbsorb = (shield: boolean, relics: RelicId[]) => {
 
 const nonEmpty = <T,>(items: T[]): T[] | null => (items.length > 0 ? items : null);
 
+/** What the hero already has, so drafts skip relics that would do nothing. */
+const draftContext = (state: Pick<GameState, 'perks'>) => ({
+  startShield: state.perks.startShield,
+  trapImmune: state.perks.trapImmune,
+});
+
 const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
 
 /** The tile one step from `index` in `direction`, or -1 at the board edge. */
@@ -110,14 +117,22 @@ const pickTeleportDestination = (
     }
   }
 
+  // Mostly an unexplored empty tile (free information), but sometimes a tile the player already knows: the vortex
+  // then only scrambles their bearings. Decided by the seed, so the reducer stays pure.
+  const salt = vortexIndex * 31 + visited.length;
+  const revisitRoll = createPRNG(state.seed + salt + 977);
+  revisitRoll();
+  const wantsRevisit = revisitRoll() < GAME_CONFIG.vortex.revisitChance;
+
   const pool =
+    wantsRevisit && emptyVisited.length > 0 ? emptyVisited :
     emptyUnvisited.length > 0 ? emptyUnvisited :
     emptyVisited.length > 0 ? emptyVisited :
     nonLethal;
 
   // The only safe place left may be the tile the player just came from.
   if (pool.length === 0) return state.entityMap[state.playerIndex] ? null : state.playerIndex;
-  return pickDeterministic(pool, state.seed, vortexIndex * 31 + visited.length);
+  return pickDeterministic(pool, state.seed, salt);
 };
 
 /**
@@ -159,12 +174,16 @@ const huntersAct = (
   turn: number,
   slowdown: number,
 ): { world: World; hits: EntityType[] } => {
-  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type }));
+  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp }));
   const hits: EntityType[] = [];
   let current = world;
 
   for (const hunter of hunters) {
-    const every = Math.max(1, (hunter.type === 'boss' ? GAME_CONFIG.boss.moveEvery : GAME_CONFIG.stalker.moveEvery) + slowdown);
+    // A Wumpus down to its last heart is furious: it acts after every action (Frost Charm still slows it).
+    const base = hunter.type === 'boss'
+      ? (hunter.hp === 1 ? GAME_CONFIG.boss.furyMoveEvery : GAME_CONFIG.boss.moveEvery)
+      : GAME_CONFIG.stalker.moveEvery;
+    const every = Math.max(1, base + slowdown);
     if (turn % every !== 0) continue;
     const acted = hunterAct(current, hunter.index, playerIndex, rows, cols);
     current = acted.world;
@@ -219,6 +238,57 @@ const wakeSleepers = (world: World, playerIndex: number, cols: number): World =>
   return current;
 };
 
+/** Shop gems one collected gem is worth: the Idol doubles it, a bounty floor adds one per second gem, Lucky Coins sometimes add one. */
+const gemYield = (
+  s: Pick<GameState, 'relics' | 'omen' | 'seed' | 'turn'>,
+  totalAfter: number,
+): number => {
+  let n = relicCount(s.relics, 'greedy_idol') > 0 ? 2 : 1;
+  const every = omenEffects(s.omen).shopGemEvery;
+  if (every > 0 && totalAfter % every === 0) n += 1;
+  const lucky = relicCount(s.relics, 'lucky_coin');
+  if (lucky > 0) {
+    const roll = createPRNG(s.seed + s.turn * 131 + totalAfter * 17 + 7);
+    roll(); // discard the weakly-mixed first sample
+    if (roll() < LUCKY_COIN_CHANCE * lucky) n += 1;
+  }
+  return n;
+};
+
+/** Chance per Lucky Coin that a gem also gives one more shop gem. */
+const LUCKY_COIN_CHANCE = 0.2;
+
+/** One heart off the Wumpus. A wounded (still living) Wumpus may call a stalker beside itself, at most `maxCalls` per fight. */
+const hurtBoss = (
+  world: World,
+  bossIndex: number,
+  state: Pick<GameState, 'seed' | 'turn' | 'rows' | 'cols' | 'playerIndex'>,
+): { world: World; killed: boolean } => {
+  const boss = world.entityMap[bossIndex];
+  const hp = (boss.hp ?? GAME_CONFIG.boss.hp) - 1;
+  if (hp <= 0) return { world: removeEntityAt(world, bossIndex), killed: true };
+
+  let calls = boss.calls ?? 0;
+  let next = replaceEntityAt(world, bossIndex, { ...boss, hp, calls });
+  if (calls < GAME_CONFIG.boss.maxCalls) {
+    const roll = createPRNG(state.seed + state.turn * 977 + bossIndex);
+    roll();
+    if (roll() < GAME_CONFIG.boss.callChance) {
+      const spots = (['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[])
+        .map(d => neighbour(bossIndex, d, state.rows, state.cols))
+        .filter(n => n !== -1 && n !== state.playerIndex && !next.entityMap[n]);
+      if (spots.length > 0) {
+        const spot = spots[Math.floor(roll() * spots.length)];
+        calls += 1;
+        next = replaceEntityAt(next, bossIndex, { ...next.entityMap[bossIndex], calls });
+        const called: GameEntity = { index: spot, type: 'stalker', charge: 0 };
+        next = { entities: [...next.entities, called], entityMap: { ...next.entityMap, [spot]: called } };
+      }
+    }
+  }
+  return { world: next, killed: false };
+};
+
 /** The state without its undo slot: what a step back restores. */
 const snapshotOf = (state: GameState): UndoSnapshot => {
   const { undo: _undo, ...rest } = state;
@@ -241,9 +311,12 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
   let over = false;
   let cause: GameState['deathCause'] = null;
 
+  let gems = patch.gems ?? state.gems;
   if (cleared) {
     score += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(relics, 'greed')));
+    gems += relicCount(relics, 'greed');
   } else {
+    world = wakeSleepers(world, state.playerIndex, cols);
     const acted = huntersAct(world, state.playerIndex, rows, cols, turn, hunterSlowdown(relics));
     world = acted.world;
     for (const hitter of acted.hits) {
@@ -267,6 +340,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
     entityMap: world.entityMap,
     shield,
     relics,
+    gems,
     turn,
     isLevelUp: cleared,
     isVictory: cleared && hadBoss && state.mode !== 'endless',
@@ -275,6 +349,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
     abilityCd: patch.abilityCd ?? Math.max(0, state.abilityCd - 1),
     undo: null,
     lastPickup: null,
+    vortexCost: null,
   };
 };
 
@@ -305,6 +380,7 @@ export const initialState: GameState = {
   totalCoins: 0,
   deathCause: null,
   wasTeleported: false,
+  vortexCost: null,
   perks: NO_PERKS,
   relics: [],
   pendingDraft: null,
@@ -339,7 +415,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       let nextIndex = neighbour(state.playerIndex, direction, rows, cols);
       if (nextIndex === -1) {
-        return { ...state, facingDir: direction, lastPickup: null };
+        return { ...state, facingDir: direction, lastPickup: null, vortexCost: null };
       }
 
       const isNewTile = !state.visited.includes(nextIndex);
@@ -361,6 +437,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newDeathCause: GameState['deathCause'] = null;
       let newWasTeleported = false;
       let newLastPickup: PickupKind | null = null;
+      let newVortexCost: 'arrow' | 'gem' | null = null;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
       let absorbedThisMove = false;
@@ -414,6 +491,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           } else {
             nextIndex = destination;
             newWasTeleported = true;
+            // The vortex takes a toll: one arrow, or else one shop gem, or else nothing.
+            if (newAttack > 0) {
+              newAttack -= 1;
+              newVortexCost = 'arrow';
+            } else if (newGems > 0) {
+              newGems -= 1;
+              newVortexCost = 'gem';
+            }
             if (!newVisited.includes(destination)) {
               newVisited = [...newVisited, destination];
             }
@@ -425,7 +510,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
-          newGems += has('greedy_idol') ? 2 : 1;
+          newGems += gemYield(state, newTotalCoins);
           consumeEntity();
           break;
 
@@ -454,10 +539,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Taking the last gem clears the floor before anything can strike, and a hit that was just soaked
       // by a shield (or feather) stuns the hunters for this action, so one move never costs two protections.
-      const newTurn = state.turn + 1;
       const floorCleared = newCoins === 0 && !newIsGameOver && !hasBoss(world);
-      if (!newIsGameOver && !floorCleared && !absorbedThisMove) {
+      // Wayfarer Boots: retracing explored ground (outside the lair) does not move the hunters' clocks at all.
+      const retracing = has('iron_boots') && !isNewTile && !entityAtPoint && !hasBoss(world);
+      const newTurn = retracing ? state.turn : state.turn + 1;
+      if (!newIsGameOver && !floorCleared) {
+        // Sleepers wake whenever the player ends an action near them, even when a shield just soaked a hit.
         world = wakeSleepers(world, nextIndex, cols);
+      }
+      if (!newIsGameOver && !floorCleared && !absorbedThisMove && !retracing) {
         const acted = huntersAct(world, nextIndex, rows, cols, newTurn, hunterSlowdown(state.relics));
         world = acted.world;
         for (const hitter of acted.hits) {
@@ -472,6 +562,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newIsLevelUp: boolean = state.isLevelUp;
       if (floorCleared && !newIsGameOver) {
         newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * has('greed')));
+        newGems += has('greed');
         newIsLevelUp = true;
       }
 
@@ -495,6 +586,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         totalCoins: newTotalCoins,
         gems: newGems,
         wasTeleported: newWasTeleported,
+        vortexCost: newVortexCost,
         lastPickup: newLastPickup,
         turn: newTurn,
         abilityCd: Math.max(0, state.abilityCd - 1),
@@ -529,17 +621,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let newEnemyCombo = state.enemyCombo;
       let newIsLevelUp = false;
       let newIsVictory = false;
+      let newGems = state.gems;
 
       const target = targetIndex !== -1 ? state.entityMap[targetIndex] : undefined;
 
       if (target?.type === 'boss') {
-        const hp = (target.hp ?? GAME_CONFIG.boss.hp) - 1;
-        if (hp > 0) {
+        const hurt = hurtBoss(world, targetIndex, state);
+        world = hurt.world;
+        if (!hurt.killed) {
           newScore += GAME_CONFIG.boss.hitScore;
-          world = replaceEntityAt(world, targetIndex, { ...target, hp });
         } else {
           newScore += GAME_CONFIG.boss.killScore;
-          world = removeEntityAt(world, targetIndex);
           if (state.coins === 0) {
             newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(state.relics, 'greed')));
             newIsLevelUp = true;
@@ -555,6 +647,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         );
         newScore += killValue(newEnemyCombo);
         world = removeEntityAt(world, targetIndex);
+        if (relicCount(state.relics, 'hunter') > 0) newGems += 1; // Hunter's Mark: every kill drops a shop gem
       } else {
         newScore += GAME_CONFIG.scoring.missPenalty;
         newEnemyCombo = 0;
@@ -568,6 +661,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const newTurn = state.turn + 1;
 
       if (!newIsLevelUp) {
+        world = wakeSleepers(world, state.playerIndex, cols);
         const acted = huntersAct(world, state.playerIndex, rows, cols, newTurn, hunterSlowdown(state.relics));
         world = acted.world;
         for (const hitter of acted.hits) {
@@ -587,6 +681,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         facingDir: aim,
         attack: state.attack - 1,
+        gems: newGems + (newIsLevelUp ? relicCount(state.relics, 'greed') : 0),
+        vortexCost: null,
         score: Math.max(0, newScore),
         entities: world.entities,
         entityMap: world.entityMap,
@@ -611,7 +707,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let arrows = attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver');
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
-      const draft = nonEmpty(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus));
+      // Arrows are a resource: some of the unused ones come along to the next floor.
+      arrows += Math.min(GAME_CONFIG.arrows.carryOverCap, Math.max(0, state.attack));
+      const draft = nonEmpty(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)));
       return {
         ...state,
         level: state.level + 1,
@@ -641,6 +739,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         enemyCombo: 0,
         deathCause: null,
         lastPickup: null,
+        vortexCost: null,
+        wasTeleported: false,
       };
     }
 
@@ -650,7 +750,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const relics = [...state.relics, action.id];
       // The altar buys a second pick right after the first.
       const second = state.altarPending
-        ? nonEmpty(draftRelics(state.runSeed, 500 + state.level, relics, modifiersFor(state.ascension).draftSize + state.draftBonus))
+        ? nonEmpty(draftRelics(state.runSeed, 500 + state.level, relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)))
         : null;
       return {
         ...state,
@@ -721,7 +821,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       if (!ability || state.abilityCd > 0 || state.isGameOver || state.isLevelUp || state.pendingDraft) return state;
       const { rows, cols } = state;
       let world: World = { entities: state.entities, entityMap: state.entityMap };
-      const cooldown = { abilityCd: ABILITY_COOLDOWN };
+      const cooldown = { abilityCd: abilityCooldown(ability) };
 
       if (ability === 'brace') {
         if (state.shield) return state;
@@ -729,17 +829,33 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       if (ability === 'scout') {
-        // A safe unexplored tile beside the explored area, the nearest one to the hero.
+        // A safe unexplored tile beside the explored area that the player could NOT already deduce, preferring the one
+        // with the most unexplored neighbours (the most new information); the nearest one breaks ties.
         const seen = new Set(state.visited);
-        const candidates: number[] = [];
+        const known = provenSafeTiles(rows, cols, state.entities, state.visited);
+        const candidates = new Set<number>();
         for (const v of state.visited) {
           for (const d of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]) {
             const n = neighbour(v, d, rows, cols);
-            if (n !== -1 && !seen.has(n) && !(state.entityMap[n] && LETHAL_TYPES.includes(state.entityMap[n].type))) candidates.push(n);
+            if (n !== -1 && !seen.has(n) && !(state.entityMap[n] && LETHAL_TYPES.includes(state.entityMap[n].type))) candidates.add(n);
           }
         }
-        if (candidates.length === 0) return state;
-        const best = candidates.reduce((a, b) => (manhattan(b, state.playerIndex, cols) < manhattan(a, state.playerIndex, cols) ? b : a));
+        if (candidates.size === 0) return state;
+        const unknownAround = (n: number) =>
+          (['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]).filter(d => {
+            const m = neighbour(n, d, rows, cols);
+            return m !== -1 && !seen.has(m);
+          }).length;
+        const hidden = [...candidates].filter(n => !known.has(n));
+        const pool = hidden.length > 0 ? hidden : [...candidates];
+        const best = pool.reduce((a, b) => {
+          const ua = unknownAround(a);
+          const ub = unknownAround(b);
+          if (ub !== ua) return ub > ua ? b : a;
+          const da = manhattan(a, state.playerIndex, cols);
+          const db = manhattan(b, state.playerIndex, cols);
+          return db < da || (db === da && b < a) ? b : a;
+        });
         return settle(state, world, { ...cooldown, visited: [...state.visited, best] });
       }
 
@@ -753,7 +869,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           ...cooldown,
           coins: state.coins - 1,
           totalCoins: state.totalCoins + 1,
-          gems: state.gems + (relicCount(state.relics, 'greedy_idol') > 0 ? 2 : 1),
+          gems: state.gems + gemYield(state, state.totalCoins + 1),
           score: state.score + reward,
           visited: state.visited.includes(nearest.index) ? state.visited : [...state.visited, nearest.index],
         });
@@ -763,6 +879,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       let score = state.score;
       let combo = state.enemyCombo;
       let hits = 0;
+      let bonusGems = 0;
       let cursor = state.playerIndex;
       for (let step = 0; step < VOLLEY_REACH && hits < VOLLEY_TARGETS; step++) {
         cursor = neighbour(cursor, state.facingDir, rows, cols);
@@ -770,24 +887,20 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const target = world.entityMap[cursor];
         if (!target) continue;
         if (target.type === 'boss') {
-          const hp = (target.hp ?? GAME_CONFIG.boss.hp) - 1;
-          if (hp > 0) {
-            score += GAME_CONFIG.boss.hitScore;
-            world = replaceEntityAt(world, cursor, { ...target, hp });
-          } else {
-            score += GAME_CONFIG.boss.killScore;
-            world = removeEntityAt(world, cursor);
-          }
+          const hurt = hurtBoss(world, cursor, state);
+          world = hurt.world;
+          score += hurt.killed ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore;
           break;
         }
         if (GUARDIAN_TYPES.includes(target.type)) {
           combo = Math.min(combo + 1, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'));
           score += killValue(combo);
           world = removeEntityAt(world, cursor);
+          if (relicCount(state.relics, 'hunter') > 0) bonusGems += 1;
           hits++;
         }
       }
-      return settle(state, world, { ...cooldown, score, enemyCombo: combo });
+      return settle(state, world, { ...cooldown, score, enemyCombo: combo, gems: state.gems + bonusGems });
     }
 
     case 'UNDO': {

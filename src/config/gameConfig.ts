@@ -65,13 +65,29 @@ export const GAME_CONFIG = {
     killScore: 2000,
     /** Minimum Manhattan distance from the spawn when it is placed. */
     minSpawnDistance: 6,
+    /** Fury: with one heart left the Wumpus steps after every Nth player action (instead of `moveEvery`). */
+    furyMoveEvery: 1,
+    /** Most guardians / vortexes a lair floor keeps: the floor is a fight, not a minefield plus a boss. */
+    lairGuardians: 8,
+    lairPits: 7,
+    /** A wounded Wumpus may call a stalker next to itself: chance per hit, and the most calls per fight. */
+    callChance: 0.5,
+    maxCalls: 2,
   },
 
   /** Roaming hunters that appear from `minFloor` on. */
   stalker: {
     /** A stalker steps toward the player after every Nth player action. */
     moveEvery: 4,
+    /** From this floor on there is always at least one stalker. */
     minFloor: 7,
+    /** From this floor a single stalker appears with `earlyChance` (decided by the floor seed): the first close call. */
+    earlyFloor: 4,
+    /** The last floor of that early window (floor 6 already has the sleeper, 7 the guaranteed stalker). */
+    earlyLastFloor: 5,
+    earlyChance: 0.5,
+    /** Most stalkers a floor can hold (the endless descent adds one every five floors). */
+    maxPerFloor: 5,
   },
 
   /** Sleeping guardians: still until the player comes this close, then they hunt like stalkers. */
@@ -83,5 +99,15 @@ export const GAME_CONFIG = {
   pickups: {
     /** Arrows granted by an ammo pickup. */
     ammoAmount: 2,
+  },
+
+  arrows: {
+    /** Unused arrows that carry over to the next floor (at most this many). */
+    carryOverCap: 4,
+  },
+
+  vortex: {
+    /** Chance that a vortex drops you on an already explored tile (it scrambles your bearings instead of revealing a new one). */
+    revisitChance: 0.3,
   },
 } as const;

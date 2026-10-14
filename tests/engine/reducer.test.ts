@@ -175,7 +175,7 @@ describe('gameReducer', () => {
 
   describe('LEVEL_UP', () => {
     it('advances the level keeping the score and installing the new board', () => {
-      const state = { ...createState({ entities: [coin(1)] }), score: 5000, isLevelUp: true };
+      const state = { ...createState({ entities: [coin(1)] }), score: 5000, isLevelUp: true, attack: 0 };
       const next = gameReducer(state, {
         type: 'LEVEL_UP',
         payload: { rows: 6, cols: 9, entities: [coin(10), coin(11)], coins: 2, attack: 4, seed: 7 },

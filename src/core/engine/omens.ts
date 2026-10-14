@@ -12,23 +12,32 @@ import type { GameMode } from './seed';
 export type OmenId = 'bounty' | 'calm' | 'arsenal';
 
 export interface OmenEffects {
-  /** Gem value multiplier. */
+  /** Gem score multiplier. */
   gemMultiplier: number;
+  /** Every Nth gem collected on the floor also gives one more shop gem (0 = never): bounty pays +50% in the shop too. */
+  shopGemEvery: number;
   /** Guardians added to (or removed from) the floor. */
   enemyDelta: number;
   /** Vortexes added to (or removed from) the floor. */
   pitDelta: number;
+  /** Gems lying on the floor added (or removed); a floor always keeps at least two. */
+  coinDelta: number;
+  /** Roaming stalkers added to the floor. */
+  stalkerDelta: number;
   /** Extra arrows lying in the quiver. */
   arrowBonus: number;
 }
 
 export const OMENS: Record<OmenId, OmenEffects> = {
-  bounty: { gemMultiplier: 1.5, enemyDelta: 1, pitDelta: 0, arrowBonus: 0 },
-  calm: { gemMultiplier: 1, enemyDelta: -1, pitDelta: -1, arrowBonus: 0 },
-  arsenal: { gemMultiplier: 1, enemyDelta: 0, pitDelta: 1, arrowBonus: 2 },
+  // Greed: richer (score x1.5, +1 gem on the board, +50% shop gems) but one more guardian guards the hoard.
+  bounty: { gemMultiplier: 1.5, shopGemEvery: 2, enemyDelta: 1, pitDelta: 0, coinDelta: 1, stalkerDelta: 0, arrowBonus: 0 },
+  // A breather: safer board, but a leaner one (one gem less to collect and spend).
+  calm: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: -1, pitDelta: -1, coinDelta: -1, stalkerDelta: 0, arrowBonus: 0 },
+  // Firepower: two more arrows, paid for with a vortex and a roaming stalker drawn by the noise.
+  arsenal: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 1, coinDelta: 0, stalkerDelta: 1, arrowBonus: 2 },
 };
 
-export const NO_OMEN: OmenEffects = { gemMultiplier: 1, enemyDelta: 0, pitDelta: 0, arrowBonus: 0 };
+export const NO_OMEN: OmenEffects = { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 0, coinDelta: 0, stalkerDelta: 0, arrowBonus: 0 };
 
 /** Probability of each outcome, in order; the remainder is a plain floor. */
 const TABLE: readonly [OmenId, number][] = [

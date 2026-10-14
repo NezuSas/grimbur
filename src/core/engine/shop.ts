@@ -4,6 +4,7 @@ import { isLairFloor } from './lair';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import type { GameMode } from './seed';
 import type { OmenId } from './omens';
+import type { AbilityId } from './abilities';
 
 /** What gems buy between floors. */
 export type ShopItem = 'arrows' | 'shield' | 'detector' | 'bomb';
@@ -24,8 +25,22 @@ export const SHOP_ARROWS = 2;
 /** Most one-use items of one kind the bag holds. */
 export const MAX_ITEMS = 3;
 
-/** Actions the ability needs to recharge after being used. */
+/** Actions an ability needs to recharge after being used (the default; see ABILITY_COOLDOWNS). */
 export const ABILITY_COOLDOWN = 12;
+
+/**
+ * Recharge time of each ability. Brace only works without a shield and Stoneskin already starts every floor with one,
+ * and the Magnet pulls in a whole gem, so those two wait longer.
+ */
+export const ABILITY_COOLDOWNS: Record<AbilityId, number> = {
+  scout: 12,
+  volley: 12,
+  brace: 18,
+  magnet: 18,
+};
+
+export const abilityCooldown = (ability: AbilityId | null | undefined): number =>
+  ability ? ABILITY_COOLDOWNS[ability] : ABILITY_COOLDOWN;
 
 /** One of the two doors at the fork: an omen, or a plain floor (null). */
 export type Door = OmenId | null;

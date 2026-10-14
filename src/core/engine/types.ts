@@ -29,6 +29,8 @@ export interface GameEntity {
   hp?: number;
   /** The Wumpus' wind-up: it can only strike on the action after it arrives next to the player. */
   charge?: number;
+  /** Stalkers the Wumpus has called so far (the boss only). */
+  calls?: number;
 }
 
 export interface GameState {
@@ -65,6 +67,8 @@ export interface GameState {
   deathCause: EntityType | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
   wasTeleported: boolean;
+  /** What the last vortex cost (an arrow or a shop gem), for one move; null when it cost nothing or none was entered. */
+  vortexCost?: 'arrow' | 'gem' | null;
   /** Perks of the chosen hero. */
   perks: HeroPerks;
   /** Relics collected during this run (duplicates = stacks). */

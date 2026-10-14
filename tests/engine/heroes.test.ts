@@ -28,7 +28,7 @@ describe('Trapfinder (Cyan)', () => {
   });
 
   it('gets the extra arrow again on every floor', () => {
-    const next = gameReducer({ ...createState({ perks }), isLevelUp: true }, { type: 'LEVEL_UP', payload: levelUp });
+    const next = gameReducer({ ...createState({ perks }), attack: 0, isLevelUp: true }, { type: 'LEVEL_UP', payload: levelUp });
     expect(next.attack).toBe(levelUp.attack + 1);
   });
 });
