@@ -57,6 +57,7 @@ import { forkDoors } from "../core/engine/shop";
 import { biomeFor, isNewBiome } from "../core/engine/biomes";
 import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
+import { characterWithSkin } from "../data/characterSkins";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
@@ -135,7 +136,8 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const rawIndex = route.params?.characterIndex ?? 0;
   const characterIndex = Math.min(Math.max(Math.trunc(rawIndex), 0), characters.length - 1);
-  const selectedCharacter = characters[characterIndex];
+  const skin = route.params?.skin ?? "classic";
+  const selectedCharacter = characterWithSkin(characterIndex, skin);
 
   const mode = route.params?.mode ?? "expedition";
   const isDaily = mode === "daily";
@@ -567,6 +569,7 @@ export default function GameScreen({ navigation, route }: Props) {
       const enemiesLeft = countGuardians(now);
       navigation.navigate("LevelCompleteScreen", {
         characterIndex,
+        skin,
         score: now.score,
         level: now.level,
         coins: floorStart.current.gems - now.coins,
@@ -928,6 +931,7 @@ export default function GameScreen({ navigation, route }: Props) {
             visited={state.visited}
             facingDir={state.facingDir}
             characterIndex={characterIndex}
+            skin={skin}
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}

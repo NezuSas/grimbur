@@ -2,6 +2,7 @@ import { daysBetween } from '../engine/seed';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
+import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 
 export interface DailyProgress {
   /** Local day (`YYYY-MM-DD`) this progress belongs to. */
@@ -53,6 +54,10 @@ export interface LocalStats {
   lastBonusDate: string | null;
   /** The most recent runs, oldest first. */
   history: RunRecord[];
+  /** Deepest depth (ascension) won in an expedition with each hero (0 when none). */
+  heroBestDepth: number[];
+  /** Hero outfits: `owned` holds `heroIndex:skinId` keys (classic is implicit); `equipped` maps hero index to skin. */
+  skins: { owned: string[]; equipped: Record<string, SkinId> };
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -134,6 +139,8 @@ export const EMPTY_STATS: LocalStats = {
   dailyWins: 0,
   lastBonusDate: null,
   history: [],
+  heroBestDepth: Array.from({ length: HERO_COUNT }, () => 0),
+  skins: { owned: [], equipped: {} },
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -162,6 +169,8 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
+    heroBestDepth: stats.heroBestDepth.map((n, i) =>
+      run.victory && run.heroIndex === i && (run.mode ?? 'expedition') === 'expedition' ? Math.max(n, clampAscension(run.ascension ?? 0)) : n),
     embers: stats.embers + total,
     lifetimeEmbers: stats.lifetimeEmbers + total,
   };
@@ -338,6 +347,28 @@ function parseAchievements(value: unknown): Record<string, string> {
   return out;
 }
 
+function parseSkins(value: unknown): LocalStats['skins'] {
+  const out: LocalStats['skins'] = { owned: [], equipped: {} };
+  if (!value || typeof value !== 'object') return out;
+  const { owned, equipped } = value as Record<string, unknown>;
+  const valid = (hero: number, skin: unknown): skin is SkinId =>
+    isSkinId(skin) && skin !== 'classic' && (SKINS_BY_HERO[hero] ?? []).includes(skin);
+  const keys = new Set<string>();
+  if (Array.isArray(owned)) {
+    for (const k of owned) {
+      const m = typeof k === 'string' ? /^(\d{1,3}):([a-z]+)$/.exec(k) : null;
+      if (m && valid(Number(m[1]), m[2])) keys.add(skinKey(Number(m[1]), m[2] as SkinId));
+    }
+  }
+  out.owned = [...keys];
+  if (equipped && typeof equipped === 'object' && !Array.isArray(equipped)) {
+    for (const [h, skin] of Object.entries(equipped as Record<string, unknown>)) {
+      if (/^\d{1,3}$/.test(h) && valid(Number(h), skin) && keys.has(skinKey(Number(h), skin))) out.equipped[String(Number(h))] = skin;
+    }
+  }
+  return out;
+}
+
 /** Defensive parse for whatever was persisted (corrupt or older data included). */
 export function parseStats(raw: string | null): LocalStats {
   if (!raw) return EMPTY_STATS;
@@ -377,6 +408,8 @@ export function parseStats(raw: string | null): LocalStats {
       dailyWins: Math.trunc(num(data.dailyWins)),
       lastBonusDate: str(data.lastBonusDate),
       history: parseHistory(data.history),
+      heroBestDepth: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroBestDepth) ? Math.min(MAX_ASCENSION, Math.trunc(num(data.heroBestDepth[i]))) : 0)),
+      skins: parseSkins(data.skins),
     };
   } catch {
     return EMPTY_STATS;

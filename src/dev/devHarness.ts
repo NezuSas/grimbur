@@ -39,6 +39,7 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     bestEndlessFloor: 14,
     dailyRuns: 9,
     dailyWins: 4,
+    skins: { owned: ["0:ember", "0:royal", "1:frost"], equipped: { "0": "royal", "1": "frost" } },
     achievements: { first_blood: "2026-09-02", explorer: "2026-09-03", hoarder: "2026-09-10", wumpus_slayer: "2026-09-18" },
     history: Array.from({ length: 14 }, (_, i) => ({
       day: `2026-10-${String(i + 1).padStart(2, "0")}`,

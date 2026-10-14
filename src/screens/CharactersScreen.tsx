@@ -39,6 +39,12 @@ import { dailyKey } from "../core/engine/seed";
 import { haptic } from "../shared/haptics";
 import type { TranslationKey } from "../i18n/en";
 import SpriteImage from "../ui/components/SpriteImage";
+import { SKIN_ACCENT, skinArt, skinsForHero, type SkinId } from "../data/skinArt";
+import { SKINS } from "../core/skins/skins";
+import { equippedSkin, skinStatus } from "../core/skins/ownership";
+import { buySkinFor, equipSkinFor } from "../services/localStats";
+import { skinText } from "../i18n/keys";
+import { NotificationFeedbackType } from "../shared/haptics";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 
@@ -88,10 +94,10 @@ const Spark = ({ color, x, duration, delay, size, rise }: { color: string; x: nu
   );
 };
 
-type ThumbProps = { heroIndex: number; selected: boolean; locked: boolean; size: number; onPress: (heroIndex: number) => void };
+type ThumbProps = { heroIndex: number; skin: SkinId; selected: boolean; locked: boolean; size: number; onPress: (heroIndex: number) => void };
 
 /** A small round portrait in the roster under the stage: the selected one is bigger and ringed in its colour. */
-const Thumb = memo(({ heroIndex, selected, locked, size, onPress }: ThumbProps) => {
+const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress }: ThumbProps) => {
   const { t } = useT();
   const accent = accentOf(heroIndex);
   const box = selected ? size + 12 : size;
@@ -111,7 +117,7 @@ const Thumb = memo(({ heroIndex, selected, locked, size, onPress }: ThumbProps) 
       ]}
     >
       <SpriteImage
-        source={characters[heroIndex].scoreImage}
+        source={skinArt(heroIndex, skin).scoreImage}
         style={{ width: box * 0.82, height: box * 0.82, borderRadius: box * 0.41, ...(locked ? { tintColor: "#0b0716" } : null) }}
         resizeMode="cover"
         accessibilityIgnoresInvertColors
@@ -121,6 +127,28 @@ const Thumb = memo(({ heroIndex, selected, locked, size, onPress }: ThumbProps) 
           <Ionicons name="lock-closed" size={Math.max(10, size * 0.3)} color="#fff" />
         </View>
       )}
+    </TouchableOpacity>
+  );
+});
+
+type SwatchProps = { heroIndex: number; skin: SkinId; previewing: boolean; owned: boolean; equipped: boolean; onPress: (skin: SkinId) => void };
+
+/** One outfit in the picker: a round chip in the outfit's colour; locked ones are dim with a lock, the worn one has a check. */
+const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPress }: SwatchProps) => {
+  const { t } = useT();
+  const color = skin === "classic" ? accentOf(heroIndex) : SKIN_ACCENT[skin];
+  return (
+    <TouchableOpacity
+      onPress={() => onPress(skin)}
+      activeOpacity={0.8}
+      hitSlop={{ top: 6, bottom: 6, left: 3, right: 3 }}
+      accessibilityRole="button"
+      accessibilityState={{ selected: previewing }}
+      accessibilityLabel={`${skinText(t, skin)}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
+      style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55"), borderColor: previewing ? "#fff" : "rgba(255,255,255,0.28)", borderWidth: previewing ? 3 : 1.5 }, previewing && { transform: [{ scale: 1.12 }], shadowColor: color, shadowOpacity: 0.9, shadowRadius: 8, elevation: 8 }]}
+    >
+      {!owned && <Ionicons name="lock-closed" size={13} color="#fff" />}
+      {equipped && <Ionicons name="checkmark" size={16} color="#111" />}
     </TouchableOpacity>
   );
 });
@@ -140,6 +168,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const devHero = __DEV__ ? route.params?.devHero : undefined;
   const [selected, setSelected] = useState(() => devHero ?? (lastHero >= 0 && lastHero < HERO_COUNT ? lastHero : 0));
   const [stage, setStage] = useState({ w: 0, h: 0 });
+  // The outfit being looked at (null = the one worn); only worn when it is owned.
+  const [previewSkin, setPreviewSkin] = useState<SkinId | null>(__DEV__ ? route.params?.devSkin ?? null : null);
+  const firstSkinReset = useRef(true);
   const depthInitialised = useRef(false);
   const dir = useRef(1);
   const selectedRef = useRef(selected);
@@ -149,6 +180,14 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const pop = useRef(new Animated.Value(1)).current;
   const float = useRef(new Animated.Value(0)).current;
   const halo = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    // (the first run keeps a dev preview that came in through the route)
+    if (firstSkinReset.current) {
+      firstSkinReset.current = false;
+      return;
+    }
+    setPreviewSkin(null);
+  }, [selected]);
   useEffect(() => {
     if (calm) {
       pop.setValue(1);
@@ -227,13 +266,43 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       setLastHero(heroIndex);
       // First-time players get the guided tutorial before their first expedition.
       if (!tutorialSeen && mode === "expedition") {
-        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, ascension: depth, meta: metaEffects(stats.forge) });
+        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: metaEffects(stats.forge) });
         return;
       }
-      navigation.navigate("GameScreen", { characterIndex: heroIndex, mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
+      navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, tutorialSeen, depth, stats.forge, statsLoaded, setLastHero],
+    [navigation, mode, tutorialSeen, depth, stats, statsLoaded, setLastHero],
+  );
+
+  // Tapping an owned outfit wears it at once; a locked one is only previewed (and can be bought).
+  const onSwatch = useCallback(
+    (skin: SkinId) => {
+      haptic.impact();
+      setPreviewSkin(skin);
+      const hero = selectedRef.current;
+      if (skinStatus(stats, hero, skin).owned && equippedSkin(stats, hero) !== skin) {
+        void equipSkinFor(hero, skin).then(next => next && setStats(next));
+      }
+    },
+    [stats],
+  );
+  const buyOutfit = useCallback(
+    async (skin: SkinId) => {
+      const hero = selectedRef.current;
+      const bought = await buySkinFor(hero, skin);
+      if (!bought) return;
+      const worn = await equipSkinFor(hero, skin);
+      setStats(worn ?? bought);
+      setPreviewSkin(null);
+      haptic.notify(NotificationFeedbackType.Success);
+      emitSound("RELIC_PICKED");
+      if (!calm) {
+        pop.setValue(0);
+        Animated.spring(pop, { toValue: 1, friction: 6, tension: 80, useNativeDriver: true }).start();
+      }
+    },
+    [calm, pop],
   );
 
   // ── Sizes: everything scales with the window, never below what a phone needs ─────────────────────────────
@@ -243,9 +312,16 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const heroTitleSize = Math.round(13 * ui);
   const bodySize = Math.round(13 * ui);
   const thumbSize = Math.round(Math.max(40, Math.min(58, 44 * ui)));
-  const hero = characters[selected];
-  const accent = accentOf(selected);
   const locked = isLocked(selected) || !statsLoaded;
+  const wornSkin = equippedSkin(stats, selected);
+  const shownSkin: SkinId = previewSkin && skinsForHero(selected).includes(previewSkin) ? previewSkin : wornSkin;
+  const art = skinArt(selected, shownSkin);
+  const accent = shownSkin === "classic" ? accentOf(selected) : SKIN_ACCENT[shownSkin];
+  const skinInfo = SKINS[shownSkin];
+  const skinState = skinStatus(stats, selected, shownSkin);
+  // A hero that is open but whose previewed outfit is not owned yet: the button buys it.
+  const buyMode = !locked && !skinState.owned;
+  const ctaDisabled = locked || (buyMode && !skinState.canBuy);
   const perks = HEROES[selected]?.perks;
   const ability = perks?.ability ?? null;
   const name = heroText(t, selected, "name");
@@ -321,7 +397,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* The hero itself. A locked hero is a dark silhouette: it asks to be unlocked. */}
                 <Animated.View pointerEvents="none" style={[styles.heroBox, { height: heroH, width: heroW, bottom: rosterH + 6 }, heroMotion]}>
                   <SpriteImage
-                    source={hero.playerImage}
+                    source={art.playerImage}
                     style={{ width: "100%", height: "100%", ...(locked ? { tintColor: "#06030f", opacity: 0.92 } : null) }}
                     resizeMode="contain"
                     accessibilityIgnoresInvertColors
@@ -344,7 +420,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* Roster */}
                 <View style={[styles.roster, { height: rosterH }]}>
                   {characters.map((_, i) => (
-                    <Thumb key={i} heroIndex={i} selected={i === selected} locked={isLocked(i)} size={thumbSize} onPress={go} />
+                    <Thumb key={i} heroIndex={i} skin={equippedSkin(stats, i)} selected={i === selected} locked={isLocked(i)} size={thumbSize} onPress={go} />
                   ))}
                 </View>
               </>
@@ -402,6 +478,48 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
                 <View style={[styles.rule, { backgroundColor: accent }]} />
               </Animated.View>
+
+              {/* The wardrobe: tap an outfit to see it on the hero before buying it */}
+              {!locked && skinsForHero(selected).length > 1 ? (
+                <View style={styles.skinBox}>
+                  <View style={styles.skinHead}>
+                    <Text style={[styles.cardLabel, { color: accent, flexShrink: 1 }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {`${t("skin.outfit")} · ${skinText(t, shownSkin)}`.toLocaleUpperCase()}
+                    </Text>
+                    {skinInfo.premium ? (
+                      <View style={styles.premiumChip}>
+                        <Text style={styles.premiumText} maxFontSizeMultiplier={1.2}>{t("skin.premium").toLocaleUpperCase()}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <View style={styles.swatches}>
+                    {skinsForHero(selected).map(id => (
+                      <Swatch key={id} heroIndex={selected} skin={id} previewing={id === shownSkin} owned={skinStatus(stats, selected, id).owned} equipped={id === wornSkin} onPress={onSwatch} />
+                    ))}
+                  </View>
+                  {buyMode ? (
+                    <View style={styles.lockInfo} accessible>
+                      <Ionicons name="lock-closed" size={16} color="#fff" />
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.lockTitle} maxFontSizeMultiplier={1.2}>
+                          {`🔥 ${stats.embers} / ${skinState.price}`}
+                        </Text>
+                        <View style={styles.lockTrack}>
+                          <View style={[styles.lockFill, { width: `${Math.min(100, Math.round((stats.embers / Math.max(1, skinState.price)) * 100))}%`, backgroundColor: accent }]} />
+                        </View>
+                        {skinInfo.unlock ? (
+                          <Text style={styles.lockSub} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                            {skinInfo.unlock.kind === "wins"
+                              ? t("skin.unlock.wins", { count: skinInfo.unlock.count })
+                              : t("skin.unlock.depth", { depth: t(`ascension.label.${skinInfo.unlock.depth}` as TranslationKey) })}
+                            {skinState.progress ? `  ·  ${t("skin.progress", { have: skinState.progress.have, need: skinState.progress.need })}` : ""}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
 
               {/* A locked hero says, first of all, how to open it */}
               {locked && progress ? (
@@ -470,17 +588,24 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             {/* The call to action never scrolls away */}
             <TouchableOpacity
               activeOpacity={0.85}
-              disabled={locked}
-              onPress={() => handleSelect(selected)}
+              disabled={ctaDisabled}
+              onPress={() => (buyMode ? void buyOutfit(shownSkin) : handleSelect(selected))}
               accessibilityRole="button"
-              accessibilityState={{ disabled: locked }}
-              accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${unlockText(t, selected)}` : t("heroes.pick", { name })}
-              style={[styles.cta, { backgroundColor: locked ? "rgba(255,255,255,0.14)" : accent }, !locked && { shadowColor: accent }]}
+              accessibilityState={{ disabled: ctaDisabled }}
+              accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${unlockText(t, selected)}` : buyMode ? `${skinText(t, shownSkin)}. ${t("skin.buy", { price: skinState.price })}` : t("heroes.pick", { name })}
+              style={[styles.cta, { backgroundColor: ctaDisabled ? "rgba(255,255,255,0.14)" : accent }, !ctaDisabled && { shadowColor: accent }]}
             >
-              <Text style={[styles.ctaText, locked && { color: "#d8d2f0" }, { fontSize: Math.round(16 * Math.min(ui, 1.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                {(locked ? unlockText(t, selected) || t("heroes.locked") : t("heroes.pick", { name })).toLocaleUpperCase()}
+              <Text style={[styles.ctaText, ctaDisabled && { color: "#d8d2f0" }, { fontSize: Math.round(16 * Math.min(ui, 1.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                {(locked
+                  ? unlockText(t, selected) || t("heroes.locked")
+                  : buyMode
+                    ? skinState.canBuy
+                      ? t("skin.buy", { price: skinState.price })
+                      : t("skin.needEmbers", { n: Math.max(0, skinState.price - stats.embers) })
+                    : t("heroes.pick", { name })
+                ).toLocaleUpperCase()}
               </Text>
-              {!locked && <Ionicons name="chevron-forward" size={22} color="#111" />}
+              {!ctaDisabled && <Ionicons name={buyMode ? "flame" : "chevron-forward"} size={22} color="#111" />}
             </TouchableOpacity>
           </View>
         </View>
@@ -564,6 +689,12 @@ const styles = StyleSheet.create({
   abilityHead: { flexDirection: "row", alignItems: "center", gap: 10 },
   abilityIcon: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 
+  skinBox: { gap: 6 },
+  skinHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  premiumChip: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: "rgba(255,213,79,0.18)", borderWidth: 1, borderColor: "rgba(255,213,79,0.7)" },
+  premiumText: { color: "#FFD54F", fontWeight: "900", fontSize: 9, letterSpacing: 1.2 },
+  swatches: { flexDirection: "row", flexWrap: "wrap", gap: 10, alignItems: "center", paddingVertical: 2 },
+  swatch: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
   recordRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 2 },
   recordText: { fontWeight: "800", fontSize: 12, flexShrink: 1 },
   lockInfo: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },

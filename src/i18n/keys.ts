@@ -1,6 +1,7 @@
 import type { TranslationKey } from './en';
 import type { Params } from './translate';
 import type { RelicId } from '../core/engine/relics';
+import type { SkinId } from '../core/skins/skins';
 import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
 import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
 import { UPGRADES, UpgradeId } from '../core/stats/forge';
@@ -10,6 +11,9 @@ type T = (key: TranslationKey, params?: Params) => string;
 /** Localised hero text. Heroes are addressed by index, same as `data/characters.ts`. */
 export const heroText = (t: T, heroIndex: number, part: 'name' | 'title' | 'perk' | 'desc') =>
   t(`hero.${heroIndex}.${part}` as TranslationKey);
+
+/** Localised hero skin name. */
+export const skinText = (t: T, id: SkinId): string => t(`skin.${id}.name` as TranslationKey);
 
 /** Localised relic text. */
 export const relicText = (t: T, id: RelicId, part: 'name' | 'desc') =>
