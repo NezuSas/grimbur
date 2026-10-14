@@ -12,6 +12,7 @@ import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
 import { useSettingsStore } from "../state/settings/store";
+import { collectionBadge } from "../core/skins/collection";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 
 import { emitSound } from "../audio/audioEventBus";
@@ -91,6 +92,8 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           firstRun={stats.gamesPlayed === 0}
           forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
           achievementsBadge={unlocked > achievementsSeen}
+          collectionBadge={collectionBadge(stats)}
+          onPressCollection={() => navigation.navigate("CollectionScreen")}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
           onPressInstructions={() => navigation.navigate("InstructionsScreen")}
           onPressForge={() => navigation.navigate("ForgeScreen")}

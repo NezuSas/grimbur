@@ -50,10 +50,13 @@ type Props = {
   forgeBadge: boolean;
   /** Achievements unlocked since the screen was last opened: a dot on its icon. */
   achievementsBadge: boolean;
+  /** Something can be bought (or claimed) in the outfit collection: a dot on its icon. */
+  collectionBadge: boolean;
   onPressScores: () => void;
   onPressInstructions: () => void;
   onPressForge: () => void;
   onPressAchievements: () => void;
+  onPressCollection: () => void;
   onPressSettings: () => void;
 };
 
@@ -121,10 +124,12 @@ const CoverCard: React.FC<Props> = ({
   firstRun,
   forgeBadge,
   achievementsBadge,
+  collectionBadge,
   onPressScores,
   onPressInstructions,
   onPressForge,
   onPressAchievements,
+  onPressCollection,
   onPressSettings,
 }) => {
   const { t } = useT();
@@ -225,7 +230,8 @@ const CoverCard: React.FC<Props> = ({
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
-      {!firstRun && goal ? <GoalLine goal={goal} small scale={ui} /> : null}
+      {/* On very short windows the goal line would push the dock off the screen: it waits for more room. */}
+      {!firstRun && goal && height >= 340 ? <GoalLine goal={goal} small scale={ui} /> : null}
       {/* The first time only the play button and the manual are offered; the rest appears after the first run. */}
       {!firstRun && (
       <View style={[styles.modeRow, !sideRow && { flexDirection: "column" }]}>
@@ -271,6 +277,7 @@ const CoverCard: React.FC<Props> = ({
       <View style={firstRun ? styles.dockSolo : styles.dock}>
         {!firstRun && <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
         {!firstRun && <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
+        {!firstRun && <DockButton ui={ui} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
         {!firstRun && <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
         <DockButton ui={ui} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
       </View>
