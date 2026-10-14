@@ -58,6 +58,7 @@ import { biomeFor, isNewBiome } from "../core/engine/biomes";
 import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
 import { characterWithSkin } from "../data/characterSkins";
+import { BIOME_ART } from "../ui/biomeArt";
 import type { SkinId } from "../data/skinArt";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
@@ -79,11 +80,12 @@ import { omenText, relicText } from "../i18n/keys";
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 
 /** The dark wash over the cave picture: each cave type leans toward its own colour. */
+// Each cave type has its own picture now (see ui/biomeArt.ts); the dark layer over it only keeps the board readable.
 const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
   cave: "rgba(0,0,0,0.55)",
-  crystal: "rgba(0,24,56,0.6)",
-  magma: "rgba(48,8,0,0.58)",
-  lair: "rgba(30,0,12,0.6)",
+  crystal: "rgba(0,0,0,0.5)",
+  magma: "rgba(0,0,0,0.5)",
+  lair: "rgba(0,0,0,0.5)",
 };
 
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
@@ -198,7 +200,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const openPause = useCallback(() => setPaused(true), []);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = state.omen;
-  const floorBiome = biomeFor(state.level, state.mode);
+  const floorBiome = (__DEV__ ? route.params?.devBiome : undefined) ?? biomeFor(state.level, state.mode);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
   // A new cave type is announced on its first floor (the omen, when there is one, takes the banner).
@@ -860,7 +862,7 @@ export default function GameScreen({ navigation, route }: Props) {
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
-      source={require("../assets/sprites/backgrounds/Cover_Background.png")}
+      source={BIOME_ART[floorBiome].background}
       style={styles.container}
       resizeMode="cover"
     >
@@ -937,6 +939,7 @@ export default function GameScreen({ navigation, route }: Props) {
             facingDir={state.facingDir}
             characterIndex={characterIndex}
             skin={skin}
+            biome={floorBiome}
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}

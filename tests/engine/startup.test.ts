@@ -3,6 +3,8 @@ import { getPreloadImages } from '../../src/ui/preloadImages';
 import { SKIN_IDS, skinArt } from '../../src/data/skinArt';
 import characters from '../../src/data/characters';
 import { RELIC_IMAGES } from '../../src/ui/relicImages';
+import { BIOME_ART } from '../../src/ui/biomeArt';
+import { BIOMES } from '../../src/core/engine/biomes';
 
 describe('start-up progress', () => {
   it('weights add up to one', () => {
@@ -36,6 +38,14 @@ describe('what the splash preloads', () => {
         const art = skinArt(hero, skin);
         for (const source of [art.playerImage, art.attackImage, art.scoreImage]) expect(list).toContain(source);
       }
+    }
+  });
+
+  it('contains the background and both tiles of every cave type, and every biome has its art', () => {
+    for (const biome of Object.keys(BIOMES) as (keyof typeof BIOMES)[]) {
+      const art = BIOME_ART[biome];
+      expect(art).toBeDefined();
+      for (const source of [art.background, art.tileHidden, art.tileRevealed]) expect(list).toContain(source);
     }
   });
 
