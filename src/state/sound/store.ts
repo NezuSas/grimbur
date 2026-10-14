@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 import { createAudioPlayer, setAudioModeAsync } from "expo-audio";
 import { Asset } from "expo-asset";
 import type { LegacySoundHandle, SoundStore } from "./types";
-import { audioLog } from "../../audio/audioDiagnostics";
+import { audioLog, recordLatency } from "../../audio/audioDiagnostics";
 
 /**
  * Global registries for native state.
@@ -39,6 +39,8 @@ const REWOUND: Record<string, boolean> = {};
 /** How long a player may take to become ready (x 100 ms): slow phones and Expo Go need more than 2 s. */
 const LOAD_WAIT_ATTEMPTS = 60;
 const lastRetry: Record<string, number> = {};
+/** When play() was last called on each voice, to measure how long the player takes to start sounding. */
+const PLAY_CALLED_AT: Record<string, number> = {};
 const RETRY_AFTER_MS = 5000;
 
 /**
@@ -78,6 +80,10 @@ async function ensurePlayer(name: string): Promise<any> {
                 if (key !== lastState) {
                   lastState = key;
                   audioLog('status', `${name} ${key}`);
+                }
+                if (st.playing === true && PLAY_CALLED_AT[name]) {
+                  recordLatency(baseOf(name), Date.now() - PLAY_CALLED_AT[name]);
+                  delete PLAY_CALLED_AT[name];
                 }
                 // An effect (not a looping track) just ended: rewind it now, in the background. It must be PAUSED
                 // first: on Android (ExoPlayer) a player that finished still has "play when ready" on, so seeking it
@@ -197,6 +203,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         }
         if (!REWOUND[voice]) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
         REWOUND[voice] = false;
+        PLAY_CALLED_AT[voice] = Date.now();
         p.play();
       } catch (e) {
         console.warn(`[AudioEngine:${name}] one-shot error:`, e);
