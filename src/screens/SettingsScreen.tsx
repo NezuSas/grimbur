@@ -129,7 +129,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const setControlPosition = useSettingsStore(s => s.setControlPosition);
   const setLanguage = useSettingsStore(s => s.setLanguage);
 
-  const cardWidth = Math.min(width - 32, 560);
+  // The SafeAreaView already removes the notch insets from the space the card lives in.
+  const cardWidth = Math.min(width - insets.left - insets.right - 32, 560);
 
   const controlOptions: SegmentOption<ControlPosition>[] = [
     { value: "left", label: t("settings.left") },
@@ -155,9 +156,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
-        <View style={[styles.header, { paddingVertical: spacing(12) }]}>
+        <View style={[styles.header, { paddingVertical: spacing(12), minHeight: MIN_TOUCH + 12 }]}>
           <TouchableOpacity
-            style={[styles.backButton, { left: Math.max(insets.left, 12) }]}
+            style={[styles.backButton, { left: 12 }]}
             onPress={() => navigation.goBack()}
             hitSlop={8}
             accessibilityRole="button"

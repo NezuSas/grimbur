@@ -144,3 +144,29 @@ export function metaEffects(forge: Record<string, number>): MetaEffects {
     exploreBonus: lvl('explorer') * 0.25,
   };
 }
+
+const CATEGORY_RANK: Record<UpgradeCategory, number> = { power: 0, economy: 1, relics: 2 };
+
+/**
+ * Upgrades in the order the shop shows them: what the player can buy now first (lasting boosts before starting relics), then the
+ * cheapest goals, maxed ones last.
+ */
+export function shopOrder(stats: LocalStats): UpgradeInfo[] {
+  const group = (u: UpgradeInfo) => (nextCost(stats, u.id) === null ? 2 : canAfford(stats, u.id) ? 0 : 1);
+  return [...UPGRADES].sort(
+    (a, b) =>
+      group(a) - group(b) ||
+      // Among things you can buy, lasting boosts come first; among goals, simply the closest one.
+      (group(a) === 0 ? CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category] : 0) ||
+      (nextCost(stats, a.id) ?? 0) - (nextCost(stats, b.id) ?? 0),
+  );
+}
+
+/** The upgrade to put in front of the player: the best one they can afford, else the cheapest goal; null when all is bought. */
+export function recommendedUpgrade(stats: LocalStats): UpgradeInfo | null {
+  const first = shopOrder(stats)[0];
+  return first && nextCost(stats, first.id) !== null ? first : null;
+}
+
+/** How many upgrades can be bought right now. */
+export const affordableCount = (stats: LocalStats): number => UPGRADES.filter(u => canAfford(stats, u.id)).length;

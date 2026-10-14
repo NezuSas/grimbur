@@ -84,6 +84,8 @@ type RunResult = {
   achievements?: string[];
   embers?: number;
   bonus?: number;
+  /** One of the first runs: the game over explains gems versus embers. */
+  early?: boolean;
 };
 
 // ── Main Screen ──────────────────────────────────────────────────────────
@@ -261,11 +263,11 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, early: r.stats.gamesPlayed <= 2 };
       }
       const r = await recordRun(run);
       // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus };
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, early: r.stats.gamesPlayed <= 2 };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -664,6 +666,7 @@ export default function GameScreen({ navigation, route }: Props) {
           omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : undefined}
           long={isLair}
           dismiss={state.turn > 0}
+          minTop={insets.top + hudHeight + 6}
           calm={reduceFlash}
         />
       )}
@@ -722,7 +725,7 @@ export default function GameScreen({ navigation, route }: Props) {
               onDetector={() => handleItem("detector")}
               onBomb={() => handleItem("bomb")}
               onUndo={handleUndo}
-              size={Math.max(38, Math.min(46, controlPanelWidth * 0.26))}
+              size={Math.max(34, Math.min(46, (controlPanelWidth + 12 - 18) / 4))}
             />
           </View>
           <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
@@ -829,6 +832,7 @@ export default function GameScreen({ navigation, route }: Props) {
         achievements={runResult?.achievements}
         embers={runResult?.embers}
         dailyBonus={runResult?.bonus}
+        explainEmbers={runResult?.early}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
         floors={GAME_CONFIG.expedition.floors}
@@ -870,6 +874,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 10,
   },
-  toolSlot: { marginBottom: 8, alignSelf: "stretch" },
+  // Four tools in a narrow panel just fit one row when the row may spill 6dp past each side.
+  toolSlot: { marginBottom: 8, alignSelf: "stretch", marginHorizontal: -6 },
   relicSlot: { position: "absolute", top: 4, left: 0, right: 0, alignItems: "center" },
 });

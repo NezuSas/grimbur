@@ -14,6 +14,7 @@ import { checkName } from '../../../core/leaderboard/validation';
 import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   visible: boolean;
@@ -29,6 +30,7 @@ type Props = {
 const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit, onSkip }: Props) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -143,7 +145,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 1001 }]} pointerEvents="box-none">
       <OverlayContainer keyboardAvoiding>
-        <View style={[styles.card, { width: Math.min(width * 0.94, compact ? 640 : 380) }, compact && styles.cardRow]}>
+        <View style={[styles.card, { width: Math.min((width - Math.max(insets.left, 12) - Math.max(insets.right, 12)) * 0.98, compact ? 640 : 380) }, compact && styles.cardRow]}>
           {summary}
           {form}
         </View>

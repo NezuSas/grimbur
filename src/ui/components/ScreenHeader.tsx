@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "./Text";
 import { Ionicons } from '@expo/vector-icons';
@@ -17,8 +17,12 @@ type Props = {
 /** The header every menu screen shares: back button, centred title with a gold underline, optional right slot. */
 const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
   const { t } = useT();
-  const { insets, fontSize } = useGameLayout();
-  const side = Math.max(insets.left, 12);
+  const { fontSize } = useGameLayout();
+  // The screens wrap this header in a SafeAreaView, which already pads the notch: only a small margin is left.
+  const side = 12;
+  // The title keeps clear of the back button and of whatever the right slot holds (a wide balance chip must not cover it).
+  const [rightWidth, setRightWidth] = useState(0);
+  const sidePad = Math.max(MIN_TOUCH + 24, rightWidth + side + 12);
 
   return (
     <View style={styles.bar}>
@@ -32,19 +36,19 @@ const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
         <Ionicons name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>
 
-      <View style={styles.center}>
-        <Text style={[styles.title, { fontSize: Math.min(fontSize(26), 30) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+      <View style={[styles.center, { paddingHorizontal: sidePad }]}>
+        <Text style={[styles.title, { fontSize: Math.min(fontSize(26), 30) }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
           {title.toLocaleUpperCase()}
         </Text>
         <View style={styles.underline} />
         {subtitle ? (
-          <Text style={styles.subtitle} maxFontSizeMultiplier={1.2}>
+          <Text style={styles.subtitle} numberOfLines={2} maxFontSizeMultiplier={1.2}>
             {subtitle}
           </Text>
         ) : null}
       </View>
 
-      {right ? <View style={[styles.right, { right: Math.max(insets.right, 12) }]}>{right}</View> : null}
+      {right ? <View style={[styles.right, { right: side }]} onLayout={e => setRightWidth(e.nativeEvent.layout.width)}>{right}</View> : null}
     </View>
   );
 };
@@ -72,7 +76,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 2,
   },
-  center: { alignItems: 'center', paddingHorizontal: MIN_TOUCH + 24 },
+  center: { alignItems: 'center' },
   title: { color: '#fff', fontWeight: '900', letterSpacing: 4, textAlign: 'center' },
   underline: { height: 3, width: 44, borderRadius: 2, backgroundColor: '#FFD54F', marginTop: 4 },
   subtitle: { color: '#c9c3e6', fontSize: 12, fontWeight: '700', marginTop: 4, textAlign: 'center' },

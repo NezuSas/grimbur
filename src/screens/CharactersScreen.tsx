@@ -51,6 +51,9 @@ type CardProps = {
 const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, locked, onSelect }: CardProps) => {
   const { t } = useT();
   const compact = cardHeight < 300;
+  // Short windows: shrink the body so the select button is never pushed out of the card.
+  const tight = cardHeight < 240;
+  const cramped = cardHeight < 190;
   const accent = accentOf(heroIndex);
   // Everything scales with the card: on a tablet the art and the text grow instead of leaving empty bands.
   const nameSize = compact ? 18 : Math.max(22, Math.min(cardWidth * 0.12, 36));
@@ -67,7 +70,7 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, locked, onSelec
     <View style={[styles.itemWrapper, { width: cardWidth, height: cardHeight }]}>
       <View style={[styles.card, { borderColor: accent + "CC", shadowColor: accent }]}>
         {/* Portrait: takes whatever height the name, power and button leave over */}
-        <View style={[styles.portraitArea, { backgroundColor: accent + "1F" }]}>
+        <View style={[styles.portraitArea, tight && { minHeight: 36 }, { backgroundColor: accent + "1F" }]}>
           <SpriteImage
             source={hero.playerImage}
             style={{ width: "86%", height: "92%", opacity: locked ? 0.3 : 1 }}
@@ -77,21 +80,25 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, locked, onSelec
           {locked && <Ionicons name="lock-closed" size={44} color="#fff" style={styles.lock} />}
         </View>
 
-        <View style={styles.cardBody}>
+        <View style={[styles.cardBody, tight && { padding: 8, gap: 2 }]}>
           <Text style={[styles.heroName, { fontSize: nameSize }]} numberOfLines={1} adjustsFontSizeToFit accessibilityRole="header" maxFontSizeMultiplier={1.2}>
             {name}
           </Text>
-          <Text style={[styles.heroTitle, { color: accent, fontSize: titleSize }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-            {title.toLocaleUpperCase()}
-          </Text>
+          {!cramped && (
+            <Text style={[styles.heroTitle, { color: accent, fontSize: titleSize }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+              {title.toLocaleUpperCase()}
+            </Text>
+          )}
 
-          <View style={[styles.perkBox, { borderColor: accent + "55" }]}>
+          <View style={[styles.perkBox, { borderColor: accent + "55" }, tight && { paddingVertical: 4, marginTop: 2 }]}>
             <Text style={[styles.perkName, { color: accent, fontSize: perkSize }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
               {perk}
             </Text>
-            <Text style={[styles.perkDesc, { fontSize: descSize }]} numberOfLines={compact ? 3 : 4} maxFontSizeMultiplier={1.2}>
-              {description}
-            </Text>
+            {!cramped && (
+              <Text style={[styles.perkDesc, { fontSize: descSize }]} numberOfLines={tight ? 2 : compact ? 3 : 4} maxFontSizeMultiplier={1.2}>
+                {description}
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity
@@ -101,7 +108,7 @@ const HeroCard = memo(({ hero, heroIndex, cardWidth, cardHeight, locked, onSelec
             accessibilityRole="button"
             accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${requirement}` : `${t("heroes.select")}: ${name}`}
             accessibilityState={{ disabled: locked }}
-            style={[styles.selectButton, { backgroundColor: locked ? "rgba(255,255,255,0.14)" : accent }, !locked && styles.selectGlow]}
+            style={[styles.selectButton, { backgroundColor: locked ? "rgba(255,255,255,0.14)" : accent }, !locked && styles.selectGlow, tight && { marginTop: 4 }]}
           >
             <Text style={[styles.selectText, locked && { color: "#d8d2f0" }, { fontSize: Math.max(13, perkSize - 1) }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
               {(locked ? requirement : t("heroes.select")).toLocaleUpperCase()}
@@ -132,11 +139,13 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // as the area allows, so its content is spread out instead of huddling at the top.
   const itemMargin = 12;
   const gap = itemMargin * 2;
-  const sidePadding = Math.max(insets.left, insets.right, 12) + 12;
-  const usableWidth = width - sidePadding * 2;
+  // The SafeAreaView already removes the notch insets, so the window the cards live in is narrower than `width`.
+  const innerWidth = width - insets.left - insets.right;
+  const sidePadding = 24;
+  const usableWidth = innerWidth - sidePadding * 2;
   const fitWidth = (usableWidth - gap * (characters.length - 1)) / characters.length;
   const fitsAll = fitWidth >= 190;
-  const cardWidth = fitsAll ? Math.min(fitWidth, 320) : Math.min(Math.max(width * 0.3, 200), 290, width - 48);
+  const cardWidth = fitsAll ? Math.min(fitWidth, 320) : Math.min(Math.max(innerWidth * 0.3, 200), 290, innerWidth - 48);
   const itemLength = cardWidth + gap;
   const cardHeight = Math.max(170, Math.min(listHeight - 16, 620));
 
@@ -190,7 +199,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       <View style={styles.contentLayer}>
         <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right", "bottom"]}>
           <TouchableOpacity
-            style={[styles.backButton, { left: Math.max(insets.left, 12) + 8 }]}
+            style={[styles.backButton, { left: 20 }]}
             onPress={() => navigation.goBack()}
             hitSlop={8}
             accessibilityRole="button"
@@ -278,7 +287,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: "center",
-              paddingHorizontal: fitsAll ? sidePadding : Math.max((width - itemLength) / 2, 12),
+              paddingHorizontal: fitsAll ? sidePadding : Math.max((innerWidth - itemLength) / 2, 12),
               alignItems: "center",
               paddingVertical: 8,
             }}

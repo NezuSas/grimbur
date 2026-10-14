@@ -13,9 +13,11 @@ type Props = {
   iconDim?: number;
   /** Spoken description for screen readers. */
   a11yLabel?: string;
+  /** Narrow windows: tighter padding so the three counters fit. */
+  compact?: boolean;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -37,14 +39,18 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, icon
 
   return (
     <View
-      style={[styles.container, { paddingRight: spacing(12), paddingVertical: spacing(4), marginHorizontal: spacing(4) }]}
+      style={[
+        styles.container,
+        { paddingRight: spacing(12), paddingVertical: spacing(4), marginHorizontal: spacing(4) },
+        compact && { paddingLeft: 5, paddingRight: 6, marginHorizontal: 1 },
+      ]}
       accessible={!!a11yLabel}
       accessibilityLabel={a11yLabel}
     >
       <View style={[styles.iconWrapper, { width: iconDim, height: iconDim }]}>
         {iconNode ?? (icon && <SpriteImage source={icon} style={[styles.icon, { width: iconDim * 0.9, height: iconDim * 0.9 }]} />)}
       </View>
-      <View style={[styles.content, { marginLeft: spacing(10) }]}>
+      <View style={[styles.content, { marginLeft: compact ? 4 : spacing(10) }]}>
         <Animated.Text
           style={[styles.value, { fontFamily: "Fredoka_700Bold", fontWeight: undefined, transform: [{ scale: scaleAnim }] }]}
           maxFontSizeMultiplier={1.15}

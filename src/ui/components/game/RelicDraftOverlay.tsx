@@ -34,7 +34,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
   if (!offer || offer.length === 0) return null;
 
   // Cards share the row evenly; they grow taller (and the overlay scrolls) rather than overflow.
-  const cardWidth = Math.min(220, (width * 0.92 - 12 * (offer.length - 1)) / offer.length);
+  const cardWidth = Math.max(110, Math.min(220, (width * 0.92 - 12 * (offer.length - 1)) / offer.length));
 
   return (
     <OverlayContainer>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-  row: { flexDirection: 'row', gap: 12, justifyContent: 'center' },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'center' },
   card: {
     backgroundColor: '#1a1a1a',
     borderRadius: 18,

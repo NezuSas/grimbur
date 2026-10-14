@@ -135,6 +135,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                   <TouchableOpacity
                     key={key}
                     onPress={() => setFilter(key)}
+                    hitSlop={{ top: 5, bottom: 5, left: 4, right: 4 }}
                     style={[styles.chip, filter === key && styles.chipOn]}
                     accessibilityRole="button"
                     accessibilityState={{ selected: filter === key }}
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
   reward: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: "rgba(255,171,64,0.12)" },
   rewardOpen: { backgroundColor: "rgba(255,171,64,0.22)" },
   rewardText: { color: "#FFAB40", fontSize: 10, fontWeight: "800" },
-  nameRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  nameRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   name: { color: "#fff", fontWeight: "800", fontSize: 16, flexShrink: 1 },
   tier: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1 },
   tierText: { fontSize: 9, fontWeight: "800", letterSpacing: 1 },

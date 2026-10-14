@@ -8,6 +8,9 @@ import {
   metaEffects,
   nextCost,
   purchase,
+  shopOrder,
+  recommendedUpgrade,
+  affordableCount,
 } from '../../src/core/stats/forge';
 import { EMPTY_STATS, mergeDailyRun, mergeRun, parseStats } from '../../src/core/stats/runStats';
 import { NO_PERKS } from '../../src/core/engine/heroes';
@@ -197,5 +200,33 @@ describe('relics you begin with', () => {
       expect(u.costs.length).toBeGreaterThan(0);
     }
     expect(UPGRADES.length).toBeGreaterThanOrEqual(18);
+  });
+});
+
+describe('the shop order', () => {
+  const poor = { ...EMPTY_STATS, embers: 0 };
+
+  it('puts what you can buy first, the cheapest goal next and maxed upgrades last', () => {
+    const stats = { ...EMPTY_STATS, embers: 100, forge: { scribe: 1, ward: 1 } };
+    const order = shopOrder(stats);
+    expect(order).toHaveLength(UPGRADES.length);
+    const affordable = order.filter(u => canAfford(stats, u.id));
+    expect(order.slice(0, affordable.length)).toEqual(affordable);
+    expect(order[order.length - 1].id === 'scribe' || order[order.length - 1].id === 'ward').toBe(true);
+    expect(order.slice(-2).map(u => u.id).sort()).toEqual(['scribe', 'ward']);
+  });
+
+  it('recommends an affordable lasting boost before a relic, and the cheapest goal when nothing is affordable', () => {
+    const rich = { ...EMPTY_STATS, embers: 1000 };
+    expect(recommendedUpgrade(rich)?.category).toBe('power');
+    expect(recommendedUpgrade(poor)?.id).toBe('purse'); // the cheapest at 40 embers
+    expect(affordableCount(poor)).toBe(0);
+    expect(affordableCount(rich)).toBeGreaterThan(5);
+  });
+
+  it('recommends nothing once everything is bought', () => {
+    const all: Record<string, number> = {};
+    for (const u of UPGRADES) all[u.id] = maxLevel(u.id);
+    expect(recommendedUpgrade({ ...EMPTY_STATS, forge: all, embers: 5 })).toBeNull();
   });
 });
