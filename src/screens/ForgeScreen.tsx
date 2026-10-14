@@ -206,6 +206,29 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={{ padding: 8, paddingBottom: 24 + insets.bottom, gap: 10 }}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.how} accessible accessibilityLabel={`${t("forge.how.title")}. ${t("forge.how.earn")} ${t("forge.how.keep")} ${t("forge.how.apply")}`}>
+            <Text style={styles.howTitle} maxFontSizeMultiplier={1.2}>
+              {t("forge.how.title").toLocaleUpperCase()}
+            </Text>
+            <View style={[styles.howRow, columns === 1 && { flexDirection: "column" }]}>
+              {([
+                ["flame", "forge.how.earn"],
+                ["infinite", "forge.how.keep"],
+                ["flag", "forge.how.apply"],
+              ] as const).map(([icon, key]) => (
+                <View key={key} style={styles.howItem}>
+                  <Ionicons name={icon} size={20} color={EMBER} />
+                  <Text style={styles.howText} maxFontSizeMultiplier={1.2}>
+                    {t(key)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.owned} maxFontSizeMultiplier={1.2}>
+              {t("forge.owned", { owned: UPGRADES.filter(u => levelOf(stats, u.id) > 0).length, total: UPGRADES.length })}
+            </Text>
+          </View>
+
           {error ? (
             <Text style={styles.error} accessibilityLiveRegion="assertive">
               {t("forge.error")}
@@ -225,11 +248,9 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.sectionTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
                   {t(`forge.cat.${category}` as TranslationKey).toLocaleUpperCase()}
                 </Text>
-                {category === "relics" && (
-                  <Text style={styles.sectionHint} maxFontSizeMultiplier={1.2}>
-                    {t("forge.cat.relics.hint")}
-                  </Text>
-                )}
+                <Text style={styles.sectionHint} maxFontSizeMultiplier={1.2}>
+                  {t(`forge.cat.${category}.hint` as TranslationKey)}
+                </Text>
                 {rows.map((row, r) => (
                   <View key={r} style={styles.sectionRow}>
                     {row.map(item => (
@@ -266,6 +287,19 @@ const styles = StyleSheet.create({
   },
   balanceFlame: { fontSize: 20 },
   balanceValue: { color: EMBER, fontSize: 20, fontWeight: "900" },
+  how: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,171,64,0.45)",
+    backgroundColor: "rgba(255,171,64,0.08)",
+    padding: 12,
+    gap: 8,
+  },
+  howTitle: { color: EMBER, fontWeight: "900", letterSpacing: 2, fontSize: 12 },
+  howRow: { flexDirection: "row", gap: 12 },
+  howItem: { flex: 1, flexDirection: "row", gap: 8, alignItems: "flex-start" },
+  howText: { flex: 1, color: "#e4defa", fontSize: 12.5 },
+  owned: { color: "#a8a2c4", fontSize: 12, fontWeight: "700" },
   goal: { color: "#c9c3e6", fontSize: 13, fontWeight: "700", textAlign: "center", marginBottom: 2 },
   error: { color: "#FF5252", fontWeight: "800", textAlign: "center", marginBottom: 2 },
   footer: { color: "#8f8aa8", fontSize: 12, textAlign: "center", marginTop: 6 },

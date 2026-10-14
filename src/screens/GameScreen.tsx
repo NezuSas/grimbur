@@ -562,8 +562,11 @@ export default function GameScreen({ navigation, route }: Props) {
       ]).start();
     }
     lastEnemyCount.current = enemies;
-    killPlayerIndex.current = state.playerIndex;
   }, [state.entities]);
+  // Runs after every update (even steps that leave the entities untouched), so the next shot compares with the right tile.
+  useEffect(() => {
+    killPlayerIndex.current = state.playerIndex;
+  });
 
   useProximityAudio(state);
 

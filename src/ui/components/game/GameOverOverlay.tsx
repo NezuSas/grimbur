@@ -13,7 +13,8 @@ import { achievementText, heroText } from '../../../i18n/keys';
 import type { TranslationKey } from '../../../i18n/en';
 import { rewardFor, type AchievementId } from '../../../core/stats/achievements';
 import SpriteImage from '../SpriteImage';
-import Confetti from '../Confetti';
+import GemShower from './GemShower';
+import EmberParticles from '../EmberParticles';
 import { useSettingsStore } from '../../../state/settings/store';
 
 type Props = {
@@ -285,12 +286,13 @@ const GameOverOverlay = ({
     </View>
   );
 
-  // A victory or a new record is worth a little celebration.
-  const celebrate = !calm && (victory || !!isNewBest);
+  // Only a victory is celebrated, with the game's own gems and arrows raining over the cave and embers rising.
+  // A defeat gets a quieter mood: a few embers drifting up from the dark.
+  const celebrate = !calm && victory;
 
   return (
     <OverlayContainer>
-      {celebrate && <Confetti count={width >= 900 ? 60 : 40} />}
+      {!calm && <EmberParticles count={victory ? 18 : 8} />}
       <Animated.View
         style={[
           styles.card,
@@ -301,6 +303,7 @@ const GameOverOverlay = ({
         {left}
         {right}
       </Animated.View>
+      {celebrate && <GemShower count={width >= 900 ? 38 : 26} />}
     </OverlayContainer>
   );
 };

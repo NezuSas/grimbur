@@ -120,6 +120,17 @@ const SECTIONS: Section[] = [
     ],
   },
   {
+    id: "forge",
+    color: "#ffab40",
+    icon: "🔥",
+    rows: [
+      { key: "manual.forge.embers", badgeColor: "#ffab40" },
+      { key: "manual.forge.upgrades", badgeColor: "#ffd54f" },
+      { key: "manual.forge.relics" },
+      { key: "manual.forge.daily", badgeColor: "#4fc3f7" },
+    ],
+  },
+  {
     id: "scoring",
     color: "#81c784",
     icon: "🏆",
