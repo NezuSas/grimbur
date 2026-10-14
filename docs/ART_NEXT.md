@@ -80,8 +80,8 @@ despejado (ahí va el tablero). Sin texto.
   center.*
 
 ### 2.2 Casillas por bioma (6 imágenes)
-512x512, **cuadradas, de borde a borde, sin transparencia, bordes que encajan** (se pegan en una cuadrícula). Mantén el mismo
-tipo de baldosa de piedra que `Tile_Hidden.png` / `Tile_Revealed.png`; cambia material y color.
+1024x1024, **cuadradas, sin transparencia**. Cada casilla actual es una **baldosa con marco de piedra grueso** alrededor (se ven
+las piedras del marco en el borde); las nuevas deben tener exactamente esa estructura, cambiando material y color.
 - `Tile_Hidden_Crystal.png` y `Tile_Revealed_Crystal.png` — oculta: piedra oscura azulada cubierta de bruma fría; revelada:
   piedra azul pálida con pequeños cristales cian incrustados.
 - `Tile_Hidden_Magma.png` y `Tile_Revealed_Magma.png` — oculta: basalto casi negro con humo; revelada: basalto con grietas
@@ -89,9 +89,8 @@ tipo de baldosa de piedra que `Tile_Hidden.png` / `Tile_Revealed.png`; cambia ma
 - `Tile_Hidden_Lair.png` y `Tile_Revealed_Lair.png` — oculta: piedra negra-roja con polvo; revelada: piedra manchada con rasguños
   de garras y huesos pequeños.
 - **Guardar en:** `src/assets/sprites/tiles/`
-- Prompt base (cambia el material): *A square stone floor tile seen from above, filling the whole image edge to edge, seamless
-  edges that tile with neighbors, {MATERIAL}. Hidden version: covered in dark fog, dim, mysterious. Revealed version: lit and
-  clearly readable. Same art style and outline as the attached tiles. No text, no objects on top.*
+- Los prompts exactos están en la conversación; la regla es: misma estructura de marco, mismo grosor y brillo, solo cambia el
+  material. Genera primero la oculta y, al pedir la revelada, adjunta también la oculta recién aprobada.
 
 ---
 
