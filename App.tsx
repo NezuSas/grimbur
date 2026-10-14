@@ -20,8 +20,12 @@ import { prefetchLeaderboardThreshold } from "./src/services/highscores";
 import { installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
+import { readDevHarness } from "./src/dev/devHarness";
 
 installGlobalErrorHandler();
+
+// Web dev builds only: ?screen=...&preset=... opens a screen directly (null everywhere else).
+const devLaunch = readDevHarness();
 
 /** Longest the splash waits for the audio engine before starting the app anyway. */
 const AUDIO_INIT_TIMEOUT_MS = 2500;
@@ -89,7 +93,7 @@ export default function App() {
     <View style={{ flex: 1, backgroundColor: "black" }} onLayout={onLayoutRootView}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <NavigationContainer theme={DarkTheme}>
+          <NavigationContainer theme={DarkTheme} initialState={devLaunch?.initialState}>
             <ErrorBoundary>
               <StackNavigator />
             </ErrorBoundary>
