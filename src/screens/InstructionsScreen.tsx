@@ -116,6 +116,7 @@ const SECTIONS: Section[] = [
       { key: "manual.tools.items", badgeColor: "#ffb74d" },
       { key: "manual.tools.undo", badgeColor: "#ba68c8" },
       { key: "manual.tools.cursed", badgeColor: "#ef5350" },
+      { key: "manual.tools.caves", badgeColor: "#4dd0e1" },
     ],
   },
   {

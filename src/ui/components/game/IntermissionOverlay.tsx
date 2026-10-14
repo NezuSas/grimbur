@@ -96,6 +96,10 @@ const IntermissionOverlay = ({
         </View>
       </View>
 
+      <Text style={styles.subtitle} maxFontSizeMultiplier={1.2}>
+        {t("shop.subtitle")}
+      </Text>
+
       <View style={[styles.row, { gap: 10, marginTop: pad }]}>
         {SHOP_ITEMS.map(item => {
           const price = SHOP_PRICES[item];
@@ -214,6 +218,7 @@ export default IntermissionOverlay;
 const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   title: { color: "#FFD700", fontWeight: "900", fontSize: 20, letterSpacing: 3 },
+  subtitle: { color: "#bdb8d4", fontSize: 12, textAlign: "center", marginTop: 4 },
   purse: {
     flexDirection: "row",
     alignItems: "center",

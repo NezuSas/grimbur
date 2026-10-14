@@ -64,6 +64,25 @@ export default function TutorialScreen({ navigation, route }: Props) {
     };
   }, []);
 
+  // The lesson makes the same sounds as the real game (steps, gems, arrows, kills, pickups, a fatal touch).
+  const lastState = useRef(state);
+  useEffect(() => {
+    const prev = lastState.current;
+    lastState.current = state;
+    if (prev === state) return;
+    if (state.isGameOver && !prev.isGameOver) {
+      emitSound("GAME_OVER");
+    } else if (state.totalCoins > prev.totalCoins) {
+      emitSound("COIN_COLLECTED");
+    } else if (state.lastPickup === "shield" || state.lastPickup === "ammo") {
+      emitSound("POWERUP");
+    } else if (state.attack < prev.attack) {
+      emitSound(state.entities.length < prev.entities.length ? "ENEMY_KILLED" : "ATTACK");
+    } else if (state.playerIndex !== prev.playerIndex) {
+      emitSound("MOVE");
+    }
+  }, [state]);
+
   // Advance whenever the game state satisfies the current step.
   useEffect(() => {
     setStepIndex(current => advanceTutorial(current, state));
@@ -87,6 +106,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
       });
       setStepIndex(0);
       setShowRetry(false);
+      emitSound("GAME_MUSIC_START");
     }, 1400);
     return () => clearTimeout(timer);
   }, [state.isGameOver]);

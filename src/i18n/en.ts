@@ -729,6 +729,14 @@ export const en = {
   'manual.tools.cursed.label': 'Cursed relics',
   'manual.tools.cursed.detail': 'Sometimes a relic with a red frame appears among the offers. It is stronger, and it takes something back. You can carry one.',
   'manual.tools.cursed.badge': 'Risk',
+  'hint.ability': 'Your ability, {name}: {desc} Tap the gold button above the pad. It recharges.',
+  'hint.undo': 'Undo: tap the purple arrow to take back your last step. Once per floor.',
+  'hint.detector': 'Detector: tap the blue button to flag every hazard within two steps.',
+  'hint.bomb': 'Bomb: tap the orange button to destroy the guardians and vortexes around you.',
+  'shop.subtitle': 'Spend the gems you collected, then choose how to go on.',
+  'manual.tools.caves.label': 'Caves',
+  'manual.tools.caves.detail': 'Every three floors the cave changes and brings a rule: crystal veins (floors 4-6) hide one more shield on each floor; magma tunnels (7-9) add a vortex but also an arrow. The banner announces it.',
+  'manual.tools.caves.badge': 'Every 3 floors',
 } as const;
 
 export type TranslationKey = keyof typeof en;
