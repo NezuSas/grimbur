@@ -27,6 +27,7 @@ import SpriteImage from "../ui/components/SpriteImage";
 import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { buyUpgrade, getLocalStats } from "../services/localStats";
+import { analytics } from "../services/analytics";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
 import { useT } from "../i18n/useT";
@@ -268,8 +269,10 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
       setBusy(true);
       setError(false);
       try {
+        const cost = nextCost(stats, id) ?? 0;
         const next = await buyUpgrade(id);
         if (next) {
+          analytics.track("forge_purchase", { upgrade: id, level: levelOf(next, id), cost });
           setStats(next);
           setBurst({ id, run: Date.now() });
           emitSound("RELIC_PICKED");
@@ -282,7 +285,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
         setBusy(false);
       }
     },
-    [busy, showToast, t],
+    [busy, showToast, t, stats],
   );
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;

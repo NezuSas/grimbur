@@ -34,6 +34,12 @@ export const GAME_CONFIG = {
    * Free: tutorial, expedition floors 1..freeFloors and the daily challenge. Paid: the rest of the expedition,
    * the Wumpus and the endless descent. Never ads, never loot boxes, never ranking power.
    */
+  /** Where players send reports and questions (the report button on the ranking opens a mail to it). */
+  support: {
+    // TODO(owner): replace with the real support address before publishing.
+    email: 'support@example.com',
+  },
+
   monetization: {
     enabled: false,
     freeFloors: 3,

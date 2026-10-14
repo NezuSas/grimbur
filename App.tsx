@@ -19,7 +19,7 @@ import StackNavigator from "./src/navigation/StackNavigator";
 import { getPreloadImages } from "./src/ui/preloadImages";
 import ImageWarmup from "./src/ui/components/ImageWarmup";
 import { prefetchLeaderboardThreshold } from "./src/services/highscores";
-import { installGlobalErrorHandler } from "./src/services/analytics";
+import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
 import { readDevHarness } from "./src/dev/devHarness";
@@ -90,7 +90,7 @@ export default function App() {
     return (
       <>
         <LoadingScreen />
-        {assetsDownloaded && <ImageWarmup images={warmImages} onDone={() => setAppIsReady(true)} />}
+        {assetsDownloaded && <ImageWarmup images={warmImages} onDone={() => { analytics.track("app_open", { cold: true }); setAppIsReady(true); }} />}
       </>
     );
   }

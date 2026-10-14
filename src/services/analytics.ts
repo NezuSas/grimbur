@@ -22,6 +22,13 @@ export interface AnalyticsEvents {
   run_shared: { score: number };
   relic_picked: { relic: string; floor: number };
   expedition_won: { score: number; time: number; character: number; mode: string };
+  /** A cold start of the app (the funnel's first step). */
+  app_open: { cold: boolean };
+  /** The guided first-floor tutorial: finished, or left early (`step` = steps completed so far). */
+  tutorial_complete: { replay: boolean };
+  tutorial_skip: { step: number };
+  lesson_complete: { lesson: string };
+  forge_purchase: { upgrade: string; level: number; cost: number };
   /** `source`: where the paywall was opened from (cover, floor, demo, endless). */
   paywall_view: { source: string };
   paywall_purchase_started: { source: string };

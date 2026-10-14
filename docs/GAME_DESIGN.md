@@ -35,10 +35,10 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 
 | Hero | Perk |
 | --- | --- |
-| Cyan Explorer | **Trapfinder**: traps never hurt; +1 arrow each floor |
-| Scarlet Archer | **Piercing arrows**: arrows reach 2 tiles |
-| Moss Warden | **Stoneskin**: starts every floor with a shield |
-| Gilded Delver | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
+| Vael (Cyan Explorer) | **Trapfinder**: traps never hurt; +1 arrow each floor |
+| Sera (Scarlet Archer) | **Piercing arrows**: arrows reach 2 tiles |
+| Borin (Moss Warden) | **Stoneskin**: starts every floor with a shield |
+| Auric (Gilded Delver) | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
 
 Unlocks (implemented): Cyan free; Archer after reaching floor 4; Warden after reaching floor 7; Delver after winning an expedition.
 To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/gameConfig.ts` (never ship it on).

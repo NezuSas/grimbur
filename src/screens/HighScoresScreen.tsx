@@ -1,6 +1,6 @@
 // src/screens/HighScoresScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import { FlatList, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
+import { FlatList, Linking, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
 import { loadTop10, type Doc } from "../services/highscores";
@@ -17,6 +17,9 @@ import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats } from "../services/localStats";
+import { clearHidden, hideEntry, loadHidden } from "../services/moderation";
+import { buildReportMailto } from "../core/leaderboard/moderation";
+import { GAME_CONFIG } from "../config/gameConfig";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
@@ -131,6 +134,21 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   ) : null;
 
+  const [hidden, setHidden] = useState<string[]>([]);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  useEffect(() => {
+    loadHidden().then(setHidden);
+  }, []);
+  const visible = data.filter(doc => !hidden.includes(doc.id));
+  const hide = useCallback(async (id: string) => {
+    setMenuFor(null);
+    setHidden(await hideEntry(id));
+  }, []);
+  const showHidden = useCallback(async () => {
+    await clearHidden();
+    setHidden([]);
+  }, []);
+
   const renderItem =({ item, index }: { item: Doc; index: number }) => {
     const row = item.data();
     const char = characters[row.characterIndex] || characters[0];
@@ -138,11 +156,13 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     const medal = index < 3 ? MEDALS[index] : null;
 
     return (
-      <View
-        style={[styles.row, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }]}
-        accessible
-        accessibilityLabel={`#${index + 1} ${row.name}. ${t("scores.col.score")} ${row.score}. ${t("scores.col.floor")} ${row.level}`}
-      >
+      <View>
+      <View style={[styles.row, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }]}>
+        <View
+          style={styles.rowMain}
+          accessible
+          accessibilityLabel={`#${index + 1} ${row.name}. ${t("scores.col.score")} ${row.score}. ${t("scores.col.floor")} ${row.level}`}
+        >
         <View style={[styles.rank, medal ? { backgroundColor: medal } : null]}>
           <Text style={[styles.rankText, medal ? { color: "#1a1030" } : null]} maxFontSizeMultiplier={1.2}>
             {index + 1}
@@ -160,6 +180,42 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {(Number(row.score) || 0).toLocaleString()}
         </Text>
+        </View>
+        <TouchableOpacity
+          style={styles.flag}
+          onPress={() => setMenuFor(menuFor === item.id ? null : item.id)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t("scores.report.open")}
+          accessibilityState={{ expanded: menuFor === item.id }}
+        >
+          <Ionicons name="flag-outline" size={16} color="#9f9abb" />
+        </TouchableOpacity>
+      </View>
+      {menuFor === item.id && (
+        <View style={styles.reportMenu}>
+          <Text style={styles.reportHint} maxFontSizeMultiplier={1.2}>
+            {t("scores.report.hint")}
+          </Text>
+          <View style={styles.reportButtons}>
+            <TouchableOpacity style={styles.reportButton} onPress={() => hide(item.id)} accessibilityRole="button" accessibilityLabel={t("scores.report.hide")}>
+              <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.hide").toLocaleUpperCase()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.reportButton}
+              onPress={() => {
+                setMenuFor(null);
+                const entry = { id: item.id, name: String(row.name), score: Number(row.score) || 0, level: Number(row.level) || 0 };
+                void Linking.openURL(buildReportMailto(GAME_CONFIG.support.email, entry)).catch(() => {});
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t("scores.report.send")}
+            >
+              <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.send").toLocaleUpperCase()}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
       </View>
     );
   };
@@ -197,7 +253,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const list = (
     <FlatList
       style={styles.listPane}
-      data={status === "ready" ? data : []}
+      data={status === "ready" ? visible : []}
       showsVerticalScrollIndicator={false}
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
@@ -211,6 +267,15 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       }
       contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
       ListEmptyComponent={placeholder}
+      ListFooterComponent={
+        hidden.length > 0 && status === "ready" ? (
+          <TouchableOpacity onPress={showHidden} style={styles.hiddenNote} accessibilityRole="button" accessibilityLabel={t("scores.hidden.show")}>
+            <Text style={styles.hiddenText} maxFontSizeMultiplier={1.2}>
+              {t("scores.hidden", { count: hidden.length })} · {t("scores.hidden.show")}
+            </Text>
+          </TouchableOpacity>
+        ) : null
+      }
     />
   );
 
@@ -271,6 +336,15 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
   },
+  rowMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10 },
+  flag: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)" },
+  reportMenu: { marginTop: 4, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.06)", gap: 8 },
+  reportHint: { color: "#c9c3e6", fontSize: 12 },
+  reportButtons: { flexDirection: "row", gap: 8 },
+  reportButton: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
+  reportButtonText: { color: "#fff", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
+  hiddenNote: { minHeight: MIN_TOUCH, alignItems: "center", justifyContent: "center" },
+  hiddenText: { color: "#9f9abb", fontSize: 12, textDecorationLine: "underline" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   rankText: { color: "#d8d2f0", fontWeight: "900", fontSize: 15 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)" },
