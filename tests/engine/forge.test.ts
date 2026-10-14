@@ -4,6 +4,7 @@ import {
   applyMeta,
   canAfford,
   embersFor,
+  EMBERS_PER_FLOOR,
   maxLevel,
   metaEffects,
   nextCost,
@@ -24,7 +25,7 @@ describe('embers earned', () => {
   it('pays something for every real run and a lot for a victory', () => {
     const lost = embersFor({ score: 800, level: 4 });
     const won = embersFor({ score: 800, level: 10, victory: true });
-    expect(lost).toBe(Math.floor(800 / 250) + 16);
+    expect(lost).toBe(Math.floor(800 / 250) + 4 * EMBERS_PER_FLOOR);
     expect(won).toBeGreaterThan(lost + 40);
   });
 
@@ -35,8 +36,9 @@ describe('embers earned', () => {
   });
 
   it('is added to the balance by expedition and daily runs alike', () => {
-    expect(mergeRun(EMPTY_STATS, { score: 500, level: 3 }).stats.embers).toBe(embersFor({ score: 500, level: 3 }));
-    expect(mergeDailyRun(EMPTY_STATS, '2026-10-12', { score: 500, level: 3 }).stats.embers).toBe(embersFor({ score: 500, level: 3 }));
+    const seasoned = { ...EMPTY_STATS, bestLevel: 10 }; // no floor milestones left to pay
+    expect(mergeRun(seasoned, { score: 500, level: 3 }).stats.embers).toBe(embersFor({ score: 500, level: 3 }));
+    expect(mergeDailyRun(seasoned, '2026-10-12', { score: 500, level: 3 }).stats.embers).toBe(embersFor({ score: 500, level: 3 }));
   });
 });
 
@@ -137,7 +139,7 @@ describe('Fortune and the Phoenix start', () => {
   });
 
   it('is applied when a run is saved', () => {
-    const owned = { ...EMPTY_STATS, forge: { fortune: 2 } };
+    const owned = { ...EMPTY_STATS, bestLevel: 10, forge: { fortune: 2 } };
     const gained = mergeRun(owned, { score: 2500, level: 5 }).stats.embers;
     expect(gained).toBe(embersFor({ score: 2500, level: 5 }, true, 2));
   });

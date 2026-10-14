@@ -32,6 +32,7 @@ import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import ToolBar from "../ui/components/ToolBar";
 import CoachHint from "../ui/components/game/CoachHint";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
+import Toast from "../ui/components/game/Toast";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
@@ -39,9 +40,14 @@ import { emitSound } from "../audio/audioEventBus";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { bossHearts, countGuardians } from "../core/engine/entityCounts";
+import { diffFeedback, killerTile } from "../core/feedback/diffFeedback";
+import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemStreakLabel } from "../core/feedback/combo";
+import { tileCenter } from "../core/feedback/geometry";
+import { shouldShowShop } from "../core/feedback/flow";
+import { nextHint } from "../core/feedback/hints";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
 import type { Direction } from "../core/engine/types";
-import { haptic, NotificationFeedbackType } from "../shared/haptics";
+import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import type { TranslationKey } from "../i18n/en";
 import { omenEffects } from "../core/engine/omens";
@@ -52,11 +58,15 @@ import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
+import { buildDailyShareText } from "../core/stats/share";
+import type { RunPayout } from "../core/stats/runStats";
+import type { Goal } from "../core/stats/goals";
+import type { Unlocks } from "../core/stats/unlocks";
 import { clampAscension, modifiersFor } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
 import { hasFullGame, shouldGateDescentNow } from "../services/entitlements";
 import { GAME_CONFIG } from "../config/gameConfig";
-import { useSessionTimer } from "../hooks/useSessionTimer";
+import { useSessionClock } from "../hooks/useSessionClock";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useTravel } from "../hooks/useTravel";
 import { useT } from "../i18n/useT";
@@ -74,8 +84,23 @@ const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
 
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
 /** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
-const GAME_OVER_CARD_DELAY_MS = 850;
+const GAME_OVER_CARD_DELAY_MS = 600;
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
+
+/** A floating label: where it rises from, and how it looks. */
+type Popup = {
+  id: number;
+  points: number;
+  type: PopupType;
+  /** Screen position of the tile it rises from (undefined until the board has been measured). */
+  x?: number;
+  y?: number;
+  slot: number;
+  at: number;
+  sub?: string | null;
+  subColor?: string;
+  popScale?: number;
+};
 
 type RunResult = {
   bestScore: number;
@@ -85,6 +110,14 @@ type RunResult = {
   achievements?: string[];
   embers?: number;
   bonus?: number;
+  payout?: RunPayout;
+  streakLost?: number;
+  bestStreak?: number;
+  freezeUsed?: boolean;
+  freezeEarned?: boolean;
+  unlocks?: Unlocks;
+  goals?: Goal[];
+  canBuyNow?: boolean;
   /** One of the first runs: the game over explains gems versus embers. */
   early?: boolean;
 };
@@ -105,7 +138,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const mode = route.params?.mode ?? "expedition";
   const isDaily = mode === "daily";
   const ascension = isDaily ? 0 : clampAscension(route.params?.ascension ?? 0);
-  // The daily challenge fixes the board seed to today's UTC date (captured once per screen visit).
+  // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
   const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo } = useGameEngine();
@@ -113,7 +146,14 @@ export default function GameScreen({ navigation, route }: Props) {
   const [intermission, setIntermission] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [popups, setPopups] = useState<{ id: number; points: number; type: PopupType }[]>([]);
+  const [popups, setPopups] = useState<Popup[]>([]);
+  // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
+  const [shieldBreakKey, setShieldBreakKey] = useState(0);
+  const [shakeKey, setShakeKey] = useState(0);
+  const [flagPing, setFlagPing] = useState<{ index: number; n: number } | null>(null);
+  const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
+  const [gemPop, setGemPop] = useState(1.15);
+  const gemStreak = useRef(EMPTY_STREAK);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -129,6 +169,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const vortexFlash = useRef(new Animated.Value(0)).current;
   // Red wash that appears the instant the hero dies and stays under the game-over card.
   const deathFlash = useRef(new Animated.Value(0)).current;
+  // Short red wash when a shield (or feather) soaks a deadly touch.
+  const hitFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const hintsSeen = useSettingsStore(s => s.hintsSeen);
@@ -147,6 +189,8 @@ export default function GameScreen({ navigation, route }: Props) {
     const timer = setTimeout(() => setBootCover(false), 2500);
     return () => clearTimeout(timer);
   }, []);
+  const handleBoardReady = useCallback(() => setBootCover(false), []);
+  const openPause = useCallback(() => setPaused(true), []);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = state.omen;
   const floorBiome = biomeFor(state.level, state.mode);
@@ -188,13 +232,16 @@ export default function GameScreen({ navigation, route }: Props) {
     (d: Parameters<typeof move>[0]) => {
       cancelTravel();
       const s = stateRef.current;
-      if (flags.has(stepTarget(s.playerIndex, d, s.rows, s.cols))) {
+      const target = stepTarget(s.playerIndex, d, s.rows, s.cols);
+      if (flags.has(target)) {
         haptic.notify(NotificationFeedbackType.Warning); // marked as dangerous: refuse the step
+        setFlagPing({ index: target, n: Date.now() });
+        setToast({ text: t("toast.flagged"), key: Date.now() });
         return;
       }
       move(d);
     },
-    [cancelTravel, move, flags],
+    [cancelTravel, move, flags, t],
   );
   const manualAttack = useCallback((direction?: Direction) => { cancelTravel(); attack(direction); }, [cancelTravel, attack]);
   // While the attack button is held, the board shows where the arrow would go.
@@ -206,15 +253,14 @@ export default function GameScreen({ navigation, route }: Props) {
   );
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
-  const { time: sessionTime, reset: resetTimer } = useSessionTimer(
-    !runEnded && !state.isLevelUp && !paused && !state.pendingDraft,
-  );
+  // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
+  const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft);
+  const resetTimer = useCallback(() => clock.reset(), [clock]);
 
   // Latest values for listeners and timers (so effects do not need volatile dependencies).
   const stateRef = useRef(state);
   stateRef.current = state;
-  const sessionTimeRef = useRef(sessionTime);
-  sessionTimeRef.current = sessionTime;
+  const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
   const pausedRef = useRef(false);
   pausedRef.current = paused;
   const canPauseRef = useRef(false);
@@ -223,11 +269,10 @@ export default function GameScreen({ navigation, route }: Props) {
   busyRef.current = levelUpWindow || !!state.pendingDraft;
 
   // Guards / bookkeeping refs
-  const lastPlayerIndex = useRef(state.playerIndex);
-  const lastCoins = useRef(state.coins);
-  const lastAttack = useRef(state.attack);
-  const lastEnemyCount = useRef(countGuardians(state));
-  const killPlayerIndex = useRef(state.playerIndex);
+  const prevFeedback = useRef(state);
+  const boardOrigin = useRef<{ x: number; y: number } | null>(null);
+  const boardBox = useRef<View>(null);
+  const descendOnFocus = useRef(false); //    the next floor opens as soon as the level-complete card closes
   const gameOverTriggered = useRef(false); // prevents the end-of-run flow from running twice
   const runRecorded = useRef(false); //       the run is saved to local stats exactly once
   const justLeveledUp = useRef(false); //     suppresses a phantom MOVE sound on level start
@@ -239,6 +284,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // ── Run bookkeeping ──────────────────────────────────────────────────────
   const startRun = useCallback(() => {
     deathFlash.setValue(0);
+    gemStreak.current = EMPTY_STREAK;
     setRunNumber(n => n + 1); // replays the floor banner even when a daily restarts on the same seed
     reset(selectedCharacter, {
       heroIndex: characterIndex,
@@ -271,11 +317,11 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, early: r.stats.gamesPlayed <= 2 };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: r.unlocks, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
       }
       const r = await recordRun(run);
       // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, early: r.stats.gamesPlayed <= 2 };
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: r.unlocks, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -440,6 +486,20 @@ export default function GameScreen({ navigation, route }: Props) {
     navigation.popTo("CoverScreen");
   }, [navigation, recordCurrentRun]);
 
+  /** The game over's "Try now" on a fresh unlock: leave for the screen where it can be used. */
+  const handleTryUnlock = useCallback(
+    (kind: "hero" | "depth" | "endless") => {
+      leaving.current = true;
+      void recordCurrentRun();
+      setPaused(false);
+      setPopups([]);
+      setShowGameOver(false);
+      emitSound("GAME_MUSIC_STOP");
+      navigation.popTo("CharactersScreen", { mode: kind === "endless" ? "endless" : "expedition" });
+    },
+    [navigation, recordCurrentRun],
+  );
+
   const relicPicked = useRef(false);
   useEffect(() => {
     relicPicked.current = false; // a new draft (or none) re-arms the guard
@@ -458,14 +518,17 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const handleShare = useCallback(async () => {
     const s = stateRef.current;
-    const streak = runResult?.streak ? plural("share.streak", runResult.streak) : "";
+    const streak = runResult?.streak ? plural("over.streak", runResult.streak) : "";
     const message = isDaily
-      ? t("share.daily", {
-          date: dailyDate,
-          floor: s.level,
-          score: s.score.toLocaleString(),
-          gems: plural("common.gems", s.totalCoins),
-          streak,
+      ? buildDailyShareText({
+          dateKey: dailyDate,
+          level: s.level,
+          floors: GAME_CONFIG.expedition.floors,
+          victory: s.isVictory,
+          title: n => t("share.daily.title", { n }),
+          scoreText: t("share.daily.score", { score: s.score.toLocaleString() }),
+          streakText: streak,
+          footer: t("share.daily.footer"),
         })
       : t("share.run", {
           depth: ascension > 0 ? ` · ${t(`ascension.label.${ascension}` as TranslationKey)}` : "",
@@ -504,7 +567,8 @@ export default function GameScreen({ navigation, route }: Props) {
       });
       setDoor(0);
       if (shouldGateDescentNow(now.level, mode)) gateStage.current = "level";
-      else setIntermission(true);
+      else if (shouldShowShop(now.level + 1, now)) setIntermission(true);
+      else descendOnFocus.current = true; // the first floors go straight to the relic draft
     }, 800);
 
     return () => clearTimeout(timer);
@@ -537,6 +601,16 @@ export default function GameScreen({ navigation, route }: Props) {
     }
   }, [isFocused]);
 
+  // First floors skip the shop and the fork: the next floor opens when the level-complete card closes.
+  useEffect(() => {
+    if (!isFocused || !descendOnFocus.current || leaving.current || !mounted.current) return;
+    descendOnFocus.current = false;
+    const s = stateRef.current;
+    if (!s.isLevelUp || s.isVictory) return;
+    justLeveledUp.current = true;
+    levelUp(undefined);
+  }, [isFocused]);
+
   const handleUnlock = useCallback(() => {
     gateStage.current = "paywall";
     navigation.navigate("PaywallScreen", { source: "demo", floor: stateRef.current.level });
@@ -556,62 +630,137 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleAltar = useCallback(() => { emitSound("RELIC_PICKED"); spendAltar(); }, [spendAltar]);
   const handleAbility = useCallback(() => { cancelTravel(); emitSound("POWERUP"); castAbility(); }, [cancelTravel, castAbility]);
   const handleItem = useCallback((item: "detector" | "bomb") => { cancelTravel(); emitSound("POWERUP"); spendItem(item); }, [cancelTravel, spendItem]);
+  const handleDetector = useCallback(() => handleItem("detector"), [handleItem]);
+  const handleBomb = useCallback(() => handleItem("bomb"), [handleItem]);
   const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
 
   // ── Gameplay feedback ────────────────────────────────────────────────────
+  // Everything the player sees, hears or feels after a move is derived from the DIFFERENCE between two states
+  // (see core/feedback/diffFeedback.ts), so each event fires exactly once and buying, the detector or undo never
+  // replay an old pickup.
+  const measureBoard = useCallback(() => {
+    boardBox.current?.measureInWindow((x, y, w) => {
+      if (w > 0) boardOrigin.current = { x: x + 1, y: y + 1 };
+    });
+  }, []);
+  const { tileSize: boardTile } = useGameLayout(state.cols, state.rows);
   useEffect(() => {
-    const collectingCoin = state.coins < lastCoins.current;
-    const isPhantomMove = justLeveledUp.current;
-    justLeveledUp.current = false;
+    measureBoard();
+    const timer = setTimeout(measureBoard, 400); // the layout settles after the first frames
+    return () => clearTimeout(timer);
+  }, [state.level, state.rows, state.cols, windowWidth, windowHeight, boardTile, bootCover]);
 
-    if (
-      state.playerIndex !== lastPlayerIndex.current &&
-      !state.isGameOver &&
-      !state.isLevelUp &&
-      !collectingCoin &&
-      !isPhantomMove
-    ) {
+  /** Screen position of a tile (undefined until the board has been measured). */
+  const anchorOf = (tile: number): { x?: number; y?: number } => {
+    const origin = boardOrigin.current;
+    if (!origin) return {};
+    return tileCenter(tile, { originX: origin.x, originY: origin.y, tileSize: boardTile, cols: stateRef.current.cols });
+  };
+
+  const pushPopup = (popup: Omit<Popup, "id" | "slot" | "at">, tile: number) => {
+    const now = Date.now();
+    setPopups(prev => {
+      const slot = Math.min(3, prev.filter(p => now - p.at < 700).length);
+      return [...prev, { ...popup, ...anchorOf(tile), id: now + Math.random(), slot, at: now }];
+    });
+  };
+
+  const flash = (value: Animated.Value, peak: number, calmPeak: number, up: number, down: number) => {
+    Animated.sequence([
+      Animated.timing(value, { toValue: reduceFlash ? calmPeak : peak, duration: reduceFlash ? Math.max(up, 120) : up, useNativeDriver: true }),
+      Animated.timing(value, { toValue: 0, duration: reduceFlash ? Math.max(down, 160) : down, useNativeDriver: true }),
+    ]).start();
+  };
+
+  useEffect(() => {
+    const prev = prevFeedback.current;
+    prevFeedback.current = state;
+    if (prev === state || isResetting.current) return;
+
+    const sameFloor = prev.seed === state.seed && prev.runSeed === state.runSeed && prev.level === state.level;
+    const events = diffFeedback(prev, state);
+    const has = (kind: (typeof events)[number]["kind"]) => events.some(e => e.kind === kind);
+
+    // A plain step (not a gem, not a floor change, not an undo, which makes its own sound).
+    if (sameFloor && state.turn > prev.turn && state.playerIndex !== prev.playerIndex && !state.isGameOver && !state.isLevelUp && !has("coin")) {
       emitSound("MOVE");
     }
-    lastPlayerIndex.current = state.playerIndex;
+    justLeveledUp.current = false;
 
-    if (collectingCoin && !isResetting.current) {
-      emitSound("COIN_COLLECTED");
-      const points = coinReward(
-        state.level,
-        state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
-        relicCount(state.relics, "lucky_coin"),
-      );
-      setPopups(prev => [...prev, { id: Date.now() + Math.random(), points, type: "coin" }]);
-      setActiveCoins(prev => [
-        ...prev,
-        { id: Date.now() + Math.random(), x: windowWidth / 2 - 16, y: windowHeight / 2 - 16 },
-      ]);
+    // The gem streak ends as soon as the player pauses (see addGem) or any non-gem move happens after the window.
+    for (const e of events) {
+      switch (e.kind) {
+        case "coin": {
+          gemStreak.current = addGem(gemStreak.current, Date.now());
+          const streak = gemStreak.current.count;
+          emitSound("COIN_COLLECTED", { rate: gemRate(streak) });
+          setGemPop(gemPopScale(streak));
+          const points = coinReward(
+            state.level,
+            state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
+            relicCount(state.relics, "lucky_coin"),
+          );
+          pushPopup({ points, type: "coin" }, e.tile);
+          const label = gemStreakLabel(streak);
+          if (label) pushPopup({ points: 0, type: "streak", sub: label, popScale: Math.min(1.4, 1 + 0.08 * streak) }, e.tile);
+          const at = anchorOf(e.tile);
+          setActiveCoins(coins => [
+            ...coins,
+            { id: Date.now() + Math.random(), x: (at.x ?? windowWidth / 2) - 16, y: (at.y ?? windowHeight / 2) - 16 },
+          ]);
+          break;
+        }
+        case "kill": {
+          emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
+          if (e.combo > 0) {
+            const look = comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter"));
+            pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
+          }
+          flash(combatFlash, 0.35, 0.08, 25, 35);
+          break;
+        }
+        case "bossHit": {
+          emitSound("BOSS_HIT");
+          haptic.impact(ImpactFeedbackStyle.Heavy);
+          pushPopup({ points: e.dead ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore, type: "boss", popScale: e.dead ? 1.4 : 1 }, e.tile);
+          flash(combatFlash, e.dead ? 0.5 : 0.35, 0.1, 25, 60);
+          if (!reduceFlash) setShakeKey(k => k + 1);
+          break;
+        }
+        case "miss": {
+          emitSound("ATTACK");
+          haptic.impact(ImpactFeedbackStyle.Light); // a miss is a soft tap; a hit has its own heavy one
+          break;
+        }
+        case "pickup": {
+          if (e.pickup === "trap") {
+            emitSound("TRAP_TRIGGERED");
+            pushPopup({ points: GAME_CONFIG.scoring.trapPenalty, type: "trap" }, e.tile);
+          } else {
+            emitSound("POWERUP");
+            pushPopup({ points: e.pickup === "ammo" ? GAME_CONFIG.pickups.ammoAmount : 0, type: e.pickup }, e.tile);
+          }
+          break;
+        }
+        case "shieldBreak": {
+          emitSound("SHIELD_BREAK");
+          haptic.notify(NotificationFeedbackType.Warning);
+          setShieldBreakKey(k => k + 1);
+          flash(hitFlash, 0.45, 0.12, 60, 190); // about 250 ms in all
+          break;
+        }
+        case "charge": {
+          emitSound("CHARGE_WARN");
+          haptic.impact(ImpactFeedbackStyle.Medium);
+          break;
+        }
+        case "hazardNear": {
+          haptic.notify(NotificationFeedbackType.Warning);
+          break;
+        }
+      }
     }
-    lastCoins.current = state.coins;
-
-    if (state.attack < lastAttack.current) emitSound("ATTACK");
-    lastAttack.current = state.attack;
-  }, [state.playerIndex, state.coins, state.attack, state.isGameOver, state.isLevelUp]);
-
-  useEffect(() => {
-    const enemies = countGuardians(state);
-    // A kill removes an enemy while the player stays put; a shield-absorbed hit moves the player onto the tile.
-    const killed = enemies < lastEnemyCount.current && state.playerIndex === killPlayerIndex.current;
-    if (killed && !isResetting.current) {
-      emitSound("ENEMY_KILLED");
-      if (state.enemyCombo > 0) setPopups(prev => [...prev, { id: Date.now() + Math.random(), points: killValue(state.enemyCombo), type: "kill" }]);
-      Animated.sequence([
-        Animated.timing(combatFlash, { toValue: reduceFlash ? 0.08 : 0.35, duration: reduceFlash ? 120 : 25, useNativeDriver: true }),
-        Animated.timing(combatFlash, { toValue: 0, duration: reduceFlash ? 160 : 35, useNativeDriver: true }),
-      ]).start();
-    }
-    lastEnemyCount.current = enemies;
-  }, [state.entities]);
-  // Runs after every update (even steps that leave the entities untouched), so the next shot compares with the right tile.
-  useEffect(() => {
-    killPlayerIndex.current = state.playerIndex;
-  });
+  }, [state]);
 
   useProximityAudio(state);
 
@@ -621,20 +770,6 @@ export default function GameScreen({ navigation, route }: Props) {
       emitSound("BOSS_ROAR");
     }
   }, [state.level]);
-
-  // Power-ups and traps: sound + floating label
-  useEffect(() => {
-    if (!state.lastPickup) return;
-    const id = Date.now() + Math.random();
-    if (state.lastPickup === "trap") {
-      emitSound("TRAP_TRIGGERED");
-      setPopups(prev => [...prev, { id, points: GAME_CONFIG.scoring.trapPenalty, type: "trap" }]);
-    } else {
-      emitSound("POWERUP");
-      const kind = state.lastPickup;
-      setPopups(prev => [...prev, { id, points: kind === "ammo" ? GAME_CONFIG.pickups.ammoAmount : 0, type: kind }]);
-    }
-  }, [state]);
 
   const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
   const relicNames = state.relics.map(id => relicText(t, id, "name")).join(", ");
@@ -651,17 +786,36 @@ export default function GameScreen({ navigation, route }: Props) {
     .filter(Boolean)
     .join(". ");
 
-  // One-time tips for the tools, shown the first time each one is available (never over an overlay).
-  const hint: { id: string; text: string } | null = (() => {
-    if (runEnded || levelUpWindow || overlayOpen || bootCover || state.turn === 0) return null;
-    const unseen = (id: string) => !hintsSeen.includes(id);
-    if (state.perks.ability && unseen("ability")) {
-      return { id: "ability", text: t("hint.ability", { name: t(`ability.${state.perks.ability}.name` as TranslationKey), desc: t(`ability.${state.perks.ability}.desc` as TranslationKey) }) };
+  // One-time tips: the tools the first time each one is available, the controls and the clues once the player has
+  // explored a bit (never over an overlay, and never the same tip twice).
+  const cluesShown = useMemo(() => {
+    for (const i of state.visited) {
+      if (state.entityMap[i] !== undefined) continue;
+      const near = getNearbyHazards(i, state.rows, state.cols, state.entityMap);
+      if (near.enemy || near.pit) return true;
     }
-    if (state.undo && !state.undoUsed && unseen("undo")) return { id: "undo", text: t("hint.undo") };
-    if (state.items.detector > 0 && unseen("detector")) return { id: "detector", text: t("hint.detector") };
-    if (state.items.bomb > 0 && unseen("bomb")) return { id: "bomb", text: t("hint.bomb") };
-    return null;
+    return false;
+  }, [state.visited, state.entityMap, state.rows, state.cols]);
+  const hint: { id: string; text: string } | null = (() => {
+    if (runEnded || levelUpWindow || overlayOpen || bootCover) return null;
+    const id = nextHint(
+      {
+        turn: state.turn,
+        ability: state.perks.ability ?? null,
+        canUndo: !!state.undo && !state.undoUsed,
+        detector: state.items.detector,
+        bomb: state.items.bomb,
+        cluesShown,
+        explored: state.visited.length,
+        arrows: state.attack,
+      },
+      hintsSeen,
+    );
+    if (!id) return null;
+    if (id === "ability" && state.perks.ability) {
+      return { id, text: t("hint.ability", { name: t(`ability.${state.perks.ability}.name` as TranslationKey), desc: t(`ability.${state.perks.ability}.desc` as TranslationKey) }) };
+    }
+    return { id, text: t(`hint.${id}` as TranslationKey) };
   })();
 
   const removeCoin = (id: number) => setActiveCoins(prev => prev.filter(c => c.id !== id));
@@ -690,17 +844,27 @@ export default function GameScreen({ navigation, route }: Props) {
           coins={state.coins}
           attackValue={state.attack}
           shield={state.shield}
-          onPause={canPause ? () => setPaused(true) : undefined}
+          onPause={canPause ? openPause : undefined}
           level={state.level}
           floors={mode === "endless" ? undefined : GAME_CONFIG.expedition.floors}
           character={selectedCharacter}
-          time={sessionTime}
+          clock={clock}
+          combo={state.enemyCombo}
+          comboMax={GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter")}
+          shieldBreakKey={shieldBreakKey}
+          gemPop={gemPop}
+          calm={reduceFlash}
           bossHearts={isLair ? bossHearts(state) : undefined}
         />
       </View>
 
 
-      <DangerVignette roar={nearby.enemy} vortex={nearby.pit} />
+      <DangerVignette
+        roar={nearby.enemy && !runEnded && !levelUpWindow}
+        vortex={nearby.pit && !runEnded && !levelUpWindow}
+        intensity={Math.max(nearby.enemyCount, nearby.pitCount)}
+        calm={reduceFlash}
+      />
       {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && (
         <FloorBanner
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
@@ -728,7 +892,7 @@ export default function GameScreen({ navigation, route }: Props) {
       >
         <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
 
-        <View accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
+        <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <BoardView
             level={state.level}
             rows={state.rows}
@@ -745,8 +909,12 @@ export default function GameScreen({ navigation, route }: Props) {
             aimTiles={aimTiles}
             dying={state.isGameOver && !state.isVictory}
             onTileLongPress={toggleFlag}
-            onReady={() => setBootCover(false)}
+            onReady={handleBoardReady}
             onSwipe={swipeMove ? manualMove : undefined}
+            killerTile={state.isGameOver && !state.isVictory ? killerTile(state) : null}
+            shakeKey={shakeKey}
+            flagPing={flagPing}
+            calm={reduceFlash}
           />
         </View>
 
@@ -765,8 +933,8 @@ export default function GameScreen({ navigation, route }: Props) {
               bomb={state.items.bomb}
               canUndo={!!state.undo && !state.undoUsed}
               onAbility={handleAbility}
-              onDetector={() => handleItem("detector")}
-              onBomb={() => handleItem("bomb")}
+              onDetector={handleDetector}
+              onBomb={handleBomb}
               onUndo={handleUndo}
               size={Math.max(34, Math.min(46, (controlPanelWidth + 12 - 18) / 4))}
             />
@@ -780,6 +948,12 @@ export default function GameScreen({ navigation, route }: Props) {
           key={p.id}
           points={p.points}
           type={p.type}
+          x={p.x}
+          y={p.y}
+          slot={p.slot}
+          sub={p.sub}
+          subColor={p.subColor}
+          popScale={p.popScale}
           onComplete={() => setPopups(prev => prev.filter(k => k.id !== p.id))}
         />
       ))}
@@ -807,6 +981,16 @@ export default function GameScreen({ navigation, route }: Props) {
         style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: deathFlash, zIndex: 997 }]}
         pointerEvents="none"
       />
+
+      {/* A shield (or feather) soaked a deadly touch: a short red flash */}
+      <Animated.View
+        style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: hitFlash, zIndex: 996 }]}
+        pointerEvents="none"
+      />
+
+      {toast && (
+        <Toast text={toast.text} toastKey={toast.key} top={insets.top + hudHeight + 8} onDone={() => setToast(null)} />
+      )}
 
       {/* Purple flash on vortex teleport */}
       <Animated.View
@@ -862,7 +1046,7 @@ export default function GameScreen({ navigation, route }: Props) {
         score={state.score}
         level={state.level}
         totalCoins={state.totalCoins}
-        time={sessionTime}
+        time={clock.get()}
         character={selectedCharacter}
         deathCause={state.deathCause}
         victory={state.isVictory}
@@ -874,7 +1058,15 @@ export default function GameScreen({ navigation, route }: Props) {
         unlockedHeroes={runResult?.unlocked}
         achievements={runResult?.achievements}
         embers={runResult?.embers}
-        dailyBonus={runResult?.bonus}
+        payout={runResult?.payout}
+        streakLost={runResult?.streakLost}
+        bestStreak={runResult?.bestStreak}
+        freezeUsed={runResult?.freezeUsed}
+        freezeEarned={runResult?.freezeEarned}
+        unlocks={runResult?.unlocks}
+        onTryUnlock={handleTryUnlock}
+        goals={runResult?.goals}
+        canBuyNow={runResult?.canBuyNow}
         explainEmbers={runResult?.early}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
@@ -894,7 +1086,7 @@ export default function GameScreen({ navigation, route }: Props) {
         score={state.score}
         level={state.level}
         totalCoins={state.totalCoins}
-        time={sessionTime}
+        time={clock.get()}
         onSubmit={handleHighScoreSubmit}
         onSkip={() => setShowHighScoreEntry(false)}
       />

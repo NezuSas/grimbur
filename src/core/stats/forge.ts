@@ -57,7 +57,24 @@ const FORTUNE_BONUS_PER_LEVEL = 0.15;
 
 export const maxLevel = (id: UpgradeId): number => UPGRADES.find(u => u.id === id)?.costs.length ?? 0;
 
-/** Embers paid once per UTC day, on the first finished run: 15 plus 5 per day of streak, up to 50. */
+/** Embers per floor reached (tuning knob). */
+export const EMBERS_PER_FLOOR = 6;
+/** One-time embers the first time the player reaches each new deepest floor (tuning knob). */
+export const MILESTONE_EMBERS = 10;
+/** Floors above this pay no milestone (the expedition has 10). */
+export const MILESTONE_MAX_FLOOR = 10;
+/** Embers added to a victory: base plus per depth (ascension). */
+export const VICTORY_EMBERS = 50;
+export const VICTORY_EMBERS_PER_DEPTH = 15;
+
+/** One-time milestone embers for reaching `level` when the deepest floor so far was `previousBest` (floors 1..10 only). */
+export function milestoneEmbers(previousBest: number, level: number): number {
+  const from = Math.max(0, Math.trunc(previousBest) || 0);
+  const to = Math.min(MILESTONE_MAX_FLOOR, Math.trunc(level) || 0);
+  return to > from ? (to - from) * MILESTONE_EMBERS : 0;
+}
+
+/** Embers paid once per local day, on the first finished run: 15 plus 5 per day of streak, up to 50. */
 export const dailyBonus = (streak: number): number => Math.min(50, 15 + 5 * Math.max(0, Math.trunc(streak) || 0));
 
 /** Embers earned by a finished run. A run that never started earns nothing. */
@@ -65,8 +82,8 @@ export function embersFor(run: RunResult, progressed = true, fortuneLevel = 0): 
   if (!progressed) return 0;
   const score = Number.isFinite(run.score) ? run.score : 0;
   const level = Number.isFinite(run.level) ? run.level : 1;
-  const base = Math.floor(Math.max(0, score) / 250) + Math.max(1, level) * 4;
-  const victory = run.victory ? 50 + 15 * (run.ascension ?? 0) : 0;
+  const base = Math.floor(Math.max(0, score) / 250) + Math.max(1, level) * EMBERS_PER_FLOOR;
+  const victory = run.victory ? VICTORY_EMBERS + VICTORY_EMBERS_PER_DEPTH * (run.ascension ?? 0) : 0;
   const fortune = 1 + FORTUNE_BONUS_PER_LEVEL * Math.min(Math.max(0, Math.trunc(fortuneLevel) || 0), maxLevel('fortune'));
   return Math.round((base + victory) * fortune);
 }

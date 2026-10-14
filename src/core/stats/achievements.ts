@@ -153,7 +153,7 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('first_gems', '✨', 'easy', 'gems', 10, s => s.totalGems),
   inRun('first_relic', '🔮', 'easy', 'relics', 1, r => (r.relics ?? 0) >= 1),
   counted('first_forge', '🔨', 'easy', 'forge', 1, forgeLevels),
-  inRun('warm_up', '🔥', 'easy', 'score', 1000, r => r.score >= 1000 && (r.mode ?? 'expedition') !== 'endless'),
+  inRun('warm_up', '🌡️', 'easy', 'score', 1000, r => r.score >= 1000 && (r.mode ?? 'expedition') !== 'endless'),
   counted('regular', '🎒', 'easy', 'games', 5, s => s.gamesPlayed),
 
   // ── Going deeper ────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   // ── Difficulty ──────────────────────────────────────────────────────────
   inRun('tempered', '🔰', 'hard', 'depthWin', 1, r => victoryAt(r, 1)),
   inRun('ascended', '🔥', 'legend', 'depthWin', 3, r => victoryAt(r, 3)),
-  inRun('abyssal', '🌋', 'legend', 'depthWin', MAX_ASCENSION, r => victoryAt(r, MAX_ASCENSION)),
+  inRun('abyssal', '🩸', 'legend', 'depthWin', MAX_ASCENSION, r => victoryAt(r, MAX_ASCENSION)),
 
   // ── Habits ──────────────────────────────────────────────────────────────
   counted('daily_devotee', '📅', 'easy', 'streak', DEVOTEE_DAYS, s => s.streak),
@@ -246,7 +246,7 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('forge_10', '🏭', 'hard', 'forge', 10, forgeLevels),
   counted('forge_15', '🔱', 'hard', 'forge', 15, forgeLevels),
   counted('forge_20', '⭐', 'legend', 'forge', 20, forgeLevels),
-  counted('embers_100', '🔥', 'easy', 'embers', 100, s => s.lifetimeEmbers),
+  counted('embers_100', '🔆', 'easy', 'embers', 100, s => s.lifetimeEmbers),
   counted('embers_1000', '🧨', 'medium', 'embers', 1000, s => s.lifetimeEmbers),
   counted('embers_10000', '🌞', 'hard', 'embers', 10000, s => s.lifetimeEmbers),
   counted('embers_25000', '☀️', 'legend', 'embers', 25000, s => s.lifetimeEmbers),
@@ -269,22 +269,22 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   inRun('depth_win_4', '🐲', 'legend', 'depthWin', 4, r => victoryAt(r, 4)),
   counted('daily_1', '🗺️', 'easy', 'dailyRuns', 1, s => s.dailyRuns),
   counted('daily_5', '📌', 'easy', 'dailyRuns', 5, s => s.dailyRuns),
-  counted('daily_10', '🧭', 'medium', 'dailyRuns', 10, s => s.dailyRuns),
+  counted('daily_10', '📖', 'medium', 'dailyRuns', 10, s => s.dailyRuns),
   counted('daily_25', '📚', 'hard', 'dailyRuns', 25, s => s.dailyRuns),
-  counted('daily_50', '🏛️', 'legend', 'dailyRuns', 50, s => s.dailyRuns),
-  counted('daily_win_1', '🏆', 'medium', 'dailyWins', 1, s => s.dailyWins),
-  counted('daily_win_5', '👑', 'hard', 'dailyWins', 5, s => s.dailyWins),
+  counted('daily_50', '🏯', 'legend', 'dailyRuns', 50, s => s.dailyRuns),
+  counted('daily_win_1', '🎉', 'medium', 'dailyWins', 1, s => s.dailyWins),
+  counted('daily_win_5', '🎩', 'hard', 'dailyWins', 5, s => s.dailyWins),
   { id: 'swift', icon: '🐇', tier: 'hard', desc: 'winTime', params: { n: 8 }, isMet: (_s, r) => r.victory === true && (r.mode ?? 'expedition') !== 'endless' && r.time !== undefined && r.time < 8 * 60 },
   { id: 'blink', icon: '💨', tier: 'legend', desc: 'winTime', params: { n: 5 }, isMet: (_s, r) => r.victory === true && (r.mode ?? 'expedition') !== 'endless' && r.time !== undefined && r.time < 5 * 60 },
-  counted('trophies_10', '🏅', 'easy', 'achCount', 10, s => Object.keys(s.achievements).length),
+  counted('trophies_10', '🎀', 'easy', 'achCount', 10, s => Object.keys(s.achievements).length),
   counted('trophies_25', '🥇', 'medium', 'achCount', 25, s => Object.keys(s.achievements).length),
-  counted('trophies_50', '🏛️', 'hard', 'achCount', 50, s => Object.keys(s.achievements).length),
-  counted('trophies_75', '💎', 'legend', 'achCount', 75, s => Object.keys(s.achievements).length),
+  counted('trophies_50', '🗿', 'hard', 'achCount', 50, s => Object.keys(s.achievements).length),
+  counted('trophies_75', '🎗️', 'legend', 'achCount', 75, s => Object.keys(s.achievements).length),
   counted('trophies_100', '🌠', 'legend', 'achCount', 100, s => Object.keys(s.achievements).length),
   { id: 'win_vael', icon: '🧙', tier: 'hard', desc: 'heroWin', params: { n: 0 }, isMet: s => (s.heroWins[0] ?? 0) >= 1 },
   { id: 'win_sera', icon: '🏹', tier: 'hard', desc: 'heroWin', params: { n: 1 }, isMet: s => (s.heroWins[1] ?? 0) >= 1 },
-  { id: 'win_borin', icon: '🛡️', tier: 'hard', desc: 'heroWin', params: { n: 2 }, isMet: s => (s.heroWins[2] ?? 0) >= 1 },
-  { id: 'win_auric', icon: '💰', tier: 'hard', desc: 'heroWin', params: { n: 3 }, isMet: s => (s.heroWins[3] ?? 0) >= 1 },
+  { id: 'win_borin', icon: '🪖', tier: 'hard', desc: 'heroWin', params: { n: 2 }, isMet: s => (s.heroWins[2] ?? 0) >= 1 },
+  { id: 'win_auric', icon: '🤑', tier: 'hard', desc: 'heroWin', params: { n: 3 }, isMet: s => (s.heroWins[3] ?? 0) >= 1 },
   { id: 'all_hero_wins', icon: '🏛️', tier: 'legend', params: {}, isMet: s => s.heroWins.length >= HERO_COUNT && s.heroWins.every(n => n >= 1), progress: s => ({ current: s.heroWins.filter(n => n >= 1).length, target: HERO_COUNT }) },
 ];
 
@@ -325,4 +325,11 @@ export function withAchievements(stats: LocalStats, ids: readonly AchievementId[
   for (const id of ids) achievements[id] = dateKey;
   const reward = rewardFor(ids);
   return { ...stats, achievements, embers: stats.embers + reward, lifetimeEmbers: stats.lifetimeEmbers + reward };
+}
+
+/** At most `max` names are listed on the game over; the rest becomes "and N more". */
+export const MAX_LISTED_ACHIEVEMENTS = 3;
+export function splitNames<T>(items: readonly T[], max = MAX_LISTED_ACHIEVEMENTS): { shown: T[]; more: number } {
+  const limit = Math.max(1, Math.trunc(max) || 1);
+  return { shown: items.slice(0, limit), more: Math.max(0, items.length - limit) };
 }

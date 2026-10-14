@@ -10,6 +10,7 @@ import { RootStackParamList } from "../navigation/types";
 import { useGameLayout } from "../ui/layout/useGameLayout";
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD, TIER_ORDER, AchievementTier } from "../core/stats/achievements";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
+import { closestAchievements } from "../core/stats/goals";
 import { getLocalStats } from "../services/localStats";
 import { useT } from "../i18n/useT";
 import { useSettingsStore } from "../state/settings/store";
@@ -65,11 +66,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
   // The three goals closest to being finished: a reason to play one more run.
   const nextGoals = useMemo(
     () =>
-      ACHIEVEMENTS.filter(a => !(a.id in stats.achievements) && a.progress)
-        .map(a => ({ a, p: a.progress!(stats) }))
-        .filter(x => x.p.current > 0 && x.p.current < x.p.target)
-        .sort((x, y) => y.p.current / y.p.target - x.p.current / x.p.target)
-        .slice(0, 3),
+      closestAchievements(stats, 3).map(g => ({ a: ACHIEVEMENTS.find(x => x.id === g.id)!, p: { current: g.current, target: g.target } })),
     [stats],
   );
   const pending = ACHIEVEMENTS.filter(a => !(a.id in stats.achievements)).reduce((sum, a) => sum + ACHIEVEMENT_REWARD[a.tier], 0);

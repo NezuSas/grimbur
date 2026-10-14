@@ -25,7 +25,7 @@ export function trendOf(runs: readonly RunRecord[]): Trend | null {
 export const winRate = (victories: number, gamesPlayed: number): number =>
   gamesPlayed > 0 ? Math.round((Math.min(victories, gamesPlayed) / gamesPlayed) * 100) : 0;
 
-/** The last `days` UTC days ending at `today`, oldest first, each marked when a stored run was played that day. */
+/** The last `days` calendar days (day keys, no time zones) ending at `today`, oldest first, each marked when a stored run was played that day. */
 export function playedDays(history: readonly RunRecord[], today: string, days = 14): { day: string; played: boolean }[] {
   const played = new Set(history.map(r => r.day));
   const out: { day: string; played: boolean }[] = [];

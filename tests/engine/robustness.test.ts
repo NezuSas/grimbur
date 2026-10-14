@@ -59,7 +59,8 @@ describe('the once-a-day ember bonus', () => {
 
   it('is paid on the first finished run of a day only', () => {
     const run = { score: 500, level: 3, day: '2026-10-13' };
-    const first = mergeRun(EMPTY_STATS, run).stats;
+    const seasoned = { ...EMPTY_STATS, bestLevel: 10 }; // already past every floor milestone
+    const first = mergeRun(seasoned, run).stats;
     const second = mergeRun(first, run).stats;
     const base = first.embers - dailyBonus(0);
     expect(second.embers - first.embers).toBe(base); // no second bonus the same day

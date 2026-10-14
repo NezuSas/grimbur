@@ -9,7 +9,7 @@ import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { RootStackParamList } from "../navigation/types";
 import { useGameLayout } from "../ui/layout/useGameLayout";
-import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
+import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { chartRuns, playedDays, recentList, trendOf, winRate } from "../core/stats/progress";
 import { ACHIEVEMENTS, AchievementTier } from "../core/stats/achievements";
 import { UPGRADES } from "../core/stats/forge";
@@ -94,6 +94,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   const today = dailyKey();
+  const streak = streakStatus(stats, today);
   const runs = chartRuns(stats.history);
   const best = Math.max(0, ...runs.map(r => r.score));
   const trend = trendOf(runs);
@@ -194,7 +195,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </Card>
 
-            <Card icon="bonfire" tint="#FF7043" title={t("progress.streak")} value={String(stats.streak)} basis={basis} caption={t("progress.calendar")}>
+            <Card icon="bonfire" tint="#FF7043" title={t("progress.streak")} value={String(streak.current)} basis={basis} caption={streak.lost > 0 ? t("cover.streak.lost", { best: streak.best }) : t("progress.calendar")}>
               <View style={styles.calendar}>
                 {days.map(d => (
                   <View key={d.day} style={[styles.day, d.played && styles.dayOn, d.day === today && styles.dayToday]} />
