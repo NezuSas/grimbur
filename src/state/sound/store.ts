@@ -20,7 +20,7 @@ const INITIALIZING_PLAYERS: Record<string, Promise<any> | undefined> = {};
  * or swallowed it, which is why effects seemed to play only some of the time.
  */
 // Every expo-audio player is a whole ExoPlayer plus a MediaSession on Android, so voices are kept few.
-const EXTRA_VOICES: Record<string, number> = { move: 1, coin: 1, attack: 1 };
+const EXTRA_VOICES: Record<string, number> = { move: 2, coin: 1, attack: 1 };
 const voicesOf = (name: string): string[] => [
   name,
   ...Array.from({ length: EXTRA_VOICES[name] ?? 0 }, (_, i) => `${name}#${i + 1}`),
@@ -139,6 +139,10 @@ function retryPlay(name: string, attempt: number) {
 }
 
 const HANDLES: Record<string, LegacySoundHandle> = {};
+
+/** Resolves when every sound is loaded (init resolves as soon as the first ones are). */
+let allLoaded: Promise<void> = Promise.resolve();
+export const whenAllSoundsLoaded = (): Promise<void> => allLoaded;
 
 function toLegacyHandle(name: string): LegacySoundHandle {
   /**
@@ -347,18 +351,18 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       console.warn("[AudioStore] setAudioModeAsync failed:", e);
     }
 
-    const prepare = async (source: any, name: string) => {
+    // A sound is usable the moment it is registered: playOneShot skips a voice that is not loaded yet (and asks for it
+    // in the background) and play() waits for its player. So registering is separate from loading.
+    const register = (source: any, name: string) => {
       GLOBAL_SOURCES[name] = source;
-      const voices = voicesOf(name);
-      for (const voice of voices) GLOBAL_SOURCES[voice] = source;
-      await Promise.all(voices.map(voice => ensurePlayer(voice)));
+      for (const voice of voicesOf(name)) GLOBAL_SOURCES[voice] = source;
       return toLegacyHandle(name);
     };
+    const load = (name: string) => Promise.all(voicesOf(name).map(voice => ensurePlayer(voice)));
 
     try {
       audioLog('init', 'start');
-      
-      // All players load at the same time (each one polls until the native engine reports it ready).
+
       const files: [string, any][] = [
         ["cover", require("../../assets/music/cover.wav")],
         ["selection", require("../../assets/music/selection.wav")],
@@ -373,11 +377,22 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["relic", require("../../assets/sfx/relic.wav")],
         ["roar", require("../../assets/sfx/roar.wav")],
       ];
-      const handles = await Promise.all(files.map(([name, source]) => prepare(source, name)));
+      const handles = files.map(([name, source]) => register(source, name));
       const p = Object.fromEntries(files.map(([name], i) => [name, handles[i]]));
 
+      // Loading 15+ native players at once (each one is a whole ExoPlayer on Android) starves a slow phone, so the
+      // first steps of a run could come late. The few sounds the first screen and the first steps need load first,
+      // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
+      // it is needed.
+      const CRITICAL = ['move', 'coin', 'attack', 'cover'];
+      const LATER = ['gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'roar', 'victory'];
+      await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
-      audioLog('init', 'ready');
+      audioLog('init', 'ready (first sounds loaded, the rest follows)');
+      allLoaded = (async () => {
+        for (const name of LATER) await load(name);
+        audioLog('init', 'all sounds loaded');
+      })();
     } catch (err) {
       console.error("Audio Engine: Init error", err);
     }
