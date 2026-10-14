@@ -131,22 +131,31 @@ const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress }: ThumbP
 
 type SwatchProps = { heroIndex: number; skin: SkinId; previewing: boolean; owned: boolean; equipped: boolean; onPress: (skin: SkinId) => void };
 
-/** One outfit in the picker: a round chip in the outfit's colour; locked ones are dim with a lock, the worn one has a check. */
+/**
+ * One outfit in the picker: a round chip in the outfit's colour with a check when it is worn. The selection ring is the
+ * border of a fixed-size wrapper (not a scale or a shadow, which Android and iOS draw differently and which made the ring
+ * spill out of the chip), so every state takes exactly the same space.
+ */
+const SWATCH = 32;
+const RING = 3;
 const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPress }: SwatchProps) => {
   const { t } = useT();
   const color = skin === "classic" ? accentOf(heroIndex) : SKIN_ACCENT[skin];
+  const box = SWATCH + (RING + 2) * 2;
   return (
     <TouchableOpacity
       onPress={() => onPress(skin)}
       activeOpacity={0.8}
-      hitSlop={{ top: 6, bottom: 6, left: 3, right: 3 }}
+      hitSlop={{ top: 4, bottom: 4, left: 2, right: 2 }}
       accessibilityRole="button"
       accessibilityState={{ selected: previewing }}
       accessibilityLabel={`${skinText(t, skin)}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
-      style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55"), borderColor: previewing ? "#fff" : "rgba(255,255,255,0.28)", borderWidth: previewing ? 3 : 1.5 }, previewing && { transform: [{ scale: 1.12 }], shadowColor: color, shadowOpacity: 0.9, shadowRadius: 8, elevation: 8 }]}
+      style={[styles.swatchRing, { width: box, height: box, borderRadius: box / 2, borderColor: previewing ? "#fff" : "transparent" }]}
     >
-      {!owned && <Ionicons name="lock-closed" size={13} color="#fff" />}
-      {equipped && <Ionicons name="checkmark" size={16} color="#111" />}
+      <View style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55") }]}>
+        {!owned && <Ionicons name="lock-closed" size={13} color="#fff" />}
+        {equipped && <Ionicons name="checkmark" size={18} color="#111" />}
+      </View>
     </TouchableOpacity>
   );
 });
@@ -632,8 +641,9 @@ const styles = StyleSheet.create({
   skinBox: { gap: 6 },
   collectionButton: { flexDirection: "row", alignItems: "center", gap: 5, minHeight: 34, paddingHorizontal: 10, borderRadius: 17, borderWidth: 1.5, backgroundColor: "rgba(255,255,255,0.05)" },
   collectionText: { fontWeight: "900", fontSize: 11, letterSpacing: 1 },
-  swatches: { flexDirection: "row", flexWrap: "wrap", gap: 10, alignItems: "center", paddingVertical: 2 },
-  swatch: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  swatches: { flexDirection: "row", flexWrap: "wrap", gap: 4, alignItems: "center", paddingVertical: 2 },
+  swatchRing: { borderWidth: RING, alignItems: "center", justifyContent: "center" },
+  swatch: { width: SWATCH, height: SWATCH, borderRadius: SWATCH / 2, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
   recordRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 2 },
   recordText: { fontWeight: "800", fontSize: 12, flexShrink: 1 },
   lockInfo: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
