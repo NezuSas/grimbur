@@ -102,3 +102,4 @@ TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of th
 
 | `src/assets/sprites/backgrounds/Bg_Crystal.jpg`, `Bg_Magma.jpg`, `Bg_Lair.jpg` | ChatGPT image generation (owner's paid plan) | Prompts in `docs/ART_NEXT.md` 2.1; resized to 1280x853 and saved as JPEG (about 270 KB each) |
 | `src/assets/sprites/tiles/Tile_Hidden_{Crystal,Magma,Lair}.png`, `Tile_Revealed_{Crystal,Magma,Lair}.png` | ChatGPT image generation (owner's paid plan) | Prompts in `docs/ART_NEXT.md` 2.2; resized to 256 px (90-130 KB each) |
+| `src/assets/sprites/tools/*.png` (Tool_Detector, Tool_Bomb, Tool_Undo, Ability_Scout, Ability_Volley, Ability_Brace, Ability_Magnet, Shop_Altar, Shop_Arrows) | ChatGPT image generation (owner's paid plan) | Prompts in `docs/ART_NEXT.md` priority 3; cropped to the subject and resized to 256 px (75-120 KB each) |

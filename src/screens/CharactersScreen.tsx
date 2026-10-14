@@ -28,7 +28,7 @@ import { cycleHero, heroLockProgress, startingHero } from "../core/stats/heroPro
 import { HEROES } from "../core/engine/heroes";
 import { abilityCooldown } from "../core/engine/shop";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
-import { ABILITY_ICONS } from "../ui/components/ToolBar";
+import { ABILITY_ART } from "../ui/toolArt";
 import { Ionicons } from "@expo/vector-icons";
 import { useT } from "../i18n/useT";
 import { heroText, unlockText } from "../i18n/keys";
@@ -513,7 +513,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={[styles.card, { borderLeftColor: accent }]}>
                   <View style={styles.abilityHead}>
                     <View style={[styles.abilityIcon, { borderColor: accent, backgroundColor: accent + "26" }]}>
-                      <Ionicons name={ABILITY_ICONS[ability]} size={Math.round(20 * Math.min(ui, 1.2))} color={accent} />
+                      <SpriteImage source={ABILITY_ART[ability]} style={{ width: styles.abilityIcon.width - 6, height: styles.abilityIcon.height - 6 }} resizeMode="contain" accessibilityIgnoresInvertColors />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   cardName: { color: "#fff", fontWeight: "900" },
   cardDesc: { color: "#d4d0e8" },
   abilityHead: { flexDirection: "row", alignItems: "center", gap: 10 },
-  abilityIcon: { width: 38, height: 38, borderRadius: 19, borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  abilityIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 
   skinBox: { gap: 6 },
   collectionButton: { flexDirection: "row", alignItems: "center", gap: 5, minHeight: 34, paddingHorizontal: 10, borderRadius: 17, borderWidth: 1.5, backgroundColor: "rgba(255,255,255,0.05)" },

@@ -3,6 +3,7 @@ import characters from '../data/characters';
 import { RELIC_IMAGES } from './relicImages';
 import { SKIN_IDS, skinArt } from '../data/skinArt';
 import { allBiomeImages } from './biomeArt';
+import { allToolImages } from './toolArt';
 
 /** Every illustration the game shows, loaded once at startup so nothing pops in later. */
 export function getPreloadImages(): ImageSourcePropType[] {
@@ -30,6 +31,7 @@ export function getPreloadImages(): ImageSourcePropType[] {
     ...heroes,
     ...outfits,
     ...allBiomeImages(),
+    ...allToolImages(),
   ];
   // Hero win/lose images repeat the standing pose; load each file once.
   return Array.from(new Set(all));
