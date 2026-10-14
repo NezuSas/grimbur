@@ -13,6 +13,8 @@ import { newUnlocks } from '../core/stats/unlocks';
 import { nextGoals, newlyAffordable } from '../core/stats/goals';
 import { AchievementId, newAchievements, rewardFor, withAchievements } from '../core/stats/achievements';
 import { UpgradeId, purchase } from '../core/stats/forge';
+import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership';
+import type { SkinId } from '../core/skins/skins';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
 
@@ -43,11 +45,14 @@ async function recordRunNow(run: RunResult) {
   const day = run.day ?? dailyKey();
   const merged = mergeRun(before, { ...run, day });
   const achievements = newAchievements(merged.stats, run);
-  const stats = withAchievements(merged.stats, achievements, day);
+  const claim = claimUnlockedSkins(withAchievements(merged.stats, achievements, day));
+  const stats = claim.stats;
   await save(stats);
   const payout = addAchievementEmbers(merged.payout, rewardFor(achievements));
   return {
     stats,
+    /** Skins unlocked by playing (their goal was just met). */
+    newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
     unlocks: newUnlocks(before, stats),
     /** Hero indices unlocked by the run (kept for callers that only care about heroes). */
@@ -68,13 +73,15 @@ async function recordDailyRunNow(run: RunResult, key: string) {
   const before = await getLocalStats();
   const merged = mergeDailyRun(before, key, { ...run, mode: 'daily', day: run.day ?? key });
   const achievements = newAchievements(merged.stats, run);
-  const stats = withAchievements(merged.stats, achievements, key);
+  const claim = claimUnlockedSkins(withAchievements(merged.stats, achievements, key));
+  const stats = claim.stats;
   await save(stats);
   const payout = addAchievementEmbers(merged.payout, rewardFor(achievements));
   const status = streakStatus(stats, key);
   const unlocks = newUnlocks(before, stats);
   return {
     stats,
+    newSkins: claim.claimed,
     achievements,
     payout,
     embers: payout.total,
@@ -106,6 +113,24 @@ export const buyUpgrade = (id: UpgradeId): Promise<{ stats: LocalStats; achievem
     const stats = withAchievements(bought, achievements, dailyKey());
     await save(stats);
     return { stats, achievements };
+  });
+
+/** Buys a hero skin with embers; resolves with the new stats, or null when it cannot be bought. */
+export const buySkinFor = (hero: number, skin: SkinId): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = buySkin(await getLocalStats(), hero, skin);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
+  });
+
+/** Wears an owned skin; resolves with the new stats, or null when the skin is not owned. */
+export const equipSkinFor = (hero: number, skin: SkinId): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = equipSkin(await getLocalStats(), hero, skin);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
   });
 
 /** Deletes everything stored on the device: progress, embers, achievements and records. */

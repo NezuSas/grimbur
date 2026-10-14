@@ -1,18 +1,20 @@
 import type { GameMode } from "../core/engine/seed";
 import type { MetaEffects } from "../core/stats/forge";
 import type { LessonId } from "../core/tutorial/lessons";
+import type { SkinId } from "../data/skinArt";
 
 export type RootStackParamList = {
   CoverScreen: undefined;
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
-  CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
-  TutorialScreen: { characterIndex?: number; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
+  CharactersScreen: { mode?: GameMode; devHero?: number; devSkin?: SkinId } | undefined;
+  TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
   LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[] };
-  GameScreen: { characterIndex?: number; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
+  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;
   LevelCompleteScreen: {
+    skin?: SkinId;
     score: number;
     level: number;
     coins: number;

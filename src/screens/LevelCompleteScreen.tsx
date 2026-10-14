@@ -13,7 +13,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import characters from "../data/characters";
+import { characterWithSkin } from "../data/characterSkins";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
@@ -26,7 +26,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const { t } = useT();
   const { score, level, coins, totalCoins, characterIndex, kills = 0, totalEnemies = 0, time = 0 } = route.params;
-  const character = characters[characterIndex] ?? characters[0];
+  const character = characterWithSkin(characterIndex, route.params.skin);
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 

@@ -2,7 +2,8 @@ import React, { memo, useCallback, useRef, useEffect, useMemo, useState } from "
 import { StyleSheet, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
-import characters from "../../data/characters";
+import { characterWithSkin } from "../../data/characterSkins";
+import type { SkinId } from "../../data/skinArt";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
@@ -46,6 +47,8 @@ type Props = {
   flagPing?: { index: number; n: number } | null;
   /** Reduced motion: no shakes, no pulsing. */
   calm?: boolean;
+  /** The outfit the hero wears (classic when omitted). */
+  skin?: SkinId;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -357,7 +360,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -500,8 +503,9 @@ const BoardView: React.FC<Props> = memo(
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
-    const idleSource = characters[characterIndex]?.playerImage;
-    const attackSource = characters[characterIndex]?.attackImage;
+    const heroArt = characterWithSkin(characterIndex, skin);
+    const idleSource = heroArt.playerImage;
+    const attackSource = heroArt.attackImage;
     const facingTile = stepTarget(playerIndex, (facingDir || 'RIGHT').toUpperCase() as Direction, rows, cols);
     const currentFacing = (facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
 

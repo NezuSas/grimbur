@@ -134,6 +134,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
     // Replace the tutorial with the real game so Back does not return to it.
     navigation.replace("GameScreen", {
       characterIndex,
+      skin: route.params?.skin,
       mode: "expedition",
       ascension: route.params?.ascension,
       meta: route.params?.meta,
@@ -149,7 +150,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
       return;
     }
     emitSound("GAME_MUSIC_START");
-    navigation.replace("GameScreen", { characterIndex, mode: "expedition", ascension: route.params?.ascension, meta: route.params?.meta });
+    navigation.replace("GameScreen", { characterIndex, skin: route.params?.skin, mode: "expedition", ascension: route.params?.ascension, meta: route.params?.meta });
   }, [stepIndex, navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 
   const highlight = step.highlight;
