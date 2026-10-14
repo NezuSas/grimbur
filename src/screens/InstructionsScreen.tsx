@@ -23,6 +23,7 @@ import { abilityCooldown, MAX_ITEMS } from "../core/engine/shop";
 import { LESSON_IDS } from "../core/tutorial/lessons";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
+import { TOOL_ART } from "../ui/toolArt";
 import ScreenHeader from "../ui/components/ScreenHeader";
 
 type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
@@ -111,6 +112,7 @@ const SECTIONS: Section[] = [
     id: "tools",
     color: "#ffd54f",
     icon: "🧰",
+    image: TOOL_ART.detector,
     rows: [
       { key: "manual.tools.shop", badgeColor: "#4fc3f7" },
       { key: "manual.tools.ability", badgeColor: "#81c784" },
