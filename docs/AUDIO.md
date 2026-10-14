@@ -45,3 +45,7 @@ Why the sound used to "disappear", and how the current design avoids it. Evidenc
 Test eight simultaneous effects for ten minutes on a low-end Android phone and an iPhone. If overlap or latency is still
 a problem, the next step is `react-native-audio-api` (decode once, one cheap node per play), which needs a development
 build and is pre-1.0.
+
+## Sound style: horror
+
+The chiptune set (`scripts/generateAudio.js`) was replaced by a dark one made by `scripts/generateHorrorAudio.py` (same file names, nothing else changes): sub drones with a beating minor second, a slow heartbeat, dripping water, wind, distant whispers, bowed creaks, glassy bells with long reverb, stone footsteps, a breathing growl for guardians and a cold, relieved victory. Loops are crossfaded so they do not click. Each file is scaled to the loudness *a phone speaker plays* (energy above 130 Hz) of the file it replaces, so the volume constants stay valid; sub-bass cannot make a track seem loud. It was verified by analysis only (levels, loop seams, spectrum): nobody has listened to it on a phone yet. Run `python scripts/generateHorrorAudio.py` to regenerate it.

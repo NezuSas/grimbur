@@ -183,7 +183,7 @@ const CoverCard: React.FC<Props> = ({
           icon="calendar"
           tint="#FF9A3C"
           title={t("cover.mode.daily")}
-          subtitle={streak > 0 ? t(dailyDone ? "cover.streak.done" : "cover.streak.risk", { count: streak }) : t("cover.mode.daily.sub")}
+          subtitle={dailyDone ? t("cover.streak.done") : streak > 0 ? t("cover.streak.risk", { count: streak }) : t("cover.mode.daily.sub")}
           onPress={onPressDaily}
           leading={<StreakBadge days={streak} doneToday={dailyDone} />}
         />

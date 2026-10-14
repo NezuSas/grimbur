@@ -9,7 +9,7 @@ clean rights. If an asset cannot be proven, replace it.
 
 ## Audio (`src/assets/music`, `src/assets/sfx`)
 
-**Original and license-free.** Every sound and music loop is synthesised from scratch by `scripts/generateAudio.js`
+**Original and license-free.** Every sound and music loop is synthesised from scratch by `scripts/generateHorrorAudio.py` (the current horror set; the earlier chiptune set came from `scripts/generateAudio.js`)
 (chiptune oscillators and noise, no samples). Re-run it with `node scripts/generateAudio.js`; the output is
 deterministic. Edit the script to retune any sound. The previous MP3 files (unknown provenance) were removed; they are
 still in git history (commit 1ddb572) if you ever want to compare.
