@@ -15,7 +15,7 @@ export function getPreloadImages(): ImageSourcePropType[] {
     require('../assets/sprites/items/Icon_Gem.png'),
     require('../assets/sprites/items/Icon_Shield.png'),
     require('../assets/sprites/items/Icon_Arrows.png'),
-    ...Object.values(RELIC_IMAGES),
+    ...Object.values(RELIC_IMAGES).filter((source): source is NonNullable<typeof source> => source != null),
     ...heroes,
   ];
   // Hero win/lose images repeat the standing pose; load each file once.

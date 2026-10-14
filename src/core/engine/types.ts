@@ -3,13 +3,18 @@ import { GameMode } from './seed';
 import { HeroPerks } from './heroes';
 import { RelicId } from './relics';
 import type { MetaEffects } from '../stats/forge';
+import type { OmenId } from './omens';
+import type { ShopItem } from './shop';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper';
 
 /** Entities that kill the player on contact. */
-export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker'];
+export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper'];
+
+/** Guardians an arrow, a volley or a bomb can destroy (the Wumpus is handled apart). */
+export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleeper'];
 
 /** Monsters that walk toward the player (they wind up before striking). */
 export const HUNTER_TYPES: readonly EntityType[] = ['boss', 'stalker'];
@@ -72,13 +77,43 @@ export interface GameState {
   isVictory: boolean;
   /** Set for one move when the player stepped on a trap or collected a power-up. */
   lastPickup: PickupKind | null;
+  /** Gems collected this run and not yet spent in the shop between floors. */
+  gems: number;
+  /** One-use items in the bag. */
+  items: { detector: number; bomb: number };
+  /** Actions left until the hero's ability is ready again (0 = ready). */
+  abilityCd: number;
+  /** The omen of the current floor (chosen at the fork, or seeded in the daily). */
+  omen: OmenId | null;
+  /** Tiles the detector proved hostile on this floor (the screen shows them as flags). */
+  marked: number[];
+  /** Arrows bought in the shop for the next floor. */
+  pendingArrows: number;
+  /** The altar was used: after the next draft a second one opens. */
+  altarPending: boolean;
+  /** The altar can be used once between floors. */
+  altarUsed: boolean;
+  /** The board just before the last step, so one step per floor can be taken back. */
+  undo: UndoSnapshot | null;
+  undoUsed: boolean;
 }
+
+/** What taking a step back restores. */
+export type UndoSnapshot = Omit<GameState, 'undo'>;
 
 export type GameAction =
   | { type: 'MOVE'; direction: Direction }
   /** Shoots; with a `direction` the hero first turns that way (no step), otherwise it fires where it faces. */
   | { type: 'ATTACK'; direction?: Direction }
   | { type: 'PICK_RELIC'; id: RelicId }
+  /** Spends gems in the shop (only between floors). */
+  | { type: 'BUY'; item: ShopItem }
+  /** Sacrifices the shield at the altar for an extra relic draft (only between floors). */
+  | { type: 'ALTAR' }
+  | { type: 'USE_ITEM'; item: 'detector' | 'bomb' }
+  | { type: 'USE_ABILITY' }
+  /** Takes back the last step (once per floor). */
+  | { type: 'UNDO' }
   | {
       type: 'RESET';
       character: Character;
@@ -107,6 +142,7 @@ export type GameAction =
         coins: number;
         attack: number;
         seed?: number;
+        omen?: OmenId | null;
       };
     };
 
@@ -116,6 +152,11 @@ export interface GameEngineInterface {
   move: (direction: Direction) => void;
   attack: (direction?: Direction) => void;
   reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects }) => void;
-  levelUp: () => void;
+  levelUp: (omen?: OmenId | null) => void;
+  buy: (item: ShopItem) => void;
+  useAltar: () => void;
+  useItem: (item: 'detector' | 'bomb') => void;
+  useAbility: () => void;
+  undo: () => void;
   pickRelic: (id: RelicId) => void;
 }

@@ -14,7 +14,7 @@ function neighbours(index: number, rows: number, cols: number): number[] {
 }
 
 /** Hazards the clue numbers count: guardians and vortexes. Roaming stalkers are ignored (they move). */
-const isClueHazard = (type: string) => type === 'enemy' || type === 'pit' || type === 'boss';
+const isClueHazard = (type: string) => type === 'enemy' || type === 'pit' || type === 'boss' || type === 'sleeper';
 
 /**
  * Can a careful player collect every gem using only the clue numbers (Minesweeper-style deduction),

@@ -6,11 +6,13 @@ import { Character } from '../../data/characters';
 import { generateBoard } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
-import { omenFor } from './omens';
+import { omenFor, OmenId } from './omens';
+import { biomeFor } from './biomes';
+import { ShopItem } from './shop';
 import { isLairFloor, lairHeartBonus } from './lair';
 import { getHeroPerks } from './heroes';
 import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
-import { RelicId } from './relics';
+import { RelicId, relicCount } from './relics';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
@@ -150,7 +152,7 @@ export function useGameEngine(): GameEngineInterface {
     const perks = applyMeta(getHeroPerks(options.heroIndex ?? 0), meta);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), endless: mode === 'endless' });
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), endless: mode === 'endless', biome: biomeFor(1, mode) });
 
     pureDispatch({
       type: 'RESET',
@@ -171,14 +173,18 @@ export function useGameEngine(): GameEngineInterface {
     });
   }, [pureDispatch]);
 
-  const levelUp = useCallback(() => {
+  const levelUp = useCallback((chosenOmen?: OmenId | null) => {
     const nextLevel = stateRef.current.level + 1;
+    // The omen is the one picked at the fork; without a choice (daily, first fork-less floors) the seeded one applies.
+    const omen = chosenOmen !== undefined ? chosenOmen : omenFor(stateRef.current.runSeed, nextLevel, stateRef.current.mode);
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
     const ascension = stateRef.current.ascension;
     const board = generateBoard(nextLevel, seed, {
       boss: isBossFloor(stateRef.current.mode, nextLevel),
       ascension,
-      omen: omenFor(stateRef.current.runSeed, nextLevel, stateRef.current.mode),
+      omen,
+      biome: biomeFor(nextLevel, stateRef.current.mode),
+      extraPits: relicCount(stateRef.current.relics, 'greedy_idol') > 0 ? 2 : 0,
       bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),
       endless: stateRef.current.mode === 'endless',
     });
@@ -192,9 +198,16 @@ export function useGameEngine(): GameEngineInterface {
         coins: board.coins,
         attack: Math.max(1, board.attack - modifiersFor(ascension).arrowPenalty),
         seed,
+        omen,
       },
     });
   }, [pureDispatch]);
+
+  const buy = useCallback((item: ShopItem) => pureDispatch({ type: 'BUY', item }), [pureDispatch]);
+  const useAltar = useCallback(() => pureDispatch({ type: 'ALTAR' }), [pureDispatch]);
+  const useItem = useCallback((item: 'detector' | 'bomb') => pureDispatch({ type: 'USE_ITEM', item }), [pureDispatch]);
+  const useAbility = useCallback(() => pureDispatch({ type: 'USE_ABILITY' }), [pureDispatch]);
+  const undo = useCallback(() => pureDispatch({ type: 'UNDO' }), [pureDispatch]);
 
   const pickRelic = useCallback((id: RelicId) => {
     pureDispatch({ type: 'PICK_RELIC', id });
@@ -208,5 +221,10 @@ export function useGameEngine(): GameEngineInterface {
     reset,
     levelUp,
     pickRelic,
+    buy,
+    useAltar,
+    useItem,
+    useAbility,
+    undo,
   };
 }

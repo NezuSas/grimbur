@@ -16,7 +16,11 @@ export type RelicId =
   | 'bulwark'
   | 'greed'
   | 'frost'
-  | 'trap_sense';
+  | 'trap_sense'
+  | 'blood_pact'
+  | 'hasty_boots'
+  | 'greedy_idol'
+  | 'glass_bow';
 
 export interface RelicInfo {
   id: RelicId;
@@ -25,6 +29,8 @@ export interface RelicInfo {
   icon: string;
   /** How many copies a run can hold. */
   max: number;
+  /** Cursed relics give power and take something back; a run holds at most one. */
+  cursed?: boolean;
 }
 
 export const RELICS: Record<RelicId, RelicInfo> = {
@@ -105,9 +111,47 @@ export const RELICS: Record<RelicId, RelicInfo> = {
     icon: '🪤',
     max: 1,
   },
+  blood_pact: {
+    id: 'blood_pact',
+    name: 'Blood Pact',
+    description: 'Gems are worth 50% more, but every floor starts with one arrow less (at least one).',
+    icon: '🩸',
+    max: 1,
+    cursed: true,
+  },
+  hasty_boots: {
+    id: 'hasty_boots',
+    name: 'Hasty Boots',
+    description: 'Exploring a new tile pays triple, but hunters act one action sooner.',
+    icon: '⚡',
+    max: 1,
+    cursed: true,
+  },
+  greedy_idol: {
+    id: 'greedy_idol',
+    name: 'Greedy Idol',
+    description: 'Every gem is worth double in the shop, but each new floor gains two more vortexes.',
+    icon: '🗿',
+    max: 1,
+    cursed: true,
+  },
+  glass_bow: {
+    id: 'glass_bow',
+    name: 'Glass Bow',
+    description: 'Arrows fly two tiles farther, but every floor starts with half the arrows (at least one).',
+    icon: '🔮',
+    max: 1,
+    cursed: true,
+  },
 };
 
 export const ALL_RELICS = Object.keys(RELICS) as RelicId[];
+/** Relics that can appear in a normal draft. */
+export const NORMAL_RELICS = ALL_RELICS.filter(id => !RELICS[id].cursed);
+export const CURSED_RELICS = ALL_RELICS.filter(id => RELICS[id].cursed);
+
+/** True when the run already carries a cursed relic. */
+export const hasCursed = (relics: readonly RelicId[]): boolean => relics.some(id => RELICS[id].cursed);
 
 export const relicCount = (relics: readonly RelicId[], id: RelicId): number =>
   relics.reduce((n, r) => (r === id ? n + 1 : n), 0);
@@ -117,6 +161,9 @@ export const removeRelic = (relics: readonly RelicId[], id: RelicId): RelicId[] 
   const at = relics.indexOf(id);
   return at === -1 ? [...relics] : [...relics.slice(0, at), ...relics.slice(at + 1)];
 };
+
+/** Chance that a draft (from floor 3) includes one cursed relic. */
+export const CURSED_CHANCE = 0.4;
 
 /**
  * Picks `count` different relics the player can still take. Deterministic for a
@@ -128,7 +175,7 @@ export function draftRelics(
   owned: readonly RelicId[],
   count = 3,
 ): RelicId[] {
-  const pool = ALL_RELICS.filter(id => relicCount(owned, id) < RELICS[id].max);
+  const pool = NORMAL_RELICS.filter(id => relicCount(owned, id) < RELICS[id].max);
   const next = createPRNG(deriveLevelSeed(runSeed, 1000 + floor));
   next(); // discard the weakly-mixed first sample
 
@@ -136,6 +183,15 @@ export function draftRelics(
   while (picks.length < count && pool.length > 0) {
     const at = Math.floor(next() * pool.length);
     picks.push(pool.splice(at, 1)[0]);
+  }
+
+  // From the third floor a cursed relic sometimes takes the last slot (never when the run already has one).
+  if (floor >= 3 && picks.length >= 2 && !hasCursed(owned)) {
+    const cursedRoll = createPRNG(deriveLevelSeed(runSeed, 3000 + floor));
+    cursedRoll();
+    if (cursedRoll() < CURSED_CHANCE) {
+      picks[picks.length - 1] = CURSED_RELICS[Math.floor(cursedRoll() * CURSED_RELICS.length)];
+    }
   }
   return picks;
 }

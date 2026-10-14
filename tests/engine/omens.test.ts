@@ -77,7 +77,7 @@ describe('bounty gems pay more', () => {
       runSeed,
       perks: NO_PERKS,
     });
-    const onBounty = { ...state, level: 3 };
+    const onBounty = { ...state, level: 3, omen: 'bounty' as const };
     const after = gameReducer(onBounty, { type: 'MOVE', direction: 'RIGHT' });
     const gained = after.score - onBounty.score;
     const base = coinReward(3, 1.5, 0);

@@ -49,6 +49,12 @@ export const GAME_CONFIG = {
     minFloor: 7,
   },
 
+  /** Sleeping guardians: still until the player comes this close, then they hunt like stalkers. */
+  sleeper: {
+    minFloor: 5,
+    wakeDistance: 2,
+  },
+
   pickups: {
     /** Arrows granted by an ammo pickup. */
     ammoAmount: 2,

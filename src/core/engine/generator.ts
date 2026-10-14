@@ -3,6 +3,7 @@ import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { modifiersFor } from './ascension';
 import { OmenId, omenEffects } from './omens';
+import { BiomeId, BIOMES } from './biomes';
 import { endlessPressure } from './lair';
 import { isSolvableByDeduction } from './solver';
 import { GameEntity, EntityType } from './types';
@@ -55,6 +56,10 @@ export interface GenerateOptions {
   bossHeartBonus?: number;
   /** Past the designed floors the endless descent adds more guardians and vortexes. */
   endless?: boolean;
+  /** The cave the floor belongs to; each one brings a small rule (see biomes.ts). */
+  biome?: BiomeId;
+  /** Vortexes added on top of the floor's budget (the Greedy Idol curse). */
+  extraPits?: number;
 }
 
 export function generateBoard(
@@ -66,6 +71,7 @@ export function generateBoard(
   const mods = modifiersFor(options.ascension ?? 0);
   const diff = getDifficulty(level);
   const omen = omenEffects(options.omen);
+  const biome = BIOMES[options.biome ?? 'cave'];
   const prng = createPRNG(seed);
   const totalCells = diff.rows * diff.cols;
 
@@ -84,7 +90,7 @@ export function generateBoard(
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
   const pressure = options.endless ? endlessPressure(level) : { enemies: 0, pits: 0 };
   let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + pressure.enemies);
-  let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits);
+  let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits + biome.extraPits + (options.extraPits ?? 0));
 
   let entities: GameEntity[] = [];
 
@@ -129,6 +135,12 @@ export function generateBoard(
       return neighborCount < 2;
     });
 
+    // 1a. From the fifth floor one guardian sleeps: it stands still until the player comes close.
+    if (level >= GAME_CONFIG.sleeper.minFloor && !withBoss) {
+      const sleepers = entities.filter(e => e.type === 'enemy');
+      if (sleepers.length >= 2) sleepers[sleepers.length - 1].type = 'sleeper';
+    }
+
     // 1b. Stalkers (roaming guardians)
     placeEntities(Math.max(diff.stalkers, (options.ascension ?? 0) >= 2 && level >= mods.stalkerFloor ? 1 : 0), 'stalker');
 
@@ -140,12 +152,12 @@ export function generateBoard(
 
     // 4. Optional extras (never lethal, so they don't affect solvability)
     placeEntities(diff.traps + (level >= 3 ? mods.extraTraps : 0), 'trap');
-    placeEntities(diff.shields, 'shield');
-    placeEntities(diff.ammoPickups, 'ammo');
+    placeEntities(diff.shields + biome.extraShields, 'shield');
+    placeEntities(diff.ammoPickups + biome.extraAmmo, 'ammo');
 
     // 5. Every coin must be reachable without crossing a lethal tile.
     const coinIndices = entities.filter(e => e.type === 'coin').map(e => e.index);
-    const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy' || e.type === 'stalker').map(e => e.index);
+    const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy' || e.type === 'stalker' || e.type === 'sleeper').map(e => e.index);
     const gemsReachable = validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols);
     // On the lair floor the Wumpus must be reachable too (guardians in the way can be shot, vortexes cannot).
     const bossEntity = entities.find(e => e.type === 'boss');
