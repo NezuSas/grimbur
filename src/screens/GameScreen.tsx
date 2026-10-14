@@ -37,6 +37,7 @@ import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
+import { recordLatency } from "../audio/audioDiagnostics";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { bossHearts, countGuardians } from "../core/engine/entityCounts";
@@ -692,7 +693,11 @@ export default function GameScreen({ navigation, route }: Props) {
     // A plain step (not a gem, not a floor change, not an undo, which makes its own sound).
     if (sameFloor && state.turn > prev.turn && state.playerIndex !== prev.playerIndex && !state.isGameOver && !state.isLevelUp && !has("coin")) {
       // Already sounded at input time (see manualMove) for a tap; travelled and other steps sound here.
-      if (Date.now() - stepSoundedAt.current > 400) emitSound("MOVE");
+      const sinceTap = Date.now() - stepSoundedAt.current;
+      if (sinceTap > 400) emitSound("MOVE");
+      // How long the board took to react to the tap: JS is busy for that long right after every step (it is what delays
+      // the native "playing" notification of the step sound in the audio log, not the sound itself).
+      else recordLatency("step>render", sinceTap);
     }
     justLeveledUp.current = false;
 
