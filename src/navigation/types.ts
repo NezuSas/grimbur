@@ -10,7 +10,7 @@ export type RootStackParamList = {
   CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
-  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[] };
+  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[] };
   GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;
