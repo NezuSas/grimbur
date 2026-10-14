@@ -4,6 +4,8 @@ import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { characterWithSkin } from "../../data/characterSkins";
 import type { SkinId } from "../../data/skinArt";
+import { BIOME_ART } from "../biomeArt";
+import type { BiomeId } from "../../core/engine/biomes";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
@@ -49,9 +51,11 @@ type Props = {
   calm?: boolean;
   /** The outfit the hero wears (classic when omitted). */
   skin?: SkinId;
+  /** The cave type of this floor (the plain cave when omitted). */
+  biome?: BiomeId;
 };
 
-const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
+const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
   stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
   sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
@@ -60,8 +64,6 @@ const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" |
   shield:   require("../../assets/sprites/items/Icon_Shield.png"),
   ammo:     require("../../assets/sprites/items/Icon_Arrows.png"),
   coin:     require("../../assets/sprites/items/Icon_Gem.png"),
-  block:    require("../../assets/sprites/tiles/Tile_Revealed.png"),
-  blockFog: require("../../assets/sprites/tiles/Tile_Hidden.png"),
 };
 
 const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };
@@ -75,7 +77,7 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay, pulse, killer, flagPing
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome
 }: {
   index: number;
   tileSize: number;
@@ -104,6 +106,8 @@ const GridCell = memo(({
   killer: boolean;
   /** Changes every time a step onto this flagged tile is refused (0 = never). */
   flagPing: number;
+  /** The cave type of the floor: it decides which pair of tiles is drawn. */
+  biome: BiomeId;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   const [isVisited, setShown] = useState(visitedProp);
@@ -168,7 +172,7 @@ const GridCell = memo(({
   }, [isVisited]);
 
   // Background priority: visited block > fog
-  let backgroundAsset = (isVisited || isPlayerHere) ? ASSETS.block : ASSETS.blockFog;
+  const backgroundAsset = (isVisited || isPlayerHere) ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
 
   const row = Math.floor(index / cols);
   const col = index % cols;
@@ -362,7 +366,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -544,6 +548,7 @@ const BoardView: React.FC<Props> = memo(
                   pulse={pulse}
                   killer={killerTile === i}
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
+                  biome={biome}
                   revealDelay={burst ? Math.min(900, 70 * (Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );

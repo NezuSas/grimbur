@@ -254,6 +254,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             isAttacking={isAttacking}
             highlight={step.highlight}
             flags={flags}
+            biome={__DEV__ ? route.params.devBiome : undefined}
             onTileLongPress={toggleFlag}
           />
           <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>

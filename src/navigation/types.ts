@@ -10,8 +10,9 @@ export type RootStackParamList = {
   CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
-  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[] };
-  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
+  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[]; devBiome?: "cave" | "crystal" | "magma" | "lair" };
+  /** `devBiome`: development only, draws the floor as that cave type (for screenshots). */
+  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; devBiome?: "cave" | "crystal" | "magma" | "lair" } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;
   LevelCompleteScreen: {

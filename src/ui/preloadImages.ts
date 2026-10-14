@@ -2,6 +2,7 @@ import type { ImageSourcePropType } from 'react-native';
 import characters from '../data/characters';
 import { RELIC_IMAGES } from './relicImages';
 import { SKIN_IDS, skinArt } from '../data/skinArt';
+import { allBiomeImages } from './biomeArt';
 
 /** Every illustration the game shows, loaded once at startup so nothing pops in later. */
 export function getPreloadImages(): ImageSourcePropType[] {
@@ -28,6 +29,7 @@ export function getPreloadImages(): ImageSourcePropType[] {
     ...Object.values(RELIC_IMAGES).filter((source): source is NonNullable<typeof source> => source != null),
     ...heroes,
     ...outfits,
+    ...allBiomeImages(),
   ];
   // Hero win/lose images repeat the standing pose; load each file once.
   return Array.from(new Set(all));
