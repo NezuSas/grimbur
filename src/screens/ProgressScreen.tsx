@@ -11,19 +11,75 @@ import { RootStackParamList } from "../navigation/types";
 import { useGameLayout } from "../ui/layout/useGameLayout";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { chartRuns, playedDays, recentList, trendOf, winRate } from "../core/stats/progress";
-import { ACHIEVEMENTS } from "../core/stats/achievements";
+import { ACHIEVEMENTS, AchievementTier } from "../core/stats/achievements";
+import { UPGRADES } from "../core/stats/forge";
+import { MAX_ASCENSION } from "../core/engine/ascension";
+import { GAME_CONFIG } from "../config/gameConfig";
 import { dailyKey } from "../core/engine/seed";
 import { getLocalStats } from "../services/localStats";
 import characters from "../data/characters";
 import { useT } from "../i18n/useT";
 import { achievementText, heroText } from "../i18n/keys";
+import type { TranslationKey } from "../i18n/en";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProgressScreen">;
 
 const GOLD = "#F2C14E";
-const CHART_HEIGHT = 120;
+const TIER_COLOR: Record<AchievementTier, string> = { easy: "#A5D6A7", medium: "#90CAF9", hard: "#FFAB91", legend: "#CE93D8" };
+const TIERS: AchievementTier[] = ["easy", "medium", "hard", "legend"];
+const CHART_HEIGHT = 110;
 /** A trend chart says nothing with fewer runs than this. */
 const CHART_MIN_RUNS = 5;
+
+/** A framed block with an icon, a title and a big number: the building piece of this screen. */
+const Card = ({
+  icon,
+  tint,
+  title,
+  value,
+  caption,
+  basis,
+  children,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  tint: string;
+  title: string;
+  value?: string;
+  caption?: string;
+  basis: string;
+  children?: React.ReactNode;
+}) => (
+  <View style={[styles.card, { flexBasis: basis as `${number}%` }]} accessible accessibilityLabel={`${title}${value ? `: ${value}` : ""}${caption ? `. ${caption}` : ""}`}>
+    <View style={styles.cardHead}>
+      <View style={[styles.cardIcon, { backgroundColor: tint + "26", borderColor: tint + "99" }]}>
+        <Ionicons name={icon} size={18} color={tint} />
+      </View>
+      <Text style={styles.cardTitle} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+        {title.toLocaleUpperCase()}
+      </Text>
+    </View>
+    {value ? (
+      <Text style={styles.cardValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+        {value}
+      </Text>
+    ) : null}
+    {children}
+    {caption ? (
+      <Text style={styles.cardCaption} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+        {caption}
+      </Text>
+    ) : null}
+  </View>
+);
+
+/** A row of steps, the first `filled` of them lit. */
+const Steps = ({ total, filled, color }: { total: number; filled: number; color: string }) => (
+  <View style={styles.steps}>
+    {Array.from({ length: total }, (_, i) => (
+      <View key={i} style={[styles.step, i < filled && { backgroundColor: color }]} />
+    ))}
+  </View>
+);
 
 const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
@@ -41,13 +97,21 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   const runs = chartRuns(stats.history);
   const best = Math.max(0, ...runs.map(r => r.score));
   const trend = trendOf(runs);
-  const list = recentList(stats.history, 8);
+  const list = recentList(stats.history, 6);
   const days = playedDays(stats.history, today, 14);
   const stored = stats.history.length;
   const olderGames = Math.max(0, stats.gamesPlayed - stored);
-  const firstStored = stats.history[0]?.day;
 
-  // The achievement that is closest to done: a real, honest next target.
+  const floors = GAME_CONFIG.expedition.floors;
+  const unlocked = Object.keys(stats.achievements).length;
+  const forgeTotal = UPGRADES.reduce((n, u) => n + u.costs.length, 0);
+  const forgeBought = Object.values(stats.forge).reduce((n, l) => n + l, 0);
+  const tierCounts = TIERS.map(tier => ({
+    tier,
+    total: ACHIEVEMENTS.filter(a => a.tier === tier).length,
+    done: ACHIEVEMENTS.filter(a => a.tier === tier && a.id in stats.achievements).length,
+  }));
+
   const next = useMemo(() => {
     const open = ACHIEVEMENTS.filter(a => !(a.id in stats.achievements) && a.progress)
       .map(a => ({ a, p: a.progress!(stats) }))
@@ -58,21 +122,9 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const pageWidth = Math.min(usable, 1000);
-  const wide = pageWidth >= 640;
+  const cols = pageWidth >= 760 ? 3 : pageWidth >= 480 ? 2 : 1;
+  const basis = cols === 3 ? "32%" : cols === 2 ? "48.5%" : "100%";
   const maxWins = Math.max(1, ...stats.heroWins);
-
-  const lifetime: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; tint: string }[] = [
-    { icon: "game-controller", label: t("progress.runs"), value: String(stats.gamesPlayed), tint: "#90CAF9" },
-    { icon: "trophy", label: t("progress.wins"), value: String(stats.victories), tint: GOLD },
-    { icon: "stats-chart", label: t("progress.winRate"), value: `${winRate(stats.victories, stats.gamesPlayed)}%`, tint: "#9ee37d" },
-    { icon: "ribbon", label: t("progress.bestScore"), value: stats.bestScore.toLocaleString(), tint: "#FFAB40" },
-    { icon: "arrow-down-circle", label: t("progress.floor"), value: String(stats.bestLevel), tint: "#CE93D8" },
-    { icon: "infinite", label: t("progress.endless"), value: String(stats.bestEndlessFloor), tint: "#B39DDB" },
-    { icon: "diamond", label: t("progress.gems"), value: stats.totalGems.toLocaleString(), tint: "#4FC3F7" },
-    { icon: "bonfire", label: t("progress.streak"), value: String(stats.streak), tint: "#FF7043" },
-  ];
-
-  const heroOf = (i: number) => characters[i] ?? characters[0];
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
@@ -80,25 +132,10 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
         <ScreenHeader title={t("progress.title")} onBack={() => navigation.goBack()} />
         <ScrollView
           style={{ alignSelf: "center", width: pageWidth }}
-          contentContainerStyle={{ padding: 8, paddingBottom: 24 + insets.bottom, gap: 12 }}
+          contentContainerStyle={{ padding: 8, paddingBottom: 24 + insets.bottom, gap: 10 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* 1. Lifetime numbers: exact for every game ever played, so they lead */}
-          <View style={styles.grid}>
-            {lifetime.map(tile => (
-              <View key={tile.label} style={[styles.tile, { flexBasis: wide ? "23%" : "47%" }]} accessible accessibilityLabel={`${tile.label}: ${tile.value}`}>
-                <Ionicons name={tile.icon} size={20} color={tile.tint} />
-                <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                  {tile.value}
-                </Text>
-                <Text style={styles.tileLabel} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                  {tile.label}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* 2. Next goal */}
+          {/* The goal first: what to do next */}
           {next && (
             <View style={styles.next} accessible accessibilityLabel={`${achievementText(t, next.a.id, "name")}. ${next.p.current}/${next.p.target}`}>
               <Text style={styles.nextIcon}>{next.a.icon}</Text>
@@ -119,118 +156,150 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
             </View>
           )}
 
-          {/* 3. The runs themselves */}
+          {/* Everything below fills from the lifetime counters, so it is never empty or misleading */}
+          <View style={styles.grid}>
+            <Card icon="arrow-down-circle" tint="#CE93D8" title={t("progress.floor")} value={`${stats.bestLevel}/${floors}`} basis={basis} caption={t("progress.floorCaption")}>
+              <Steps total={floors} filled={Math.min(stats.bestLevel, floors)} color="#CE93D8" />
+            </Card>
+
+            <Card icon="trophy" tint={GOLD} title={t("progress.wins")} value={String(stats.victories)} basis={basis} caption={t("progress.winRateCaption", { rate: winRate(stats.victories, stats.gamesPlayed), runs: stats.gamesPlayed })}>
+              <View style={styles.track}>
+                <View style={[styles.fill, { width: `${winRate(stats.victories, stats.gamesPlayed)}%`, backgroundColor: GOLD }]} />
+              </View>
+            </Card>
+
+            <Card icon="flame" tint="#FF9A5C" title={t("difficulty.title")} value={t(`ascension.label.${stats.maxAscension}` as TranslationKey)} basis={basis} caption={t("progress.difficultyCaption", { n: stats.maxAscension + 1, max: MAX_ASCENSION + 1 })}>
+              <Steps total={MAX_ASCENSION + 1} filled={stats.maxAscension + 1} color="#FF9A5C" />
+            </Card>
+
+            <Card icon="ribbon" tint="#90CAF9" title={t("ach.title")} value={`${unlocked}/${ACHIEVEMENTS.length}`} basis={basis}>
+              <View style={styles.track}>
+                <View style={[styles.fill, { width: `${Math.round((unlocked / ACHIEVEMENTS.length) * 100)}%` }]} />
+              </View>
+              <View style={styles.tiers}>
+                {tierCounts.map(c => (
+                  <View key={c.tier} style={styles.tierItem}>
+                    <View style={[styles.tierDot, { backgroundColor: TIER_COLOR[c.tier] }]} />
+                    <Text style={styles.tierText} maxFontSizeMultiplier={1.1}>
+                      {c.done}/{c.total}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+
+            <Card icon="hammer" tint="#FFAB40" title={t("cover.forge")} value={`${forgeBought}/${forgeTotal}`} basis={basis} caption={t("progress.forgeCaption", { embers: stats.lifetimeEmbers.toLocaleString() })}>
+              <View style={styles.track}>
+                <View style={[styles.fill, { width: `${Math.round((forgeBought / forgeTotal) * 100)}%`, backgroundColor: "#FFAB40" }]} />
+              </View>
+            </Card>
+
+            <Card icon="bonfire" tint="#FF7043" title={t("progress.streak")} value={String(stats.streak)} basis={basis} caption={t("progress.calendar")}>
+              <View style={styles.calendar}>
+                {days.map(d => (
+                  <View key={d.day} style={[styles.day, d.played && styles.dayOn, d.day === today && styles.dayToday]} />
+                ))}
+              </View>
+            </Card>
+
+            <Card icon="people" tint="#9ee37d" title={t("progress.heroes")} basis="100%">
+              <View style={styles.heroes}>
+                {characters.map((c, i) => {
+                  const wins = stats.heroWins[i] ?? 0;
+                  const used = stats.heroesUsed.includes(i);
+                  return (
+                    <View key={i} style={styles.hero} accessible accessibilityLabel={`${heroText(t, i, "name")}: ${wins}`}>
+                      <View style={[styles.heroFrame, wins > 0 && { borderColor: GOLD }, !used && { opacity: 0.35 }]}>
+                        <SpriteImage source={c.scoreImage} style={styles.heroIcon} accessibilityIgnoresInvertColors />
+                        {wins > 0 && (
+                          <View style={styles.heroBadge}>
+                            <Text style={styles.heroBadgeText} maxFontSizeMultiplier={1.1}>
+                              {wins}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.heroName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                        {heroText(t, i, "name")}
+                      </Text>
+                      <View style={styles.heroTrack}>
+                        <View style={[styles.heroFill, { width: `${Math.round((wins / maxWins) * 100)}%` }]} />
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </Card>
+          </View>
+
+          {/* Run by run: this is the part that only fills as runs are recorded */}
           <View style={styles.panel}>
             <Text style={styles.panelTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
               {t("progress.recent").toLocaleUpperCase()}
             </Text>
             {list.length === 0 ? (
               <Text style={styles.empty} maxFontSizeMultiplier={1.2}>
-                {t("progress.recent.empty")}
+                {olderGames > 0 ? t("progress.earlier", { count: olderGames }) : t("progress.recent.empty")}
               </Text>
             ) : (
-              list.map((r, i) => {
-                const modeIcon = r.mode === "daily" ? "calendar" : r.mode === "endless" ? "infinite" : "compass";
-                return (
-                  <View key={i} style={styles.runRow} accessible accessibilityLabel={`${r.day}. ${r.victory ? t("progress.legend.win") : t("progress.legend.run")}. ${t("scores.floorShort", { n: r.level })}. ${r.score}`}>
-                    <View style={[styles.result, r.victory ? styles.resultWin : styles.resultLoss]}>
-                      <Ionicons name={r.victory ? "trophy" : "close"} size={16} color={r.victory ? "#1a1030" : "#d8d2f0"} />
+              <>
+                {list.map((r, i) => {
+                  const modeIcon = r.mode === "daily" ? "calendar" : r.mode === "endless" ? "infinite" : "compass";
+                  return (
+                    <View key={i} style={styles.runRow} accessible accessibilityLabel={`${r.day}. ${r.victory ? t("progress.legend.win") : t("progress.legend.run")}. ${t("scores.floorShort", { n: r.level })}. ${r.score}`}>
+                      <View style={[styles.result, r.victory ? styles.resultWin : styles.resultLoss]}>
+                        <Ionicons name={r.victory ? "trophy" : "close"} size={16} color={r.victory ? "#1a1030" : "#d8d2f0"} />
+                      </View>
+                      <Ionicons name={modeIcon} size={16} color="#a8a2c4" />
+                      <Text style={styles.runFloor} maxFontSizeMultiplier={1.2}>
+                        {t("scores.floorShort", { n: r.level })}
+                      </Text>
+                      <Text style={styles.runDay} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                        {r.day}
+                      </Text>
+                      <View style={{ flex: 1 }} />
+                      {r.best && <Ionicons name="star" size={16} color={GOLD} />}
+                      <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
+                        {r.mode === "endless" ? "∞" : r.score.toLocaleString()}
+                      </Text>
                     </View>
-                    <Ionicons name={modeIcon} size={16} color="#a8a2c4" />
-                    <Text style={styles.runFloor} maxFontSizeMultiplier={1.2}>
-                      {t("scores.floorShort", { n: r.level })}
-                    </Text>
-                    <Text style={styles.runDay} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                      {r.day}
-                    </Text>
-                    <View style={{ flex: 1 }} />
-                    {r.best && <Ionicons name="star" size={16} color={GOLD} />}
-                    <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
-                      {r.mode === "endless" ? "∞" : r.score.toLocaleString()}
-                    </Text>
-                  </View>
-                );
-              })
+                  );
+                })}
+                {olderGames > 0 && (
+                  <Text style={styles.note} maxFontSizeMultiplier={1.2}>
+                    {t("progress.since", { date: stats.history[0]?.day ?? today, count: olderGames })}
+                  </Text>
+                )}
+              </>
             )}
-            {/* Honest about what is stored */}
-            {olderGames > 0 && stored > 0 && (
-              <Text style={styles.note} maxFontSizeMultiplier={1.2}>
-                {t("progress.since", { date: firstStored ?? today, count: olderGames })}
-              </Text>
-            )}
-            {olderGames > 0 && stored === 0 && (
-              <Text style={styles.note} maxFontSizeMultiplier={1.2}>
-                {t("progress.earlier", { count: olderGames })}
-              </Text>
-            )}
-          </View>
 
-          {/* 4. Days played (fixed slots; untracked days stay blank) */}
-          <View style={styles.panel}>
-            <Text style={styles.panelTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
-              {t("progress.calendar").toLocaleUpperCase()}
-            </Text>
-            <View style={styles.calendar} accessible accessibilityLabel={`${t("progress.calendar")}: ${days.filter(d => d.played).length}/${days.length}`}>
-              {days.map(d => (
-                <View key={d.day} style={[styles.day, d.played && styles.dayOn, d.day === today && styles.dayToday]} />
-              ))}
-            </View>
-          </View>
-
-          {/* 5. Trend: only with enough runs to mean something, from zero, with the best as a reference */}
-          {runs.length >= CHART_MIN_RUNS && best > 0 ? (
-            <View style={styles.panel}>
-              <Text style={styles.panelTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
-                {t("progress.trend").toLocaleUpperCase()}
-              </Text>
-              <View style={[styles.chart, { height: CHART_HEIGHT }]} accessible accessibilityLabel={`${t("progress.trend")}: ${runs.map(r => r.score).join(", ")}`}>
-                <View style={styles.bestLine} pointerEvents="none" />
-                {runs.map((r, i) => (
-                  <View key={i} style={styles.barSlot}>
-                    <View style={[styles.bar, { height: Math.max(6, (r.score / best) * (CHART_HEIGHT - 8)), backgroundColor: r.victory ? GOLD : "#6C7BD9" }]} />
-                  </View>
-                ))}
-              </View>
-              <View style={styles.legend}>
-                <View style={[styles.swatch, { backgroundColor: GOLD }]} />
-                <Text style={styles.legendText} maxFontSizeMultiplier={1.2}>{t("progress.legend.win")}</Text>
-                <View style={[styles.swatch, { backgroundColor: "#6C7BD9" }]} />
-                <Text style={styles.legendText} maxFontSizeMultiplier={1.2}>{t("progress.legend.run")}</Text>
-                <Text style={[styles.legendText, { marginLeft: "auto" }]} maxFontSizeMultiplier={1.2}>
-                  {t("progress.bestOfLast", { count: runs.length, score: best.toLocaleString() })}
+            {runs.length >= CHART_MIN_RUNS && best > 0 ? (
+              <>
+                <Text style={[styles.panelTitle, { marginTop: 8 }]} maxFontSizeMultiplier={1.2}>
+                  {t("progress.trend").toLocaleUpperCase()}
                 </Text>
-              </View>
-              {trend && (
-                <Text style={[styles.trend, trend === "up" && { color: "#9ee37d" }, trend === "down" && { color: "#FF8A80" }]} maxFontSizeMultiplier={1.2}>
-                  {t(`progress.trend.${trend}` as "progress.trend.up")}
-                </Text>
-              )}
-            </View>
-          ) : stored > 0 ? (
-            <Text style={styles.note} maxFontSizeMultiplier={1.2}>
-              {t("progress.chartSoon", { count: CHART_MIN_RUNS - runs.length })}
-            </Text>
-          ) : null}
-
-          {/* 6. Heroes */}
-          <View style={styles.panel}>
-            <Text style={styles.panelTitle} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
-              {t("progress.heroes").toLocaleUpperCase()}
-            </Text>
-            {characters.map((_, i) => (
-              <View key={i} style={styles.heroRow} accessible accessibilityLabel={`${heroText(t, i, "name")}: ${stats.heroWins[i] ?? 0}`}>
-                <SpriteImage source={heroOf(i).scoreImage} style={styles.heroIcon} accessibilityIgnoresInvertColors />
-                <Text style={styles.heroName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                  {heroText(t, i, "name")}
-                </Text>
-                <View style={styles.heroTrack}>
-                  <View style={[styles.heroFill, { width: `${Math.round(((stats.heroWins[i] ?? 0) / maxWins) * 100)}%` }]} />
+                <View style={[styles.chart, { height: CHART_HEIGHT }]} accessible accessibilityLabel={`${t("progress.trend")}: ${runs.map(r => r.score).join(", ")}`}>
+                  <View style={styles.bestLine} pointerEvents="none" />
+                  {runs.map((r, i) => (
+                    <View key={i} style={styles.barSlot}>
+                      <View style={[styles.bar, { height: Math.max(6, (r.score / best) * (CHART_HEIGHT - 8)), backgroundColor: r.victory ? GOLD : "#6C7BD9" }]} />
+                    </View>
+                  ))}
                 </View>
-                <Text style={styles.heroCount} maxFontSizeMultiplier={1.2}>
-                  {stats.heroWins[i] ?? 0}
+                {trend && (
+                  <Text style={[styles.trend, trend === "up" && { color: "#9ee37d" }, trend === "down" && { color: "#FF8A80" }]} maxFontSizeMultiplier={1.2}>
+                    {t(`progress.trend.${trend}` as "progress.trend.up")}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <View style={styles.soon}>
+                <Ionicons name="bar-chart" size={18} color="#8f8aa8" />
+                <Text style={styles.soonText} maxFontSizeMultiplier={1.2}>
+                  {t("progress.chartSoon", { count: Math.max(1, CHART_MIN_RUNS - runs.length) })}
                 </Text>
               </View>
-            ))}
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -240,21 +309,44 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  panel: { borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.85)", padding: 14, gap: 8 },
-  panelTitle: { color: GOLD, fontWeight: "800", letterSpacing: 2, fontSize: 12 },
-  empty: { color: "#c9c3e6", fontSize: 14, paddingVertical: 8 },
-  note: { color: "#a8a2c4", fontSize: 12, fontWeight: "600" },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  tile: { flexGrow: 1, backgroundColor: "rgba(20,15,40,0.85)", borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", padding: 12, alignItems: "center", gap: 2 },
-  tileValue: { color: "#fff", fontWeight: "900", fontSize: 24 },
-  tileLabel: { color: "#a8a2c4", fontSize: 11, fontWeight: "700" },
+  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
+  card: { flexGrow: 1, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.88)", padding: 14, gap: 8 },
+  cardHead: { flexDirection: "row", alignItems: "center", gap: 10 },
+  cardIcon: { width: 32, height: 32, borderRadius: 16, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
+  cardTitle: { color: "#c9c3e6", fontWeight: "800", letterSpacing: 1.5, fontSize: 12, flex: 1 },
+  cardValue: { color: "#fff", fontWeight: "900", fontSize: 34 },
+  cardCaption: { color: "#9f9abb", fontSize: 12, fontWeight: "600" },
+  steps: { flexDirection: "row", gap: 4 },
+  step: { flex: 1, height: 10, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.12)" },
+  track: { height: 10, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
+  fill: { height: "100%", borderRadius: 5, backgroundColor: "#90CAF9" },
+  tiers: { flexDirection: "row", justifyContent: "space-between" },
+  tierItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  tierDot: { width: 9, height: 9, borderRadius: 5 },
+  tierText: { color: "#d8d2f0", fontSize: 12, fontWeight: "800" },
   next: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(144,202,249,0.45)", backgroundColor: "rgba(144,202,249,0.1)", padding: 12 },
   nextIcon: { fontSize: 28 },
   nextKicker: { color: "#90CAF9", fontWeight: "800", letterSpacing: 2, fontSize: 10 },
   nextName: { color: "#fff", fontWeight: "800", fontSize: 15 },
   nextCount: { color: "#b8c7e6", fontWeight: "800", fontSize: 13 },
-  track: { height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
-  fill: { height: "100%", borderRadius: 4, backgroundColor: "#90CAF9" },
+  // Fourteen even slots in one row, whatever the card width.
+  calendar: { flexDirection: "row", gap: 3 },
+  day: { flex: 1, height: 22, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.1)" },
+  dayOn: { backgroundColor: "#FF9A3C" },
+  dayToday: { borderWidth: 2, borderColor: "#fff" },
+  heroes: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
+  hero: { flex: 1, alignItems: "center", gap: 6 },
+  heroFrame: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
+  heroIcon: { width: 50, height: 50, borderRadius: 25 },
+  heroBadge: { position: "absolute", right: -4, bottom: -4, minWidth: 22, height: 22, borderRadius: 11, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  heroBadgeText: { color: "#1a1030", fontWeight: "900", fontSize: 12 },
+  heroName: { color: "#fff", fontWeight: "800", fontSize: 13 },
+  heroTrack: { width: "80%", height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
+  heroFill: { height: "100%", backgroundColor: GOLD },
+  panel: { borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.88)", padding: 14, gap: 8 },
+  panelTitle: { color: GOLD, fontWeight: "800", letterSpacing: 2, fontSize: 12 },
+  empty: { color: "#c9c3e6", fontSize: 14, paddingVertical: 4 },
+  note: { color: "#a8a2c4", fontSize: 12, fontWeight: "600" },
   runRow: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 40, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.06)", paddingVertical: 2 },
   result: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
   resultWin: { backgroundColor: GOLD },
@@ -262,25 +354,13 @@ const styles = StyleSheet.create({
   runFloor: { color: "#fff", fontWeight: "800", fontSize: 15, minWidth: 36 },
   runDay: { color: "#8f8aa8", fontSize: 12 },
   runScore: { color: "#d8d2f0", fontWeight: "900", fontSize: 16, minWidth: 64, textAlign: "right" },
-  // Two even rows of seven, whatever the width.
-  calendar: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 6 },
-  day: { width: "12.5%", aspectRatio: 1.4, maxHeight: 26, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.08)" },
-  dayOn: { backgroundColor: "#FF9A3C" },
-  dayToday: { borderWidth: 2, borderColor: "#fff" },
   chart: { flexDirection: "row", alignItems: "flex-end", gap: 8, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
   bestLine: { position: "absolute", left: 0, right: 0, top: 0, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(242,193,78,0.6)" },
   barSlot: { width: 26, alignItems: "center", justifyContent: "flex-end", height: "100%" },
   bar: { width: 22, borderTopLeftRadius: 5, borderTopRightRadius: 5 },
-  legend: { flexDirection: "row", alignItems: "center", gap: 6 },
-  swatch: { width: 10, height: 10, borderRadius: 3 },
-  legendText: { color: "#a8a2c4", fontSize: 11, fontWeight: "700", marginRight: 8 },
   trend: { color: "#d8d2f0", fontWeight: "700", fontSize: 13 },
-  heroRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  heroIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,255,255,0.08)" },
-  heroName: { color: "#fff", fontWeight: "800", fontSize: 14, width: 70 },
-  heroTrack: { flex: 1, height: 10, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
-  heroFill: { height: "100%", borderRadius: 5, backgroundColor: GOLD },
-  heroCount: { color: GOLD, fontWeight: "900", fontSize: 15, minWidth: 28, textAlign: "right" },
+  soon: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.2)" },
+  soonText: { color: "#a8a2c4", fontSize: 12, fontWeight: "700", flex: 1 },
 });
 
 export default ProgressScreen;
