@@ -16,6 +16,7 @@ export const useSettingsStore = create<SettingsState>()(
       language: 'auto',
       tutorialSeen: false,
       achievementsSeen: 0,
+      hintsSeen: [],
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setHapticsEnabled: (enabled) => set({ hapticsEnabled: enabled }),
       setReduceFlash: (enabled) => set({ reduceFlash: enabled }),
@@ -26,6 +27,7 @@ export const useSettingsStore = create<SettingsState>()(
       setLanguage: (language) => set({ language }),
       setTutorialSeen: (seen) => set({ tutorialSeen: seen }),
       setAchievementsSeen: (count) => set({ achievementsSeen: count }),
+      markHintSeen: (id) => set(s => (s.hintsSeen.includes(id) ? s : { hintsSeen: [...s.hintsSeen, id] })),
     }),
     {
       name: 'wumpus-adventures-settings',

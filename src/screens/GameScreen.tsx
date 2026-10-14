@@ -30,6 +30,7 @@ import RelicTray from "../ui/components/RelicTray";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import ToolBar from "../ui/components/ToolBar";
+import CoachHint from "../ui/components/game/CoachHint";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
@@ -120,6 +121,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const deathFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
+  const hintsSeen = useSettingsStore(s => s.hintsSeen);
+  const markHintSeen = useSettingsStore(s => s.markHintSeen);
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
   // accessibilityViewIsModal).
   const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry || intermission;
@@ -600,6 +603,19 @@ export default function GameScreen({ navigation, route }: Props) {
     .filter(Boolean)
     .join(". ");
 
+  // One-time tips for the tools, shown the first time each one is available (never over an overlay).
+  const hint: { id: string; text: string } | null = (() => {
+    if (runEnded || levelUpWindow || overlayOpen || bootCover || state.turn === 0) return null;
+    const unseen = (id: string) => !hintsSeen.includes(id);
+    if (state.perks.ability && unseen("ability")) {
+      return { id: "ability", text: t("hint.ability", { name: t(`ability.${state.perks.ability}.name` as TranslationKey), desc: t(`ability.${state.perks.ability}.desc` as TranslationKey) }) };
+    }
+    if (state.undo && !state.undoUsed && unseen("undo")) return { id: "undo", text: t("hint.undo") };
+    if (state.items.detector > 0 && unseen("detector")) return { id: "detector", text: t("hint.detector") };
+    if (state.items.bomb > 0 && unseen("bomb")) return { id: "bomb", text: t("hint.bomb") };
+    return null;
+  })();
+
   const removeCoin = (id: number) => setActiveCoins(prev => prev.filter(c => c.id !== id));
   const flashPeak = reduceFlash ? 0.25 : 1;
 
@@ -751,6 +767,20 @@ export default function GameScreen({ navigation, route }: Props) {
         ]}
         pointerEvents="none"
       />
+
+      {hint && (
+        <CoachHint
+          hintKey={hint.id}
+          text={hint.text}
+          place={
+            controlPosition === "left"
+              ? { top: insets.top + hudHeight + 8, left: insets.left + GAME_ROW_PADDING, width: controlPanelWidth }
+              : { top: insets.top + hudHeight + 8, right: insets.right + GAME_ROW_PADDING, width: controlPanelWidth }
+          }
+          calm={reduceFlash}
+          onDone={() => markHintSeen(hint.id)}
+        />
+      )}
 
       <IntermissionOverlay
         visible={intermission && levelUpWindow}

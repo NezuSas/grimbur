@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useEffect, useMemo } from "react";
+import React, { memo, useCallback, useRef, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, ImageSourcePropType, Easing } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
@@ -62,7 +62,7 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay
 }: {
   index: number;
   tileSize: number;
@@ -83,7 +83,24 @@ const GridCell = memo(({
   facing: Direction | null;
   /** The tile's base image has been drawn. */
   onTileLoaded: () => void;
+  /** When many tiles are uncovered at once (a relic), each one waits this long so they open as a ripple. */
+  revealDelay: number;
 }) => {
+  // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
+  const [isVisited, setShown] = useState(visitedProp);
+  useEffect(() => {
+    if (!visitedProp) {
+      setShown(false);
+      return;
+    }
+    if (revealDelay <= 0) {
+      setShown(true);
+      return;
+    }
+    const timer = setTimeout(() => setShown(true), revealDelay);
+    return () => clearTimeout(timer);
+  }, [visitedProp]);
+  const glow = useRef(new Animated.Value(0)).current;
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -97,6 +114,14 @@ const GridCell = memo(({
     if (isVisited && !wasVisited.current) {
       revealScale.setValue(0.82);
       Animated.spring(revealScale, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
+      if (revealDelay > 0) {
+        // A golden flash runs through the tile as the ripple reaches it.
+        glow.setValue(0);
+        Animated.sequence([
+          Animated.timing(glow, { toValue: 1, duration: 160, useNativeDriver: true }),
+          Animated.timing(glow, { toValue: 0, duration: 420, useNativeDriver: true }),
+        ]).start();
+      }
     }
     wasVisited.current = isVisited;
   }, [isVisited]);
@@ -140,6 +165,13 @@ const GridCell = memo(({
         resizeMode="contain"
         onLoadEnd={onTileLoaded}
       />
+
+      {revealDelay > 0 && (
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,213,79,0.55)", borderRadius: 8, opacity: glow }]}
+        />
+      )}
 
       {/* Danger pulse tint */}
       {showHints && !isPlayerHere && (
@@ -357,6 +389,12 @@ const BoardView: React.FC<Props> = memo(
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
+    // Uncovering four or more tiles in one go (the lantern relic) makes a ripple that spreads from the hero.
+    const lastVisited = useRef({ level, count: visited.length });
+    const burst = lastVisited.current.level === level && visited.length - lastVisited.current.count >= 4;
+    useEffect(() => {
+      lastVisited.current = { level, count: visited.length };
+    }, [level, visited.length]);
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
@@ -395,6 +433,7 @@ const BoardView: React.FC<Props> = memo(
                   aimed={!!aimTiles && aimTiles.has(i)}
                   facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
                   onTileLoaded={onTileLoaded}
+                  revealDelay={burst ? Math.min(900, 70 * (Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );
             })}

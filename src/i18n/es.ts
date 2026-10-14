@@ -730,4 +730,12 @@ export const es: Record<TranslationKey, string> = {
   'manual.tools.cursed.label': 'Reliquias malditas',
   'manual.tools.cursed.detail': 'A veces aparece entre las ofertas una reliquia con marco rojo. Es más fuerte, y te quita algo. Puedes llevar una.',
   'manual.tools.cursed.badge': 'Riesgo',
+  'hint.ability': 'Tu habilidad, {name}: {desc} Toca el botón dorado sobre la cruceta. Se recarga.',
+  'hint.undo': 'Deshacer: toca la flecha morada para retroceder tu último paso. Una vez por piso.',
+  'hint.detector': 'Detector: toca el botón azul para marcar cada peligro a dos pasos.',
+  'hint.bomb': 'Bomba: toca el botón naranja para destruir los guardianes y vórtices a tu alrededor.',
+  'shop.subtitle': 'Gasta las gemas que recogiste y elige cómo seguir.',
+  'manual.tools.caves.label': 'Cuevas',
+  'manual.tools.caves.detail': 'Cada tres pisos la cueva cambia y trae una regla: las vetas de cristal (pisos 4-6) esconden un escudo más en cada piso; los túneles de magma (7-9) suman un vórtice, pero también una flecha. El banner lo anuncia.',
+  'manual.tools.caves.badge': 'Cada 3 pisos',
 };

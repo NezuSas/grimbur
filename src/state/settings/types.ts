@@ -22,6 +22,8 @@ export interface SettingsState {
   tutorialSeen: boolean;
   /** Achievements unlocked when the player last opened the achievements screen (drives the red dot on the cover). */
   achievementsSeen: number;
+  /** One-time in-game hints the player has already read (ability, undo, items). */
+  hintsSeen: string[];
   setSoundEnabled: (enabled: boolean) => void;
   setHapticsEnabled: (enabled: boolean) => void;
   setReduceFlash: (enabled: boolean) => void;
@@ -32,4 +34,5 @@ export interface SettingsState {
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
   setAchievementsSeen: (count: number) => void;
+  markHintSeen: (id: string) => void;
 }
