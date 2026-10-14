@@ -51,7 +51,7 @@ export const GAME_CONFIG = {
 
   /** Sleeping guardians: still until the player comes this close, then they hunt like stalkers. */
   sleeper: {
-    minFloor: 5,
+    minFloor: 6,
     wakeDistance: 2,
   },
 

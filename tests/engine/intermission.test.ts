@@ -216,7 +216,7 @@ describe('the sleeper', () => {
     expect(near.entityMap[4].type).toBe('stalker');
   });
 
-  it('boards from the fifth floor carry a sleeper and stay solvable', () => {
+  it('boards from the sixth floor carry a sleeper and stay solvable', () => {
     let withSleeper = 0;
     for (let seed = 1; seed <= 30; seed++) {
       const board = generateBoard(6, seed * 13);

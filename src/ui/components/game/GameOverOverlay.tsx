@@ -56,6 +56,7 @@ type Props = {
 const KILLERS: Partial<Record<EntityType, number>> = {
   enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
   stalker: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
+  sleeper: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
   boss: require('../../../assets/sprites/enemies/Wumpus_Boss.png'),
   pit: require('../../../assets/sprites/tiles/Danger_Vortex.png'),
 };

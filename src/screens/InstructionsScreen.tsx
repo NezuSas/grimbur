@@ -19,6 +19,7 @@ import { GAME_CONFIG } from "../config/gameConfig";
 import { MAX_ASCENSION } from "../core/engine/ascension";
 import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
+import { ABILITY_COOLDOWN, MAX_ITEMS } from "../core/engine/shop";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -81,6 +82,7 @@ const SECTIONS: Section[] = [
     rows: [
       { key: "manual.hazards.clues" },
       { key: "manual.hazards.stalker", badgeColor: "#ba68c8" },
+      { key: "manual.hazards.sleeper", badgeColor: "#90a4ae" },
       { key: "manual.hazards.vortexInfo", badgeColor: "#ce93d8" },
     ],
   },
@@ -102,6 +104,18 @@ const SECTIONS: Section[] = [
       { key: "manual.powerups.shield" },
       { key: "manual.powerups.ammo", badgeColor: "#ffb74d" },
       { key: "manual.powerups.traps", badgeColor: "#ffb74d" },
+    ],
+  },
+  {
+    id: "tools",
+    color: "#ffd54f",
+    icon: "🧰",
+    rows: [
+      { key: "manual.tools.shop", badgeColor: "#4fc3f7" },
+      { key: "manual.tools.ability", badgeColor: "#81c784" },
+      { key: "manual.tools.items", badgeColor: "#ffb74d" },
+      { key: "manual.tools.undo", badgeColor: "#ba68c8" },
+      { key: "manual.tools.cursed", badgeColor: "#ef5350" },
     ],
   },
   {
@@ -130,6 +144,10 @@ const PARAMS: Params = {
   maxDepth: MAX_ASCENSION,
   stalkerFloor: GAME_CONFIG.stalker.minFloor,
   stalkerMoves: GAME_CONFIG.stalker.moveEvery,
+  sleeperFloor: GAME_CONFIG.sleeper.minFloor,
+  sleeperWake: GAME_CONFIG.sleeper.wakeDistance,
+  cooldown: ABILITY_COOLDOWN,
+  maxItems: MAX_ITEMS,
 };
 
 const SectionHeader = ({

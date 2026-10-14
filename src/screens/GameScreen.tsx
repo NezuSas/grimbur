@@ -28,6 +28,8 @@ import FloorBanner from "../ui/components/game/FloorBanner";
 import RunLoadingCover from "../ui/components/game/RunLoadingCover";
 import RelicTray from "../ui/components/RelicTray";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
+import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
+import ToolBar from "../ui/components/ToolBar";
 import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
@@ -41,7 +43,9 @@ import type { Direction } from "../core/engine/types";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import type { TranslationKey } from "../i18n/en";
-import { omenEffects, omenFor } from "../core/engine/omens";
+import { omenEffects } from "../core/engine/omens";
+import { forkDoors } from "../core/engine/shop";
+import { biomeFor, isNewBiome } from "../core/engine/biomes";
 import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
 import { addHighscore, isTopTenScore } from "../services/highscores";
@@ -57,6 +61,14 @@ import { useT } from "../i18n/useT";
 import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
+
+/** The dark wash over the cave picture: each cave type leans toward its own colour. */
+const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
+  cave: "rgba(0,0,0,0.55)",
+  crystal: "rgba(0,24,56,0.6)",
+  magma: "rgba(48,8,0,0.58)",
+  lair: "rgba(30,0,12,0.6)",
+};
 
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
 /** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
@@ -92,7 +104,10 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's UTC date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, levelUp, pickRelic } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo } = useGameEngine();
+  // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
+  const [intermission, setIntermission] = useState(false);
+  const [door, setDoor] = useState<0 | 1>(0);
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
   const [popups, setPopups] = useState<{ id: number; points: number; type: PopupType }[]>([]);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
@@ -107,7 +122,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const swipeMove = useSettingsStore(s => s.swipeMove);
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
   // accessibilityViewIsModal).
-  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry;
+  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry || intermission;
   const behindOverlay = {
     importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
     accessibilityElementsHidden: overlayOpen,
@@ -120,9 +135,19 @@ export default function GameScreen({ navigation, route }: Props) {
     return () => clearTimeout(timer);
   }, []);
   const runEnded = state.isGameOver || state.isVictory;
-  const floorOmen = omenFor(state.runSeed, state.level, state.mode);
+  const floorOmen = state.omen;
+  const floorBiome = biomeFor(state.level, state.mode);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+  // A new cave type is announced on its first floor (the omen, when there is one, takes the banner).
+  const biomeAnnounce = isNewBiome(state.level, state.mode) && floorBiome !== "cave" && floorBiome !== "lair";
+  const doors = useMemo(
+    () => (intermission ? forkDoors(state.runSeed, state.level + 1, state.mode) : null),
+    [intermission, state.runSeed, state.level, state.mode],
+  );
+  useEffect(() => {
+    if (!levelUpWindow) setIntermission(false);
+  }, [levelUpWindow]);
 
   // Tap an explored tile to walk there; any control press interrupts the walk.
   const { travelTo, cancel: cancelTravel } = useTravel(state, move, !paused && !runEnded && !levelUpWindow && !state.pendingDraft);
@@ -140,6 +165,11 @@ export default function GameScreen({ navigation, route }: Props) {
     });
   }, []);
   useEffect(() => setFlags(new Set()), [state.level, state.runSeed, runNumber]);
+  // The detector flags the hazards it finds, exactly like the player's own long-press flags.
+  useEffect(() => {
+    if (state.marked.length === 0) return;
+    setFlags(prev => new Set([...prev, ...state.marked]));
+  }, [state.marked]);
 
   const manualMove = useCallback(
     (d: Parameters<typeof move>[0]) => {
@@ -457,12 +487,28 @@ export default function GameScreen({ navigation, route }: Props) {
         totalEnemies: floorStart.current.enemies,
         time: sessionTimeRef.current,
       });
-      justLeveledUp.current = true;
-      levelUp();
+      setDoor(0);
+      setIntermission(true);
     }, 800);
 
     return () => clearTimeout(timer);
   }, [levelUpWindow]);
+
+  const handleGo = useCallback(() => {
+    const s = stateRef.current;
+    if (!s.isLevelUp || s.isVictory || leaving.current) return;
+    const options = forkDoors(s.runSeed, s.level + 1, s.mode);
+    setIntermission(false);
+    justLeveledUp.current = true;
+    // Without a fork (daily, lair) the seeded omen applies.
+    levelUp(options ? options[door] : undefined);
+  }, [levelUp, door]);
+
+  const handleBuy = useCallback((item: Parameters<typeof buy>[0]) => { emitSound("POWERUP"); buy(item); }, [buy]);
+  const handleAltar = useCallback(() => { emitSound("RELIC_PICKED"); spendAltar(); }, [spendAltar]);
+  const handleAbility = useCallback(() => { cancelTravel(); emitSound("POWERUP"); castAbility(); }, [cancelTravel, castAbility]);
+  const handleItem = useCallback((item: "detector" | "bomb") => { cancelTravel(); emitSound("POWERUP"); spendItem(item); }, [cancelTravel, spendItem]);
+  const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
 
   // ── Gameplay feedback ────────────────────────────────────────────────────
   useEffect(() => {
@@ -485,7 +531,7 @@ export default function GameScreen({ navigation, route }: Props) {
       emitSound("COIN_COLLECTED");
       const points = coinReward(
         state.level,
-        state.perks.coinMultiplier * omenEffects(omenFor(state.runSeed, state.level, state.mode)).gemMultiplier,
+        state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
         relicCount(state.relics, "lucky_coin"),
       );
       setPopups(prev => [...prev, { id: Date.now() + Math.random(), points, type: "coin" }]);
@@ -506,7 +552,7 @@ export default function GameScreen({ navigation, route }: Props) {
     const killed = enemies < lastEnemyCount.current && state.playerIndex === killPlayerIndex.current;
     if (killed && !isResetting.current) {
       emitSound("ENEMY_KILLED");
-      setPopups(prev => [...prev, { id: Date.now() + Math.random(), points: killValue(state.enemyCombo), type: "kill" }]);
+      if (state.enemyCombo > 0) setPopups(prev => [...prev, { id: Date.now() + Math.random(), points: killValue(state.enemyCombo), type: "kill" }]);
       Animated.sequence([
         Animated.timing(combatFlash, { toValue: reduceFlash ? 0.08 : 0.35, duration: reduceFlash ? 120 : 25, useNativeDriver: true }),
         Animated.timing(combatFlash, { toValue: 0, duration: reduceFlash ? 160 : 35, useNativeDriver: true }),
@@ -570,7 +616,7 @@ export default function GameScreen({ navigation, route }: Props) {
       resizeMode="cover"
     >
       {/* Dark overlay for gameplay clarity */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.55)" }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: BIOME_TINT[floorBiome] }]} />
 
       <StatusBar hidden />
 
@@ -595,8 +641,8 @@ export default function GameScreen({ navigation, route }: Props) {
         <FloorBanner
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
-          omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : undefined}
-          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : undefined}
+          omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : undefined}
           long={isLair}
           dismiss={state.turn > 0}
           calm={reduceFlash}
@@ -646,6 +692,20 @@ export default function GameScreen({ navigation, route }: Props) {
               <RelicTray relics={state.relics} size={28} label={t("a11y.relics", { names: relicNames })} />
             </View>
           )}
+          <View style={styles.toolSlot}>
+            <ToolBar
+              ability={state.perks.ability}
+              abilityCd={state.abilityCd}
+              detector={state.items.detector}
+              bomb={state.items.bomb}
+              canUndo={!!state.undo && !state.undoUsed}
+              onAbility={handleAbility}
+              onDetector={() => handleItem("detector")}
+              onBomb={() => handleItem("bomb")}
+              onUndo={handleUndo}
+              size={Math.max(38, Math.min(46, controlPanelWidth * 0.26))}
+            />
+          </View>
           <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
         </View>
       </View>
@@ -690,6 +750,23 @@ export default function GameScreen({ navigation, route }: Props) {
           { backgroundColor: "rgba(156,39,176,0.55)", opacity: vortexFlash, zIndex: 998 },
         ]}
         pointerEvents="none"
+      />
+
+      <IntermissionOverlay
+        visible={intermission && levelUpWindow}
+        nextFloor={state.level + 1}
+        nextIsLair={isLairFloor(state.mode, state.level + 1)}
+        newBiome={isNewBiome(state.level + 1, state.mode) ? biomeFor(state.level + 1, state.mode) : null}
+        gems={state.gems}
+        shield={state.shield}
+        items={state.items}
+        doors={doors}
+        chosen={door}
+        onChoose={setDoor}
+        onBuy={handleBuy}
+        altarUsed={state.altarUsed}
+        onAltar={handleAltar}
+        onGo={handleGo}
       />
 
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLair} onPick={handlePickRelic} />
@@ -760,5 +837,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 10,
   },
+  toolSlot: { marginBottom: 8, alignSelf: "stretch" },
   relicSlot: { position: "absolute", top: 4, left: 0, right: 0, alignItems: "center" },
 });

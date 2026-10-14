@@ -135,7 +135,7 @@ export function generateBoard(
       return neighborCount < 2;
     });
 
-    // 1a. From the fifth floor one guardian sleeps: it stands still until the player comes close.
+    // 1a. From the sixth floor one guardian sleeps: it stands still until the player comes close.
     if (level >= GAME_CONFIG.sleeper.minFloor && !withBoss) {
       const sleepers = entities.filter(e => e.type === 'enemy');
       if (sleepers.length >= 2) sleepers[sleepers.length - 1].type = 'sleeper';

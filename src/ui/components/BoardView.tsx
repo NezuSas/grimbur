@@ -162,12 +162,15 @@ const GridCell = memo(({
         />
       )}
 
-      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker') && (isVisited || isPlayerHere) && (
+      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere) && (
         <SpriteImage
-          style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
+          style={[{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }, entity.type === 'sleeper' && { opacity: 0.6 }]}
           source={entity.type === 'pit' ? ASSETS.pit : ASSETS.enemy}
           resizeMode="contain"
         />
+      )}
+      {entity?.type === 'sleeper' && (isVisited || isPlayerHere) && (
+        <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
       )}
 
       {/* The Wumpus: shown on explored tiles, with its remaining hearts */}
@@ -470,6 +473,7 @@ const styles = StyleSheet.create({
   },
   cell: { alignItems: "center", justifyContent: "center" },
   bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B3E5FC', fontWeight: '900' },
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
