@@ -6,7 +6,8 @@ export type RootStackParamList = {
   CoverScreen: undefined;
   CharactersScreen: { mode?: GameMode } | undefined;
   TutorialScreen: { characterIndex?: number; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
-  LessonScreen: { lesson: LessonId };
+  /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
+  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[] };
   GameScreen: { characterIndex?: number; mode?: GameMode; ascension?: number; meta?: MetaEffects } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;

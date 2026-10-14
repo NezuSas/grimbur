@@ -66,7 +66,12 @@ export default function LessonScreen({ navigation, route }: Props) {
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const lesson = LESSONS[route.params.lesson];
 
-  const [state, dispatch] = useReducer(lessonReducer, lesson, freshLesson);
+  const devMoves = route.params.devMoves;
+  const [state, dispatch] = useReducer(lessonReducer, lesson, (l: LessonDef) => {
+    const start = freshLesson(l);
+    if (!__DEV__ || !devMoves) return start;
+    return devMoves.reduce<GameState>((s, direction) => gameReducer(s, { type: "MOVE", direction }), start);
+  });
   const [stepIndex, setStepIndex] = useState(0);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
   const [went, setWent] = useState(false);
