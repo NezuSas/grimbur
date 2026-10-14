@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
-import { onSound } from "./audioEventBus";
+import { onSound, SoundOptions } from "./audioEventBus";
 import { SoundEvent } from "./soundEvents";
 import { useSoundStore } from "../state/sound/store";
 import { useSettingsStore } from "../state/settings/store";
@@ -11,7 +11,7 @@ import { scaledVolume } from "../core/audio/volume";
 // Dynamic volume offsets
 const MUSIC_VOL = 0.12;
 const SFX_VOL = 0.45;
-const HAZARD_VOL = 0.10;
+const HAZARD_VOL = 0.18;
 const VICTORIA_VOL = 0.30;
 /** The same effect is never started twice within this many milliseconds. */
 const MIN_REPEAT_MS = 45;
@@ -64,12 +64,12 @@ export function useSoundManager(): void {
   const lastPlayed = useRef(new WeakMap<LegacySoundHandle, number>());
 
   /** Fast playback for SFX: synchronous, on the next free voice, never waits on another effect. */
-  const playSfx = (handle: LegacySoundHandle | null, vol: number = SFX_VOL) => {
+  const playSfx = (handle: LegacySoundHandle | null, vol: number = SFX_VOL, rate: number = 1) => {
     if (!handle || !soundEnabledRef.current) return;
     const now = Date.now();
     if (now - (lastPlayed.current.get(handle) ?? 0) < MIN_REPEAT_MS) return;
     lastPlayed.current.set(handle, now);
-    handle.playOneShot(scaledVolume(vol, sfxLevelRef.current));
+    handle.playOneShot(scaledVolume(vol, sfxLevelRef.current), rate);
   };
 
   /** One-shot play (stops loop, plays once at given volume) */
@@ -111,7 +111,8 @@ export function useSoundManager(): void {
     stopTrack(s.victory);
   };
 
-  const processEvent = (event: SoundEvent) => {
+  const processEvent = (event: SoundEvent, options?: SoundOptions) => {
+    const rate = options?.rate ?? 1;
     const sounds = soundsRef.current;
     const soundEnabled = soundEnabledRef.current;
     if (!sounds || !ready) {
@@ -135,13 +136,17 @@ export function useSoundManager(): void {
 
     switch (event) {
       case 'MOVE':           playSfx(sounds.move, 0.4); break;
-      case 'COIN_COLLECTED': playSfx(sounds.coin); break;
+      case 'COIN_COLLECTED': playSfx(sounds.coin, SFX_VOL, rate); break;
       case 'POWERUP':        playSfx(sounds.coin, 0.6); break;
       case 'RELIC_PICKED':   playSfx(sounds.relic, 0.7); break;
       case 'BOSS_ROAR':      playOnce(sounds.roar, 0.8); break;
-      case 'TRAP_TRIGGERED': playSfx(sounds.attack, 0.7); break;
-      case 'ATTACK':
-      case 'ENEMY_KILLED':   playSfx(sounds.attack); break;
+      // The same recordings, played at different speeds and levels, so a hit, a miss, a kill and a trap all sound apart.
+      case 'TRAP_TRIGGERED': playSfx(sounds.attack, 0.8, 0.55); break;
+      case 'ATTACK':         playSfx(sounds.attack, 0.5, 0.92); break;
+      case 'ENEMY_KILLED':   playSfx(sounds.attack, 0.9, 1.25 * rate); setTimeout(() => playSfx(sounds.coin, 0.4, 1.4 * rate), 60); break;
+      case 'BOSS_HIT':       playSfx(sounds.attack, 1, 0.8); setTimeout(() => playSfx(sounds.attack, 0.8, 0.65), 70); break;
+      case 'SHIELD_BREAK':   playSfx(sounds.death, 0.35, 1.9); playSfx(sounds.attack, 0.6, 0.7); break;
+      case 'CHARGE_WARN':    playSfx(sounds.move, 0.6, 0.55); setTimeout(() => playSfx(sounds.move, 0.6, 0.45), 110); break;
 
       case 'LEVEL_UP':
         stopAllBackgroundMusic("level_up");
@@ -230,7 +235,7 @@ export function useSoundManager(): void {
   /** App Subscription */
   useEffect(() => {
     if (!ready) return;
-    const unsubscribeBus = onSound(processEvent);
+    const unsubscribeBus = onSound((event, options) => processEvent(event, options));
 
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       audioLog('app', nextAppState);

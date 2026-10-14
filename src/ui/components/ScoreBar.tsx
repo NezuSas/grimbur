@@ -1,5 +1,5 @@
-import React, { memo } from "react";
-import { StyleSheet, View, TouchableOpacity } from "react-native";
+import React, { memo, useEffect, useRef, useState } from "react";
+import { StyleSheet, View, TouchableOpacity, Animated } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
@@ -8,6 +8,7 @@ import { useGameLayout, MIN_TOUCH } from "../layout/useGameLayout";
 import { formatTime } from "../../shared/utils/formatTime";
 import { useT } from "../../i18n/useT";
 import SpriteImage from "./SpriteImage";
+import type { SessionClock } from "../../core/feedback/clock";
 
 type Props = {
   score: number;
@@ -17,8 +18,18 @@ type Props = {
   level: number;
   /** Total floors of the expedition; shows `level/floors` when set. */
   floors?: number;
-  time: number;
+  /** The run clock; only the timer text subscribes to it, so a tick never re-renders the bar. */
+  clock: SessionClock;
   shield?: boolean;
+  /** Kill combo in progress (the pip shows from x2); `comboMax` is its cap. */
+  combo?: number;
+  comboMax?: number;
+  /** Changes whenever a shield (or feather) soaks a hit: the shield icon blinks red. */
+  shieldBreakKey?: number;
+  /** Peak pop scale of the gem counter (grows with the gem streak). */
+  gemPop?: number;
+  /** Reduced motion. */
+  calm?: boolean;
   /** Hearts the Wumpus has left; when set (lair floor) it replaces the gem counter. */
   bossHearts?: number;
   /** When provided, a pause button is shown next to the timer. */
@@ -31,8 +42,54 @@ const HUD_FONT_CAP = 1.15;
 /** Windows narrower than this get the compact HUD. */
 const COMPACT_WIDTH = 560;
 
+/** The elapsed time, kept in its own component so only this text updates every second. */
+const ClockText: React.FC<{ clock: SessionClock; style: object; maxFontSizeMultiplier: number }> = ({ clock, style, maxFontSizeMultiplier }) => {
+  const [seconds, setSeconds] = useState(clock.get());
+  useEffect(() => {
+    setSeconds(clock.get());
+    return clock.subscribe(setSeconds);
+  }, [clock]);
+  return (
+    <Text style={style} maxFontSizeMultiplier={maxFontSizeMultiplier} numberOfLines={1}>
+      {formatTime(seconds)}
+    </Text>
+  );
+};
+
+/** The shield icon; when a hit is soaked it stays a moment, blinking red, instead of just vanishing. */
+const ShieldBadge: React.FC<{ shield: boolean; breakKey: number; calm: boolean; label: string }> = ({ shield, breakKey, calm, label }) => {
+  const [ghost, setGhost] = useState(false);
+  const blink = useRef(new Animated.Value(0)).current;
+  const lastKey = useRef(breakKey);
+  useEffect(() => {
+    if (breakKey === lastKey.current) return;
+    lastKey.current = breakKey;
+    setGhost(true);
+    blink.setValue(0);
+    const run = Animated.sequence(
+      calm
+        ? [Animated.timing(blink, { toValue: 1, duration: 200, useNativeDriver: true }), Animated.delay(250)]
+        : [
+            Animated.timing(blink, { toValue: 1, duration: 90, useNativeDriver: true }),
+            Animated.timing(blink, { toValue: 0.2, duration: 90, useNativeDriver: true }),
+            Animated.timing(blink, { toValue: 1, duration: 90, useNativeDriver: true }),
+            Animated.timing(blink, { toValue: 0, duration: 260, useNativeDriver: true }),
+          ],
+    );
+    run.start(() => setGhost(false));
+    return () => run.stop();
+  }, [breakKey, calm, blink]);
+  if (!shield && !ghost) return null;
+  return (
+    <View style={[styles.shieldBadge, !shield && styles.shieldBadgeBroken]} accessible accessibilityLabel={label}>
+      <SpriteImage source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
+      {!shield && <Animated.View pointerEvents="none" style={[styles.shieldBlink, { opacity: blink }]} />}
+    </View>
+  );
+};
+
 const ScoreBar: React.FC<Props> = memo(
-  ({ score, attackValue, coins, character, level, floors, time, shield = false, bossHearts, onPause }) => {
+  ({ score, attackValue, coins, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause }) => {
     const { t, plural } = useT();
     const { hudHeight, insets, fontSize, spacing, screenWidth } = useGameLayout();
     // Portrait and split-screen windows: the avatar goes and the sides take only what they need.
@@ -72,13 +129,7 @@ const ScoreBar: React.FC<Props> = memo(
             <Text style={styles.timeLabel} maxFontSizeMultiplier={HUD_FONT_CAP} numberOfLines={1}>
               {t("hud.time").toLocaleUpperCase()}
             </Text>
-            <Text
-              style={[styles.timeValue, { fontSize: fontSize(20) }]}
-              maxFontSizeMultiplier={HUD_FONT_CAP}
-              numberOfLines={1}
-            >
-              {formatTime(time)}
-            </Text>
+            <ClockText clock={clock} style={[styles.timeValue, { fontSize: fontSize(20) }]} maxFontSizeMultiplier={HUD_FONT_CAP} />
           </View>
 
           {onPause && (
@@ -109,9 +160,13 @@ const ScoreBar: React.FC<Props> = memo(
               {floors ? t("hud.floorOf", { level, floors }) : level}
             </Text>
           </View>
-          {shield && (
-            <View style={styles.shieldBadge} accessible accessibilityLabel={t("a11y.shieldActive")}>
-              <SpriteImage source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
+          <ShieldBadge shield={shield} breakKey={shieldBreakKey} calm={calm} label={t("a11y.shieldActive")} />
+          {combo >= 2 && (
+            <View style={[styles.comboPip, combo >= comboMax && styles.comboPipMax]} accessible accessibilityLabel={`x${combo} combo`}>
+              <Ionicons name="flame" size={14} color={combo >= comboMax ? "#3b2600" : "#FFB300"} />
+              <Text style={[styles.comboText, combo >= comboMax && { color: "#3b2600" }]} maxFontSizeMultiplier={HUD_FONT_CAP} numberOfLines={1}>
+                x{combo}
+              </Text>
             </View>
           )}
         </View>
@@ -131,6 +186,7 @@ const ScoreBar: React.FC<Props> = memo(
             <ScoreCounter
               icon={require("../../assets/sprites/items/Icon_Gem.png")}
               value={coins}
+              popScale={gemPop}
               iconDim={statIconSize}
               compact={compact}
               a11yLabel={plural("a11y.gemsLeft", coins)}
@@ -212,6 +268,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#4FC3F7",
   },
+  shieldBadgeBroken: { borderColor: "#FF1744", backgroundColor: "rgba(255,23,68,0.18)" },
+  shieldBlink: { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, borderRadius: 14, backgroundColor: "rgba(255,23,68,0.75)" },
+  comboPip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,179,0,0.18)",
+    borderWidth: 1,
+    borderColor: "#FFB300",
+  },
+  comboPipMax: { backgroundColor: "#FFD54F", borderColor: "#FFF8E1" },
+  comboText: { color: "#FFD54F", fontWeight: "900", fontSize: 13, includeFontPadding: false },
   rightGroup: {
     flex: 2,
     flexDirection: "row",

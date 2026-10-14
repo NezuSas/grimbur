@@ -28,6 +28,8 @@ const voicesOf = (name: string): string[] => [
 /** The sound a voice belongs to (`coin#1` -> `coin`); volume and loop targets are shared per sound. */
 const baseOf = (voice: string) => voice.split('#')[0];
 const nextVoice: Record<string, number> = {};
+/** Voices whose playback rate was changed from 1 (so it is put back before a normal play). */
+const RATE_SET: Record<string, boolean> = {};
 /**
  * Voices already sitting at 0:00, ready to play with no seek. Seeking a finished player makes it buffer for ~100 ms
  * (visible in the audio log), which is the delay players hear between an action and its sound. So when an effect ends
@@ -152,7 +154,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
   };
 
   const handle: LegacySoundHandle = {
-    playOneShot: (volume: number) => {
+    playOneShot: (volume: number, rate: number = 1) => {
       const voices = voicesOf(name);
       audioLog('sfx', `${name} vol=${volume}`);
       // Strict rotation: consecutive effects always land on different players, so the player that just
@@ -181,6 +183,10 @@ function toLegacyHandle(name: string): LegacySoundHandle {
       try {
         p.volume = Math.max(0, Math.min(1, volume));
         if (p.loop) p.loop = false;
+        // A different speed (pitch) gives the same file another voice: kills, traps and gem streaks. Reset when back to 1.
+        if (rate !== 1 || RATE_SET[voice]) {
+          try { p.setPlaybackRate?.(rate); RATE_SET[voice] = rate !== 1; } catch {}
+        }
         if (!REWOUND[voice]) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
         REWOUND[voice] = false;
         p.play();

@@ -19,6 +19,7 @@ import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
+import { LEVEL_COMPLETE_AUTO_MS } from "../core/feedback/flow";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
@@ -64,6 +65,14 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
     emitSound("LEVEL_RESUME"); // stop the fanfare and resume the in-game music
     navigation.goBack();
   };
+
+  // The card moves on by itself (a tap still skips it): between floors the player should not have to tap to keep playing.
+  const leaveRef = useRef(leave);
+  leaveRef.current = leave;
+  useEffect(() => {
+    const timer = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_AUTO_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sizes derive from the live window, so the card fits small landscape phones and tablets alike.
   const compact = height < 420;

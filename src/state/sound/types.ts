@@ -10,7 +10,7 @@ export interface LegacySoundHandle {
    * Fire-and-forget effect: plays on the next free voice at `volume`, synchronously (no awaits), so quick
    * successive effects never wait on each other or cut each other off.
    */
-  playOneShot: (volume: number) => void;
+  playOneShot: (volume: number, rate?: number) => void;
 }
 
 export interface SoundState {
