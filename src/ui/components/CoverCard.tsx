@@ -12,6 +12,9 @@ import SpriteImage from "./SpriteImage";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import { haptic } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
+import GoalLine from "./GoalLine";
+import type { Goal } from "../../core/stats/goals";
+import { formatCountdown } from "../../core/stats/countdown";
 
 type Props = {
   onPressPlay: () => void;
@@ -21,8 +24,19 @@ type Props = {
   streak: number;
   /** The daily has already been played today. */
   dailyDone: boolean;
-  /** The endless descent opens after the first victory. */
+  /** The endless descent opens after the first victory, floor 5 or 8 runs. */
   endlessUnlocked: boolean;
+  /** How close the locked endless descent is to opening. */
+  endlessProgress: { kind: "floor" | "games"; current: number; target: number };
+  /** Milliseconds until the local midnight that changes the daily. */
+  msLeft: number;
+  /** Length of a streak that was just lost (0 when none) and the best one ever. */
+  streakLost: number;
+  bestStreak: number;
+  /** The streak is alive only because a freeze will be spent. */
+  freezeWillSave: boolean;
+  /** The closest goal, shown under Play for returning players. */
+  goal: Goal | null;
   /** Endless belongs to the paid full game and is not owned: the card shows a lock and the press opens the paywall. */
   endlessPaywalled?: boolean;
   bestEndlessFloor: number;
@@ -93,6 +107,12 @@ const CoverCard: React.FC<Props> = ({
   streak,
   dailyDone,
   endlessUnlocked,
+  endlessProgress,
+  msLeft,
+  streakLost,
+  bestStreak,
+  freezeWillSave,
+  goal,
   endlessPaywalled = false,
   bestEndlessFloor,
   embers,
@@ -142,6 +162,17 @@ const CoverCard: React.FC<Props> = ({
   const menuRight = width - Math.max(insets.right, sideMargin);
   const settingsLeft = width - Math.max(insets.right, 12) - MIN_TOUCH;
   const chipClear = wide && height < 460 && menuRight > settingsLeft - 4 ? menuRight - settingsLeft + 8 : 0;
+
+  const time = formatCountdown(msLeft);
+  const dailySubtitle = dailyDone
+    ? t("cover.daily.doneIn", { time })
+    : freezeWillSave
+    ? t("cover.daily.freeze")
+    : streak > 0
+    ? t("cover.daily.riskIn", { count: streak, time })
+    : streakLost > 0
+    ? t("cover.streak.lost", { best: bestStreak })
+    : t("cover.daily.todayIn", { time });
 
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
@@ -194,6 +225,7 @@ const CoverCard: React.FC<Props> = ({
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
+      {!firstRun && goal ? <GoalLine goal={goal} small scale={ui} /> : null}
       {/* The first time only the play button and the manual are offered; the rest appears after the first run. */}
       {!firstRun && (
       <View style={[styles.modeRow, !sideRow && { flexDirection: "column" }]}>
@@ -203,7 +235,7 @@ const CoverCard: React.FC<Props> = ({
           icon="calendar"
           tint="#FF9A3C"
           title={t("cover.mode.daily")}
-          subtitle={dailyDone ? t("cover.streak.done") : streak > 0 ? t("cover.streak.risk", { count: streak }) : t("cover.mode.daily.sub")}
+          subtitle={dailySubtitle}
           onPress={onPressDaily}
           leading={<StreakBadge days={streak} doneToday={dailyDone} />}
         />
@@ -220,7 +252,9 @@ const CoverCard: React.FC<Props> = ({
               ? bestEndlessFloor > 0
                 ? t("cover.mode.endless.best", { floor: bestEndlessFloor })
                 : t("cover.mode.endless.sub")
-              : t("cover.mode.endless.locked")
+              : endlessProgress.kind === "floor"
+              ? t("cover.mode.endless.progressFloor", endlessProgress)
+              : t("cover.mode.endless.progressGames", endlessProgress)
           }
           locked={endlessPaywalled || !endlessUnlocked}
           onPress={endlessPaywalled || endlessUnlocked ? onPressEndless : showLockedHint}

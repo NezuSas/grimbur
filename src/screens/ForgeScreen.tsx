@@ -31,7 +31,8 @@ import { analytics } from "../services/analytics";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
 import { useT } from "../i18n/useT";
-import { forgeText } from "../i18n/keys";
+import { achievementText, forgeText } from "../i18n/keys";
+import { rewardFor, splitNames } from "../core/stats/achievements";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { useSettingsStore } from "../state/settings/store";
 
@@ -270,14 +271,22 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
       setError(false);
       try {
         const cost = nextCost(stats, id) ?? 0;
-        const next = await buyUpgrade(id);
-        if (next) {
+        const result = await buyUpgrade(id);
+        if (result) {
+          const next = result.stats;
           analytics.track("forge_purchase", { upgrade: id, level: levelOf(next, id), cost });
           setStats(next);
           setBurst({ id, run: Date.now() });
           emitSound("RELIC_PICKED");
           haptic.notify(NotificationFeedbackType.Success);
-          showToast(t("forge.bought", { name: forgeText(t, id, "name") }));
+          const name = forgeText(t, id, "name");
+          if (result.achievements.length > 0) {
+            const { shown, more } = splitNames(result.achievements);
+            const names = shown.map(a => achievementText(t, a, "name")).join(", ") + (more > 0 ? ` +${more}` : "");
+            showToast(t("forge.boughtAchievement", { name, names, embers: rewardFor(result.achievements) }));
+          } else {
+            showToast(t("forge.bought", { name }));
+          }
         }
       } catch {
         setError(true);
