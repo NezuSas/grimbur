@@ -20,9 +20,10 @@ import PaywallScreen from "../screens/PaywallScreen";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
- * A swipe from the screen edge goes back in a native stack. During a run that would silently throw the game
- * away (a finger sliding across the board is enough), so the gesture is off there; the Back button/gesture
- * of the system pauses the game instead (see GameScreen).
+ * A swipe from the screen edge goes back in a native stack (on iPads and iPhones, from anywhere with the full-screen
+ * variant). That is off on EVERY screen: during a run a finger sliding across the board would silently throw the game
+ * away, the hero screen uses horizontal swipes to flip through the heroes, and the menus all have their own Back
+ * button. The system Back button of Android still works (a run pauses instead, see GameScreen).
  */
 const NO_SWIPE_BACK = { gestureEnabled: false, fullScreenGestureEnabled: false } as const;
 
@@ -35,16 +36,17 @@ const StackNavigator: React.FC = () => {
           headerShown: false,
           animation: "none",
           contentStyle: { backgroundColor: "#000" },
+          ...NO_SWIPE_BACK,
         }}
       >
         <Stack.Screen name="CoverScreen" component={CoverScreen} />
         <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
-        <Stack.Screen name="TutorialScreen" component={TutorialScreen} options={NO_SWIPE_BACK} />
-        <Stack.Screen name="LessonScreen" component={LessonScreen} options={NO_SWIPE_BACK} />
-        <Stack.Screen name="GameScreen" component={GameScreen} options={NO_SWIPE_BACK} />
+        <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
+        <Stack.Screen name="LessonScreen" component={LessonScreen} />
+        <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
         <Stack.Screen name="ProgressScreen" component={ProgressScreen} />
-        <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} options={NO_SWIPE_BACK} />
+        <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
         <Stack.Screen name="InstructionsScreen" component={InstructionsScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
         <Stack.Screen name="AchievementsScreen" component={AchievementsScreen} />
