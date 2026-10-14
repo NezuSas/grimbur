@@ -27,9 +27,10 @@ describe('modifiers', () => {
 });
 
 describe('generation at depth', () => {
-  it('depth 2 puts a stalker on floor 5 (depth 0 does not)', () => {
+  it('depth 2 always puts a stalker on floor 5 (depth 0 only sometimes; never before floor 4)', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      expect(count(generateBoard(5, seed * 13).entities, 'stalker')).toBe(0);
+      expect(count(generateBoard(3, seed * 13).entities, 'stalker')).toBe(0);
+      expect(count(generateBoard(5, seed * 13).entities, 'stalker')).toBeLessThanOrEqual(1);
       expect(count(generateBoard(5, seed * 13, { ascension: 2 }).entities, 'stalker')).toBeGreaterThanOrEqual(1);
     }
   });

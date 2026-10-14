@@ -44,14 +44,14 @@ export const RELICS: Record<RelicId, RelicInfo> = {
   lucky_coin: {
     id: 'lucky_coin',
     name: 'Lucky Coin',
-    description: 'Gems are worth 25% more.',
+    description: 'Gems are worth 25% more, and each has a 20% chance to give one more shop gem.',
     icon: '🪙',
     max: 3,
   },
   iron_boots: {
     id: 'iron_boots',
-    name: 'Iron Boots',
-    description: 'Walking no longer costs points.',
+    name: 'Pathfinder Boots',
+    description: 'Walking is free, and stepping on explored tiles does not wake the hunters (not in the lair).',
     icon: '👢',
     max: 1,
   },
@@ -72,7 +72,7 @@ export const RELICS: Record<RelicId, RelicInfo> = {
   hunter: {
     id: 'hunter',
     name: "Hunter's Mark",
-    description: 'Kill combos can climb one step higher.',
+    description: 'Kill combos can climb one step higher, and every guardian you shoot drops one shop gem.',
     icon: '🎯',
     max: 2,
   },
@@ -93,14 +93,14 @@ export const RELICS: Record<RelicId, RelicInfo> = {
   greed: {
     id: 'greed',
     name: 'Dragon Hoard',
-    description: 'Clearing a floor pays 50% more.',
+    description: 'Clearing a floor pays 50% more and gives one shop gem.',
     icon: '💰',
     max: 2,
   },
   frost: {
     id: 'frost',
     name: 'Frost Charm',
-    description: 'The Wumpus moves more slowly.',
+    description: 'The Wumpus and the stalkers act more slowly.',
     icon: '❄️',
     max: 1,
   },
@@ -165,17 +165,34 @@ export const removeRelic = (relics: readonly RelicId[], id: RelicId): RelicId[] 
 /** Chance that a draft (from floor 3) includes one cursed relic. */
 export const CURSED_CHANCE = 0.4;
 
+/** What the run already has, so the draft never offers a relic that would do nothing. */
+export interface DraftContext {
+  /** The hero already starts every floor with a shield (the Bulwark would be wasted). */
+  startShield?: boolean;
+  /** The hero is immune to traps (Trap Sense would be wasted). */
+  trapImmune?: boolean;
+}
+
+/** True when `id` can still help a run with this hero and these relics. */
+export function isUsefulRelic(id: RelicId, owned: readonly RelicId[], ctx: DraftContext = {}): boolean {
+  if (relicCount(owned, id) >= RELICS[id].max) return false;
+  if (id === 'bulwark' && ctx.startShield) return false;
+  if (id === 'trap_sense' && ctx.trapImmune) return false;
+  return true;
+}
+
 /**
- * Picks `count` different relics the player can still take. Deterministic for a
- * given (runSeed, floor, owned), so a Daily Challenge offers everyone the same draft.
+ * Picks `count` different relics the player can still take and benefit from. Deterministic for a
+ * given (runSeed, floor, owned, hero), so a Daily Challenge offers everyone the same draft.
  */
 export function draftRelics(
   runSeed: number,
   floor: number,
   owned: readonly RelicId[],
   count = 3,
+  ctx: DraftContext = {},
 ): RelicId[] {
-  const pool = NORMAL_RELICS.filter(id => relicCount(owned, id) < RELICS[id].max);
+  const pool = NORMAL_RELICS.filter(id => isUsefulRelic(id, owned, ctx));
   const next = createPRNG(deriveLevelSeed(runSeed, 1000 + floor));
   next(); // discard the weakly-mixed first sample
 
@@ -190,7 +207,8 @@ export function draftRelics(
     const cursedRoll = createPRNG(deriveLevelSeed(runSeed, 3000 + floor));
     cursedRoll();
     if (cursedRoll() < CURSED_CHANCE) {
-      picks[picks.length - 1] = CURSED_RELICS[Math.floor(cursedRoll() * CURSED_RELICS.length)];
+      const cursedPool = CURSED_RELICS.filter(id => isUsefulRelic(id, owned, ctx));
+      if (cursedPool.length > 0) picks[picks.length - 1] = cursedPool[Math.floor(cursedRoll() * cursedPool.length)];
     }
   }
   return picks;

@@ -18,7 +18,7 @@ describe('getDifficulty', () => {
       const d = getDifficulty(level);
       const freeCells = d.rows * d.cols - 13; // safe radius 2 covers at most 13 cells
       const placed = d.enemies + d.stalkers + d.pits + d.coins + d.traps + d.shields + d.ammoPickups;
-      expect(placed).toBeLessThan(freeCells * 0.5);
+      expect(placed).toBeLessThan(freeCells * 0.55); // boards stop growing at 8x13
     }
   });
 
@@ -32,8 +32,8 @@ describe('getDifficulty', () => {
 
   it('respects the board and coin caps', () => {
     const late = getDifficulty(500);
-    expect(late.rows).toBe(10);
-    expect(late.cols).toBe(20);
+    expect(late.rows).toBe(8);
+    expect(late.cols).toBe(13);
     expect(late.coins).toBe(8);
   });
 });

@@ -3,7 +3,7 @@
 This document defines the rules, mechanics, and systems of **WumpusAdventures**.
 
 ## 1. World Structure
-- **Play Area**: A grid whose size grows with the level (from 5×8 up to 10×20, see `core/difficulty/difficulty.ts`).
+- **Play Area**: A grid whose size grows with the level (from 5×8 up to 8×13, see `core/difficulty/difficulty.ts`; boards stop growing at floor 10, the endless descent gets harder through density and hunters instead).
 - **Coordinate System**: Internally a 1D index where `0` is top-left and `rows*cols - 1` is bottom-right.
 - **Fog of War**: Most tiles start as unvisited (hidden). Moving into a tile reveals it persistently.
 
@@ -19,7 +19,7 @@ The game board contains several hidden threats:
 | Hazard | Behavior | Result |
 | :--- | :--- | :--- |
 | **Enemy (Guardian)** | Stationary. | **Game Over** on impact. With an active shield the shield breaks and the guardian is destroyed instead. |
-| **Pit (Vortex)** | Stationary. | Teleports the player to an empty tile (unexplored first). It never lands on a hazard. |
+| **Pit (Vortex)** | Stationary. | Teleports the player to an empty tile (an unexplored one about 70% of the time, one already explored about 30%). It never lands on a hazard. **It takes a toll:** one arrow if you have any, otherwise one shop gem if you have any, otherwise nothing. |
 | **Trap** | Hidden, no warning. | **-75 points** (never lethal); the trap is consumed. Appears from level 3 (max 4). |
 
 ### Power-ups
@@ -64,6 +64,7 @@ Final scores are calculated based on efficiency and risk-taking.
 ## 6. Level Progression (Expedition)
 - **Victory Condition**: Collect **all coins** on the current board (3 at level 1, capped at 8).
 - **Level Up**: Clears the board, resets player to starting position, and generates a new, more difficult level.
+- **Arrows are a resource**: a floor starts with `ceil(0.7 x guardians) + 1` arrows (3 on floor 1, 11 on floor 10) and up to **4 unused arrows carry over** to the next floor (added after the Blood Pact / Glass Bow cuts). The shop's +2 arrows and the Quiver therefore matter.
 - **Difficulty Scaling**: Board size, enemies, pits and coins grow with the level. Every generated board is validated so that all coins are reachable without crossing a hazard.
 
 ## 7. Game Modes
@@ -80,6 +81,8 @@ called floors). **Floor 10 is the Wumpus lair**:
 - No gems. Killing the Wumpus clears the floor and wins the expedition (victory screen, +2,000 points).
 - The Wumpus has 3 hearts; each arrow removes one (+150 points per hit).
 - It hunts: after every 2nd player action (a move **or a shot**) it steps one tile toward the player, only onto empty tiles.
+- **Fury**: with its last heart it acts after **every** action. Each hit that does not kill it may call a stalker next to it (50%, at most 2 per fight).
+- The lair is a fight, not a minefield: it keeps at most 8 guardians and 7 vortexes, and at most one stalker (the lair boards are not checked for deduction, so they are kept light).
 - It needs a **wind-up**: when it reaches you it glows on its next action, and only on the action after that can it strike (about four player actions from arrival to strike), which leaves a bare hero three shots at an adjacent Wumpus. If you move away it loses the charge and has to close in again.
 - Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives. **A hit that was just absorbed stuns every hunter for that action**, so one move never costs both a shield and a second strike.
 - It counts as a guardian in the proximity clues, so the roar warns you as it closes in.
@@ -100,16 +103,18 @@ After every cleared floor the game offers **3 different relics** and waits for t
 | Relic | Effect | Max |
 | :--- | :--- | :--- |
 | Bottomless Quiver | +2 arrows now, +1 arrow at the start of every floor | 3 |
-| Lucky Coin | Gems +25% | 3 |
-| Iron Boots | Walking costs no points | 1 |
+| Lucky Coin | Gems +25% points, and each gem has a 20% chance per stack to give one more shop gem (decided by the seed) | 3 |
+| Wayfarer Boots (id `iron_boots`) | Walking costs no points, and stepping on an already explored tile does not advance the hunters' clocks (turn counter and Wumpus / stalker actions); no effect in the lair | 1 |
 | Old Lantern | Each floor starts with the area around the spawn explored | 1 |
 | Phoenix Feather | Survives one deadly touch, then is consumed (a shield is spent first) | 1 |
-| Hunter's Mark | Kill combos can climb one step higher | 2 |
+| Hunter's Mark | Kill combos can climb one step higher; every guardian killed by an arrow or volley drops 1 shop gem | 2 |
 | Long Bow | Arrows fly one tile farther | 1 |
 | Bulwark | Start every floor with a shield | 1 |
-| Dragon Hoard | Clearing a floor pays +50% | 2 |
-| Frost Charm | The Wumpus moves one move later | 1 |
+| Dragon Hoard | Clearing a floor pays +50% and gives 1 shop gem per stack | 2 |
+| Frost Charm | The Wumpus **and the stalkers** act one action later | 1 |
 | Trap Sense | Traps are disarmed without penalty | 1 |
+
+Drafts never offer a relic the hero cannot use: no Bulwark for Borin (Stoneskin) and no Trap Sense for Vael (Trapfinder). The four cursed relics are listed in section 25.
 
 ## 12. Tutorial
 The first expedition starts with a guided mini-floor (gem, clue, shooting a guardian, last gem) played on the real engine. It can be skipped and is replayable from the manual (`How to play`). Completion is stored in the settings (`tutorialSeen`).
@@ -118,9 +123,9 @@ The first expedition starts with a guided mini-floor (gem, clue, shooting a guar
 English and Spanish (follows the phone language; override in Settings). Settings also include vibration and *reduce flashes*. All controls have labels, touch targets are at least 46 dp and text never scales below 11 sp or above the caps set on the HUD and buttons.
 
 ## 14. Stalkers
-From floor 7 one extra roaming guardian per floor is a **stalker** (two from floor 11 in endless mode). It looks like a guardian with a violet glow but it walks: after every 4th action it steps toward the player (only onto empty tiles); when it is next to you it winds up for one of its own actions (brighter glow) and then strikes. One arrow kills it (it pays like a guardian), a shield or feather absorbs its strike, and the Frost Charm slows it. Because it moves, the clue icons around you change as it approaches, which is the signal to turn and shoot or walk away.
+Floors 4 and 5 get a single **stalker** with 50% chance (rolled from the floor seed, so a cave always has the same hunters): the first close call. From floor 7 there is always one (two from floor 11 in endless mode, plus one more every 5 floors beyond floor 10, at most 5 per floor). It looks like a guardian with a violet glow but it walks: after every 4th action it steps toward the player (only onto empty tiles); when it is next to you it winds up for one of its own actions (brighter glow) and then strikes. One arrow kills it (it pays like a guardian), a shield or feather absorbs its strike, and the Frost Charm slows it. Because it moves, the clue icons around you change as it approaches, which is the signal to turn and shoot or walk away.
 
-Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. Boards are generated as if stalkers were absent (see section 18), so the deduction bot clears 100% of floors 1-6 and about 70-80% of floors 7-10, where stalkers and the Wumpus are the only unavoidable risk.
+Design note: moving hazards break static Minesweeper deduction, so they are deliberately rare. Boards are generated as if stalkers were absent (see section 18), so the standard careful bot (it only shoots a stalker it already faces) clears 100% of floors 1-3, 85-86% of floors 4-5, about 74% of floor 6 and 57-68% of floors 7-10; a bot that also turns to shoot any adjacent stalker (`simulate.ts ... aim`) clears 97-100%. Stalker deaths are mostly the bot's, not the board's.
 
 Whenever the floor is cleared on the same move a hunter was due to strike, the clear wins and nothing strikes.
 
@@ -130,7 +135,7 @@ After winning an expedition the next **depth** unlocks (1 to 5). On the hero scr
 | Depth | Extra rule |
 | :--- | :--- |
 | 1 | One arrow fewer on every floor (never below 1) |
-| 2 | A stalker already appears from floor 5 |
+| 2 | A stalker always appears from floor 5 |
 | 3 | The Wumpus has one more heart |
 | 4 | Traps hurt twice as much and every floor from 3 has one more |
 | 5 | Relic drafts offer only 2 choices |
@@ -156,9 +161,9 @@ From floor 2 (never the lair) a floor may announce an **omen** in the banner sho
 
 | Omen | Effect |
 | :--- | :--- |
-| Bounty | Gems are worth 50% more, one more guardian |
-| Calm | One guardian and one vortex fewer (never fewer than one of each) |
-| Arsenal | +2 arrows, one more vortex |
+| Bounty | One more gem on the floor, gems are worth 50% more points **and** every second gem gives one more shop gem; but one more guardian |
+| Calm | One guardian and one vortex fewer (never fewer than one of each); but one gem less (never fewer than two) |
+| Arsenal | +2 arrows; but one more vortex and a roaming stalker (one more guardian before floor 4) |
 
 ## 18. Fair boards
 Floors are generated until a careful player can collect every gem using only the clue numbers, never gambling on an unknown tile (`core/engine/solver.ts`, up to 30 tries per floor; boards that need a guess are accepted only if every try fails, which has not happened in 54,000 generated boards). Gems and power-ups are visible and count as known safe; stalkers are ignored by the check because they move. This is what lets the difficulty curve use dense hazards (about 23-25% of tiles from floor 5) without feeling unfair.
@@ -188,7 +193,7 @@ All menu screens share one header (`ui/components/ScreenHeader.tsx`: back button
 ## 21. Modes, difficulty and long-term goals
 - **Expedition**: 10 floors and the Wumpus; your Forge upgrades and chosen difficulty apply; it earns embers and unlocks heroes and difficulties.
 - **Daily challenge**: the same cave for everyone, today only; no upgrades, always *Normal*; keeps a streak (a flame with the number of days on the cover; it pulses until today's run is done and shows a check afterwards).
-- **Endless descent**: unlocked by the first victory. No last floor: the Wumpus returns every 10 floors with one more heart each time (killing it opens the next floor, it is not a victory), and from floor 11 each floor adds guardians (up to +6) and vortexes (up to +4). It keeps its own record (deepest floor) and never touches the expedition's best score, floor or victories, and it does not submit to the leaderboard.
+- **Endless descent**: unlocked by the first victory. No last floor: the Wumpus returns every 10 floors with one more heart each time (killing it opens the next floor, it is not a victory), and from floor 11 each floor adds guardians (up to +3), vortexes (up to +2) and a stalker every five floors (up to +3, five stalkers at most per floor). Boards stay at 8x13, so hazard density climbs from about 23% to about 28% by floor 30 (`endlessPressure` in `core/engine/lair.ts`). It keeps its own record (deepest floor) and never touches the expedition's best score, floor or victories, and it does not submit to the leaderboard.
 - **Difficulty** (formerly "depth"): Normal, Veteran, Nightmare, Inferno, Abyssal, Legendary. Each one keeps the earlier penalties (section 15) and the next opens by winning at the current one.
 - **Achievements**: 104, in four tiers (easy, medium, hard, legendary) across getting started, depth, treasure, builds, the Wumpus, difficulty, habits and the endless descent. Cumulative ones show a progress bar; the next goal sorts to the top.
 - **Heroes** have names and titles: Vael the Pathfinder, Sera the Crimson Archer, Borin the Moss Warden, Auric the Gilded Delver.
@@ -213,9 +218,9 @@ One thing to do first: a large golden PLAY button (the expedition) with the best
 ## 25. Decisions between floors, abilities and new dangers
 - **Gems are a purse.** Every gem collected adds 1 gem to the run's purse (2 with the Greedy Idol). It is kept for the whole run and spent only between floors.
 - **Between floors** (an overlay after the floor-complete card, `IntermissionOverlay`): the shop sells +2 arrows for the next floor (3 gems), a shield (5, only when you have none), a detector (4) and a bomb (6); the bag holds at most 3 of each item. An **altar** trades the shield for a second relic pick right after the first. A **fork** offers two doors, each an omen or a plain cave (two different ones, picked deterministically from the run seed and floor); the chosen omen is the floor's omen. There is no fork on the first floor, before the lair, or in the daily challenge (which keeps its seeded omens); the shop and altar are available everywhere. The "go" button arms after 0.35 s so a leftover tap cannot skip the screen.
-- **Hero abilities** (button above the pad, ready at the start of every floor, 12 actions of cooldown, each use takes one action so hunters move): Vael *Scout* reveals the nearest safe unexplored tile beside the explored area; Sera *Volley* is a free shot along her facing line that kills up to two guardians within five tiles (a Wumpus in the line takes one heart and stops it); Borin *Brace* raises a shield; Auric *Magnet* collects the nearest gem anywhere (and can clear the floor).
+- **Hero abilities** (button above the pad, ready at the start of every floor, each use takes one action so hunters move and sleepers nearby wake; cooldown 12 actions, except Brace and Magnet: 18): Vael *Scout* reveals a safe unexplored tile beside the explored area that the player could not already deduce (the one with most unexplored neighbours; only when nothing is hidden does it show a known one); Sera *Volley* is a free shot along her facing line that kills up to two guardians within five tiles (a Wumpus in the line takes one heart and stops it); Borin *Brace* raises a shield; Auric *Magnet* collects the nearest gem anywhere (and can clear the floor).
 - **One-use items**: the *detector* flags every hostile tile within two steps (the flags work like the player's own: stepping onto one is refused) and costs no action; the *bomb* destroys guardians and vortexes in the 3x3 around the hero (never the Wumpus) and costs an action. Items come only from the shop (nothing is found on the board yet).
 - **Undo**: once per floor the last step can be taken back (button appears after a step). Shots, abilities and items clear it; a death, a cleared floor or the next floor do too.
 - **Cursed relics** (4, a run carries at most one): *Blood Pact* (+50% gem points, one arrow fewer per floor, never below one), *Hasty Boots* (new tile pays triple, hunters act one action sooner), *Greedy Idol* (gems give double for the shop, two more vortexes on every new floor), *Glass Bow* (arrows fly two tiles farther, half the arrows each floor, never below one; shop arrows are not halved). From floor 3 a draft has a 40% chance of replacing its last offer with one; they show a red frame and a "Cursed" tag. They have no artwork yet and show an emoji.
-- **Sleeping guardian**: from floor 6 one guardian per floor sleeps. It is lethal and counts in the clue numbers and the fairness check like a normal guardian, can be shot, and wakes into a stalker when the hero comes within two tiles.
+- **Sleeping guardian**: from floor 6 one guardian per floor sleeps. It is lethal and counts in the clue numbers and the fairness check like a normal guardian, can be shot, and wakes into a stalker when the hero ends any action (step, shot, bomb, ability, a hit absorbed by a shield) within two tiles.
 - **Caves** (every three floors, announced by the floor banner and tinting the background): *caves* (1-3) plain; *crystal veins* (4-6) one extra shield on every floor; *magma tunnels* (7-9) one extra vortex and one extra arrow pickup; the lair keeps its own. The endless descent keeps cycling.

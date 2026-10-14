@@ -50,24 +50,7 @@ export function isSolvableByDeduction(
 
   for (;;) {
     // 1. Deduce what the explored clues prove.
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const v of visited) {
-        const around = neighbours(v, rows, cols).filter(n => !visited.has(n));
-        const dangers = around.filter(n => marks.get(n) === 'danger').length;
-        const unknown = around.filter(n => !marks.has(n));
-        if (unknown.length === 0) continue;
-        const remaining = clue(v) - dangers;
-        if (remaining === 0) {
-          unknown.forEach(n => marks.set(n, 'safe'));
-          changed = true;
-        } else if (remaining === unknown.length) {
-          unknown.forEach(n => marks.set(n, 'danger'));
-          changed = true;
-        }
-      }
-    }
+    deduce(visited, marks, clue, rows, cols);
 
     // 2. Walk everywhere that is explored or proven safe; those tiles become explored.
     const queue = [...visited];
@@ -86,4 +69,58 @@ export function isSolvableByDeduction(
   }
 
   return gems.every(g => visited.has(g));
+}
+
+/** Applies the clue rules over the explored tiles until nothing new is proven (marks are updated in place). */
+function deduce(
+  visited: ReadonlySet<number>,
+  marks: Map<number, Mark>,
+  clue: (index: number) => number,
+  rows: number,
+  cols: number,
+): void {
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const v of visited) {
+      const around = neighbours(v, rows, cols).filter(n => !visited.has(n));
+      const dangers = around.filter(n => marks.get(n) === 'danger').length;
+      const unknown = around.filter(n => !marks.has(n));
+      if (unknown.length === 0) continue;
+      const remaining = clue(v) - dangers;
+      if (remaining === 0) {
+        unknown.forEach(n => marks.set(n, 'safe'));
+        changed = true;
+      } else if (remaining === unknown.length) {
+        unknown.forEach(n => marks.set(n, 'danger'));
+        changed = true;
+      }
+    }
+  }
+}
+
+/**
+ * Tiles a careful player can already PROVE safe from what is on screen: visible gems and power-ups plus the
+ * deductions the explored clues allow (the same rules the generator's solvability check uses). Used by the Scout
+ * so it reveals something the player does not already know.
+ */
+export function provenSafeTiles(
+  rows: number,
+  cols: number,
+  entities: readonly GameEntity[],
+  visitedTiles: readonly number[],
+): Set<number> {
+  const hazards = new Set<number>();
+  const marks = new Map<number, Mark>();
+  for (const e of entities) {
+    if (isClueHazard(e.type)) hazards.add(e.index);
+    else if (e.type === 'coin' || e.type === 'shield' || e.type === 'ammo') marks.set(e.index, 'safe');
+  }
+  const clue = (index: number) => neighbours(index, rows, cols).filter(n => hazards.has(n)).length;
+  deduce(new Set(visitedTiles), marks, clue, rows, cols);
+  const safe = new Set<number>();
+  marks.forEach((m, i) => {
+    if (m === 'safe') safe.add(i);
+  });
+  return safe;
 }

@@ -5,7 +5,7 @@
  * human can see (clues on explored tiles, visible gems/power-ups) plus
  * Minesweeper-style deduction, and only guesses when nothing is provably safe.
  *
- *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth]
+ *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth] [aim]
  *
  * Output per floor: clear rate, how often the board forced a guess, and how
  * often a guess killed the bot. Use it to tune `core/difficulty/difficulty.ts`.
@@ -22,6 +22,8 @@ const RUNS = Number(process.argv[2] ?? 200);
 const FIRST = Number(process.argv[3] ?? 1);
 const LAST = Number(process.argv[4] ?? 9);
 const DEPTH = Number(process.argv[5] ?? 0);
+/** Default bot only shoots a stalker it already faces (the baseline); `aim` also turns to shoot any adjacent stalker, like a quick person would. */
+const AIM = process.argv[6] === 'aim';
 
 type Mark = 'safe' | 'danger';
 
@@ -97,7 +99,7 @@ function pathTo(state: GameState, marks: Map<number, Mark>, target: number): num
   return path.reverse();
 }
 
-type Choice = { next: number; guess: boolean } | { attack: true } | null;
+type Choice = { next: number; guess: boolean } | { attack: true; dir?: Direction } | null;
 
 const manhattan = (a: number, b: number, cols: number) =>
   Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));
@@ -114,6 +116,7 @@ function dealWithStalkers(state: GameState, marks: Map<number, Mark>): Choice | 
 
   const facing = adjacent.find(s => dirBetween(playerIndex, s, cols) === state.facingDir);
   if (facing !== undefined && state.attack > 0) return { attack: true };
+  if (AIM && state.attack > 0) return { attack: true, dir: dirBetween(playerIndex, adjacent[0], cols) };
 
   // Step to the neighbouring tile (explored or known safe) that is farthest from every stalker.
   const visited = new Set(state.visited);
@@ -195,6 +198,8 @@ interface FloorStats {
   clearedMoves: number;
   clearedRevisits: number;
   clearedExplored: number;
+  causes: Record<string, number>;
+  arrowsLeft: number;
 }
 
 interface FloorResult {
@@ -208,6 +213,10 @@ interface FloorResult {
   revisits: number;
   /** Share of the board explored when the floor ended. */
   explored: number;
+  /** What killed the bot (null when it survived or got stuck). */
+  cause: string | null;
+  /** Arrows left when the floor ended. */
+  arrowsLeft: number;
 }
 
 function playFloor(floor: number, seed: number): FloorResult {
@@ -234,8 +243,10 @@ function playFloor(floor: number, seed: number): FloorResult {
   let revisits = 0;
   let lastWasGuess = false;
   const cells = state.rows * state.cols;
-  const done = (partial: Omit<FloorResult, 'revisits' | 'explored'>): FloorResult => ({
+  const done = (partial: Omit<FloorResult, 'revisits' | 'explored' | 'cause' | 'arrowsLeft'>): FloorResult => ({
     ...partial,
+    cause: partial.died ? state.deathCause : null,
+    arrowsLeft: state.attack,
     revisits,
     explored: new Set(state.visited).size / cells,
   });
@@ -248,7 +259,7 @@ function playFloor(floor: number, seed: number): FloorResult {
     if (!choice) return done({ cleared: false, died: false, stuck: true, guesses, guessDeath: false, moves });
 
     if ('attack' in choice) {
-      state = gameReducer(state, { type: 'ATTACK' });
+      state = gameReducer(state, { type: 'ATTACK', direction: choice.dir });
       moves++;
       lastWasGuess = false;
       continue;
@@ -265,13 +276,14 @@ function playFloor(floor: number, seed: number): FloorResult {
 
 const pct = (n: number, d: number) => (d === 0 ? '  -  ' : `${((100 * n) / d).toFixed(0).padStart(3)}%`);
 
-console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (careful bot, no relics, no hero perks)\n`);
+console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (${AIM ? 'aiming' : 'standard'} careful bot, no relics, no hero perks)\n`);
 console.log('floor | size  | gems | enemies pits | dens | clear | needed a guess | died on a guess | stuck | avg moves');
 console.log('------+-------+------+--------------+------+-------+----------------+-----------------+-------+----------');
 
 const DETAIL: string[] = [];
+const CAUSES: string[] = [];
 for (let floor = FIRST; floor <= LAST; floor++) {
-  const s: FloorStats = { runs: 0, clears: 0, deaths: 0, stuck: 0, forcedGuess: 0, guessDeaths: 0, guesses: 0, moves: 0, revisits: 0, explored: 0, clearedMoves: 0, clearedRevisits: 0, clearedExplored: 0 };
+  const s: FloorStats = { runs: 0, clears: 0, deaths: 0, stuck: 0, forcedGuess: 0, guessDeaths: 0, guesses: 0, moves: 0, revisits: 0, explored: 0, clearedMoves: 0, clearedRevisits: 0, clearedExplored: 0, causes: {}, arrowsLeft: 0 };
   let dims = '';
   let gems = 0;
   let enemies = 0;
@@ -290,7 +302,11 @@ for (let floor = FIRST; floor <= LAST; floor++) {
     const r = playFloor(floor, seed);
     s.runs++;
     if (r.cleared) s.clears++;
-    if (r.died) s.deaths++;
+    if (r.died) {
+      s.deaths++;
+      s.causes[r.cause ?? '?'] = (s.causes[r.cause ?? '?'] ?? 0) + 1;
+    }
+    s.arrowsLeft += r.arrowsLeft;
     if (r.stuck) s.stuck++;
     if (r.guesses > 0) s.forcedGuess++;
     if (r.guessDeath) s.guessDeaths++;
@@ -310,6 +326,8 @@ for (let floor = FIRST; floor <= LAST; floor++) {
       `${pct((enemies + pits) / RUNS, cells)} | ` +
       `${pct(s.clears, s.runs)}  | ${pct(s.forcedGuess, s.runs)}            | ${pct(s.guessDeaths, s.runs)}             | ${pct(s.stuck, s.runs)}  | ${(s.moves / s.runs).toFixed(0).padStart(5)}`,
   );
+  const causes = Object.entries(s.causes).map(([k, v]) => `${k} ${pct(v, s.runs).trim()}`).join(', ') || 'none';
+  CAUSES.push(`  floor ${floor}: ${causes} | arrows left ${(s.arrowsLeft / s.runs).toFixed(1)}`);
   if (s.clears > 0) {
     DETAIL.push(
       `  floor ${floor}: ${(s.clearedMoves / s.clears).toFixed(0).padStart(4)} moves | ${pct(s.clearedRevisits, s.clearedMoves)} walking | ${(100 * s.clearedExplored / s.clears).toFixed(0).padStart(3)}% explored`,
@@ -319,3 +337,6 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 console.log('\n"needed a guess" = the board offered no provably safe tile at some point (Minesweeper-style luck).');
 console.log('\nPer cleared floor: moves, % of those moves spent walking over already explored tiles (no new information), % of the board explored.');
 for (const row of DETAIL) console.log(row);
+
+console.log('\nDeaths by cause (share of all runs on that floor) and arrows left at the end of the floor.');
+for (const row of CAUSES) console.log(row);

@@ -16,8 +16,15 @@ export function lairHeartBonus(mode: GameMode, level: number): number {
   return Math.max(0, Math.floor(level / GAME_CONFIG.expedition.floors) - 1);
 }
 
-/** Extra guardians and vortexes the endless descent piles on beyond the last designed floor. */
-export function endlessPressure(level: number): { enemies: number; pits: number } {
+/**
+ * Extra hazards the endless descent piles on beyond the last designed floor. Boards stop growing (8x13), so the
+ * floors get denser (toward ~28% hazards), not longer, and a hunter joins every five floors.
+ */
+export function endlessPressure(level: number): { enemies: number; pits: number; stalkers: number } {
   const beyond = Math.max(0, level - GAME_CONFIG.expedition.floors);
-  return { enemies: Math.min(6, Math.floor(beyond / 3)), pits: Math.min(4, Math.floor(beyond / 4)) };
+  return {
+    enemies: Math.min(3, Math.floor(beyond / 4)),
+    pits: Math.min(2, Math.floor(beyond / 6)),
+    stalkers: Math.min(3, Math.floor(beyond / 5)),
+  };
 }

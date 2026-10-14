@@ -84,7 +84,7 @@ describe('relic effects', () => {
     const now = pick([], 'quiver');
     expect(now.attack).toBe(3 + 2);
 
-    const later = gameReducer({ ...now, isLevelUp: true }, { type: 'LEVEL_UP', payload: nextFloor });
+    const later = gameReducer({ ...now, attack: 0, isLevelUp: true }, { type: 'LEVEL_UP', payload: nextFloor });
     expect(later.attack).toBe(nextFloor.attack + 1);
   });
 
