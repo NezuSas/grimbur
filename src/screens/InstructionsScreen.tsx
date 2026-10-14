@@ -19,7 +19,7 @@ import { GAME_CONFIG } from "../config/gameConfig";
 import { MAX_ASCENSION } from "../core/engine/ascension";
 import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
-import { ABILITY_COOLDOWN, MAX_ITEMS } from "../core/engine/shop";
+import { abilityCooldown, MAX_ITEMS } from "../core/engine/shop";
 import { LESSON_IDS } from "../core/tutorial/lessons";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
@@ -155,11 +155,11 @@ const PARAMS: Params = {
   ammo: GAME_CONFIG.pickups.ammoAmount,
   trap: Math.abs(GAME_CONFIG.scoring.trapPenalty),
   maxDepth: MAX_ASCENSION,
-  stalkerFloor: GAME_CONFIG.stalker.minFloor,
+  stalkerFloor: GAME_CONFIG.stalker.earlyFloor,
   stalkerMoves: GAME_CONFIG.stalker.moveEvery,
   sleeperFloor: GAME_CONFIG.sleeper.minFloor,
   sleeperWake: GAME_CONFIG.sleeper.wakeDistance,
-  cooldown: ABILITY_COOLDOWN,
+  cooldown: `${abilityCooldown("scout")}-${abilityCooldown("brace")}`,
   maxItems: MAX_ITEMS,
 };
 

@@ -760,6 +760,13 @@ export default function GameScreen({ navigation, route }: Props) {
         }
       }
     }
+    // A vortex now costs an arrow (or a shop gem), and a few relics/omens pay shop gems without a pickup: say so.
+    if (sameFloor && state.vortexCost && state.vortexCost !== prev.vortexCost) {
+      pushPopup({ points: 0, type: "streak", sub: state.vortexCost === "arrow" ? "🌀 -1 🏹" : "🌀 -1 💎", subColor: "#B39DDB" }, state.playerIndex);
+    }
+    if (state.gems > prev.gems && !has("coin") && state.totalCoins === prev.totalCoins) {
+      pushPopup({ points: 0, type: "streak", sub: `+${state.gems - prev.gems} 💎`, subColor: "#4FC3F7" }, state.playerIndex);
+    }
   }, [state]);
 
   useProximityAudio(state);
