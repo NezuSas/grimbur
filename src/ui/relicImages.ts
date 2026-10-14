@@ -1,8 +1,8 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { RelicId } from '../core/engine/relics';
 
-/** One illustration per relic. Typed as a full record so a new relic cannot ship without its art. */
-export const RELIC_IMAGES: Record<RelicId, ImageSourcePropType> = {
+/** One illustration per relic. The cursed relics have no art yet: the screens fall back to their emoji. */
+export const RELIC_IMAGES: Partial<Record<RelicId, ImageSourcePropType>> = {
   quiver: require('../assets/sprites/relics/quiver.png'),
   lucky_coin: require('../assets/sprites/relics/lucky_coin.png'),
   iron_boots: require('../assets/sprites/relics/iron_boots.png'),

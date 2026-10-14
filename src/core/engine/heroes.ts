@@ -1,3 +1,5 @@
+import type { AbilityId } from './abilities';
+
 /**
  * Hero perks. They are plain data read by the reducer, so the rules stay pure
  * and testable. Heroes are addressed by the same index as `data/characters.ts`.
@@ -15,6 +17,8 @@ export interface HeroPerks {
   coinMultiplier: number;
   /** Multiplier applied to the new-tile exploration bonus. */
   newTileMultiplier: number;
+  /** The hero's active ability (null when none). */
+  ability: AbilityId | null;
 }
 
 export const NO_PERKS: HeroPerks = {
@@ -24,6 +28,7 @@ export const NO_PERKS: HeroPerks = {
   startShield: false,
   coinMultiplier: 1,
   newTileMultiplier: 1,
+  ability: null,
 };
 
 export interface HeroInfo {
@@ -36,22 +41,22 @@ export const HEROES: readonly HeroInfo[] = [
   {
     perkName: 'Trapfinder',
     perkDescription: 'Traps never hurt. +1 arrow every floor.',
-    perks: { ...NO_PERKS, trapImmune: true, bonusArrows: 1 },
+    perks: { ...NO_PERKS, trapImmune: true, bonusArrows: 1, ability: 'scout' },
   },
   {
     perkName: 'Piercing arrows',
     perkDescription: 'Arrows fly 2 tiles.',
-    perks: { ...NO_PERKS, arrowReach: 2 },
+    perks: { ...NO_PERKS, arrowReach: 2, ability: 'volley' },
   },
   {
     perkName: 'Stoneskin',
     perkDescription: 'Starts every floor with a shield.',
-    perks: { ...NO_PERKS, startShield: true },
+    perks: { ...NO_PERKS, startShield: true, ability: 'brace' },
   },
   {
     perkName: 'Treasure hunter',
     perkDescription: 'Gems are worth +30%. Exploring pays double.',
-    perks: { ...NO_PERKS, coinMultiplier: 1.3, newTileMultiplier: 2 },
+    perks: { ...NO_PERKS, coinMultiplier: 1.3, newTileMultiplier: 2, ability: 'magnet' },
   },
 ];
 
