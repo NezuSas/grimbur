@@ -16,7 +16,7 @@ import { UPGRADES } from "../core/stats/forge";
 import { MAX_ASCENSION } from "../core/engine/ascension";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { dailyKey } from "../core/engine/seed";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats } from "../services/localStats";
 import characters from "../data/characters";
 import { useT } from "../i18n/useT";
 import { achievementText, heroText } from "../i18n/keys";
@@ -85,7 +85,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
 
   useFocusEffect(
     useCallback(() => {

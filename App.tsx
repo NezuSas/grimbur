@@ -13,7 +13,7 @@ import { useEntitlementsStore } from "./src/state/entitlements/store";
 import { initEntitlements } from "./src/services/entitlements";
 import { FONT_FILES } from "./src/ui/fonts";
 
-import { useSoundStore } from "./src/state/sound/store";
+import { useSoundStore, soundLoadProgress, whenAllSoundsLoaded } from "./src/state/sound/store";
 import { useSoundManager } from "./src/audio/soundManager";
 import StackNavigator from "./src/navigation/StackNavigator";
 import { getPreloadImages } from "./src/ui/preloadImages";
@@ -22,6 +22,8 @@ import { prefetchLeaderboardThreshold } from "./src/services/highscores";
 import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
+import { EMPTY_STARTUP, StartupParts, startupProgress } from "./src/core/startup/progress";
+import { getLocalStats } from "./src/services/localStats";
 import { readDevHarness } from "./src/dev/devHarness";
 import { useImmersiveMode } from "./src/shared/immersive";
 
@@ -30,8 +32,13 @@ installGlobalErrorHandler();
 // Web dev builds only: ?screen=...&preset=... opens a screen directly (null everywhere else).
 const devLaunch = readDevHarness();
 
-/** Longest the splash waits for the audio engine before starting the app anyway. */
-const AUDIO_INIT_TIMEOUT_MS = 2500;
+/**
+ * Longest the splash waits for ALL the sounds before starting the app anyway (the first ones are ready much sooner, and
+ * the rest keep loading behind the first screen on a very slow device).
+ */
+const AUDIO_LOAD_TIMEOUT_MS = 9000;
+/** Longest the invisible warm-up may take to draw every picture once before the app starts anyway. */
+const WARMUP_TIMEOUT_MS = 10000;
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -40,6 +47,11 @@ export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [assetsDownloaded, setAssetsDownloaded] = useState(false);
   const warmImages = useMemo(() => getPreloadImages(), []);
+  // What the loading bar shows. Only ever grows, so a slow part never makes the bar step back.
+  const [parts, setParts] = useState<StartupParts>({ ...EMPTY_STARTUP, download: { done: 0, total: warmImages.length }, decode: { done: 0, total: warmImages.length } });
+  const [bar, setBar] = useState(0);
+  const patch = useCallback((next: Partial<StartupParts>) => setParts(prev => ({ ...prev, ...next })), []);
+  useEffect(() => setBar(prev => Math.max(prev, startupProgress(parts))), [parts]);
   
   // Use the SoundManager globally
   useSoundManager();
@@ -50,26 +62,44 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Audio and illustrations load in parallel. Audio is capped: on a device where the audio engine never
-        // becomes ready the splash must not hang, and the sound manager copes with a late start.
-        const audio = Promise.race([
-          useSoundStore.getState().init(),
-          new Promise<void>(resolve => setTimeout(resolve, AUDIO_INIT_TIMEOUT_MS)),
-        ]).catch(err => console.warn("[App] Audio init failed:", err));
-        const settings = Promise.resolve(useSettingsStore.persist.rehydrate()).catch(() => {});
-        // The owned-unlock flag is local; the store connection (when one exists) is confirmed in the background.
-        const entitlements = Promise.resolve(useEntitlementsStore.persist.rehydrate())
-          .then(() => void initEntitlements())
-          .catch(() => {});
+        // Everything the game will show or play loads here, behind the splash, so nothing pops in later: sounds, pictures
+        // (downloaded, then decoded by the warm-up), fonts, settings and the saved progress. They run in parallel.
+        const audio = (async () => {
+          // The first sounds are ready when init resolves; the rest load behind them. Wait for all, with a cap.
+          await useSoundStore.getState().init();
+          const poll = setInterval(() => patch({ audio: soundLoadProgress() }), 120);
+          await Promise.race([whenAllSoundsLoaded(), new Promise<void>(resolve => setTimeout(resolve, AUDIO_LOAD_TIMEOUT_MS))]);
+          clearInterval(poll);
+          const final = soundLoadProgress();
+          patch({ audio: { done: final.total, total: final.total } });
+        })().catch(err => console.warn("[App] Audio init failed:", err));
+        const basics = (async () => {
+          await Promise.resolve(useSettingsStore.persist.rehydrate()).catch(() => {});
+          // The owned-unlock flag is local; the store connection (when one exists) is confirmed in the background.
+          await Promise.resolve(useEntitlementsStore.persist.rehydrate())
+            .then(() => void initEntitlements())
+            .catch(() => {});
+          // The icon font loads before the first screen too: otherwise arrows, hint badges and buttons appear blank
+          // for a moment the first time each one is drawn.
+          await Font.loadAsync({ ...Ionicons.font, ...FONT_FILES }).catch(err => console.warn("[App] Icon font failed:", err));
+          patch({ basics: true });
+        })();
+        // The saved progress goes into memory now, so the cover opens already knowing who is playing (no flash of the
+        // "first time" cover) and the hero, Forge and collection screens draw real data on their first frame.
+        const stats = getLocalStats().then(() => patch({ stats: true })).catch(() => patch({ stats: true }));
+        let downloaded = 0;
         const images = Promise.allSettled(
           warmImages.map(image =>
-            Asset.fromModule(image as number).downloadAsync().catch(err => console.warn("[App] Failed to pre-load asset:", err)),
+            Asset.fromModule(image as number)
+              .downloadAsync()
+              .catch(err => console.warn("[App] Failed to pre-load asset:", err))
+              .finally(() => {
+                downloaded += 1;
+                if (downloaded % 4 === 0 || downloaded === warmImages.length) patch({ download: { done: downloaded, total: warmImages.length } });
+              }),
           ),
         );
-        // The icon font loads before the first screen too: otherwise arrows, hint badges and buttons appear blank
-        // for a moment the first time each one is drawn.
-        const fonts = Font.loadAsync({ ...Ionicons.font, ...FONT_FILES }).catch(err => console.warn("[App] Icon font failed:", err));
-        await Promise.all([audio, settings, entitlements, images, fonts]);
+        await Promise.all([audio, basics, stats, images]);
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
@@ -93,8 +123,19 @@ export default function App() {
   if (!appIsReady) {
     return (
       <>
-        <LoadingScreen />
-        {assetsDownloaded && <ImageWarmup images={warmImages} onDone={() => { analytics.track("app_open", { cold: true }); setAppIsReady(true); }} />}
+        <LoadingScreen progress={bar} />
+        {assetsDownloaded && (
+          <ImageWarmup
+            images={warmImages}
+            timeoutMs={WARMUP_TIMEOUT_MS}
+            onProgress={(done, total) => patch({ decode: { done, total } })}
+            onDone={() => {
+              patch({ decode: { done: warmImages.length, total: warmImages.length } });
+              analytics.track("app_open", { cold: true });
+              setAppIsReady(true);
+            }}
+          />
+        )}
       </>
     );
   }

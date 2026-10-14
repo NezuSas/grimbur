@@ -41,7 +41,7 @@ import type { TranslationKey } from "../i18n/en";
 import SpriteImage from "../ui/components/SpriteImage";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { equippedSkin, ownedSkins } from "../core/skins/ownership";
-import { equipSkinFor } from "../services/localStats";
+import { equipSkinFor, peekLocalStats } from "../services/localStats";
 import { skinText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
@@ -168,9 +168,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const lastHero = useSettingsStore(s => s.lastHero);
   const setLastHero = useSettingsStore(s => s.setLastHero);
   const calm = useSettingsStore(s => s.reduceFlash);
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   // Until the saved stats arrive, every hero but the first looks locked and the depth and Forge bonuses are unknown.
-  const [statsLoaded, setStatsLoaded] = useState(false);
+  const [statsLoaded, setStatsLoaded] = useState(() => peekLocalStats() !== null);
   const [depth, setDepth] = useState(0);
   const devHero = __DEV__ ? route.params?.devHero : undefined;
   const [selected, setSelected] = useState(() => devHero ?? (lastHero >= 0 && lastHero < HERO_COUNT ? lastHero : 0));

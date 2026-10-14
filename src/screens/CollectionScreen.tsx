@@ -17,7 +17,7 @@ import { SKINS, SKINS_BY_HERO } from "../core/skins/skins";
 import { equippedSkin, skinStatus } from "../core/skins/ownership";
 import { COLLECTION_FILTERS, CollectionFilter, collectionCount, heroCollectionCount, visibleSkins } from "../core/skins/collection";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { buySkinFor, equipSkinFor, getLocalStats } from "../services/localStats";
+import { buySkinFor, equipSkinFor, getLocalStats, peekLocalStats } from "../services/localStats";
 import { analytics } from "../services/analytics";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
@@ -78,7 +78,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
   const calm = useSettingsStore(s => s.reduceFlash);
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   const [loaded, setLoaded] = useState(false);
   const [hero, setHero] = useState(Math.min(Math.max(route.params?.hero ?? 0, 0), characters.length - 1));
   const [filter, setFilter] = useState<CollectionFilter>("all");

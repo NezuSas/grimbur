@@ -26,7 +26,7 @@ import { RELIC_IMAGES } from "../ui/relicImages";
 import SpriteImage from "../ui/components/SpriteImage";
 import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { buyUpgrade, getLocalStats } from "../services/localStats";
+import { buyUpgrade, getLocalStats, peekLocalStats } from "../services/localStats";
 import { analytics } from "../services/analytics";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
@@ -224,7 +224,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const { t, plural } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);

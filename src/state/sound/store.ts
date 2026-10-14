@@ -150,6 +150,11 @@ function retryPlay(name: string, attempt: number) {
 
 const HANDLES: Record<string, LegacySoundHandle> = {};
 
+/** How many sounds (a sound is one entry in the files list) have finished loading, for the start-up progress bar. */
+let soundsLoaded = 0;
+let soundsTotal = 0;
+export const soundLoadProgress = (): { done: number; total: number } => ({ done: soundsLoaded, total: soundsTotal });
+
 /** Resolves when every sound is loaded (init resolves as soon as the first ones are). */
 let allLoaded: Promise<void> = Promise.resolve();
 export const whenAllSoundsLoaded = (): Promise<void> => allLoaded;
@@ -370,7 +375,10 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       for (const voice of voicesOf(name)) GLOBAL_SOURCES[voice] = source;
       return toLegacyHandle(name);
     };
-    const load = (name: string) => Promise.all(voicesOf(name).map(voice => ensurePlayer(voice)));
+    const load = async (name: string) => {
+      await Promise.all(voicesOf(name).map(voice => ensurePlayer(voice)));
+      soundsLoaded += 1;
+    };
 
     try {
       audioLog('init', 'start');
@@ -389,6 +397,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["relic", require("../../assets/sfx/relic.wav")],
         ["roar", require("../../assets/sfx/roar.wav")],
       ];
+      soundsTotal = files.length;
       const handles = files.map(([name, source]) => register(source, name));
       const p = Object.fromEntries(files.map(([name], i) => [name, handles[i]]));
 

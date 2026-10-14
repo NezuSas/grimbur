@@ -61,5 +61,5 @@ reads the real WAV files to keep the files and the table in agreement.
 - To make an event louder or softer, change its `db` in `mix.ts`, never a magic volume number in `soundManager.ts`.
 - Hierarchy: big moments (roar, boss hit, death, relic) > feedback (kill, gems, power-ups) > constant feedback (steps, misses,
   warnings) > danger hums > music. The player's music and effects settings scale on top.
-- Start-up loads only the first sounds (steps, gems, shot, cover music) before the app starts and the rest one by one in the
-  background, so a slow phone is not starved by loading 15+ native players at once.
+- Start-up loads the first sounds (steps, gems, shot, cover music) first, then the rest one by one, and the splash screen waits for
+  all of them (up to 9 s, with a progress bar) so nothing loads later during play. See App.tsx and src/core/startup/progress.ts.

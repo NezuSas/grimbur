@@ -18,8 +18,15 @@ import type { SkinId } from '../core/skins/skins';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
 
+/** The last stats read or written, kept in memory so a screen can draw its first frame with real data. */
+let latest: LocalStats | null = null;
+
+/** The stats as they are right now, if they have been read this session (the splash screen reads them). */
+export const peekLocalStats = (): LocalStats | null => latest;
+
 export async function getLocalStats(): Promise<LocalStats> {
-  return parseStats(await AsyncStorage.getItem(STORAGE_KEY));
+  latest = parseStats(await AsyncStorage.getItem(STORAGE_KEY));
+  return latest;
 }
 
 /**
@@ -36,6 +43,7 @@ function serialized<T>(work: () => Promise<T>): Promise<T> {
 
 async function save(stats: LocalStats) {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
+  latest = stats;
 }
 
 /** Persists a finished expedition run and reports whether it beat the previous best score. */
