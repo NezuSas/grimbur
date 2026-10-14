@@ -79,9 +79,13 @@ async function ensurePlayer(name: string): Promise<any> {
                   lastState = key;
                   audioLog('status', `${name} ${key}`);
                 }
-                // An effect (not a looping track) just ended: rewind it now, in the background.
+                // An effect (not a looping track) just ended: rewind it now, in the background. It must be PAUSED
+                // first: on Android (ExoPlayer) a player that finished still has "play when ready" on, so seeking it
+                // back to 0 started it again by itself, and every effect then replayed in an endless loop (iOS does
+                // not do this, which is why only Android phones showed it).
                 if (st.didJustFinish && !TARGET_LOOPS[baseOf(name)]) {
                   try {
+                    player.pause();
                     player.seekTo(0);
                     REWOUND[name] = true;
                   } catch {}
