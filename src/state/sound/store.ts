@@ -20,7 +20,9 @@ const INITIALIZING_PLAYERS: Record<string, Promise<any> | undefined> = {};
  * or swallowed it, which is why effects seemed to play only some of the time.
  */
 // Every expo-audio player is a whole ExoPlayer plus a MediaSession on Android, so voices are kept few.
-const EXTRA_VOICES: Record<string, number> = { move: 2, coin: 1, attack: 1 };
+// Walking by tapping a far tile steps every 110 ms; a voice needs ~320 ms to end, rewind and be ready again, so the
+// footstep gets four voices (a fifth would only cost another native player for nothing).
+const EXTRA_VOICES: Record<string, number> = { move: 3, coin: 1, attack: 1 };
 const voicesOf = (name: string): string[] => [
   name,
   ...Array.from({ length: EXTRA_VOICES[name] ?? 0 }, (_, i) => `${name}#${i + 1}`),
@@ -41,6 +43,8 @@ const LOAD_WAIT_ATTEMPTS = 60;
 const lastRetry: Record<string, number> = {};
 /** When play() was last called on each voice, to measure how long the player takes to start sounding. */
 const PLAY_CALLED_AT: Record<string, number> = {};
+/** Whether that play had to seek first (the slow path). */
+const PLAY_SEEKED: Record<string, boolean> = {};
 const RETRY_AFTER_MS = 5000;
 
 /**
@@ -82,7 +86,7 @@ async function ensurePlayer(name: string): Promise<any> {
                   audioLog('status', `${name} ${key}`);
                 }
                 if (st.playing === true && PLAY_CALLED_AT[name]) {
-                  recordLatency(baseOf(name), Date.now() - PLAY_CALLED_AT[name]);
+                  recordLatency(baseOf(name), Date.now() - PLAY_CALLED_AT[name], PLAY_SEEKED[name] === true);
                   delete PLAY_CALLED_AT[name];
                 }
                 // An effect (not a looping track) just ended: rewind it now, in the background. It must be PAUSED
@@ -201,6 +205,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         if (rate !== 1 || RATE_SET[voice]) {
           try { p.setPlaybackRate?.(rate); RATE_SET[voice] = rate !== 1; } catch {}
         }
+        PLAY_SEEKED[voice] = !REWOUND[voice];
         if (!REWOUND[voice]) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
         REWOUND[voice] = false;
         PLAY_CALLED_AT[voice] = Date.now();
