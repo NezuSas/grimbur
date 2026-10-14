@@ -82,6 +82,10 @@ export default function LessonScreen({ navigation, route }: Props) {
     };
   }, [lesson.id]);
 
+  useEffect(() => {
+    if (isLast) analytics.track("lesson_complete", { lesson: lesson.id });
+  }, [isLast, lesson.id]);
+
   const restart = useCallback(() => {
     dispatch({ type: "LESSON_SET", state: freshLesson(lesson) });
     setStepIndex(0);

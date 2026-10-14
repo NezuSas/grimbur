@@ -121,6 +121,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
 
   const replay = route.params?.replay === true;
   const finish = useCallback(() => {
+    analytics.track("tutorial_complete", { replay });
     setTutorialSeen(true);
     if (replay) {
       navigation.goBack(); // came from the manual: go back there
@@ -136,7 +137,17 @@ export default function TutorialScreen({ navigation, route }: Props) {
     });
   }, [navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 
-  const skip = finish; // finish() already marks the tutorial as seen
+  // Leaving early still marks the tutorial as seen (finish does it), but is reported apart so the funnel can tell them.
+  const skip = useCallback(() => {
+    analytics.track("tutorial_skip", { step: stepIndex });
+    setTutorialSeen(true);
+    if (replay) {
+      navigation.goBack();
+      return;
+    }
+    emitSound("GAME_MUSIC_START");
+    navigation.replace("GameScreen", { characterIndex, mode: "expedition", ascension: route.params?.ascension, meta: route.params?.meta });
+  }, [stepIndex, navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 
   const highlight = step.highlight;
 
