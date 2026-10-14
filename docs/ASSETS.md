@@ -90,3 +90,12 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 ## Typeface
 
 Fredoka (Google Fonts, SIL Open Font License 1.1) through the `@expo-google-fonts/fredoka` package: regular, medium, semi-bold and bold files. The licence permits embedding in apps and games; keep the licence text available if a store asks for third-party notices.
+
+## Second art pack (2026-10-14)
+
+| File | Source | Notes |
+| --- | --- | --- |
+| `src/assets/sprites/enemies/Stalker_Enemy.png` | ChatGPT image generation (owner's paid plan) | Prompt in `docs/ART_NEXT.md` 1.1; cropped, resized to 384 px and palette-compressed (33 KB) |
+| `src/assets/sprites/enemies/Sleeper_Enemy.png` | ChatGPT image generation (owner's paid plan) | Prompt in `docs/ART_NEXT.md` 1.2; cropped, resized to 384 px and palette-compressed (36 KB) |
+
+TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of them, as the store forms may ask.

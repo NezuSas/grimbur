@@ -68,7 +68,12 @@ export default function LessonScreen({ navigation, route }: Props) {
 
   const devMoves = route.params.devMoves;
   const [state, dispatch] = useReducer(lessonReducer, lesson, (l: LessonDef) => {
-    const start = freshLesson(l);
+    let start = freshLesson(l);
+    if (__DEV__ && route.params.devEntities) {
+      // Screenshots only: the given entities, every tile explored.
+      const entities = route.params.devEntities as GameState["entities"];
+      start = { ...start, entities, entityMap: Object.fromEntries(entities.map(e => [e.index, e])), visited: Array.from({ length: start.rows * start.cols }, (_, i) => i) };
+    }
     if (!__DEV__ || !devMoves) return start;
     return devMoves.reduce<GameState>((s, direction) => gameReducer(s, { type: "MOVE", direction }), start);
   });

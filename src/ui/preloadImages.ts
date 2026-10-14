@@ -19,6 +19,8 @@ export function getPreloadImages(): ImageSourcePropType[] {
     require('../assets/sprites/tiles/Tile_Revealed.png'),
     require('../assets/sprites/tiles/Danger_Vortex.png'),
     require('../assets/sprites/enemies/Guardian_Enemy.png'),
+    require('../assets/sprites/enemies/Stalker_Enemy.png'),
+    require('../assets/sprites/enemies/Sleeper_Enemy.png'),
     require('../assets/sprites/enemies/Wumpus_Boss.png'),
     require('../assets/sprites/items/Icon_Gem.png'),
     require('../assets/sprites/items/Icon_Shield.png'),

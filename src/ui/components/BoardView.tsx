@@ -51,8 +51,10 @@ type Props = {
   skin?: SkinId;
 };
 
-const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
+const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
+  stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
+  sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
   boss:     require("../../assets/sprites/enemies/Wumpus_Boss.png"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
   shield:   require("../../assets/sprites/items/Icon_Shield.png"),
@@ -238,8 +240,8 @@ const GridCell = memo(({
 
       {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
         <SpriteImage
-          style={[{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }, entity.type === 'sleeper' && { opacity: 0.6 }]}
-          source={entity.type === 'pit' ? ASSETS.pit : ASSETS.enemy}
+          style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
+          source={entity.type === 'pit' ? ASSETS.pit : entity.type === 'stalker' ? ASSETS.stalker : entity.type === 'sleeper' ? ASSETS.sleeper : ASSETS.enemy}
           resizeMode="contain"
         />
       )}
