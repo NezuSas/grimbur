@@ -5,6 +5,7 @@ import characters from '../../src/data/characters';
 import { RELIC_IMAGES } from '../../src/ui/relicImages';
 import { BIOME_ART } from '../../src/ui/biomeArt';
 import { BIOMES } from '../../src/core/engine/biomes';
+import { allToolImages } from '../../src/ui/toolArt';
 
 describe('start-up progress', () => {
   it('weights add up to one', () => {
@@ -47,6 +48,10 @@ describe('what the splash preloads', () => {
       expect(art).toBeDefined();
       for (const source of [art.background, art.tileHidden, art.tileRevealed]) expect(list).toContain(source);
     }
+  });
+
+  it('contains every tool, ability and shop picture', () => {
+    for (const source of allToolImages()) expect(list).toContain(source);
   });
 
   it('contains every relic picture and no image twice', () => {

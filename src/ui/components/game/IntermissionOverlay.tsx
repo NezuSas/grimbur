@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import SpriteImage from "../SpriteImage";
+import { ALTAR_ART, SHOP_ART } from "../../toolArt";
 import Text from "../Text";
 import OverlayContainer from "./OverlayContainer";
 import { useT } from "../../../i18n/useT";
@@ -110,7 +112,7 @@ const IntermissionOverlay = ({
           const price = SHOP_PRICES[item];
           const blocked = reason(item);
           const canBuy = gems >= price && !blocked;
-          const { icon, color } = ITEM_ICONS[item];
+          const { color } = ITEM_ICONS[item];
           const name = t(`shop.${item}.name` as TranslationKey);
           const desc = t(`shop.${item}.desc` as TranslationKey);
           return (
@@ -124,7 +126,7 @@ const IntermissionOverlay = ({
               accessibilityState={{ disabled: !canBuy }}
               style={[styles.card, { width: cardWidth, borderColor: canBuy ? color : "#4a4560", opacity: canBuy ? 1 : 0.55 }]}
             >
-              <Ionicons name={icon} size={compact ? 24 : 30} color={color} />
+              <SpriteImage source={SHOP_ART[item]} style={{ width: compact ? 34 : 44, height: compact ? 34 : 44 }} resizeMode="contain" accessibilityIgnoresInvertColors />
               <Text style={styles.cardName} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                 {name}
               </Text>
@@ -153,7 +155,7 @@ const IntermissionOverlay = ({
           accessibilityLabel={`${t("shop.altar.name")}. ${t("shop.altar.desc")}`}
           style={[styles.altar, { marginTop: pad, opacity: altarUsed ? 0.55 : 1 }]}
         >
-          <Ionicons name="sparkles" size={16} color="#CE93D8" />
+          <SpriteImage source={ALTAR_ART} style={{ width: 26, height: 26 }} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.altarText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {altarUsed ? t("shop.altar.done") : `${t("shop.altar.name")}: ${t("shop.altar.desc")}`}
           </Text>

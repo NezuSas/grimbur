@@ -1,20 +1,13 @@
 import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import { haptic } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import type { AbilityId } from "../../core/engine/abilities";
-
-type IconName = React.ComponentProps<typeof Ionicons>["name"];
-
-export const ABILITY_ICONS: Record<AbilityId, IconName> = {
-  scout: "eye",
-  volley: "flash",
-  brace: "shield-checkmark",
-  magnet: "magnet",
-};
+import type { ImageSourcePropType } from "react-native";
+import SpriteImage from "./SpriteImage";
+import { ABILITY_ART, TOOL_ART } from "../toolArt";
 
 type Props = {
   ability: AbilityId | null;
@@ -32,7 +25,7 @@ type Props = {
 };
 
 type ButtonProps = {
-  icon: IconName;
+  art: ImageSourcePropType;
   color: string;
   size: number;
   label: string;
@@ -47,7 +40,7 @@ type ButtonProps = {
 /** Extra touch area so a small button still reaches the minimum touch size. */
 const HIT_PAD = (size: number) => Math.max(0, (MIN_TOUCH - size) / 2);
 
-const ToolButton = ({ icon, color, size, label, onPress, disabled, badge, dim }: ButtonProps) => (
+const ToolButton = ({ art, color, size, label, onPress, disabled, badge, dim }: ButtonProps) => (
   <TouchableOpacity
     onPress={() => {
       haptic.impact();
@@ -65,7 +58,8 @@ const ToolButton = ({ icon, color, size, label, onPress, disabled, badge, dim }:
       dim && styles.dim,
     ]}
   >
-    <Ionicons name={icon} size={size * 0.5} color={dim ? "rgba(255,255,255,0.55)" : color} />
+    {/* The picture has its own golden rim: it fills the round button and fades while recharging. */}
+    <SpriteImage source={art} style={{ width: size * 0.8, height: size * 0.8, opacity: dim ? 0.4 : 1 }} resizeMode="contain" accessibilityIgnoresInvertColors />
     {badge ? (
       <View style={[styles.badge, { backgroundColor: dim ? "#455a64" : color }]}>
         <Text style={styles.badgeText} allowFontScaling={false}>
@@ -85,7 +79,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
     <View style={styles.row}>
       {ability && (
         <ToolButton
-          icon={ABILITY_ICONS[ability]}
+          art={ABILITY_ART[ability]}
           color="#FFD54F"
           size={size}
           label={`${abilityName}. ${abilityCd > 0 ? t("tool.cooldown", { name: abilityName, n: abilityCd }) : t("tool.ready", { name: abilityName })}. ${t(`ability.${ability}.desc`)}`}
@@ -97,7 +91,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       )}
       {detector > 0 && (
         <ToolButton
-          icon="radio"
+          art={TOOL_ART.detector}
           color="#4FC3F7"
           size={size}
           label={`${t("tool.count", { name: t("tool.detector.name"), count: detector })}. ${t("tool.detector.desc")}`}
@@ -107,7 +101,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       )}
       {bomb > 0 && (
         <ToolButton
-          icon="flame"
+          art={TOOL_ART.bomb}
           color="#FF7043"
           size={size}
           label={`${t("tool.count", { name: t("tool.bomb.name"), count: bomb })}. ${t("tool.bomb.desc")}`}
@@ -117,7 +111,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       )}
       {canUndo && (
         <ToolButton
-          icon="arrow-undo"
+          art={TOOL_ART.undo}
           color="#CE93D8"
           size={size}
           label={`${t("tool.undo.name")}. ${t("tool.undo.desc")}`}
