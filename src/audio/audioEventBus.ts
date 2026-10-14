@@ -14,7 +14,12 @@
 
 import { SoundEvent } from './soundEvents';
 
-type SoundListener = (event: SoundEvent) => void;
+/** Optional shaping of one play: `rate` is the playback speed (and pitch) of the effect, 1 = as recorded. */
+export interface SoundOptions {
+  rate?: number;
+}
+
+type SoundListener = (event: SoundEvent, options?: SoundOptions) => void;
 
 const listeners: Set<SoundListener> = new Set();
 
@@ -28,10 +33,10 @@ const listeners: Set<SoundListener> = new Set();
  * emitSound('COIN_COLLECTED');
  * emitSound('GAME_OVER');
  */
-export function emitSound(event: SoundEvent): void {
+export function emitSound(event: SoundEvent, options?: SoundOptions): void {
   listeners.forEach((listener) => {
     try {
-      listener(event);
+      listener(event, options);
     } catch (e) {
       console.warn('[AudioEventBus] Listener error:', e);
     }

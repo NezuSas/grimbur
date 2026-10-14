@@ -28,7 +28,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, cal
   useEffect(() => {
     opacity.setValue(0);
     lift.setValue(calm ? 0 : 12);
-    const hold = long ? 4200 : omenName ? 2100 : 1100;
+    const hold = long ? 4200 : omenName ? 1400 : 1100;
     const run = Animated.sequence([
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),

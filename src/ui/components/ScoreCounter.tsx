@@ -15,17 +15,21 @@ type Props = {
   a11yLabel?: string;
   /** Narrow windows: tighter padding so the three counters fit. */
   compact?: boolean;
+  /** Peak scale of the pop when the value changes (a streak makes it bigger). */
+  popScale?: number;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact, popScale = 1.15 }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const popRef = useRef(popScale);
+  popRef.current = popScale;
 
   useEffect(() => {
     // 120-160ms scale pop: 1 -> 1.15 -> 1
     Animated.sequence([
       Animated.timing(scaleAnim, {
-        toValue: 1.15,
+        toValue: popRef.current,
         duration: 70,
         useNativeDriver: true,
       }),

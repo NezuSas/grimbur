@@ -78,7 +78,8 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
           setAim(null);
           animateScale(scale, 1);
           latest.current.onAim?.(null);
-          haptic.notify(latest.current.empty ? NotificationFeedbackType.Warning : NotificationFeedbackType.Success);
+          // Out of arrows is refused right here; a real shot gets its hit/miss haptic from the result (GameScreen).
+          if (latest.current.empty) haptic.notify(NotificationFeedbackType.Warning);
           latest.current.onAttack(direction);
         },
         onPanResponderTerminate: () => {

@@ -38,6 +38,14 @@ type Props = {
   onReady?: () => void;
   /** True from the moment the hero dies: the board shakes hard once. */
   dying?: boolean;
+  /** The tile that killed the hero (ringed in red). */
+  killerTile?: number | null;
+  /** Bumped when something heavy lands (a hit on the Wumpus): the board shakes once. */
+  shakeKey?: number;
+  /** A refused step onto a flag: the flag on this tile blinks and shakes. `n` changes for every refusal. */
+  flagPing?: { index: number; n: number } | null;
+  /** Reduced motion: no shakes, no pulsing. */
+  calm?: boolean;
 };
 
 const ASSETS: Record<"enemy" | "boss" | "pit" | "coin" | "shield" | "ammo" | "block" | "blockFog", ImageSourcePropType> = {
@@ -62,7 +70,7 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay, pulse, killer, flagPing
 }: {
   index: number;
   tileSize: number;
@@ -85,6 +93,12 @@ const GridCell = memo(({
   onTileLoaded: () => void;
   /** When many tiles are uncovered at once (a relic), each one waits this long so they open as a ripple. */
   revealDelay: number;
+  /** One breathing value shared by every cell of the board (0..1): clue badges and wind-up auras follow it. */
+  pulse: Animated.Value;
+  /** This tile killed the hero. */
+  killer: boolean;
+  /** Changes every time a step onto this flagged tile is refused (0 = never). */
+  flagPing: number;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   const [isVisited, setShown] = useState(visitedProp);
@@ -103,9 +117,31 @@ const GridCell = memo(({
   const glow = useRef(new Animated.Value(0)).current;
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
-  const pulseAnim = useRef(new Animated.Value(0)).current;
   // The hint badge breathes between 85% and 100%: it must stay visible at every moment.
-  const hintScale = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] });
+  const hintScale = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }), [pulse]);
+  const auraScale = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] }), [pulse]);
+  const tintOpacity = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.25] }), [pulse]);
+
+  // A refused step onto this flag: it shakes and the tile blinks red.
+  const flagShake = useRef(new Animated.Value(0)).current;
+  const flagBlink = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!flagPing) return;
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(flagShake, { toValue: 5, duration: 45, useNativeDriver: true }),
+        Animated.timing(flagShake, { toValue: -5, duration: 70, useNativeDriver: true }),
+        Animated.timing(flagShake, { toValue: 3, duration: 55, useNativeDriver: true }),
+        Animated.timing(flagShake, { toValue: 0, duration: 45, useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.timing(flagBlink, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(flagBlink, { toValue: 0, duration: 120, useNativeDriver: true }),
+        Animated.timing(flagBlink, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(flagBlink, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [flagPing]);
 
   // A tile "pops" when it is uncovered (not when the floor first draws): quick, native-driven, and a no-op on mount.
   const revealScale = useRef(new Animated.Value(1)).current;
@@ -135,21 +171,9 @@ const GridCell = memo(({
   // Don't show hint if an entity is directly on this cell (it would overlap)
   const showHints = isVisited && !entity && (roar || vortex);
 
-  // Local Pulse Animation for this cell
-  useEffect(() => {
-    if (showHints) {
-      const loop = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
-        ])
-      );
-      loop.start();
-      return () => loop.stop();
-    } else {
-      pulseAnim.setValue(0);
-    }
-  }, [showHints]);
+  const charged = (entity?.type === 'boss' || entity?.type === 'stalker') && (entity.charge ?? 0) >= 1;
+  const badge = Math.max(10, tileSize * (roar && vortex ? 0.4 : 0.5));
+  const countSize = Math.max(8, tileSize * 0.24);
 
   return (
     <View
@@ -190,7 +214,7 @@ const GridCell = memo(({
             StyleSheet.absoluteFill,
             {
               backgroundColor: vortex ? "rgba(156,39,176,0.15)" : "rgba(255,220,0,0.08)",
-              opacity: pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.25] }),
+              opacity: tintOpacity,
             },
           ]}
         />
@@ -198,13 +222,18 @@ const GridCell = memo(({
 
       {/* Pit / Enemy revealed when visited */}
       {entity?.type === 'stalker' && (isVisited || isPlayerHere) && (
-        <View
-          style={[styles.stalkerAura, { width: tileSize, height: tileSize }, (entity.charge ?? 0) >= 1 && styles.stalkerCharged]}
+        <Animated.View
+          style={[
+            styles.stalkerAura,
+            { width: tileSize, height: tileSize },
+            charged && styles.stalkerCharged,
+            charged && { transform: [{ scale: auraScale }] },
+          ]}
           pointerEvents="none"
         />
       )}
 
-      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere) && (
+      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
         <SpriteImage
           style={[{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }, entity.type === 'sleeper' && { opacity: 0.6 }]}
           source={entity.type === 'pit' ? ASSETS.pit : ASSETS.enemy}
@@ -218,11 +247,12 @@ const GridCell = memo(({
       {/* The Wumpus: shown on explored tiles, with its remaining hearts */}
       {entity?.type === 'boss' && (isVisited || isPlayerHere) && (
         <>
-          <View
+          <Animated.View
             style={[
               styles.bossAura,
               { width: tileSize, height: tileSize },
-              (entity.charge ?? 0) >= 1 && styles.bossCharged,
+              charged && styles.bossCharged,
+              charged && { transform: [{ scale: auraScale }] },
             ]}
             pointerEvents="none"
           />
@@ -237,19 +267,35 @@ const GridCell = memo(({
         </>
       )}
 
-      {/* Hints: Roar/Heat (ENHANCED SIZE) */}
+      {/* Wind-up warning: an icon too, so the danger never depends on colour alone */}
+      {charged && (isVisited || isPlayerHere) && (
+        <View style={[styles.chargeMark, { width: Math.max(12, tileSize * 0.34), height: Math.max(12, tileSize * 0.34) }]} pointerEvents="none">
+          <Text style={[styles.chargeMarkText, { fontSize: Math.max(10, tileSize * 0.28) }]}>!</Text>
+        </View>
+      )}
+
+      {/* Clues: a round warm badge for guardians, a dark diamond with a swirl for vortexes. Always numbered; side by side. */}
       {showHints && (
         <View style={styles.hintContainer} pointerEvents="none">
           {roar && (
-            <Animated.View style={[styles.hintBadge, styles.hintRoar, { transform: [{ scale: hintScale }] }]}>
-              <Ionicons name="volume-high" size={tileSize * 0.42} color="#bf360c" />
-              {enemyCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#bf360c" }]}>{enemyCount}</Text>}
+            <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
+              <View style={[styles.hintRoar, { width: badge, height: badge, borderRadius: badge / 2 }]}>
+                <Ionicons name="volume-high" size={badge * 0.62} color="#7f2400" />
+              </View>
+              <View style={[styles.hintCount, { minWidth: countSize + 3, height: countSize + 3, borderRadius: (countSize + 3) / 2 }]}>
+                <Text style={[styles.hintCountText, { fontSize: countSize }]}>{enemyCount}</Text>
+              </View>
             </Animated.View>
           )}
           {vortex && (
-            <Animated.View style={[styles.hintBadge, styles.hintVortex, { transform: [{ scale: hintScale }] }]}>
-              <Ionicons name="infinite" size={tileSize * 0.42} color="#fff" />
-              {pitCount > 1 && <Text style={[styles.hintCount, { fontSize: Math.max(9, tileSize * 0.28), color: "#fff" }]}>{pitCount}</Text>}
+            <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
+              <View style={[styles.hintVortexShape, { width: badge * 0.78, height: badge * 0.78, left: badge * 0.11, top: badge * 0.11 }]} />
+              <View style={[StyleSheet.absoluteFill, styles.hintVortexIcon]}>
+                <Ionicons name="infinite" size={badge * 0.62} color="#fff" />
+              </View>
+              <View style={[styles.hintCount, styles.hintCountVortex, { minWidth: countSize + 3, height: countSize + 3, borderRadius: (countSize + 3) / 2 }]}>
+                <Text style={[styles.hintCountText, { fontSize: countSize }]}>{pitCount}</Text>
+              </View>
             </Animated.View>
           )}
         </View>
@@ -284,9 +330,10 @@ const GridCell = memo(({
       )}
 
       {flagged && (
-        <View style={styles.pickup} pointerEvents="none">
+        <Animated.View style={[styles.pickup, { transform: [{ translateX: flagShake }] }]} pointerEvents="none">
+          <Animated.View style={[styles.flagBlink, { opacity: flagBlink }]} />
           <Ionicons name="flag" size={tileSize * 0.5} color="#FF5252" />
-        </View>
+        </Animated.View>
       )}
 
       {facing && !aimed && !isPlayerHere && (
@@ -299,6 +346,8 @@ const GridCell = memo(({
 
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
 
+      {killer && <View style={styles.killer} pointerEvents="none" />}
+
       {/* Player highlight glow */}
       {isPlayerHere && (
         <View style={[styles.playerHighlight, { width: tileSize, height: tileSize }]} />
@@ -308,7 +357,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -318,6 +367,35 @@ const BoardView: React.FC<Props> = memo(
     const playerPos  = useRef(new Animated.ValueXY({ x: colIndex * tileSize, y: rowIndex * tileSize })).current;
     const shakeAnim  = useRef(new Animated.Value(0)).current;
     const shakeGuard = useRef<number | undefined>(guardianCount);
+
+    // One breathing value for every clue badge and wind-up aura (a loop per cell used to cost one timer each).
+    const pulse = useRef(new Animated.Value(0)).current;
+    const needsPulse = useMemo(() => {
+      for (const i of visited) {
+        if (entityMap[i] !== undefined) continue;
+        const near = getNearbyHazards(i, rows, cols, entityMap);
+        if (near.enemy || near.pit) return true;
+      }
+      for (const key in entityMap) {
+        const e = entityMap[key];
+        if ((e.type === 'boss' || e.type === 'stalker') && (e.charge ?? 0) >= 1) return true;
+      }
+      return false;
+    }, [visited, entityMap, rows, cols]);
+    useEffect(() => {
+      if (!needsPulse || calm) {
+        pulse.setValue(0);
+        return;
+      }
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => loop.stop();
+    }, [needsPulse, calm, pulse]);
 
     // Player move animation
     const playerScale = useRef(new Animated.Value(1)).current;
@@ -356,7 +434,7 @@ const BoardView: React.FC<Props> = memo(
       if (guardianCount === undefined) return;
       const prev = shakeGuard.current;
       shakeGuard.current = guardianCount;
-      if (prev === undefined || guardianCount >= prev) return;
+      if (prev === undefined || guardianCount >= prev || calm) return;
 
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 3,  duration: 40, useNativeDriver: true }),
@@ -387,7 +465,7 @@ const BoardView: React.FC<Props> = memo(
 
     // Death: one hard shake.
     useEffect(() => {
-      if (!dying) return;
+      if (!dying || calm) return;
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: 9, duration: 45, useNativeDriver: true }),
         Animated.timing(shakeAnim, { toValue: -9, duration: 60, useNativeDriver: true }),
@@ -396,6 +474,20 @@ const BoardView: React.FC<Props> = memo(
         Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
       ]).start();
     }, [dying]);
+
+    // A heavy hit (the Wumpus took an arrow): a short, firm shake.
+    const lastShakeKey = useRef(shakeKey);
+    useEffect(() => {
+      if (shakeKey === lastShakeKey.current) return;
+      lastShakeKey.current = shakeKey;
+      if (calm) return;
+      Animated.sequence([
+        Animated.timing(shakeAnim, { toValue: 6, duration: 40, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: -6, duration: 50, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 3, duration: 40, useNativeDriver: true }),
+        Animated.timing(shakeAnim, { toValue: 0, duration: 40, useNativeDriver: true }),
+      ]).start();
+    }, [shakeKey]);
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
@@ -443,6 +535,9 @@ const BoardView: React.FC<Props> = memo(
                   aimed={!!aimTiles && aimTiles.has(i)}
                   facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
                   onTileLoaded={onTileLoaded}
+                  pulse={pulse}
+                  killer={killerTile === i}
+                  flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   revealDelay={burst ? Math.min(900, 70 * (Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );
@@ -545,9 +640,10 @@ const styles = StyleSheet.create({
   hintContainer: {
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 1,
+    gap: 3,
     zIndex: 5,
   },
   hintBadge: {
@@ -565,17 +661,27 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  hintRoar:   { backgroundColor: "#ffcc80", borderColor: "#ef6c00" },
-  hintVortex: { backgroundColor: "#9c27b0", borderColor: "#6a1b9a" },
+  // Guardian clue: a warm round badge. Vortex clue: a dark diamond. Shape and brightness differ, not only the hue.
+  hintRoar:   { backgroundColor: "#ffd9a0", borderColor: "#e65100", borderWidth: 2, alignItems: "center", justifyContent: "center" },
+  hintVortexShape: { position: "absolute", backgroundColor: "#4a148c", borderColor: "#e1bee7", borderWidth: 2, borderRadius: 3, transform: [{ rotate: "45deg" }] },
+  hintVortexIcon: { alignItems: "center", justifyContent: "center" },
   hintCount: {
     position: "absolute",
-    right: 1,
-    bottom: -1,
-    fontWeight: "900",
-    textShadowColor: "#000",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    right: -3,
+    bottom: -3,
+    paddingHorizontal: 2,
+    backgroundColor: "#1b0f0a",
+    borderColor: "#ffd9a0",
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  hintCountVortex: { borderColor: "#e1bee7" },
+  hintCountText: { color: "#fff", fontWeight: "900", includeFontPadding: false },
+  chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#FFEB3B", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
+  chargeMarkText: { color: "#B71C1C", fontWeight: "900", includeFontPadding: false },
+  flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(255,23,68,0.55)", borderRadius: 8 },
+  killer: { position: "absolute", left: 1, top: 1, right: 1, bottom: 1, borderRadius: 8, borderWidth: 4, borderColor: "#FF1744", backgroundColor: "rgba(255,23,68,0.18)", zIndex: 9 },
   hintText: {
     color: "#fff",
     fontWeight: "900",
