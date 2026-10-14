@@ -23,6 +23,7 @@ import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
 import { readDevHarness } from "./src/dev/devHarness";
+import { useImmersiveMode } from "./src/shared/immersive";
 
 installGlobalErrorHandler();
 
@@ -42,6 +43,9 @@ export default function App() {
   
   // Use the SoundManager globally
   useSoundManager();
+
+  // Android: hide the system navigation bar so the game uses the whole screen.
+  useImmersiveMode();
 
   useEffect(() => {
     async function prepare() {
