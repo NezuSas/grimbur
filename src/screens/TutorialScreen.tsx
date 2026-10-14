@@ -160,6 +160,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
             height: hudHeight,
             paddingLeft: insets.left + 14,
             paddingRight: insets.right + 14,
+            paddingVertical: hudHeight < 70 ? 4 : 8,
           },
         ]}
         accessibilityLiveRegion="polite"
@@ -170,7 +171,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
             {!isLast ? `  ·  ${t("tutorial.step", { n: stepIndex + 1, total: totalInteractive })}` : ""}
           </Text>
           <Text
-            style={styles.instruction}
+            style={[styles.instruction, hudHeight < 70 && { fontSize: 13 }]}
             maxFontSizeMultiplier={1.25}
             accessibilityRole="header"
             numberOfLines={2}

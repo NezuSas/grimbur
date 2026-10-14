@@ -16,6 +16,7 @@ import SpriteImage from '../SpriteImage';
 import GemShower from './GemShower';
 import EmberParticles from '../EmberParticles';
 import { useSettingsStore } from '../../../state/settings/store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   visible: boolean;
@@ -45,6 +46,8 @@ type Props = {
   embers?: number;
   /** Part of `embers` that is the once-a-day bonus. */
   dailyBonus?: number;
+  /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
+  explainEmbers?: boolean;
   /** Gems still on the floor when the run ended (for the near-miss line). */
   gemsLeft?: number;
   onShare?: () => void;
@@ -100,6 +103,7 @@ const GameOverOverlay = ({
   unlockedHeroes,
   achievements,
   embers,
+  explainEmbers,
   dailyBonus,
   gemsLeft,
   onShare,
@@ -109,6 +113,7 @@ const GameOverOverlay = ({
 }: Props) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const cardAnim = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const shownScore = useCountUp(score, visible);
@@ -135,7 +140,9 @@ const GameOverOverlay = ({
   const heroSprite = victory ? character.winImage : (character.loseImage ?? character.scoreImage);
   const sprite = killerSprite ?? heroSprite;
   const spriteSize = compact ? 104 : 150;
-  const cardWidth = Math.min(width * 0.96, wide ? 820 : 400);
+  // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
+  const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
+  const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
 
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
   const tip = !victory && deathCause ? t(`over.tip.${deathCause}` as TranslationKey) : null;
@@ -224,6 +231,12 @@ const GameOverOverlay = ({
           </View>
         ) : null}
       </View>
+
+      {explainEmbers && embers && embers > 0 ? (
+        <Text style={styles.explain} maxFontSizeMultiplier={1.2}>
+          {t('over.explainEmbers')}
+        </Text>
+      ) : null}
 
       {dailyBonus ? (
         <Text style={styles.bonus} maxFontSizeMultiplier={1.2}>
@@ -356,6 +369,7 @@ const styles = StyleSheet.create({
   },
   statValue: { fontWeight: '900', fontSize: 16 },
   embersPill: { backgroundColor: 'rgba(255,171,64,0.16)' },
+  explain: { color: '#FFCC80', fontSize: 12, fontWeight: '700', textAlign: 'center', maxWidth: 440 },
   embersText: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   bonus: { color: '#9ee37d', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13 },

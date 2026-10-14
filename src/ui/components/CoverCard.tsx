@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, Animated, Easing, useWindowDimensions } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
@@ -108,6 +108,17 @@ const CoverCard: React.FC<Props> = ({
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const calm = useSettingsStore(st => st.reduceFlash);
+  // Tapping the locked endless mode says how to open it instead of starting something else.
+  const [lockedHint, setLockedHint] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+  }, []);
+  const showLockedHint = () => {
+    setLockedHint(true);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setLockedHint(false), 3500);
+  };
 
   const wide = width >= 640 && width > height;
   // Phones keep the base sizes; roomier screens grow the cards, icons and text up to 1.5x.
@@ -124,6 +135,10 @@ const CoverCard: React.FC<Props> = ({
   const artSize = Math.min(wide ? height * 0.3 : 150, 210);
   const short = height < 420;
   const sideRow = menuWidth >= (short ? 300 : 480);
+  // On short wide windows the menu's right edge can reach the settings button: keep the ember chip clear of it.
+  const menuRight = width - Math.max(insets.right, sideMargin);
+  const settingsLeft = width - Math.max(insets.right, 12) - MIN_TOUCH;
+  const chipClear = wide && height < 460 && menuRight > settingsLeft - 4 ? menuRight - settingsLeft + 8 : 0;
 
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
@@ -159,7 +174,7 @@ const CoverCard: React.FC<Props> = ({
 
   const menu = (
     <View style={[styles.menu, { width: menuWidth, gap: short ? 6 : 8 }]}>
-      <View style={styles.chips}>
+      <View style={[styles.chips, chipClear > 0 && { marginRight: chipClear }]}>
         <View style={styles.chip} accessible accessibilityLabel={`${embers} ${t("cover.embers")}`}>
           <Text style={styles.chipFlame}>🔥</Text>
           <Text style={styles.chipText} maxFontSizeMultiplier={1.15}>
@@ -176,6 +191,8 @@ const CoverCard: React.FC<Props> = ({
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
+      {/* The first time only the play button and the manual are offered; the rest appears after the first run. */}
+      {!firstRun && (
       <View style={[styles.modeRow, !sideRow && { flexDirection: "column" }]}>
         <ModeCard
           ui={ui}
@@ -201,14 +218,20 @@ const CoverCard: React.FC<Props> = ({
               : t("cover.mode.endless.locked")
           }
           locked={!endlessUnlocked}
-          onPress={endlessUnlocked ? onPressEndless : onPressPlay}
+          onPress={endlessUnlocked ? onPressEndless : showLockedHint}
         />
       </View>
+      )}
+      {lockedHint && !endlessUnlocked && (
+        <Text style={styles.lockedHint} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.2}>
+          {t("cover.mode.endless.locked")}
+        </Text>
+      )}
 
       <View style={styles.dock}>
-        <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />
-        <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />
-        <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />
+        {!firstRun && <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
+        {!firstRun && <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
+        {!firstRun && <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
         <DockButton ui={ui} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
       </View>
     </View>
@@ -273,6 +296,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
+  lockedHint: { color: "#f0ecff", fontSize: 12, fontWeight: "700", textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
   tagline: {
     color: "#f0ecff",
     fontWeight: "600",

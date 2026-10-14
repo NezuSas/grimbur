@@ -1,6 +1,6 @@
 // src/screens/HighScoresScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import { FlatList, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
+import { FlatList, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchTop10, type Doc } from "../services/highscores";
@@ -59,7 +59,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const tenth = data.length >= 10 ? Number(data[9].data().score) || 0 : 0;
 
   const record = (
-    <View style={[styles.record, twoPanes ? { width: "34%" } : null]}>
+    <View style={styles.record}>
       <Text style={styles.recordTitle} maxFontSizeMultiplier={1.2}>
         {t("scores.yours").toLocaleUpperCase()}
       </Text>
@@ -146,48 +146,47 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
+  // Loading, error and empty states live inside the list, so the record above never pushes them off-screen.
+  const placeholder =
+    status === "loading" ? (
+      <View style={styles.centerBox}>
+        <ActivityIndicator color="#FFD54F" size="large" />
+        <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
+          {t("scores.loading")}
+        </Text>
+      </View>
+    ) : status === "error" ? (
+      <View style={styles.centerBox} accessibilityLiveRegion="polite">
+        <Ionicons name="cloud-offline-outline" size={36} color="#FF8A80" />
+        <Text style={[styles.statusText, { color: "#FF8A80" }]} maxFontSizeMultiplier={1.3}>
+          {t("scores.error")}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
+          <Text style={styles.retryText} maxFontSizeMultiplier={1.3}>
+            {t("common.retry").toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    ) : (
+      <View style={styles.centerBox}>
+        <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
+          {t("scores.empty")}
+        </Text>
+      </View>
+    );
+
+  // Narrow windows stack the record above the ranking inside ONE scrolling list; wide ones put them side by side.
   const list = (
-    <View style={styles.listPane}>
-      {status === "loading" && (
-        <View style={styles.centerBox}>
-          <ActivityIndicator color="#FFD54F" size="large" />
-          <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
-            {t("scores.loading")}
-          </Text>
-        </View>
-      )}
-
-      {status === "error" && (
-        <View style={styles.centerBox} accessibilityLiveRegion="polite">
-          <Ionicons name="cloud-offline-outline" size={36} color="#FF8A80" />
-          <Text style={[styles.statusText, { color: "#FF8A80" }]} maxFontSizeMultiplier={1.3}>
-            {t("scores.error")}
-          </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
-            <Text style={styles.retryText} maxFontSizeMultiplier={1.3}>
-              {t("common.retry").toLocaleUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {status === "ready" && (
-        <FlatList
-          data={data}
-          showsVerticalScrollIndicator={false}
-          keyExtractor={doc => doc.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
-          ListEmptyComponent={
-            <View style={styles.centerBox}>
-              <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
-                {t("scores.empty")}
-              </Text>
-            </View>
-          }
-        />
-      )}
-    </View>
+    <FlatList
+      style={styles.listPane}
+      data={status === "ready" ? data : []}
+      showsVerticalScrollIndicator={false}
+      keyExtractor={doc => doc.id}
+      renderItem={renderItem}
+      ListHeaderComponent={twoPanes ? null : <View style={{ marginBottom: 10 }}>{record}</View>}
+      contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
+      ListEmptyComponent={placeholder}
+    />
   );
 
   return (
@@ -195,7 +194,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
         <ScreenHeader title={t("scores.title")} onBack={() => navigation.goBack()} />
         <View style={[styles.layout, { width: cardWidth }, twoPanes ? styles.layoutRow : null]}>
-          {record}
+          {twoPanes ? (
+            <ScrollView style={styles.recordPane} showsVerticalScrollIndicator={false}>
+              {record}
+            </ScrollView>
+          ) : null}
           {list}
         </View>
       </SafeAreaView>
@@ -214,8 +217,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,213,79,0.08)",
     padding: 14,
     gap: 4,
-    alignSelf: "flex-start",
   },
+  recordPane: { width: "34%", flexGrow: 0 },
   recordTitle: { color: "#FFD54F", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
   recordScore: { color: "#fff", fontWeight: "900", fontSize: 40 },
   recordCaption: { color: "#9a95b8", fontWeight: "800", fontSize: 11, letterSpacing: 1.5 },

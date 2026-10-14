@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import { haptic } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
+import { MIN_TOUCH } from "../layout/useGameLayout";
 import type { AbilityId } from "../../core/engine/abilities";
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
@@ -43,6 +44,9 @@ type ButtonProps = {
   dim?: boolean;
 };
 
+/** Extra touch area so a small button still reaches the minimum touch size. */
+const HIT_PAD = (size: number) => Math.max(0, (MIN_TOUCH - size) / 2);
+
 const ToolButton = ({ icon, color, size, label, onPress, disabled, badge, dim }: ButtonProps) => (
   <TouchableOpacity
     onPress={() => {
@@ -50,6 +54,7 @@ const ToolButton = ({ icon, color, size, label, onPress, disabled, badge, dim }:
       onPress();
     }}
     disabled={disabled}
+    hitSlop={{ top: HIT_PAD(size), bottom: HIT_PAD(size), left: HIT_PAD(size), right: HIT_PAD(size) }}
     activeOpacity={0.75}
     accessibilityRole="button"
     accessibilityLabel={label}
@@ -126,7 +131,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
 export default ToolBar;
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8, justifyContent: "center", alignItems: "center", flexWrap: "wrap" },
+  row: { flexDirection: "row", gap: 6, justifyContent: "center", alignItems: "center", flexWrap: "wrap" },
   button: {
     backgroundColor: "rgba(20,12,40,0.82)",
     borderWidth: 2,

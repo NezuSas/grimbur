@@ -72,8 +72,13 @@ const IntermissionOverlay = ({
 
   if (!visible) return null;
 
-  const cardWidth = Math.min(150, (width * 0.9 - 12 * 3) / 4);
-  const doorWidth = Math.min(260, (width * 0.9 - 12) / 2);
+  // Four shop cards in a row when they stay readable; otherwise two by two (never three and one).
+  const avail = width * 0.9;
+  const fit = Math.floor((avail + 10) / (100 + 10));
+  const cols = fit >= 4 ? 4 : fit >= 2 ? 2 : 1;
+  const cardWidth = Math.min(150, (avail - 10 * (cols - 1)) / cols);
+  // The two doors sit side by side, or one above the other on a narrow window.
+  const doorWidth = avail >= 2 * 200 + 12 ? Math.min(260, (avail - 12) / 2) : Math.min(260, avail);
   const pad = compact ? 8 : 12;
 
   const reason = (item: ShopItem): string | null => {
@@ -100,7 +105,7 @@ const IntermissionOverlay = ({
         {t("shop.subtitle")}
       </Text>
 
-      <View style={[styles.row, { gap: 10, marginTop: pad }]}>
+      <View style={[styles.row, { gap: 10, marginTop: pad, flexWrap: "wrap" }]}>
         {SHOP_ITEMS.map(item => {
           const price = SHOP_PRICES[item];
           const blocked = reason(item);
@@ -160,7 +165,7 @@ const IntermissionOverlay = ({
           <Text style={[styles.sub, { marginTop: pad }]} maxFontSizeMultiplier={1.2}>
             {t("fork.title").toLocaleUpperCase()}
           </Text>
-          <View style={[styles.row, { gap: 12, marginTop: 6 }]}>
+          <View style={[styles.row, { gap: 12, marginTop: 6, flexWrap: "wrap" }]}>
             {doors.map((door, i) => {
               const on = chosen === i;
               const name = door ? omenText(t, door, "name") : t("fork.plain.name");

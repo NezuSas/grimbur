@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
 
 type Props = {
@@ -15,12 +15,15 @@ type Props = {
   long?: boolean;
   /** Fade out right away (the player has started moving). */
   dismiss?: boolean;
+  /** Lowest the banner may start (just under the HUD); it sits at 14% of the window otherwise. */
+  minTop?: number;
 };
 
 /** Brief "Floor N" announcement that also names the floor's omen. Never blocks touches. */
-const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, calm, long, dismiss }) => {
+const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, calm, long, dismiss, minTop = 0 }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(calm ? 0 : 12)).current;
+  const { height: windowHeight } = useWindowDimensions();
 
   useEffect(() => {
     opacity.setValue(0);
@@ -50,7 +53,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, cal
     <Animated.View
       pointerEvents="none"
       accessibilityLiveRegion="polite"
-      style={[styles.wrap, { opacity, transform: [{ translateY: lift }] }]}
+      style={[styles.wrap, minTop > 0 && { top: Math.max(minTop, windowHeight * 0.14) }, { opacity, transform: [{ translateY: lift }] }]}
     >
       <View style={styles.card}>
         <Text style={styles.title} maxFontSizeMultiplier={1.2}>

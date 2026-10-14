@@ -20,6 +20,7 @@ import { MAX_ASCENSION } from "../core/engine/ascension";
 import type { TranslationKey } from "../i18n/en";
 import type { Params } from "../i18n/translate";
 import { ABILITY_COOLDOWN, MAX_ITEMS } from "../core/engine/shop";
+import { LESSON_IDS } from "../core/tutorial/lessons";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -302,7 +303,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
               <View style={styles.quickRow}>
                 {QUICK_STEPS.map((step, i) => (
-                  <View key={i} style={styles.quickStep} accessible accessibilityLabel={`${i + 1}. ${t(asKey(`manual.quick.${i + 1}`))}`}>
+                  <View key={i} style={[styles.quickStep, cardWidth < 480 && styles.quickStepNarrow]} accessible accessibilityLabel={`${i + 1}. ${t(asKey(`manual.quick.${i + 1}`))}`}>
                     <View style={styles.quickBadge}>
                       <Text style={styles.quickNumber}>{i + 1}</Text>
                     </View>
@@ -332,6 +333,33 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                   {t("manual.replayTutorial").toLocaleUpperCase()}
                 </Text>
               </TouchableOpacity>
+              <Text style={[styles.lessonsTitle, { fontSize: Math.max(12, body - 1) }]} maxFontSizeMultiplier={1.2}>
+                {t("manual.lessons").toLocaleUpperCase()}
+              </Text>
+              <Text style={[styles.lessonsHint, { fontSize: Math.max(12, body - 2) }]} maxFontSizeMultiplier={1.2}>
+                {t("manual.lessons.hint")}
+              </Text>
+              <View style={styles.lessonList}>
+                {LESSON_IDS.map(id => (
+                  <TouchableOpacity
+                    key={id}
+                    style={styles.lessonButton}
+                    onPress={() => navigation.navigate("LessonScreen", { lesson: id })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${t(asKey(`lesson.${id}.title`))}. ${t(asKey(`lesson.${id}.desc`))}`}
+                  >
+                    <Ionicons name="play-circle" size={22} color="#FFD700" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.lessonName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                        {t(asKey(`lesson.${id}.title`))}
+                      </Text>
+                      <Text style={styles.lessonDesc} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                        {t(asKey(`lesson.${id}.desc`))}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
               <View style={styles.separator} />
 
               {SECTIONS.map((section, sectionIndex) => (
@@ -479,8 +507,10 @@ const styles = StyleSheet.create({
   valueText: { color: "#000", fontWeight: "900", fontSize: 11, textAlign: "center" },
   separator: { height: 1, backgroundColor: "rgba(255, 255, 255, 0.05)", marginVertical: 22 },
   quickTitle: { color: "#FFD54F", fontWeight: "900", letterSpacing: 1.5, marginBottom: 12 },
-  quickRow: { flexDirection: "row", gap: 8 },
+  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   quickStep: { flex: 1, alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  // Narrow windows: two steps per row instead of four cramped columns.
+  quickStepNarrow: { flexBasis: "47%", flexGrow: 1 },
   quickBadge: { position: "absolute", top: 6, left: 6, width: 22, height: 22, borderRadius: 11, backgroundColor: "#FFD54F", alignItems: "center", justifyContent: "center" },
   quickNumber: { color: "#1a1030", fontWeight: "900", fontSize: 12 },
   quickArt: { height: 64, alignItems: "center", justifyContent: "center" },
@@ -499,6 +529,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   tutorialText: { color: "#000", fontWeight: "900", letterSpacing: 1 },
+  lessonsTitle: { color: "#FFD700", fontWeight: "900", letterSpacing: 2, marginTop: 18 },
+  lessonsHint: { color: "#c9c3e6", marginTop: 2 },
+  lessonList: { marginTop: 8, gap: 8 },
+  lessonButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    minHeight: MIN_TOUCH,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,215,0,0.4)",
+    backgroundColor: "rgba(255,215,0,0.07)",
+  },
+  lessonName: { color: "#fff", fontWeight: "900", fontSize: 14 },
+  lessonDesc: { color: "#c9c3e6", fontSize: 12 },
   footerImage: { width: 80, height: 80, alignSelf: "center", opacity: 0.8, marginTop: 20 },
 });
 

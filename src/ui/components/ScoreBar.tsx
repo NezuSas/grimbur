@@ -28,10 +28,15 @@ type Props = {
 /** The HUD never scales text beyond this, so it always fits the fixed bar height. */
 const HUD_FONT_CAP = 1.15;
 
+/** Windows narrower than this get the compact HUD. */
+const COMPACT_WIDTH = 560;
+
 const ScoreBar: React.FC<Props> = memo(
   ({ score, attackValue, coins, character, level, floors, time, shield = false, bossHearts, onPause }) => {
     const { t, plural } = useT();
-    const { hudHeight, insets, fontSize, spacing } = useGameLayout();
+    const { hudHeight, insets, fontSize, spacing, screenWidth } = useGameLayout();
+    // Portrait and split-screen windows: the avatar goes and the sides take only what they need.
+    const compact = screenWidth < COMPACT_WIDTH;
 
     const avatarSize = Math.round(hudHeight * 0.62);
     const statIconSize = Math.round(hudHeight * 0.5);
@@ -48,7 +53,8 @@ const ScoreBar: React.FC<Props> = memo(
         ]}
       >
         {/* LEFT: avatar, timer, pause */}
-        <View style={styles.leftGroup}>
+        <View style={compact ? styles.leftCompact : styles.leftGroup}>
+          {!compact && (
           <View
             style={[styles.avatarWrapper, { width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }]}
             accessibilityElementsHidden
@@ -60,8 +66,9 @@ const ScoreBar: React.FC<Props> = memo(
               resizeMode="contain"
             />
           </View>
+          )}
 
-          <View style={[styles.timeContainer, { marginLeft: spacing(10) }]}>
+          <View style={[styles.timeContainer, { marginLeft: compact ? 0 : spacing(10) }]}>
             <Text style={styles.timeLabel} maxFontSizeMultiplier={HUD_FONT_CAP} numberOfLines={1}>
               {t("hud.time").toLocaleUpperCase()}
             </Text>
@@ -110,13 +117,14 @@ const ScoreBar: React.FC<Props> = memo(
         </View>
 
         {/* RIGHT: counters */}
-        <View style={styles.rightGroup}>
+        <View style={compact ? styles.rightCompact : styles.rightGroup}>
           {bossHearts !== undefined ? (
             <ScoreCounter
               icon={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
               value={`${bossHearts}`}
               label={t("hud.bossHearts").toLocaleUpperCase()}
               iconDim={statIconSize}
+              compact={compact}
               a11yLabel={t("a11y.bossHearts", { count: bossHearts })}
             />
           ) : (
@@ -124,6 +132,7 @@ const ScoreBar: React.FC<Props> = memo(
               icon={require("../../assets/sprites/items/Icon_Gem.png")}
               value={coins}
               iconDim={statIconSize}
+              compact={compact}
               a11yLabel={plural("a11y.gemsLeft", coins)}
             />
           )}
@@ -131,12 +140,14 @@ const ScoreBar: React.FC<Props> = memo(
             icon={require("../../assets/sprites/items/Icon_Arrows.png")}
             value={attackValue}
             iconDim={statIconSize}
+            compact={compact}
             a11yLabel={t("a11y.arrowsLeft", { count: attackValue })}
           />
           <ScoreCounter
             iconNode={<Ionicons name="trophy" size={Math.round(statIconSize * 0.78)} color="#FFD54F" />}
             value={score}
             iconDim={statIconSize}
+            compact={compact}
             a11yLabel={`${t("over.score")} ${score}`}
           />
         </View>
@@ -160,6 +171,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  leftCompact: { flexGrow: 0, flexShrink: 0, flexDirection: "row", alignItems: "center" },
+  rightCompact: { flexGrow: 0, flexShrink: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end" },
   timeContainer: {
     justifyContent: "center",
     flexShrink: 1,

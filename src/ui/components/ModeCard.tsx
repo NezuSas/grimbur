@@ -41,10 +41,10 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
         accessibilityState={{ disabled: locked }}
-        style={[styles.card, { borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : compactCard ? 60 : 70) * ui, gap: 12 * ui, paddingHorizontal: 12 * ui }]}
+        style={[styles.card, { borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : compactCard ? 60 : 70) * ui, gap: (compactCard ? 8 : 12) * ui, paddingHorizontal: (compactCard ? 10 : 12) * ui }]}
       >
         {leading ?? (
-          <View style={[styles.iconWrap, { width: 46 * ui, height: 46 * ui, borderRadius: 23 * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
+          <View style={[styles.iconWrap, { width: (compactCard ? 38 : 46) * ui, height: (compactCard ? 38 : 46) * ui, borderRadius: (compactCard ? 19 : 23) * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
             <Ionicons name={locked ? "lock-closed" : icon} size={(featured ? 26 : 22) * ui} color={locked ? "#b8b3d0" : tint} />
           </View>
         )}

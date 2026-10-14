@@ -12,7 +12,7 @@ import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import characters from "../data/characters";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { emitSound } from "../audio/audioEventBus";
@@ -27,6 +27,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const { score, level, coins, totalCoins, characterIndex, kills = 0, totalEnemies = 0, time = 0 } = route.params;
   const character = characters[characterIndex] ?? characters[0];
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
   const [animationDone, setAnimationDone] = useState(false);
   const leaving = useRef(false);
@@ -66,7 +67,9 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
 
   // Sizes derive from the live window, so the card fits small landscape phones and tablets alike.
   const compact = height < 420;
-  const cardWidth = Math.min(width * 0.94, 850);
+  // Narrow windows (portrait, split-screen) stack the two columns; the card fits inside the safe area.
+  const stacked = width < 520;
+  const cardWidth = Math.min((width - insets.left - insets.right) * 0.94, 850);
   const imageHeight = Math.min(Math.max(height * 0.28, 70), 180);
   const starSize = compact ? 30 : 40;
   const accessibilityStars = t("complete.title") + ` ${starsEarned}/3`;
@@ -80,13 +83,13 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
         pointerEvents="box-none"
         style={[
           styles.card,
-          { transform: [{ scale: cardScale }], width: cardWidth, maxHeight: height * 0.94, borderColor: character.arrowColor },
+          { transform: [{ scale: cardScale }], width: cardWidth, maxHeight: (height - insets.top - insets.bottom) * 0.94, borderColor: character.arrowColor },
         ]}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
-          <View style={[styles.row, { padding: compact ? 12 : 20 }]}>
+          <View style={[styles.row, { padding: compact ? 12 : 20 }, stacked && { flexDirection: "column", gap: 12 }]}>
             {/* Left column: title, image, stars */}
-            <View style={[styles.column, { flex: 1, paddingRight: 10 }]}>
+            <View style={[styles.column, stacked ? { width: "100%" } : { flex: 1, paddingRight: 10 }]}>
               <Text
                 style={[styles.title, { color: character.arrowColor }]}
                 accessibilityRole="header"
@@ -129,7 +132,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
             </View>
 
             {/* Right column: stats and button */}
-            <View style={[styles.column, { flex: 1.2, paddingLeft: 10 }]}>
+            <View style={[styles.column, stacked ? { width: "100%" } : { flex: 1.2, paddingLeft: 10 }]}>
               <View style={styles.statsContainer}>
                 {[
                   { label: t("complete.score"), value: score.toLocaleString(), color: "#fff" },
