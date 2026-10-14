@@ -166,6 +166,16 @@ const GridCell = memo(({
         onLoadEnd={onTileLoaded}
       />
 
+      {/* Explored ground is warm and lit, unexplored ground is dark: the two must read apart at a glance. */}
+      <View
+        pointerEvents="none"
+        style={[
+          styles.tileTone,
+          { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * 0.09 },
+          isVisited || isPlayerHere ? styles.toneLit : styles.toneDark,
+        ]}
+      />
+
       {revealDelay > 0 && (
         <Animated.View
           pointerEvents="none"
@@ -512,6 +522,9 @@ const styles = StyleSheet.create({
   },
   cell: { alignItems: "center", justifyContent: "center" },
   bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  tileTone: { position: 'absolute', borderRadius: 6 },
+  toneLit: { backgroundColor: 'rgba(255,196,110,0.26)', borderWidth: 1.5, borderColor: 'rgba(255,214,150,0.5)' },
+  toneDark: { backgroundColor: 'rgba(4,0,18,0.5)' },
   sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B3E5FC', fontWeight: '900' },
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
