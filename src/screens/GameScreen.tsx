@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } from "react";
 import {
   StyleSheet,
   View,
@@ -38,6 +38,7 @@ import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { recordLatency } from "../audio/audioDiagnostics";
+import { onRenderProfile } from "../audio/renderProfile";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { bossHearts, countGuardians } from "../core/engine/entityCounts";
@@ -847,6 +848,7 @@ export default function GameScreen({ navigation, route }: Props) {
   if (state.selectedCharacter === null) return <RunLoadingCover visible />;
 
   return (
+    <Profiler id="screen" onRender={onRenderProfile}>
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
@@ -860,6 +862,7 @@ export default function GameScreen({ navigation, route }: Props) {
       <StatusBar hidden />
 
       <View style={{ paddingTop: insets.top, zIndex: 10 }} {...behindOverlay}>
+        <Profiler id="hud" onRender={onRenderProfile}>
         <ScoreBar
           score={state.score}
           coins={state.coins}
@@ -877,6 +880,7 @@ export default function GameScreen({ navigation, route }: Props) {
           calm={reduceFlash}
           bossHearts={isLair ? bossHearts(state) : undefined}
         />
+        </Profiler>
       </View>
 
 
@@ -914,6 +918,7 @@ export default function GameScreen({ navigation, route }: Props) {
         <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
 
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
+          <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
             level={state.level}
             rows={state.rows}
@@ -937,6 +942,7 @@ export default function GameScreen({ navigation, route }: Props) {
             flagPing={flagPing}
             calm={reduceFlash}
           />
+          </Profiler>
         </View>
 
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
@@ -1112,6 +1118,7 @@ export default function GameScreen({ navigation, route }: Props) {
         onSkip={() => setShowHighScoreEntry(false)}
       />
     </ImageBackground>
+    </Profiler>
   );
 }
 
