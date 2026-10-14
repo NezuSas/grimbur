@@ -11,7 +11,8 @@ param(
   [string]$Params = '',
   [string]$Base = 'http://localhost:8081',
   [int]$Budget = 30000,
-  [string]$Tag = ''
+  [string]$Tag = '',
+  [switch]$Calm
 )
 $Screens = $Screens | ForEach-Object { $_ -split ',' }
 $Sizes = $Sizes | ForEach-Object { $_ -split ',' }
@@ -25,6 +26,7 @@ foreach ($screen in $Screens) {
     if (Test-Path $out) { [IO.File]::Delete($out) }
     $profile = Join-Path $env:TEMP "chrome-shot-$([guid]::NewGuid().ToString('N'))"
     $url = "$Base/?screen=$screen&preset=$Preset&lang=$Lang"
+    if ($Calm) { $url += "&calm=1" }
     if ($Params) { $url += "&params=$([uri]::EscapeDataString($Params))" }
     # Start-Process -Wait is the reliable way to let headless Chrome finish writing the file; retry if the machine is busy.
     $args = @('--headless=new', '--disable-gpu', '--hide-scrollbars', "--user-data-dir=$profile", "--window-size=$w,$h", "--virtual-time-budget=$Budget", "--screenshot=$out", $url)

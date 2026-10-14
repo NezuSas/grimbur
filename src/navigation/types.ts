@@ -4,7 +4,8 @@ import type { LessonId } from "../core/tutorial/lessons";
 
 export type RootStackParamList = {
   CoverScreen: undefined;
-  CharactersScreen: { mode?: GameMode } | undefined;
+  /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
+  CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
   TutorialScreen: { characterIndex?: number; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
   LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[] };

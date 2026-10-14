@@ -67,7 +67,7 @@ export function readDevHarness(): DevLaunch | null {
       window.localStorage.setItem(STATS_KEY, JSON.stringify({ ...EMPTY_STATS, ...PRESETS[preset] }));
       window.localStorage.setItem(
         SETTINGS_KEY,
-        JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: [] }, version: 0 }),
+        JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: [], reduceFlash: q.get("calm") === "1" }, version: 0 }),
       );
     }
     // ?monetization=on previews the locked states; &owned=1 pretends the full game was bought.
