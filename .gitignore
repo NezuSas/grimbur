@@ -44,3 +44,6 @@ all_test_results.txt
 # generated native folders
 /ios
 /android
+
+# Store credentials (never commit)
+/secrets

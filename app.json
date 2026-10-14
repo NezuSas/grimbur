@@ -2,10 +2,12 @@
   "expo": {
     "name": "WumpusAdventures",
     "slug": "wumpusadventures",
+    "description": "Descend a haunted cave, read the clues, grab the gems and slay the Wumpus. A bite-sized deduction roguelite.",
     "version": "1.1.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "primaryColor": "#140F2A",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -13,7 +15,10 @@
     "ios": {
       "supportsTablet": true,
       "requireFullScreen": true,
-      "bundleIdentifier": "com.cuencaoscar.wumpusadventures"
+      "bundleIdentifier": "com.cuencaoscar.wumpusadventures",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,6 +29,11 @@
       "package": "com.cuencaoscar.wumpusadventures",
       "permissions": [
         "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {
@@ -41,7 +51,10 @@
       [
         "expo-localization",
         {
-          "supportedLocales": ["en", "es"]
+          "supportedLocales": [
+            "en",
+            "es"
+          ]
         }
       ],
       [
