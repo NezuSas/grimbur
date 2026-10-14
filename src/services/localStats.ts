@@ -88,3 +88,6 @@ export async function resetLocalStats(): Promise<void> {
     await AsyncStorage.removeItem(STORAGE_KEY);
   });
 }
+
+/** Replaces the saved progress with already-validated stats (a restored backup). */
+export const replaceLocalStats = (stats: LocalStats): Promise<void> => serialized(() => save(stats));

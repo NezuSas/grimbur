@@ -23,6 +23,8 @@ type Props = {
   dailyDone: boolean;
   /** The endless descent opens after the first victory. */
   endlessUnlocked: boolean;
+  /** Endless belongs to the paid full game and is not owned: the card shows a lock and the press opens the paywall. */
+  endlessPaywalled?: boolean;
   bestEndlessFloor: number;
   /** Embers in the purse (shown as a chip). */
   embers: number;
@@ -91,6 +93,7 @@ const CoverCard: React.FC<Props> = ({
   streak,
   dailyDone,
   endlessUnlocked,
+  endlessPaywalled = false,
   bestEndlessFloor,
   embers,
   bestScore,
@@ -211,14 +214,16 @@ const CoverCard: React.FC<Props> = ({
           tint="#B39DDB"
           title={t("cover.mode.endless")}
           subtitle={
-            endlessUnlocked
+            endlessPaywalled
+              ? t("cover.mode.endless.paid")
+              : endlessUnlocked
               ? bestEndlessFloor > 0
                 ? t("cover.mode.endless.best", { floor: bestEndlessFloor })
                 : t("cover.mode.endless.sub")
               : t("cover.mode.endless.locked")
           }
-          locked={!endlessUnlocked}
-          onPress={endlessUnlocked ? onPressEndless : showLockedHint}
+          locked={endlessPaywalled || !endlessUnlocked}
+          onPress={endlessPaywalled || endlessUnlocked ? onPressEndless : showLockedHint}
         />
       </View>
       )}
@@ -228,7 +233,8 @@ const CoverCard: React.FC<Props> = ({
         </Text>
       )}
 
-      <View style={styles.dock}>
+      {/* A lone manual button gets no box around it: a panel for one icon looks like a mistake. */}
+      <View style={firstRun ? styles.dockSolo : styles.dock}>
         {!firstRun && <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
         {!firstRun && <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
         {!firstRun && <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
@@ -336,6 +342,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
   },
+  dockSolo: { flexDirection: "row", justifyContent: "center", marginTop: 2 },
   dockItem: { flex: 1, alignItems: "center", gap: 4, minHeight: MIN_TOUCH + 18 },
   dockCircle: {
     width: 52,
@@ -372,7 +379,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#1a1030",
   },
-  dockLabel: { color: "#e6e1fa", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%" },
+  dockLabel: { color: "#e6e1fa", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
   settings: {
     position: "absolute",
     width: MIN_TOUCH,

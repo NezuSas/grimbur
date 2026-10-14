@@ -3,7 +3,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FlatList, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
-import { fetchTop10, type Doc } from "../services/highscores";
+import { loadTop10, type Doc } from "../services/highscores";
+import { describeAge } from "../core/leaderboard/cache";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import characters from "../data/characters";
@@ -30,6 +31,8 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [data, setData] = useState<Doc[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [mine, setMine] = useState<LocalStats>(EMPTY_STATS);
+  /** When the list shown is a saved copy (no connection), the time it was fetched. */
+  const [offlineAt, setOfflineAt] = useState<number | null>(null);
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const cardWidth = Math.min(usable, 1100);
@@ -38,7 +41,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const loadData = useCallback(async () => {
     setStatus("loading");
     try {
-      setData(await fetchTop10());
+      const result = await loadTop10();
+      setData(result.docs);
+      setOfflineAt(result.offline ? result.at : null);
       setStatus("ready");
     } catch (err) {
       console.warn("[HighScores] load error:", err);
@@ -113,7 +118,20 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     </View>
   );
 
-  const renderItem = ({ item, index }: { item: Doc; index: number }) => {
+  const age = offlineAt !== null ? describeAge(offlineAt) : null;
+  const offlineNotice = age ? (
+    <View style={styles.offlineNotice} accessibilityLiveRegion="polite">
+      <Ionicons name="cloud-offline-outline" size={18} color="#FFCC80" />
+      <Text style={styles.offlineText} maxFontSizeMultiplier={1.2}>
+        {t(age.unit === "minutes" && age.n === 0 ? "scores.offline.now" : `scores.offline.${age.unit}`, { n: age.n })}
+      </Text>
+      <TouchableOpacity style={styles.offlineRetry} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
+        <Ionicons name="refresh" size={18} color="#1a1030" />
+      </TouchableOpacity>
+    </View>
+  ) : null;
+
+  const renderItem =({ item, index }: { item: Doc; index: number }) => {
     const row = item.data();
     const char = characters[row.characterIndex] || characters[0];
     const time = typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime");
@@ -183,7 +201,14 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       showsVerticalScrollIndicator={false}
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
-      ListHeaderComponent={twoPanes ? null : <View style={{ marginBottom: 10 }}>{record}</View>}
+      ListHeaderComponent={
+        twoPanes && !offlineNotice ? null : (
+          <View style={{ marginBottom: 10, gap: 10 }}>
+            {twoPanes ? null : record}
+            {status === "ready" ? offlineNotice : null}
+          </View>
+        )
+      }
       contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
       ListEmptyComponent={placeholder}
     />
@@ -232,6 +257,9 @@ const styles = StyleSheet.create({
   threshold: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 },
   thresholdText: { color: "#80DEEA", fontWeight: "800", fontSize: 12, flex: 1 },
   listPane: { flex: 1 },
+  offlineNotice: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,204,128,0.4)", backgroundColor: "rgba(255,204,128,0.1)", paddingVertical: 6, paddingLeft: 12, paddingRight: 6 },
+  offlineText: { color: "#FFCC80", fontWeight: "700", fontSize: 12, flex: 1 },
+  offlineRetry: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#FFD54F", alignItems: "center", justifyContent: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",

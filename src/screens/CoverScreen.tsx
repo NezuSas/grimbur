@@ -6,9 +6,11 @@ import { RootStackParamList } from "../navigation/types";
 import CoverCard from "../ui/components/CoverCard";
 import { EMPTY_STATS, LocalStats, currentStreak } from "../core/stats/runStats";
 import { getLocalStats } from "../services/localStats";
+import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
 import { useSettingsStore } from "../state/settings/store";
+import { useEntitlements } from "../state/entitlements/useEntitlements";
 
 import { emitSound } from "../audio/audioEventBus";
 
@@ -20,13 +22,28 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       emitSound('COVER_SCREEN_START');
-      getLocalStats().then(setStats).catch(() => {});
+      let active = true;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      getLocalStats()
+        .then(loaded => {
+          setStats(loaded);
+          // Let the cover settle before any rating dialog.
+          if (active) timer = setTimeout(() => void maybeRequestReview(loaded), 1500);
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }, [])
   );
 
   const today = dailyKey();
   const achievementsSeen = useSettingsStore(st => st.achievementsSeen);
   const unlocked = Object.keys(stats.achievements).length;
+  // Endless is part of the paid full game (only when monetisation is on and the unlock is not owned).
+  const { modeLocked } = useEntitlements();
+  const endlessPaywalled = modeLocked("endless");
 
   return (
     <View style={styles.root}>
@@ -41,7 +58,10 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         <CoverCard
           onPressPlay={() => navigation.navigate("CharactersScreen", { mode: "expedition" })}
           onPressDaily={() => navigation.navigate("CharactersScreen", { mode: "daily" })}
-          onPressEndless={() => navigation.navigate("CharactersScreen", { mode: "endless" })}
+          onPressEndless={() =>
+            endlessPaywalled ? navigation.navigate("PaywallScreen", { source: "endless" }) : navigation.navigate("CharactersScreen", { mode: "endless" })
+          }
+          endlessPaywalled={endlessPaywalled}
           streak={currentStreak(stats, today)}
           dailyDone={stats.daily?.date === today}
           endlessUnlocked={stats.victories >= 1}

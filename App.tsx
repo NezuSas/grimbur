@@ -9,6 +9,8 @@ import { Asset } from 'expo-asset';
 import * as Font from "expo-font";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "./src/state/settings/store";
+import { useEntitlementsStore } from "./src/state/entitlements/store";
+import { initEntitlements } from "./src/services/entitlements";
 import { FONT_FILES } from "./src/ui/fonts";
 
 import { useSoundStore } from "./src/state/sound/store";
@@ -51,6 +53,10 @@ export default function App() {
           new Promise<void>(resolve => setTimeout(resolve, AUDIO_INIT_TIMEOUT_MS)),
         ]).catch(err => console.warn("[App] Audio init failed:", err));
         const settings = Promise.resolve(useSettingsStore.persist.rehydrate()).catch(() => {});
+        // The owned-unlock flag is local; the store connection (when one exists) is confirmed in the background.
+        const entitlements = Promise.resolve(useEntitlementsStore.persist.rehydrate())
+          .then(() => void initEntitlements())
+          .catch(() => {});
         const images = Promise.allSettled(
           warmImages.map(image =>
             Asset.fromModule(image as number).downloadAsync().catch(err => console.warn("[App] Failed to pre-load asset:", err)),
@@ -59,7 +65,7 @@ export default function App() {
         // The icon font loads before the first screen too: otherwise arrows, hint badges and buttons appear blank
         // for a moment the first time each one is drawn.
         const fonts = Font.loadAsync({ ...Ionicons.font, ...FONT_FILES }).catch(err => console.warn("[App] Icon font failed:", err));
-        await Promise.all([audio, settings, images, fonts]);
+        await Promise.all([audio, settings, entitlements, images, fonts]);
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks

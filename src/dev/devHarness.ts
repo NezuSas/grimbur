@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { dailyKey } from "../core/engine/seed";
+import { setMonetizationOverride } from "../services/entitlements";
 
 /**
  * Development-only helper for the web build: open any screen directly, with a stats preset, so every screen can be
@@ -14,6 +15,7 @@ import { dailyKey } from "../core/engine/seed";
 
 const STATS_KEY = "wumpus.stats.v1";
 const SETTINGS_KEY = "wumpus-adventures-settings";
+const ENTITLEMENTS_KEY = "wumpus-adventures-entitlements";
 
 const today = dailyKey();
 
@@ -68,6 +70,9 @@ export function readDevHarness(): DevLaunch | null {
         JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: [] }, version: 0 }),
       );
     }
+    // ?monetization=on previews the locked states; &owned=1 pretends the full game was bought.
+    if (q.get("monetization") === "on") setMonetizationOverride({ enabled: true });
+    if (preset || q.get("owned")) window.localStorage.setItem(ENTITLEMENTS_KEY, JSON.stringify({ state: { fullUnlocked: q.get("owned") === "1" }, version: 0 }));
     if (!screen) return {};
     const params = q.get("params");
     return { initialState: { routes: [{ name: screen, params: params ? JSON.parse(params) : undefined }] } };

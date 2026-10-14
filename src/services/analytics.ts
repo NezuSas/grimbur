@@ -22,6 +22,13 @@ export interface AnalyticsEvents {
   run_shared: { score: number };
   relic_picked: { relic: string; floor: number };
   expedition_won: { score: number; time: number; character: number; mode: string };
+  /** `source`: where the paywall was opened from (cover, floor, demo, endless). */
+  paywall_view: { source: string };
+  paywall_purchase_started: { source: string };
+  paywall_purchase_succeeded: { source: string };
+  paywall_purchase_failed: { source: string; reason: string };
+  paywall_restore: { source: string; result: string };
+  paywall_dismiss: { source: string };
 }
 
 export interface AnalyticsProvider {

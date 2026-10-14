@@ -25,6 +25,25 @@ export const GAME_CONFIG = {
   /** Development switches; keep every flag off for release builds. */
   dev: {
     unlockAllHeroes: false,
+    /** In dev builds, the paywall's Buy button grants the unlock locally (no store needed). */
+    localPurchases: false,
+  },
+
+  /**
+   * One-time unlock of the full game (see docs/release/MONETIZATION_SETUP.md). OFF: everything is open, as always.
+   * Free: tutorial, expedition floors 1..freeFloors and the daily challenge. Paid: the rest of the expedition,
+   * the Wumpus and the endless descent. Never ads, never loot boxes, never ranking power.
+   */
+  monetization: {
+    enabled: false,
+    freeFloors: 3,
+    /** Product id of the one-time in-app product in Play Console. */
+    productId: 'wumpus_full_game',
+    /** Shown until the store answers (or when it cannot). */
+    fallbackPrice: '$3.99',
+    // Placeholders: replace with the hosted pages before enabling.
+    termsUrl: 'https://example.com/wumpus/terms',
+    privacyUrl: 'https://example.com/wumpus/privacy',
   },
 
   expedition: {

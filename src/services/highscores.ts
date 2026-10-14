@@ -1,6 +1,7 @@
 // src/services/highscores.ts
 import { db } from "../lib/firebase";
 import { checkName, validateSubmission } from "../core/leaderboard/validation";
+import { saveTop10Cache, loadTop10Cache } from "./highscoresCache";
 import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
 import {
   collection,
@@ -66,6 +67,26 @@ export async function fetchTop10(): Promise<Doc[]> {
   // Ties on score are broken in memory: faster time first, missing time last.
   const ranked = rankRows(docs.map(d => ({ doc: d, score: d.data().score, time: d.data().time })));
   return ranked.map(r => r.doc).slice(0, 10);
+}
+
+export type Top10Result = { docs: Doc[]; offline: boolean; /** Epoch ms the list was fetched (cached lists are older). */ at: number };
+
+/**
+ * The top 10 for the leaderboard screen: live when the network answers (and remembered for later), otherwise
+ * the last list that loaded. Throws only when the request fails and nothing was ever cached.
+ */
+export async function loadTop10(): Promise<Top10Result> {
+  try {
+    const docs = await fetchTop10();
+    const at = Date.now();
+    void saveTop10Cache(docs.map(d => ({ id: d.id, ...d.data() })), at);
+    return { docs, offline: false, at };
+  } catch (e) {
+    const cached = await loadTop10Cache();
+    if (!cached) throw e;
+    const docs = cached.rows.map(({ id, ...row }) => ({ id, data: () => row as HighscoreRow }));
+    return { docs, offline: true, at: cached.at };
+  }
 }
 
 /** Warms the threshold cache. Never throws and never caches a failure. */

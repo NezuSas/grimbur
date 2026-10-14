@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SettingsState } from './types';
+import { DEFAULT_VOLUME, clampVolume } from '../../core/audio/volume';
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       soundEnabled: true,
+      musicVolume: DEFAULT_VOLUME,
+      sfxVolume: DEFAULT_VOLUME,
       hapticsEnabled: true,
       reduceFlash: false,
       controlPosition: 'right',
@@ -17,7 +20,10 @@ export const useSettingsStore = create<SettingsState>()(
       tutorialSeen: false,
       achievementsSeen: 0,
       hintsSeen: [],
+      reviewAskedAt: 0,
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+      setMusicVolume: (level) => set({ musicVolume: clampVolume(level) }),
+      setSfxVolume: (level) => set({ sfxVolume: clampVolume(level) }),
       setHapticsEnabled: (enabled) => set({ hapticsEnabled: enabled }),
       setReduceFlash: (enabled) => set({ reduceFlash: enabled }),
       setControlPosition: (position) => set({ controlPosition: position }),
@@ -27,6 +33,7 @@ export const useSettingsStore = create<SettingsState>()(
       setLanguage: (language) => set({ language }),
       setTutorialSeen: (seen) => set({ tutorialSeen: seen }),
       setAchievementsSeen: (count) => set({ achievementsSeen: count }),
+      markReviewAsked: (at) => set({ reviewAskedAt: at }),
       markHintSeen: (id) => set(s => (s.hintsSeen.includes(id) ? s : { hintsSeen: [...s.hintsSeen, id] })),
     }),
     {
