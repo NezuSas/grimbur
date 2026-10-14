@@ -9,7 +9,8 @@ import { formatTime } from '../../../shared/utils/formatTime';
 import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
-import { achievementText, heroText } from '../../../i18n/keys';
+import { achievementText, heroText, skinText } from '../../../i18n/keys';
+import type { SkinId } from '../../../data/skinArt';
 import type { TranslationKey } from '../../../i18n/en';
 import { splitNames, type AchievementId } from '../../../core/stats/achievements';
 import type { RunPayout } from '../../../core/stats/runStats';
@@ -62,7 +63,7 @@ type Props = {
   /** Heroes, depth and endless mode this run opened. */
   unlocks?: Unlocks | null;
   /** Opens the screen where the new unlock can be tried. */
-  onTryUnlock?: (kind: 'hero' | 'depth' | 'endless') => void;
+  onTryUnlock?: (kind: 'hero' | 'depth' | 'endless' | 'skin', detail?: { hero: number; skin: string }) => void;
   /** The closest goals (at most two) and whether the run just made a Forge purchase possible. */
   goals?: Goal[];
   canBuyNow?: boolean;
@@ -202,10 +203,11 @@ const GameOverOverlay = ({
     achievementList.shown.map(id => achievementText(t, id as AchievementId, 'name')).join(', ') +
     (achievementList.more > 0 ? ` ${t('over.andMore', { count: achievementList.more })}` : '');
 
-  const unlockRows: { kind: 'hero' | 'depth' | 'endless'; text: string }[] = [
+  const unlockRows: { kind: 'hero' | 'depth' | 'endless' | 'skin'; text: string; skin?: { hero: number; skin: string } }[] = [
     ...(unlockedHeroes ?? unlocks?.heroes ?? []).map(i => ({ kind: 'hero' as const, text: t('over.unlock.hero', { name: heroText(t, i, 'name') }) })),
     ...(unlocks?.depth ? [{ kind: 'depth' as const, text: t('over.unlock.depth', { name: t(`ascension.label.${unlocks.depth}` as TranslationKey) }) }] : []),
     ...(unlocks?.endless ? [{ kind: 'endless' as const, text: t('over.unlock.endless') }] : []),
+    ...(unlocks?.skins ?? []).map(s => ({ kind: 'skin' as const, skin: s, text: t('over.unlock.skin', { name: `${heroText(t, s.hero, 'name')} · ${skinText(t, s.skin as SkinId)}` }) })),
   ];
 
   const left = (
@@ -332,10 +334,10 @@ const GameOverOverlay = ({
         <View style={styles.unlockCard} accessibilityLiveRegion="polite">
           <Text style={styles.unlockTitle} maxFontSizeMultiplier={1.2}>🔓 {t('over.unlock.title').toLocaleUpperCase()}</Text>
           {unlockRows.map(row => (
-            <View key={row.kind} style={styles.unlockRow}>
+            <View key={`${row.kind}${row.skin ? `-${row.skin.hero}-${row.skin.skin}` : ''}`} style={styles.unlockRow}>
               <Text style={styles.unlockText} numberOfLines={2} maxFontSizeMultiplier={1.2}>{row.text}</Text>
               {onTryUnlock ? (
-                <TouchableOpacity style={styles.tryButton} onPress={() => onTryUnlock(row.kind)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={`${t('over.unlock.try')}: ${row.text}`}>
+                <TouchableOpacity style={styles.tryButton} onPress={() => onTryUnlock(row.kind, row.skin)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={`${t('over.unlock.try')}: ${row.text}`}>
                   <Text style={styles.tryText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.unlock.try').toLocaleUpperCase()}</Text>
                 </TouchableOpacity>
               ) : null}

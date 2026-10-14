@@ -58,6 +58,7 @@ import { biomeFor, isNewBiome } from "../core/engine/biomes";
 import { isLairFloor } from "../core/engine/lair";
 import characters from "../data/characters";
 import { characterWithSkin } from "../data/characterSkins";
+import type { SkinId } from "../data/skinArt";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
@@ -329,11 +330,11 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: r.unlocks, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
       }
       const r = await recordRun(run);
       // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: r.unlocks, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -500,13 +501,17 @@ export default function GameScreen({ navigation, route }: Props) {
 
   /** The game over's "Try now" on a fresh unlock: leave for the screen where it can be used. */
   const handleTryUnlock = useCallback(
-    (kind: "hero" | "depth" | "endless") => {
+    (kind: "hero" | "depth" | "endless" | "skin", detail?: { hero: number; skin: string }) => {
       leaving.current = true;
       void recordCurrentRun();
       setPaused(false);
       setPopups([]);
       setShowGameOver(false);
       emitSound("GAME_MUSIC_STOP");
+      if (kind === "skin" && detail) {
+        navigation.popTo("CollectionScreen", { hero: detail.hero, skin: detail.skin as SkinId });
+        return;
+      }
       navigation.popTo("CharactersScreen", { mode: kind === "endless" ? "endless" : "expedition" });
     },
     [navigation, recordCurrentRun],

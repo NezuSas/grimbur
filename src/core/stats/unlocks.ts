@@ -26,6 +26,8 @@ export interface Unlocks {
   /** The new maximum depth when it went up, otherwise null. */
   depth: number | null;
   endless: boolean;
+  /** Outfits that a finished run unlocked for free (filled in by the game screen from the run result). */
+  skins?: { hero: number; skin: string }[];
 }
 
 export function newUnlocks(before: LocalStats, after: LocalStats): Unlocks {
@@ -36,4 +38,4 @@ export function newUnlocks(before: LocalStats, after: LocalStats): Unlocks {
   };
 }
 
-export const hasUnlocks = (u: Unlocks | null | undefined): boolean => !!u && (u.heroes.length > 0 || u.depth !== null || u.endless);
+export const hasUnlocks = (u: Unlocks | null | undefined): boolean => !!u && (u.heroes.length > 0 || u.depth !== null || u.endless || (u.skins?.length ?? 0) > 0);

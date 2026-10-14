@@ -5,6 +5,7 @@ import { RootStackParamList } from "./types";
 
 import CoverScreen from "../screens/CoverScreen";
 import CharactersScreen from "../screens/CharactersScreen";
+import CollectionScreen from "../screens/CollectionScreen";
 import GameScreen from "../screens/GameScreen";
 import LessonScreen from "../screens/LessonScreen";
 import TutorialScreen from "../screens/TutorialScreen";
@@ -41,6 +42,7 @@ const StackNavigator: React.FC = () => {
       >
         <Stack.Screen name="CoverScreen" component={CoverScreen} />
         <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
+        <Stack.Screen name="CollectionScreen" component={CollectionScreen} />
         <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
