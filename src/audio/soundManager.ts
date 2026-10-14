@@ -7,12 +7,14 @@ import { useSettingsStore } from "../state/settings/store";
 import { LegacySoundHandle } from "../state/sound/types";
 import { audioLog } from "./audioDiagnostics";
 import { scaledVolume } from "../core/audio/volume";
+import { mixVolume } from "../core/audio/mix";
 
-// Dynamic volume offsets
-const MUSIC_VOL = 0.12;
-const SFX_VOL = 0.45;
-const HAZARD_VOL = 0.18;
-const VICTORIA_VOL = 0.30;
+// Playback volumes come from the mix table (core/audio/mix.ts): every sound is aimed at a loudness in dB, so none is
+// louder than it should be just because its recording was.
+const MUSIC_VOL = mixVolume('music');
+const SFX_VOL = mixVolume('coin');
+const HAZARD_VOL = mixVolume('hazard');
+const FANFARE_VOL = mixVolume('fanfare');
 /** The same effect is never started twice within this many milliseconds. */
 const MIN_REPEAT_MS = 45;
 
@@ -135,23 +137,23 @@ export function useSoundManager(): void {
     }
 
     switch (event) {
-      case 'MOVE':           playSfx(sounds.move, 0.4); break;
-      case 'COIN_COLLECTED': playSfx(sounds.coin, SFX_VOL, rate); break;
-      case 'POWERUP':        playSfx(sounds.coin, 0.6); break;
-      case 'RELIC_PICKED':   playSfx(sounds.relic, 0.7); break;
-      case 'BOSS_ROAR':      playOnce(sounds.roar, 0.8); break;
+      case 'MOVE':           playSfx(sounds.move, mixVolume('step')); break;
+      case 'COIN_COLLECTED': playSfx(sounds.coin, mixVolume('coin'), rate); break;
+      case 'POWERUP':        playSfx(sounds.coin, mixVolume('powerup')); break;
+      case 'RELIC_PICKED':   playSfx(sounds.relic, mixVolume('relic')); break;
+      case 'BOSS_ROAR':      playOnce(sounds.roar, mixVolume('roar')); break;
       // The same recordings, played at different speeds and levels, so a hit, a miss, a kill and a trap all sound apart.
-      case 'TRAP_TRIGGERED': playSfx(sounds.attack, 0.8, 0.55); break;
-      case 'ATTACK':         playSfx(sounds.attack, 0.5, 0.92); break;
-      case 'ENEMY_KILLED':   playSfx(sounds.attack, 0.9, 1.25 * rate); setTimeout(() => playSfx(sounds.coin, 0.4, 1.4 * rate), 60); break;
-      case 'BOSS_HIT':       playSfx(sounds.attack, 1, 0.8); setTimeout(() => playSfx(sounds.attack, 0.8, 0.65), 70); break;
-      case 'SHIELD_BREAK':   playSfx(sounds.death, 0.35, 1.9); playSfx(sounds.attack, 0.6, 0.7); break;
-      case 'CHARGE_WARN':    playSfx(sounds.move, 0.6, 0.55); setTimeout(() => playSfx(sounds.move, 0.6, 0.45), 110); break;
+      case 'TRAP_TRIGGERED': playSfx(sounds.attack, mixVolume('trap'), 0.55); break;
+      case 'ATTACK':         playSfx(sounds.attack, mixVolume('miss'), 0.92); break;
+      case 'ENEMY_KILLED':   playSfx(sounds.attack, mixVolume('kill'), 1.25 * rate); setTimeout(() => playSfx(sounds.coin, mixVolume('killTail'), 1.4 * rate), 60); break;
+      case 'BOSS_HIT':       playSfx(sounds.attack, mixVolume('bossHit'), 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
+      case 'SHIELD_BREAK':   playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); break;
+      case 'CHARGE_WARN':    playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); break;
 
       case 'LEVEL_UP':
         stopAllBackgroundMusic("level_up");
         // Delay victory SFX slightly to avoid mixer clash
-        setTimeout(() => playSfx(sounds.victory, VICTORIA_VOL), 80);
+        setTimeout(() => playSfx(sounds.victory, FANFARE_VOL), 80);
         break;
 
       case 'LEVEL_RESUME':
@@ -162,7 +164,7 @@ export function useSoundManager(): void {
 
       case 'GAME_OVER':
         stopAllBackgroundMusic("game_over");
-        playSfx(sounds.death, VICTORIA_VOL);
+        playSfx(sounds.death, mixVolume('death'));
         break;
 
       case 'COVER_SCREEN_START':
@@ -212,7 +214,7 @@ export function useSoundManager(): void {
       case 'STOP_GUARDIAN_NEAR': stopTrack(sounds.monster); break;
       case 'VORTEX_NEAR':       startLoopingTrack(sounds.vortex, HAZARD_VOL, 'sfx'); break;
       case 'STOP_VORTEX_NEAR':  stopTrack(sounds.vortex); break;
-      case 'VORTEX_TELEPORT':   playOnce(sounds.vortex, 0.85); break;
+      case 'VORTEX_TELEPORT':   playOnce(sounds.vortex, mixVolume('teleport')); break;
 
       case 'QUIT':            stopAllBackgroundMusic("quit"); break;
     }

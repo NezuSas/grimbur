@@ -61,10 +61,11 @@ jest.mock('expo-audio', () => ({
 }));
 
 import { setAudioModeAsync } from 'expo-audio';
-import { useSoundStore } from '../../src/state/sound/store';
+import { useSoundStore, whenAllSoundsLoaded } from '../../src/state/sound/store';
 
 beforeAll(async () => {
   await useSoundStore.getState().init();
+  await whenAllSoundsLoaded();
 });
 
 describe('sound store', () => {

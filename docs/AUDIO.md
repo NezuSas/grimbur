@@ -49,3 +49,17 @@ build and is pre-1.0.
 ## Sound style: horror
 
 The chiptune set (`scripts/generateAudio.js`) was replaced by a dark one made by `scripts/generateHorrorAudio.py` (same file names, nothing else changes): sub drones with a beating minor second, a slow heartbeat, dripping water, wind, distant whispers, bowed creaks, glassy bells with long reverb, stone footsteps, a breathing growl for guardians and a cold, relieved victory. Loops are crossfaded so they do not click. Each file is scaled to the loudness *a phone speaker plays* (energy above 130 Hz) of the file it replaces, so the volume constants stay valid; sub-bass cannot make a track seem loud. It was verified by analysis only (levels, loop seams, spectrum): nobody has listened to it on a phone yet. Run `python scripts/generateHorrorAudio.py` to regenerate it.
+
+## Loudness standard (2026-10-14)
+
+Every effect is normalised to the same loudness (loudest 250 ms RMS = -12 dBFS) and every music track to -18 dBFS RMS, with
+peaks under -1 dBFS and 3 ms fades on effects. How loud each event is then heard is decided in ONE table,
+`src/core/audio/mix.ts` (target level in dB per event; the playback volume is derived from it), and `tests/engine/audioMix.test.ts`
+reads the real WAV files to keep the files and the table in agreement.
+
+- After regenerating or replacing any audio file, run `python scripts/normalizeAudio.py` (use `--check` to only measure).
+- To make an event louder or softer, change its `db` in `mix.ts`, never a magic volume number in `soundManager.ts`.
+- Hierarchy: big moments (roar, boss hit, death, relic) > feedback (kill, gems, power-ups) > constant feedback (steps, misses,
+  warnings) > danger hums > music. The player's music and effects settings scale on top.
+- Start-up loads only the first sounds (steps, gems, shot, cover music) before the app starts and the rest one by one in the
+  background, so a slow phone is not starved by loading 15+ native players at once.

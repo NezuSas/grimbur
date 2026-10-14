@@ -228,6 +228,8 @@ export default function GameScreen({ navigation, route }: Props) {
     setFlags(prev => new Set([...prev, ...state.marked]));
   }, [state.marked]);
 
+  /** When the step sound of the last tap was already played at input time, so the state effect does not repeat it. */
+  const stepSoundedAt = useRef(0);
   const manualMove = useCallback(
     (d: Parameters<typeof move>[0]) => {
       cancelTravel();
@@ -239,9 +241,15 @@ export default function GameScreen({ navigation, route }: Props) {
         setToast({ text: t("toast.flagged"), key: Date.now() });
         return;
       }
+      // A plain step (an empty tile) sounds the moment the finger lands, not after the board has re-rendered: on a slow
+      // phone that render is what players feel as a delay. Tiles with something on them keep their own sounds.
+      if (target !== -1 && !s.entityMap[target] && !s.isGameOver && !s.isLevelUp && !s.pendingDraft && !paused && !runEnded && !levelUpWindow) {
+        stepSoundedAt.current = Date.now();
+        emitSound("MOVE");
+      }
       move(d);
     },
-    [cancelTravel, move, flags, t],
+    [cancelTravel, move, flags, t, paused, runEnded, levelUpWindow],
   );
   const manualAttack = useCallback((direction?: Direction) => { cancelTravel(); attack(direction); }, [cancelTravel, attack]);
   // While the attack button is held, the board shows where the arrow would go.
@@ -683,7 +691,8 @@ export default function GameScreen({ navigation, route }: Props) {
 
     // A plain step (not a gem, not a floor change, not an undo, which makes its own sound).
     if (sameFloor && state.turn > prev.turn && state.playerIndex !== prev.playerIndex && !state.isGameOver && !state.isLevelUp && !has("coin")) {
-      emitSound("MOVE");
+      // Already sounded at input time (see manualMove) for a tap; travelled and other steps sound here.
+      if (Date.now() - stepSoundedAt.current > 400) emitSound("MOVE");
     }
     justLeveledUp.current = false;
 
