@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, useWindowDimensions } from "react-native";
 import Text from "../Text";
 
-import { RelicId } from '../../../core/engine/relics';
+import { RelicId, RELICS } from '../../../core/engine/relics';
 import RelicIcon from '../RelicIcon';
 import OverlayContainer from './OverlayContainer';
 import { useT } from '../../../i18n/useT';
@@ -49,15 +49,21 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
         {offer.map(id => {
           const name = relicText(t, id, 'name');
           const description = relicText(t, id, 'desc');
+          const cursed = !!RELICS[id].cursed;
           return (
             <TouchableOpacity
               key={id}
-              style={[styles.card, { width: cardWidth }]}
+              style={[styles.card, { width: cardWidth }, cursed && styles.cursedCard]}
               activeOpacity={0.85}
               onPress={() => onPick(id)}
               accessibilityRole="button"
-              accessibilityLabel={`${name}. ${description}`}
+              accessibilityLabel={`${cursed ? `${t('relic.cursed')}. ` : ''}${name}. ${description}`}
             >
+              {cursed && (
+                <Text style={styles.cursedTag} maxFontSizeMultiplier={1.3}>
+                  {t('relic.cursed').toLocaleUpperCase()}
+                </Text>
+              )}
               <RelicIcon id={id} size={64} />
               <Text style={styles.name} maxFontSizeMultiplier={1.3}>
                 {name.toLocaleUpperCase()}
@@ -71,7 +77,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
       </Animated.View>
 
       <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
-        {t('relic.hint')}
+        {offer.some(id => RELICS[id].cursed) ? t('relic.cursedHint') : t('relic.hint')}
       </Text>
       {lairNext && (
         <Text style={styles.lair} maxFontSizeMultiplier={1.3}>
@@ -106,6 +112,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  cursedCard: { borderColor: '#EF5350', backgroundColor: '#241214' },
+  cursedTag: { color: '#FF8A80', fontWeight: '900', fontSize: 11, letterSpacing: 2 },
   name: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1, textAlign: 'center' },
   description: { color: '#cfcfcf', fontSize: 12, textAlign: 'center' },
   lair: { color: '#FF8A80', fontWeight: '900', fontSize: 13, textAlign: 'center', marginTop: 4 },
