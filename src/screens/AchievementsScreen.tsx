@@ -11,7 +11,7 @@ import { useGameLayout } from "../ui/layout/useGameLayout";
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD, TIER_ORDER, AchievementTier } from "../core/stats/achievements";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { closestAchievements } from "../core/stats/goals";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { useT } from "../i18n/useT";
 import { useSettingsStore } from "../state/settings/store";
 import { achievementText } from "../i18n/keys";
@@ -28,7 +28,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   const setAchievementsSeen = useSettingsStore(st => st.setAchievementsSeen);
   const [filter, setFilter] = useState<"all" | "todo" | "done">("all");
 

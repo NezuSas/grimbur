@@ -7,7 +7,7 @@ import CoverCard from "../ui/components/CoverCard";
 import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
@@ -20,7 +20,7 @@ import { emitSound } from "../audio/audioEventBus";
 type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 
 const CoverScreen: React.FC<Props> = ({ navigation }) => {
-  const [stats, setStats] = useState<LocalStats>(EMPTY_STATS);
+  const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
 
   useFocusEffect(
     useCallback(() => {

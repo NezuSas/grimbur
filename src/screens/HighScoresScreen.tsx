@@ -16,7 +16,7 @@ import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { clearHidden, hideEntry, loadHidden } from "../services/moderation";
 import { buildReportMailto } from "../core/leaderboard/moderation";
 import { GAME_CONFIG } from "../config/gameConfig";
@@ -33,7 +33,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const { insets } = useGameLayout();
   const [data, setData] = useState<Doc[]>([]);
   const [status, setStatus] = useState<Status>("loading");
-  const [mine, setMine] = useState<LocalStats>(EMPTY_STATS);
+  const [mine, setMine] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   /** When the list shown is a saved copy (no connection), the time it was fetched. */
   const [offlineAt, setOfflineAt] = useState<number | null>(null);
 

@@ -6,6 +6,8 @@ type Props = {
   images: ImageSourcePropType[];
   /** Called once every image has been drawn (or failed), or after `timeoutMs`. */
   onDone: () => void;
+  /** Called after each image is drawn, with how many are done and how many there are. */
+  onProgress?: (done: number, total: number) => void;
   timeoutMs?: number;
 };
 
@@ -14,7 +16,7 @@ type Props = {
  * real screen. Downloading an asset is not enough: the decode on first draw is what makes
  * sprites flash in. Never blocks longer than `timeoutMs`.
  */
-const ImageWarmup: React.FC<Props> = ({ images, onDone, timeoutMs = 3000 }) => {
+const ImageWarmup: React.FC<Props> = ({ images, onDone, onProgress, timeoutMs = 3000 }) => {
   const remaining = useRef(images.length);
   const finished = useRef(false);
   const doneRef = useRef(onDone);
@@ -35,6 +37,7 @@ const ImageWarmup: React.FC<Props> = ({ images, onDone, timeoutMs = 3000 }) => {
 
   const settle = () => {
     remaining.current -= 1;
+    onProgress?.(images.length - Math.max(0, remaining.current), images.length);
     if (remaining.current <= 0) finish();
   };
 
