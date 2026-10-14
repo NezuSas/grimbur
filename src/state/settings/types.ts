@@ -8,6 +8,9 @@ export type AttackButtonPlacement = 'side' | 'center';
 
 export interface SettingsState {
   soundEnabled: boolean;
+  /** Music and effects levels in percent (0, 25, 50, 75 or 100); the on/off switch above still mutes everything. */
+  musicVolume: number;
+  sfxVolume: number;
   /** Haptic feedback on taps, hits and pickups. */
   hapticsEnabled: boolean;
   /** Softens the full-screen flashes (kills, vortex teleports). */
@@ -24,7 +27,11 @@ export interface SettingsState {
   achievementsSeen: number;
   /** One-time in-game hints the player has already read (ability, undo, items). */
   hintsSeen: string[];
+  /** Epoch ms of the last store-rating request (0 = never asked). */
+  reviewAskedAt: number;
   setSoundEnabled: (enabled: boolean) => void;
+  setMusicVolume: (level: number) => void;
+  setSfxVolume: (level: number) => void;
   setHapticsEnabled: (enabled: boolean) => void;
   setReduceFlash: (enabled: boolean) => void;
   setControlPosition: (position: ControlPosition) => void;
@@ -35,4 +42,5 @@ export interface SettingsState {
   setTutorialSeen: (seen: boolean) => void;
   setAchievementsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
+  markReviewAsked: (at: number) => void;
 }

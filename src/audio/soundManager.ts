@@ -6,6 +6,7 @@ import { useSoundStore } from "../state/sound/store";
 import { useSettingsStore } from "../state/settings/store";
 import { LegacySoundHandle } from "../state/sound/types";
 import { audioLog } from "./audioDiagnostics";
+import { scaledVolume } from "../core/audio/volume";
 
 // Dynamic volume offsets
 const MUSIC_VOL = 0.12;
@@ -36,16 +37,28 @@ const stopTrack = (handle: LegacySoundHandle | null) => {
 
 export function useSoundManager(): void {
   const { sounds: currentSounds, ready } = useSoundStore();
-  const { soundEnabled: currentSoundEnabled } = useSettingsStore();
+  const { soundEnabled: currentSoundEnabled, musicVolume, sfxVolume } = useSettingsStore();
   
   const soundsRef = useRef(currentSounds);
   const soundEnabledRef = useRef(currentSoundEnabled);
+  /** Player-chosen levels (percent) applied on top of each track's mix volume. */
+  const musicLevelRef = useRef(musicVolume);
+  const sfxLevelRef = useRef(sfxVolume);
   const lastMusicIntent = useRef<SoundEvent | null>(null);
   /** The music event whose track is playing now, so a repeated start (screen focus fires twice) never restarts it. */
   const activeMusic = useRef<SoundEvent | null>(null);
 
   useEffect(() => { soundsRef.current = currentSounds; }, [currentSounds]);
   useEffect(() => { soundEnabledRef.current = currentSoundEnabled; }, [currentSoundEnabled]);
+  useEffect(() => {
+    musicLevelRef.current = musicVolume;
+    sfxLevelRef.current = sfxVolume;
+    // Tracks that are already sounding follow the new level right away.
+    const s = soundsRef.current;
+    if (!s) return;
+    for (const track of [s.cover, s.selection, s.gameplay]) track?.setVolume(scaledVolume(MUSIC_VOL, musicVolume)).catch(() => {});
+    for (const track of [s.monster, s.vortex]) track?.setVolume(scaledVolume(HAZARD_VOL, sfxVolume)).catch(() => {});
+  }, [musicVolume, sfxVolume]);
 
   /** Effects that fire twice for one event (a shot that also kills) sound once. */
   const lastPlayed = useRef(new WeakMap<LegacySoundHandle, number>());
@@ -56,7 +69,7 @@ export function useSoundManager(): void {
     const now = Date.now();
     if (now - (lastPlayed.current.get(handle) ?? 0) < MIN_REPEAT_MS) return;
     lastPlayed.current.set(handle, now);
-    handle.playOneShot(vol);
+    handle.playOneShot(scaledVolume(vol, sfxLevelRef.current));
   };
 
   /** One-shot play (stops loop, plays once at given volume) */
@@ -64,18 +77,18 @@ export function useSoundManager(): void {
     if (!handle || !soundEnabledRef.current) return;
     handle.stop().catch(() => {}).finally(() => {
       handle.setNumberOfLoops(0).then(() => {
-        handle.setVolume(vol).then(() => handle.play());
+        handle.setVolume(scaledVolume(vol, sfxLevelRef.current)).then(() => handle.play());
       });
     });
   };
 
   /** Fast looping for BGM */
-  const startLoopingTrack = (handle: LegacySoundHandle | null, vol: number = MUSIC_VOL) => {
+  const startLoopingTrack = (handle: LegacySoundHandle | null, vol: number = MUSIC_VOL, level: 'music' | 'sfx' = 'music') => {
     if (!handle || !soundEnabledRef.current) return;
     const ticket = bumpEpoch(handle);
     handle.setNumberOfLoops(-1).then(() => {
       if (epochOf(handle) !== ticket) return; // stopped (or restarted) while loading
-      handle.setVolume(vol).then(() => {
+      handle.setVolume(scaledVolume(vol, level === 'music' ? musicLevelRef.current : sfxLevelRef.current)).then(() => {
         if (epochOf(handle) !== ticket) return;
         handle.play();
       });
@@ -190,9 +203,9 @@ export function useSoundManager(): void {
         stopTrack(sounds.selection);
         break;
 
-      case 'GUARDIAN_NEAR':      startLoopingTrack(sounds.monster, HAZARD_VOL); break;
+      case 'GUARDIAN_NEAR':      startLoopingTrack(sounds.monster, HAZARD_VOL, 'sfx'); break;
       case 'STOP_GUARDIAN_NEAR': stopTrack(sounds.monster); break;
-      case 'VORTEX_NEAR':       startLoopingTrack(sounds.vortex, HAZARD_VOL); break;
+      case 'VORTEX_NEAR':       startLoopingTrack(sounds.vortex, HAZARD_VOL, 'sfx'); break;
       case 'STOP_VORTEX_NEAR':  stopTrack(sounds.vortex); break;
       case 'VORTEX_TELEPORT':   playOnce(sounds.vortex, 0.85); break;
 

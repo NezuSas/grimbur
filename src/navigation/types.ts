@@ -23,5 +23,7 @@ export type RootStackParamList = {
   InstructionsScreen: undefined;
   AchievementsScreen: undefined;
   ForgeScreen: undefined;
+  /** `source` says where the offer was opened from (analytics + the sentence above the pitch); `floor` is the last cleared one. */
+  PaywallScreen: { source?: "cover" | "floor" | "demo" | "endless"; floor?: number } | undefined;
   SettingsScreen: undefined;
 };

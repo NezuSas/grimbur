@@ -175,6 +175,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // Always shown for expeditions: the locked levels teach that winning opens harder ones.
   const showDepth = mode === "expedition";
+  // Short windows put the title and the depth picker side by side so the hero cards keep the height.
+  const compactTop = compactScreen && showDepth;
 
   const isLocked = (heroIndex: number) =>
     !GAME_CONFIG.dev.unlockAllHeroes && !isHeroUnlocked(heroIndex, stats);
@@ -208,7 +210,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <View style={styles.header}>
+          <View style={compactTop ? styles.topRowCompact : undefined}>
+          <View style={[styles.header, compactTop && styles.headerCompact]}>
             <Text style={[styles.modeKicker, { color: modeTint }]} maxFontSizeMultiplier={1.2}>
               {modeTitle.toLocaleUpperCase()}
             </Text>
@@ -226,7 +229,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
           {showDepth && (
-            <View style={styles.depthRow}>
+            <View style={[styles.depthRow, compactTop && styles.depthRowCompact]}>
               <TouchableOpacity
                 style={[styles.depthButton, depth <= 0 && { opacity: 0.35 }]}
                 onPress={() => setDepth(d => Math.max(0, d - 1))}
@@ -245,9 +248,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={styles.depthName} maxFontSizeMultiplier={1.2}>
                   🔥 {compactScreen ? `${t("difficulty.title")}: ` : ""}{t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                 </Text>
-                <Text style={styles.depthRule} numberOfLines={compactScreen ? 1 : 2} maxFontSizeMultiplier={1.2}>
-                  {t(ascensionRuleKey(depth) as TranslationKey)}
-                </Text>
+                {!compactTop && (
+                  <Text style={styles.depthRule} numberOfLines={compactScreen ? 1 : 2} maxFontSizeMultiplier={1.2}>
+                    {t(ascensionRuleKey(depth) as TranslationKey)}
+                  </Text>
+                )}
                 {/* All six levels: open ones filled, the selected one outlined, locked ones dark with a lock */}
                 <View style={styles.depthPips}>
                   {Array.from({ length: MAX_ASCENSION + 1 }, (_, i) => (
@@ -256,7 +261,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     </View>
                   ))}
                 </View>
-                {depth >= maxDepth && maxDepth < MAX_ASCENSION && (
+                {!compactTop && depth >= maxDepth && maxDepth < MAX_ASCENSION && (
                   <Text style={styles.depthLock} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                     🔒 {t("difficulty.unlock", { from: t(`ascension.label.${maxDepth}` as TranslationKey), to: t(`ascension.label.${maxDepth + 1}` as TranslationKey) })}
                   </Text>
@@ -273,6 +278,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               </TouchableOpacity>
             </View>
           )}
+          </View>
 
           <FlatList
             data={characters}
@@ -326,6 +332,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255,255,255,0.2)",
   },
   header: { alignItems: "center", marginTop: 2, paddingHorizontal: MIN_TOUCH + 28 },
+  topRowCompact: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingRight: 16, minHeight: MIN_TOUCH + 12 },
+  headerCompact: { flex: 1, marginTop: 0, paddingHorizontal: 0, marginLeft: MIN_TOUCH + 32 },
   modeKicker: { fontWeight: "800", letterSpacing: 3, fontSize: 12 },
   modeRule: { color: "#d6d0ee", fontSize: 12, textAlign: "center", marginTop: 4 },
   title: {
@@ -347,6 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     maxWidth: 560,
   },
+  depthRowCompact: { marginTop: 0, alignSelf: "center", flexShrink: 0 },
   depthButton: {
     width: MIN_TOUCH,
     height: MIN_TOUCH,

@@ -26,6 +26,10 @@ type Props = {
   floors?: number;
   /** The endless descent: no ten-floor bar, and the record is a floor, not a score. */
   endless?: boolean;
+  /** The free part of the game ended (not a defeat): a demo-complete summary with the unlock call to action. */
+  demo?: boolean;
+  /** Opens the paywall from the demo summary. */
+  onUnlock?: () => void;
   totalCoins: number;
   time: number;
   character: Character;
@@ -90,6 +94,8 @@ const GameOverOverlay = ({
   level,
   floors = 10,
   endless = false,
+  demo = false,
+  onUnlock,
   totalCoins,
   time,
   character,
@@ -135,9 +141,9 @@ const GameOverOverlay = ({
 
   const wide = width >= 560;
   const compact = height < 460;
-  const accent = victory ? '#FFD54F' : '#FF5252';
+  const accent = victory || demo ? '#FFD54F' : '#FF5252';
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
-  const heroSprite = victory ? character.winImage : (character.loseImage ?? character.scoreImage);
+  const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   const sprite = killerSprite ?? heroSprite;
   const spriteSize = compact ? 104 : 150;
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
@@ -147,7 +153,7 @@ const GameOverOverlay = ({
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
   const tip = !victory && deathCause ? t(`over.tip.${deathCause}` as TranslationKey) : null;
 
-  const title = victory ? t('over.victory') : t('over.fell', { floor: level });
+  const title = demo ? t('over.demo.title') : victory ? t('over.victory') : t('over.fell', { floor: level });
   const nearGems = !victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2;
   const nearBest = !endless && !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
@@ -259,6 +265,11 @@ const GameOverOverlay = ({
           🔓 {plural('over.unlocked', unlockedHeroes.length, { names: unlockedHeroes.map(i => heroText(t, i, 'name')).join(', ') }).toLocaleUpperCase()}
         </Text>
       )}
+      {demo && (
+        <Text style={styles.demoBody} maxFontSizeMultiplier={1.2}>
+          {t('over.demo.body', { floor: level })}
+        </Text>
+      )}
       {tip && height >= 340 && (
         <View style={styles.tip}>
           <Ionicons name="bulb" size={16} color="#FFD54F" />
@@ -266,6 +277,20 @@ const GameOverOverlay = ({
         </View>
       )}
 
+      {demo && onUnlock ? (
+        <TouchableOpacity
+          style={[styles.retry, { backgroundColor: accent }]}
+          onPress={onUnlock}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={t('over.demo.cta')}
+        >
+          <Ionicons name="lock-open" size={22} color="#000" />
+          <Text style={[styles.retryText, { color: '#000' }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+            {t('over.demo.cta').toLocaleUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      ) : (
       <TouchableOpacity
         style={[styles.retry, { backgroundColor: accent }]}
         onPress={onRetry}
@@ -278,8 +303,15 @@ const GameOverOverlay = ({
           {t('over.retry').toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
+      )}
 
       <View style={styles.secondary}>
+        {demo && onUnlock ? (
+          <TouchableOpacity style={styles.sideButton} onPress={onRetry} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.retry')}>
+            <Ionicons name="refresh" size={18} color="#fff" />
+            <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity style={styles.sideButton} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
           <Ionicons name="home" size={18} color="#fff" />
           <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>
@@ -372,6 +404,7 @@ const styles = StyleSheet.create({
   explain: { color: '#FFCC80', fontSize: 12, fontWeight: '700', textAlign: 'center', maxWidth: 440 },
   embersText: { color: '#FFAB40', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   bonus: { color: '#9ee37d', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  demoBody: { color: '#FFE9A8', fontSize: 13, fontWeight: '700' },
   nearMiss: { color: '#80DEEA', fontWeight: '800', fontSize: 13 },
   achievement: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   unlocked: { color: '#76FF03', fontWeight: '900', fontSize: 12, letterSpacing: 1 },

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
@@ -54,6 +54,7 @@ import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
 import { clampAscension, modifiersFor } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
+import { hasFullGame, shouldGateDescentNow } from "../services/entitlements";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionTimer } from "../hooks/useSessionTimer";
 import { useProximityAudio } from "../hooks/useProximityAudio";
@@ -117,6 +118,13 @@ export default function GameScreen({ navigation, route }: Props) {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
   const [paused, setPaused] = useState(false);
+  // The free part is over (monetisation on, last free floor cleared, full game declined): the run ends as a demo summary.
+  const [demoEnd, setDemoEnd] = useState(false);
+  const demoEndRef = useRef(false);
+  demoEndRef.current = demoEnd;
+  // "level": the level-complete card is up and the paywall follows it; "paywall": the offer is up and its answer decides.
+  const gateStage = useRef<null | "level" | "paywall">(null);
+  const isFocused = useIsFocused();
   const combatFlash = useRef(new Animated.Value(0)).current;
   const vortexFlash = useRef(new Animated.Value(0)).current;
   // Red wash that appears the instant the hero dies and stays under the game-over card.
@@ -411,6 +419,8 @@ export default function GameScreen({ navigation, route }: Props) {
     setRunResult(null);
     setShowGameOver(false);
     setShowHighScoreEntry(false);
+    setDemoEnd(false);
+    gateStage.current = null;
     resetTimer();
     setPaused(false);
     startRun();
@@ -493,11 +503,44 @@ export default function GameScreen({ navigation, route }: Props) {
         time: sessionTimeRef.current,
       });
       setDoor(0);
-      setIntermission(true);
+      if (shouldGateDescentNow(now.level, mode)) gateStage.current = "level";
+      else setIntermission(true);
     }, 800);
 
     return () => clearTimeout(timer);
   }, [levelUpWindow]);
+
+  // Back from the level-complete card or the paywall: carry on, or close the free part of the run.
+  useEffect(() => {
+    if (!isFocused || !gateStage.current || leaving.current || !mounted.current) return;
+    const s = stateRef.current;
+    if (gateStage.current === "level") {
+      gateStage.current = "paywall";
+      navigation.navigate("PaywallScreen", { source: "floor", floor: s.level });
+      return;
+    }
+    gateStage.current = null;
+    if (hasFullGame()) {
+      // Bought (also from the demo card): the run was saved as a demo, so it is saved again when it really ends.
+      runRecorded.current = false;
+      setRunResult(null);
+      setShowGameOver(false);
+      setDemoEnd(false);
+      setDoor(0);
+      setIntermission(true);
+    } else if (!demoEndRef.current) {
+      setDemoEnd(true);
+      setShowGameOver(true);
+      void recordCurrentRun().then(result => {
+        if (mounted.current && result) setRunResult(result);
+      });
+    }
+  }, [isFocused]);
+
+  const handleUnlock = useCallback(() => {
+    gateStage.current = "paywall";
+    navigation.navigate("PaywallScreen", { source: "demo", floor: stateRef.current.level });
+  }, [navigation]);
 
   const handleGo = useCallback(() => {
     const s = stateRef.current;
@@ -837,6 +880,8 @@ export default function GameScreen({ navigation, route }: Props) {
         onShare={handleShare}
         floors={GAME_CONFIG.expedition.floors}
         endless={mode === "endless"}
+        demo={demoEnd}
+        onUnlock={handleUnlock}
         onForge={() => navigation.navigate("ForgeScreen")}
         onRetry={handleRetry}
         onMainMenu={handleMainMenu}
