@@ -13,6 +13,7 @@ import { achievementText, heroText, skinText } from '../../../i18n/keys';
 import type { SkinId } from '../../../data/skinArt';
 import type { TranslationKey } from '../../../i18n/en';
 import { splitNames, type AchievementId } from '../../../core/stats/achievements';
+import { missionDef } from '../../../core/stats/missions';
 import type { RunPayout } from '../../../core/stats/runStats';
 import type { Goal } from '../../../core/stats/goals';
 import type { Unlocks } from '../../../core/stats/unlocks';
@@ -67,6 +68,9 @@ type Props = {
   /** The closest goals (at most two) and whether the run just made a Forge purchase possible. */
   goals?: Goal[];
   canBuyNow?: boolean;
+  /** Missions this run completed (their ids) and the new rank when the run raised it. */
+  missionsDone?: string[];
+  rankUp?: number | null;
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
   explainEmbers?: boolean;
   /** Gems still on the floor when the run ended (for the near-miss line). */
@@ -170,6 +174,8 @@ const GameOverOverlay = ({
   onTryUnlock,
   goals,
   canBuyNow,
+  missionsDone,
+  rankUp,
   gemsLeft,
   onShare,
   onForge,
@@ -274,9 +280,20 @@ const GameOverOverlay = ({
     ...(unlocks?.skins ?? []).map(s => ({ kind: 'skin' as const, skin: s, text: t('over.unlock.skin', { name: `${heroText(t, s.hero, 'name')} · ${skinText(t, s.skin as SkinId)}` }) })),
   ];
 
+  /** The text of a mission that this run completed ("Reach floor 5 in a single run"). */
+  const missionLabel = (id: string): string => {
+    const def = missionDef(id);
+    if (!def) return id;
+    return def.metric === 'wins' || def.metric === 'daily'
+      ? plural(`mission.desc.${def.metric}` as never, def.target, { n: def.target })
+      : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target.toLocaleString() });
+  };
+
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
     ...(explainEmbers && embers && embers > 0 ? [{ key: 'explain', icon: 'information-circle' as const, color: '#FFCC80', text: t('over.explainEmbers') }] : []),
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
+    ...(rankUp ? [{ key: 'rank', icon: 'medal' as const, color: '#FFD54F', text: t('over.rankUp', { name: t(`rank.${rankUp}` as TranslationKey) }) }] : []),
+    ...(missionsDone ?? []).map(id => ({ key: `m-${id}`, icon: 'flag' as const, color: '#4FC3F7', text: t('over.mission', { name: missionLabel(id) }) })),
     ...(achievements && achievements.length > 0 ? [{ key: 'ach', icon: 'trophy' as const, color: '#FFD54F', text: plural('over.achievements', achievements.length, { names: achievementNames }) }] : []),
     ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#ff8a80', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),
     ...(dailyLabel && freezeUsed ? [{ key: 'fused', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeUsed') }] : []),

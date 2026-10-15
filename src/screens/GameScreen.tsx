@@ -131,6 +131,9 @@ type RunResult = {
   unlocks?: Unlocks;
   goals?: Goal[];
   canBuyNow?: boolean;
+  /** Missions this run completed, and the new rank when it was raised. */
+  missionsDone?: string[];
+  rankUp?: number | null;
   /** One of the first runs: the game over explains gems versus embers. */
   early?: boolean;
 };
@@ -372,11 +375,11 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
+        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, missionsDone: r.missionsDone, rankUp: r.rankUp, early: r.stats.gamesPlayed <= 2 };
       }
       const r = await recordRun(run);
       // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, early: r.stats.gamesPlayed <= 2 };
+      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, missionsDone: r.missionsDone, rankUp: r.rankUp, early: r.stats.gamesPlayed <= 2 };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       return null;
@@ -955,6 +958,7 @@ export default function GameScreen({ navigation, route }: Props) {
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : undefined}
           omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : undefined}
+          story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
           dismiss={state.turn > 0}
           minTop={insets.top + hudHeight + 6}
@@ -1171,6 +1175,8 @@ export default function GameScreen({ navigation, route }: Props) {
         goals={runResult?.goals}
         canBuyNow={runResult?.canBuyNow}
         explainEmbers={runResult?.early}
+        missionsDone={runResult?.missionsDone}
+        rankUp={runResult?.rankUp}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={handleShare}
         floors={GAME_CONFIG.expedition.floors}

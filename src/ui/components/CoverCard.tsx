@@ -52,11 +52,14 @@ type Props = {
   achievementsBadge: boolean;
   /** Something can be bought (or claimed) in the outfit collection: a dot on its icon. */
   collectionBadge: boolean;
+  /** Missions are ready to claim: a dot on their icon. */
+  missionsBadge: boolean;
   onPressScores: () => void;
   onPressInstructions: () => void;
   onPressForge: () => void;
   onPressAchievements: () => void;
   onPressCollection: () => void;
+  onPressMissions: () => void;
   onPressSettings: () => void;
 };
 
@@ -128,6 +131,8 @@ const CoverCard: React.FC<Props> = ({
   onPressScores,
   onPressInstructions,
   onPressForge,
+  onPressMissions,
+  missionsBadge,
   onPressAchievements,
   onPressCollection,
   onPressSettings,
@@ -276,6 +281,7 @@ const CoverCard: React.FC<Props> = ({
       {/* A lone manual button gets no box around it: a panel for one icon looks like a mistake. */}
       <View style={firstRun ? styles.dockSolo : styles.dock}>
         {!firstRun && <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
+        {!firstRun && <DockButton ui={ui} icon="flag" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
         {!firstRun && <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
         {!firstRun && <DockButton ui={ui} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
         {!firstRun && <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}

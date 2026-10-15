@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import { EMPTY_MISSIONS, missionDef, syncMissions } from "../core/stats/missions";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { dailyKey } from "../core/engine/seed";
 import { setMonetizationOverride } from "../services/entitlements";
@@ -37,6 +38,20 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     heroBestDepth: [2, 1, 0, 0, 0, 0],
     streak: 6,
     lastDailyDate: today,
+    // Missions with some progress: one done and waiting, one partly done, one claimed
+    missions: (() => {
+      const sync = syncMissions(EMPTY_MISSIONS, today);
+      const goals = [missionDef(sync.daily[0].id)!, missionDef(sync.daily[1].id)!, missionDef(sync.daily[2].id)!];
+      return {
+        ...sync,
+        daily: [
+          { ...sync.daily[0], progress: goals[0].target },
+          { ...sync.daily[1], progress: Math.max(1, Math.floor(goals[1].target * 0.6)) },
+          { ...sync.daily[2], progress: 0 },
+        ],
+        weekly: [{ ...sync.weekly[0], progress: Math.max(1, Math.floor(missionDef(sync.weekly[0].id)!.target * 0.4)) }, sync.weekly[1]],
+      };
+    })(),
     bestEndlessFloor: 14,
     dailyRuns: 9,
     dailyWins: 4,

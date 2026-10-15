@@ -9,6 +9,7 @@ export type RootStackParamList = {
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
   CollectionScreen: { hero?: number; skin?: SkinId } | undefined;
   /** The opening story; `replay` returns to the previous screen instead of starting a run. */
+  MissionsScreen: undefined;
   StoryScreen: { replay?: boolean } | undefined;
   CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
