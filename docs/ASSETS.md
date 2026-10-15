@@ -107,3 +107,4 @@ TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of th
 | `src/assets/sprites/tools/Ability_Flare.png`, `Ability_Blast.png` | ChatGPT image generation (owner's paid plan) | Prompts in `docs/ART_NEXT.md` pack 4b; cropped and resized to 256 px (82 and 107 KB) |
 | `src/assets/sprites/characters/Win_Cyan.png`, `Lose_Cyan.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Vael; aligned by `scripts/processHeroArt.py --poses` (fixed scale 0.29, feet on the same line, 384 px) |
 | `src/assets/sprites/characters/Win_Red.png`, `Lose_Red.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Sera; `scripts/processHeroArt.py --poses` |
+| `src/assets/sprites/characters/Win_Green.png`, `Lose_Green.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Borin; `scripts/processHeroArt.py --poses` |
