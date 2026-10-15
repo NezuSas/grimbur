@@ -47,7 +47,7 @@ describe('skinArt', () => {
         expect(art.winImage).toBeDefined();
         expect(art.loseImage).toBeDefined();
         if (skin !== 'classic') {
-          for (const kind of ['hero', 'attack', 'icon']) {
+          for (const kind of ['hero', 'attack', 'icon', 'win', 'lose']) {
             expect(fs.existsSync(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`))).toBe(true);
           }
         }
@@ -58,13 +58,26 @@ describe('skinArt', () => {
   });
 
   it('keeps the original dimensions for every generated sprite', () => {
-    const kinds: [string, string][] = [['hero', 'Hero'], ['attack', 'Attack'], ['icon', 'Icon']];
+    const kinds: [string, string][] = [['hero', 'Hero'], ['attack', 'Attack'], ['icon', 'Icon'], ['win', 'Win'], ['lose', 'Lose']];
     for (let hero = 0; hero < HERO_COUNT; hero++) {
       for (const skin of skinsForHero(hero).slice(1)) {
         for (const [kind, prefix] of kinds) {
           const orig = pngSize(path.join(CHAR_DIR, `${prefix}_${CLASSIC_FILES[hero]}.png`));
           const gen = pngSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`));
           expect(gen).toEqual(orig);
+        }
+      }
+    }
+  });
+
+  it('ships recoloured win and lose poses (384x384) for every generated skin', () => {
+    for (let hero = 0; hero < HERO_COUNT; hero++) {
+      for (const skin of skinsForHero(hero).slice(1)) {
+        const art = skinArt(hero, skin);
+        expect(art.winImage).toBeDefined();
+        expect(art.loseImage).toBeDefined();
+        for (const kind of ['win', 'lose']) {
+          expect(pngSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`))).toEqual({ w: 384, h: 384 });
         }
       }
     }

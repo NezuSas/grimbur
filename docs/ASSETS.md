@@ -111,3 +111,4 @@ TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of th
 | `src/assets/sprites/characters/Win_Gold.png`, `Lose_Gold.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Auric; `scripts/processHeroArt.py --poses` (also removes the faint alpha haze) |
 | `src/assets/sprites/characters/Win_Pink.png`, `Lose_Pink.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Mira; `scripts/processHeroArt.py --poses` |
 | `src/assets/sprites/characters/Win_Orange.png`, `Lose_Orange.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Bram; `scripts/processHeroArt.py --poses` |
+| `src/assets/sprites/skins/<skin>/<hero>_win.png`, `_lose.png` | Derived from the victory/defeat poses by `scripts/generateSkins.py` | Every outfit now has its own victory and defeat pose (4.5 MB for all outfits in total) |
