@@ -16,6 +16,7 @@ export async function createBackupCode(): Promise<string | null> {
       reduceFlash: s.reduceFlash,
       controlPosition: s.controlPosition,
       attackButton: s.attackButton,
+      movePad: s.movePad,
       controlSize: s.controlSize,
       swipeMove: s.swipeMove,
       dragAim: s.dragAim,

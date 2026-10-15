@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView, { type ArrowShot } from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
+import FloatingPad from "../ui/components/FloatingPad";
 import AttackPanel from "../ui/components/AttackPanel";
 import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
@@ -49,6 +50,7 @@ import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
 import { arrowPath, arrowReachOf } from "../core/engine/reducer";
+import { canRepeatStep } from "../core/input/floatingPad";
 import type { Direction } from "../core/engine/types";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
@@ -182,6 +184,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
+  const movePad = useSettingsStore(s => s.movePad);
   const hintsSeen = useSettingsStore(s => s.hintsSeen);
   const markHintSeen = useSettingsStore(s => s.markHintSeen);
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
@@ -284,6 +287,10 @@ export default function GameScreen({ navigation, route }: Props) {
     () => (aimDir ? new Set(lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols)) : undefined),
     [aimDir, state.playerIndex, state.rows, state.cols, reach],
   );
+  // The floating pad keeps walking while it is held, but only over explored, empty ground (never blindly).
+  const flagsRef = useRef(flags);
+  flagsRef.current = flags;
+  const canRepeatMove = useCallback((direction: Direction) => canRepeatStep(stateRef.current, direction, flagsRef.current), []);
   // Drag from the hero: letting go on a side shoots that way (without arrows it is refused, like the button).
   const fireDragged = useCallback(
     (direction: Direction) => {
@@ -1011,7 +1018,11 @@ export default function GameScreen({ navigation, route }: Props) {
               size={Math.max(34, Math.min(46, (controlPanelWidth + 12 - 18) / 4))}
             />
           </View>
-          <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
+          {movePad === "floating" ? (
+            <FloatingPad onMove={manualMove} canRepeat={canRepeatMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
+          ) : (
+            <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
+          )}
         </View>
       </View>
 
