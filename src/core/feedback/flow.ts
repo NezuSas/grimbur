@@ -9,11 +9,4 @@ export function shouldShowShop(nextFloor: number, _state?: { gems?: number }): b
   return nextFloor >= SKIP_SHOP_BELOW_FLOOR;
 }
 
-/**
- * The level-complete card moves on by itself this long AFTER its stars have finished appearing (a tap still skips it).
- * It used to count from the moment the card opened, which cut the stars off halfway.
- */
-export const LEVEL_COMPLETE_HOLD_MS = 1200;
 
-/** The most the card may stay up, whatever happens to its animation (a stuck animation must never trap the player). */
-export const LEVEL_COMPLETE_MAX_MS = 6000;

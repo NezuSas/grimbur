@@ -19,7 +19,6 @@ import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
-import { LEVEL_COMPLETE_HOLD_MS, LEVEL_COMPLETE_MAX_MS } from "../core/feedback/flow";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
@@ -65,19 +64,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
     navigation.goBack();
   };
 
-  // The card moves on by itself (a tap still skips it): between floors the player should not have to tap to keep playing.
-  const leaveRef = useRef(leave);
-  leaveRef.current = leave;
-  // The clock starts when the stars are done, so the player always sees the whole rating; a hard cap covers a stuck animation.
-  useEffect(() => {
-    if (!animationDone) return;
-    const timer = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_HOLD_MS);
-    return () => clearTimeout(timer);
-  }, [animationDone]);
-  useEffect(() => {
-    const cap = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_MAX_MS);
-    return () => clearTimeout(cap);
-  }, []);
+  // The card never moves on by itself: the player reads the result and presses "Next floor" (or taps) when ready.
 
   // Sizes derive from the live window, so the card fits small landscape phones and tablets alike.
   const compact = height < 420;
