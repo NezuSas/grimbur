@@ -26,6 +26,8 @@ import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { analytics } from "../services/analytics";
 import { relicText } from "../i18n/keys";
+import GameOverOverlay from "../ui/components/game/GameOverOverlay";
+import { characterWithSkin } from "../data/characterSkins";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LessonScreen">;
 
@@ -228,6 +230,19 @@ export default function LessonScreen({ navigation, route }: Props) {
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.6)" }]} />
       <StatusBar hidden />
       {__DEV__ && route.params.devHideBanner ? null : banner}
+      {__DEV__ && route.params.devGameOver ? (
+        <GameOverOverlay
+          visible
+          score={4381}
+          level={7}
+          totalCoins={19}
+          time={412}
+          character={characterWithSkin(route.params.devGameOver.hero, route.params.devGameOver.skin)}
+          deathCause={route.params.devGameOver.cause}
+          onRetry={() => {}}
+          onMainMenu={() => {}}
+        />
+      ) : null}
 
       {lesson.kind === "board" ? (
         <View
