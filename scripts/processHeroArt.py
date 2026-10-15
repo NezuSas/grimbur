@@ -36,6 +36,13 @@ def bbox(im, threshold=12):
     return xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
 
 
+def clean_alpha(im, floor=12):
+    """Removes the almost-invisible haze some generators leave in the background (alpha 1..floor out of 255)."""
+    a = np.array(im)
+    a[:, :, 3] = np.where(a[:, :, 3] <= floor, 0, a[:, :, 3])
+    return Image.fromarray(a, 'RGBA')
+
+
 def fade_edges(im, px=110):
     """Fades the last `px` columns on the right (and left) to transparent where the picture touches the canvas edge."""
     a = np.array(im)
@@ -110,7 +117,7 @@ def process_poses(src_dir, name):
         if not os.path.exists(path):
             print(f'{kind}_{name}: not found, skipped')
             continue
-        im = Image.open(path).convert('RGBA')
+        im = clean_alpha(Image.open(path).convert('RGBA'))
         x0, y0, x1, y1 = bbox(im)
         out = place(im, POSE_SCALE, (x0 + x1) / 2, y1)
         ob = bbox(out)
