@@ -5,6 +5,8 @@ export type ControlPosition = 'left' | 'right';
 /** Size of the on-screen controls. */
 export type ControlSize = 'small' | 'medium' | 'large';
 export type AttackButtonPlacement = 'side' | 'center';
+/** The movement pad: always in the same place, or one that appears under the thumb. */
+export type MovePadStyle = 'fixed' | 'floating';
 
 export interface SettingsState {
   soundEnabled: boolean;
@@ -17,6 +19,7 @@ export interface SettingsState {
   reduceFlash: boolean;
   controlPosition: ControlPosition;
   attackButton: AttackButtonPlacement;
+  movePad: MovePadStyle;
   controlSize: ControlSize;
   /** Swipe on the board to move one step (the pad keeps working). */
   swipeMove: boolean;
@@ -41,6 +44,7 @@ export interface SettingsState {
   setControlPosition: (position: ControlPosition) => void;
   setControlSize: (size: ControlSize) => void;
   setAttackButton: (placement: AttackButtonPlacement) => void;
+  setMovePad: (style: MovePadStyle) => void;
   setSwipeMove: (enabled: boolean) => void;
   setDragAim: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;

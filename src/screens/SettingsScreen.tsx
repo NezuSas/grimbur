@@ -17,7 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
-import type { AttackButtonPlacement, ControlPosition, ControlSize } from "../state/settings/types";
+import type { AttackButtonPlacement, ControlPosition, ControlSize, MovePadStyle } from "../state/settings/types";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { resetLocalStats } from "../services/localStats";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
@@ -122,6 +122,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const language = useSettingsStore(s => s.language);
   const attackButton = useSettingsStore(s => s.attackButton);
+  const movePad = useSettingsStore(s => s.movePad);
+  const setMovePad = useSettingsStore(s => s.setMovePad);
   const controlSize = useSettingsStore(s => s.controlSize);
   const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
@@ -205,6 +207,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     { value: "side", label: t("settings.attackSide") },
     { value: "center", label: t("settings.attackCenter") },
   ];
+  const padOptions: SegmentOption<MovePadStyle>[] = [
+    { value: "fixed", label: t("settings.padFixed") },
+    { value: "floating", label: t("settings.padFloating") },
+  ];
   const languageOptions: SegmentOption<LanguagePreference>[] = [
     { value: "auto", label: t("settings.languageAuto") },
     { value: "en", label: t("settings.languageEn") },
@@ -275,6 +281,17 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                   value={controlPosition}
                   onChange={setControlPosition}
                   accessibilityLabel={t("settings.controls")}
+                />
+              </SettingRow>
+
+              <View style={styles.separator} />
+
+              <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" stacked>
+                <Segmented
+                  options={padOptions}
+                  value={movePad}
+                  onChange={setMovePad}
+                  accessibilityLabel={t("settings.movePad")}
                 />
               </SettingRow>
 
