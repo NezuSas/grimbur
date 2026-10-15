@@ -38,8 +38,8 @@ const characters: Character[] = [
     scoreImage: require("../assets/sprites/characters/Icon_Green.png"),
     attackImage: require("../assets/sprites/characters/Attack_Green.png"),
     playerImage: require("../assets/sprites/characters/Hero_Green.png"),
-    winImage: require("../assets/sprites/characters/Hero_Green.png"),
-    loseImage: require("../assets/sprites/characters/Hero_Green.png"),
+    winImage: require("../assets/sprites/characters/Win_Green.png"),
+    loseImage: require("../assets/sprites/characters/Lose_Green.png"),
     arrowColor: "#76FF03",
   },
   {
