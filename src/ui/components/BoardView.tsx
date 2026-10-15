@@ -504,6 +504,22 @@ const BoardView: React.FC<Props> = memo(
       ]).start();
     }, [dying]);
 
+    // The killer reveals itself: it leaps over the hero, grows with a punch, claw marks cut across the tile and the hero fades.
+    // (A vortex instead spins and swallows the hero.) With reduced motion the final picture simply appears.
+    const strike = useRef(new Animated.Value(0)).current;
+    useEffect(() => {
+      if (!dying || killerTile == null) {
+        strike.setValue(0);
+        return;
+      }
+      if (calm) {
+        strike.setValue(1);
+        return;
+      }
+      strike.setValue(0);
+      Animated.timing(strike, { toValue: 1, duration: 560, easing: Easing.out(Easing.back(1.7)), useNativeDriver: true }).start();
+    }, [dying, killerTile, calm]);
+
     // A heavy hit (the Wumpus took an arrow): a short, firm shake.
     const lastShakeKey = useRef(shakeKey);
     useEffect(() => {
@@ -529,6 +545,7 @@ const BoardView: React.FC<Props> = memo(
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
 
+    const killerEntityType = killerTile != null ? entityMap[killerTile]?.type : undefined;
     const heroArt = characterWithSkin(characterIndex, skin);
     const idleSource = heroArt.playerImage;
     const attackSource = heroArt.attackImage;
@@ -617,10 +634,11 @@ const BoardView: React.FC<Props> = memo(
                 width: tileSize,
                 height: tileSize,
                 position: "absolute",
+                opacity: dying && killerTile != null ? strike.interpolate({ inputRange: [0, 1], outputRange: [1, killerEntityType === "pit" ? 0.12 : 0.5] }) : 1,
                 transform: [
                   { translateX: playerPos.x }, 
                   { translateY: playerPos.y },
-                  { scale: playerScale }
+                  { scale: dying && killerTile != null && killerEntityType === "pit" ? strike.interpolate({ inputRange: [0, 1], outputRange: [1, 0.2] }) : playerScale }
                 ],
               },
             ]}
@@ -704,6 +722,71 @@ const BoardView: React.FC<Props> = memo(
                     <View style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, borderWidth: 3, borderColor: "#FFD54F" }} />
                   </Animated.View>
                 )}
+              </>
+            );
+          })()}
+
+          {dying && killerTile != null && killerEntityType && (() => {
+            const kr = Math.floor(killerTile / cols);
+            const kc = killerTile % cols;
+            // The killer leans toward the hero (it is on the hero's own tile when the hero stepped onto it).
+            const toward = { x: Math.sign(colIndex - kc), y: Math.sign(rowIndex - kr) };
+            const isPit = killerEntityType === "pit";
+            const source = isPit ? ASSETS.pit : killerEntityType === "stalker" ? ASSETS.stalker : killerEntityType === "sleeper" ? ASSETS.sleeper : killerEntityType === "boss" ? ASSETS.boss : ASSETS.enemy;
+            const big = tileSize * (killerEntityType === "boss" ? 1.5 : 1.25);
+            const slash = (angle: string, offset: number, key: string) => (
+              <Animated.View
+                key={key}
+                style={{
+                  position: "absolute",
+                  width: tileSize * 1.35,
+                  height: Math.max(3, tileSize * 0.075),
+                  borderRadius: tileSize,
+                  backgroundColor: "#FFFFFF",
+                  borderWidth: 1,
+                  borderColor: "#FF1744",
+                  opacity: strike.interpolate({ inputRange: [0, 0.12, 0.6, 1], outputRange: [0, 1, 1, 0.35] }),
+                  transform: [{ translateY: offset }, { rotate: angle }, { scaleX: strike.interpolate({ inputRange: [0, 0.3], outputRange: [0.1, 1], extrapolate: "clamp" }) }],
+                }}
+              />
+            );
+            return (
+              <>
+                {!isPit && (
+                  <View pointerEvents="none" style={{ position: "absolute", left: colIndex * tileSize, top: rowIndex * tileSize, width: tileSize, height: tileSize, alignItems: "center", justifyContent: "center", zIndex: 26 }}>
+                    {slash("-38deg", -tileSize * 0.16, "a")}
+                    {slash("-32deg", 0, "b")}
+                    {slash("-44deg", tileSize * 0.16, "c")}
+                  </View>
+                )}
+                <View pointerEvents="none" style={{ position: "absolute", left: kc * tileSize, top: kr * tileSize, width: tileSize, height: tileSize, alignItems: "center", justifyContent: "center", zIndex: 25 }}>
+                  <Animated.View
+                    style={{
+                      position: "absolute",
+                      width: tileSize * 2.4,
+                      height: tileSize * 2.4,
+                      borderRadius: tileSize * 1.2,
+                      backgroundColor: isPit ? "rgba(156,39,176,0.35)" : "rgba(255,23,68,0.32)",
+                      opacity: strike.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.95, 0.6] }),
+                      transform: [{ scale: strike.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }],
+                    }}
+                  />
+                  <Animated.View
+                    style={{
+                      width: big,
+                      height: big,
+                      opacity: strike.interpolate({ inputRange: [0, 0.1, 1], outputRange: [0, 1, 1] }),
+                      transform: [
+                        { translateX: strike.interpolate({ inputRange: [0, 1], outputRange: [0, toward.x * tileSize * 0.22] }) },
+                        { translateY: strike.interpolate({ inputRange: [0, 1], outputRange: [0, toward.y * tileSize * 0.22] }) },
+                        { rotate: isPit ? strike.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "420deg"] }) : "0deg" },
+                        { scale: strike.interpolate({ inputRange: [0, 1], outputRange: [0.45, 1] }) },
+                      ],
+                    }}
+                  >
+                    <SpriteImage style={{ width: big, height: big }} source={source} resizeMode="contain" />
+                  </Animated.View>
+                </View>
               </>
             );
           })()}
