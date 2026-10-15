@@ -152,3 +152,13 @@ describe('the drag-to-shoot setting travels in a backup', () => {
     expect(sanitizeSettings({ dragAim: 'no' }).dragAim).toBe(true);
   });
 });
+
+describe('the pad settings travel in a backup', () => {
+  it('defaults to the fixed pad and the console joystick, and keeps valid choices only', () => {
+    const { sanitizeSettings } = require('../../src/core/stats/backup');
+    expect(sanitizeSettings({}).movePad).toBe('fixed');
+    expect(sanitizeSettings({}).joystickSkin).toBe('console');
+    expect(sanitizeSettings({ movePad: 'floating', joystickSkin: 'arcade' })).toMatchObject({ movePad: 'floating', joystickSkin: 'arcade' });
+    expect(sanitizeSettings({ movePad: 'huge', joystickSkin: 3 })).toMatchObject({ movePad: 'fixed', joystickSkin: 'console' });
+  });
+});

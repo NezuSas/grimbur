@@ -7,6 +7,8 @@ export type ControlSize = 'small' | 'medium' | 'large';
 export type AttackButtonPlacement = 'side' | 'center';
 /** The movement pad: always in the same place, or one that appears under the thumb. */
 export type MovePadStyle = 'fixed' | 'floating';
+/** How the floating pad's joystick looks: a console pad's thumbstick or an arcade cabinet's ball-top stick. */
+export type JoystickSkin = 'console' | 'arcade';
 
 export interface SettingsState {
   soundEnabled: boolean;
@@ -20,6 +22,7 @@ export interface SettingsState {
   controlPosition: ControlPosition;
   attackButton: AttackButtonPlacement;
   movePad: MovePadStyle;
+  joystickSkin: JoystickSkin;
   controlSize: ControlSize;
   /** Swipe on the board to move one step (the pad keeps working). */
   swipeMove: boolean;
@@ -45,6 +48,7 @@ export interface SettingsState {
   setControlSize: (size: ControlSize) => void;
   setAttackButton: (placement: AttackButtonPlacement) => void;
   setMovePad: (style: MovePadStyle) => void;
+  setJoystickSkin: (skin: JoystickSkin) => void;
   setSwipeMove: (enabled: boolean) => void;
   setDragAim: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;

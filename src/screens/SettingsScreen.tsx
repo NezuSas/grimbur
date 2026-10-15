@@ -17,7 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
-import type { AttackButtonPlacement, ControlPosition, ControlSize, MovePadStyle } from "../state/settings/types";
+import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../state/settings/types";
+import { JoystickPreview } from "../ui/components/JoystickBase";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { resetLocalStats } from "../services/localStats";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
@@ -124,6 +125,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const attackButton = useSettingsStore(s => s.attackButton);
   const movePad = useSettingsStore(s => s.movePad);
   const setMovePad = useSettingsStore(s => s.setMovePad);
+  const joystickSkin = useSettingsStore(s => s.joystickSkin);
+  const setJoystickSkin = useSettingsStore(s => s.setJoystickSkin);
   const controlSize = useSettingsStore(s => s.controlSize);
   const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
@@ -211,6 +214,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     { value: "fixed", label: t("settings.padFixed") },
     { value: "floating", label: t("settings.padFloating") },
   ];
+  const skinOptions: SegmentOption<JoystickSkin>[] = [
+    { value: "console", label: t("settings.skinConsole") },
+    { value: "arcade", label: t("settings.skinArcade") },
+  ];
   const languageOptions: SegmentOption<LanguagePreference>[] = [
     { value: "auto", label: t("settings.languageAuto") },
     { value: "en", label: t("settings.languageEn") },
@@ -296,6 +303,27 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               </SettingRow>
 
               <View style={styles.separator} />
+
+              {movePad === "floating" && (
+                <>
+                  <SettingRow label={t("settings.joystickSkin")} icon="color-palette" stacked>
+                    <Segmented
+                      options={skinOptions}
+                      value={joystickSkin}
+                      onChange={setJoystickSkin}
+                      accessibilityLabel={t("settings.joystickSkin")}
+                    />
+                    <View style={styles.joystickTry}>
+                      <JoystickPreview skin={joystickSkin} radius={56} />
+                      <Text style={styles.joystickTryText} maxFontSizeMultiplier={1.3}>
+                        {t("settings.joystickTry")}
+                      </Text>
+                    </View>
+                  </SettingRow>
+
+                  <View style={styles.separator} />
+                </>
+              )}
 
               <SettingRow label={t("settings.controlSize")} icon="resize" stacked>
                 <Segmented
@@ -567,6 +595,8 @@ const styles = StyleSheet.create({
   settingLabelContainer: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
   settingLabel: { color: "#fff", fontWeight: "700", fontSize: 16 },
   settingHint: { color: "#a9a9a9", fontSize: 12, marginTop: 2 },
+  joystickTry: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8 },
+  joystickTryText: { flex: 1, color: "#b8b4d0", fontSize: 13, fontWeight: "700" },
   separator: { height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginVertical: 10 },
   segmentedContainer: {
     flexDirection: "row",
