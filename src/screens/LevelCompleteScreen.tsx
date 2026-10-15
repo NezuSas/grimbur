@@ -19,7 +19,7 @@ import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
-import { LEVEL_COMPLETE_AUTO_MS } from "../core/feedback/flow";
+import { LEVEL_COMPLETE_HOLD_MS, LEVEL_COMPLETE_MAX_MS } from "../core/feedback/flow";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
@@ -49,11 +49,10 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
 
   useEffect(() => {
     Animated.spring(cardScale, { toValue: 1, friction: 6, useNativeDriver: true }).start(() => {
+      // The stars pop one after another, a little apart, each with a small bounce (not one full bounce after the other).
       Animated.sequence([
-        Animated.delay(300),
-        Animated.spring(star1, { toValue: 1, friction: 3, useNativeDriver: true }),
-        Animated.spring(star2, { toValue: 1, friction: 3, useNativeDriver: true }),
-        Animated.spring(star3, { toValue: 1, friction: 3, useNativeDriver: true }),
+        Animated.delay(150),
+        Animated.stagger(170, [star1, star2, star3].map(star => Animated.spring(star, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }))),
       ]).start(() => setAnimationDone(true));
     });
   }, []);
@@ -69,9 +68,15 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   // The card moves on by itself (a tap still skips it): between floors the player should not have to tap to keep playing.
   const leaveRef = useRef(leave);
   leaveRef.current = leave;
+  // The clock starts when the stars are done, so the player always sees the whole rating; a hard cap covers a stuck animation.
   useEffect(() => {
-    const timer = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_AUTO_MS);
+    if (!animationDone) return;
+    const timer = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_HOLD_MS);
     return () => clearTimeout(timer);
+  }, [animationDone]);
+  useEffect(() => {
+    const cap = setTimeout(() => leaveRef.current(), LEVEL_COMPLETE_MAX_MS);
+    return () => clearTimeout(cap);
   }, []);
 
   // Sizes derive from the live window, so the card fits small landscape phones and tablets alike.
