@@ -1,4 +1,5 @@
 import { daysBetween } from '../engine/seed';
+import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
@@ -58,6 +59,8 @@ export interface LocalStats {
   heroBestDepth: number[];
   /** Hero outfits: `owned` holds `heroIndex:skinId` keys (classic is implicit); `equipped` maps hero index to skin. */
   skins: { owned: string[]; equipped: Record<string, SkinId> };
+  /** Today's and this week's missions with their progress. */
+  missions: MissionsState;
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -141,6 +144,7 @@ export const EMPTY_STATS: LocalStats = {
   history: [],
   heroBestDepth: Array.from({ length: HERO_COUNT }, () => 0),
   skins: { owned: [], equipped: {} },
+  missions: EMPTY_MISSIONS,
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -410,6 +414,7 @@ export function parseStats(raw: string | null): LocalStats {
       history: parseHistory(data.history),
       heroBestDepth: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroBestDepth) ? Math.min(MAX_ASCENSION, Math.trunc(num(data.heroBestDepth[i]))) : 0)),
       skins: parseSkins(data.skins),
+      missions: parseMissions(data.missions),
     };
   } catch {
     return EMPTY_STATS;

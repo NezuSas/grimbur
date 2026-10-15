@@ -14,6 +14,8 @@ import { nextGoals, newlyAffordable } from '../core/stats/goals';
 import { AchievementId, newAchievements, rewardFor, withAchievements } from '../core/stats/achievements';
 import { UpgradeId, purchase } from '../core/stats/forge';
 import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership';
+import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from '../core/stats/missions';
+import { rankUp } from '../core/stats/rank';
 import type { SkinId } from '../core/skins/skins';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
@@ -46,6 +48,35 @@ async function save(stats: LocalStats) {
   latest = stats;
 }
 
+/** Feeds a finished run to the missions of its day (a new day or week replaces the old ones first). */
+function withMissions(stats: LocalStats, run: RunResult, day: string): { stats: LocalStats; done: string[] } {
+  if (run.progressed === false) return { stats, done: [] };
+  const applied = applyMissionRun(syncMissions(stats.missions, day), run);
+  return { stats: { ...stats, missions: applied.state }, done: applied.done };
+}
+
+/** The missions of today (rolled over when the day or week changed), saved. Used by the screens that show them. */
+export const getMissions = (day: string = dailyKey()): Promise<LocalStats> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const synced = syncMissions(before.missions, day);
+    if (synced === before.missions) return before;
+    const stats = { ...before, missions: synced };
+    await save(stats);
+    return stats;
+  });
+
+/** Claims a mission reward (or the daily bonus with the id `bonus`) and pays its embers. Resolves with the new stats, or null. */
+export const claimMissionReward = (id: string): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const result = claimMission(before.missions, id);
+    if (result.embers <= 0) return null;
+    const stats = { ...before, missions: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
+    await save(stats);
+    return stats;
+  });
+
 /** Persists a finished expedition run and reports whether it beat the previous best score. */
 export const recordRun = (run: RunResult) => serialized(() => recordRunNow(run));
 async function recordRunNow(run: RunResult) {
@@ -54,11 +85,15 @@ async function recordRunNow(run: RunResult) {
   const merged = mergeRun(before, { ...run, day });
   const achievements = newAchievements(merged.stats, run);
   const claim = claimUnlockedSkins(withAchievements(merged.stats, achievements, day));
-  const stats = claim.stats;
+  const missioned = withMissions(claim.stats, run, day);
+  const stats = missioned.stats;
   await save(stats);
   const payout = addAchievementEmbers(merged.payout, rewardFor(achievements));
   return {
     stats,
+    missionsDone: missioned.done,
+    /** The new rank when this run raised it. */
+    rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
     /** Skins unlocked by playing (their goal was just met). */
     newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
@@ -82,13 +117,16 @@ async function recordDailyRunNow(run: RunResult, key: string) {
   const merged = mergeDailyRun(before, key, { ...run, mode: 'daily', day: run.day ?? key });
   const achievements = newAchievements(merged.stats, run);
   const claim = claimUnlockedSkins(withAchievements(merged.stats, achievements, key));
-  const stats = claim.stats;
+  const missioned = withMissions(claim.stats, { ...run, mode: 'daily' }, key);
+  const stats = missioned.stats;
   await save(stats);
   const payout = addAchievementEmbers(merged.payout, rewardFor(achievements));
   const status = streakStatus(stats, key);
   const unlocks = newUnlocks(before, stats);
   return {
     stats,
+    missionsDone: missioned.done,
+    rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
     newSkins: claim.claimed,
     achievements,
     payout,

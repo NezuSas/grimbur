@@ -534,6 +534,8 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
       {fact("manual.modes.expedition", "#7986cb", icon("map", "#7986cb"))}
       {fact("manual.modes.daily", "#4fc3f7", icon("calendar", "#4fc3f7"))}
       {fact("manual.modes.streak", "#ffab40", icon("flame", "#ffab40"))}
+      {fact("manual.modes.missions", "#4fc3f7", icon("flag", "#4fc3f7"))}
+      {fact("manual.modes.rank", "#FFD54F", icon("medal", "#FFD54F"))}
       {fact("manual.modes.endless", "#ce93d8", icon("infinite", "#ce93d8"))}
       {fact("manual.modes.depth", "#ef5350", icon("speedometer", "#ef5350"))}
       <View style={{ gap: 8 }}>
