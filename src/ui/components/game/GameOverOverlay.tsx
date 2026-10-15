@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
 import { Ionicons } from '@expo/vector-icons';
 
@@ -171,7 +171,7 @@ const GameOverOverlay = ({
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   // The hero's own defeat pose is the picture; whoever struck is a small badge beside it (and named under it).
   const sprite = heroSprite;
-  const spriteSize = compact ? 120 : 176;
+  const spriteSize = height < 330 ? 96 : compact ? 120 : 176;
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
@@ -240,14 +240,14 @@ const GameOverOverlay = ({
     </View>
   );
 
-  const right = (
-    <View style={styles.right}>
+  const info = (
+    <>
       <Text style={[styles.title, { color: accent }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {title.toLocaleUpperCase()}
       </Text>
 
       {/* How far the run got: one pip per floor */}
-      {!endless && (
+      {!endless && height >= 340 && (
       <View style={styles.pips} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
         {Array.from({ length: floors }, (_, i) => (
           <View key={i} style={[styles.pip, i < level && { backgroundColor: accent }, i === level - 1 && !victory && styles.pipLast]} />
@@ -370,6 +370,11 @@ const GameOverOverlay = ({
         </View>
       )}
 
+    </>
+  );
+
+  const actions = (
+    <>
       {demo && onUnlock ? (
         <TouchableOpacity
           style={[styles.retry, { backgroundColor: accent }]}
@@ -421,6 +426,24 @@ const GameOverOverlay = ({
           </TouchableOpacity>
         ) : null}
       </View>
+    </>
+  );
+
+  // A wide (landscape) card never grows taller than the screen: its information scrolls inside the right column
+  // while the buttons stay visible under it, so "Retry" is always one tap away on a small phone, however many
+  // lines a run produced (record, embers breakdown, achievements, unlocks, goals).
+  const availableHeight = height - Math.max(insets.top, 8) - Math.max(insets.bottom, 8) - 8;
+  const right = wide ? (
+    <View style={[styles.right, { maxHeight: availableHeight - 32 }]}>
+      <ScrollView style={styles.infoScroll} contentContainerStyle={styles.infoContent} showsVerticalScrollIndicator={false}>
+        {info}
+      </ScrollView>
+      <View style={styles.actions}>{actions}</View>
+    </View>
+  ) : (
+    <View style={styles.right}>
+      {info}
+      {actions}
     </View>
   );
 
@@ -474,6 +497,9 @@ const styles = StyleSheet.create({
   depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   right: { flex: 1, width: '100%', gap: 8 },
+  infoScroll: { flexShrink: 1, flexGrow: 0 },
+  infoContent: { gap: 8 },
+  actions: { gap: 8 },
   title: { fontSize: 24, fontWeight: '900', letterSpacing: 2 },
   pips: { flexDirection: 'row', gap: 4 },
   pip: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)' },

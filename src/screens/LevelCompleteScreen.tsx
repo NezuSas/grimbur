@@ -79,7 +79,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   // Narrow windows (portrait, split-screen) stack the two columns; the card fits inside the safe area.
   const stacked = width < 520;
   const cardWidth = Math.min((width - insets.left - insets.right) * 0.94, 850);
-  const imageHeight = Math.min(Math.max(height * 0.28, 70), 180);
+  const imageHeight = Math.min(Math.max(height * 0.36, 84), 210);
   const starSize = compact ? 30 : 40;
   const accessibilityStars = t("complete.title") + ` ${starsEarned}/3`;
 
