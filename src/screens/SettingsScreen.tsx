@@ -46,6 +46,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { width } = useWindowDimensions();
   // Development only (web): `?cat=controls` opens that category, for screenshots.
   const devCategory = __DEV__ && typeof location !== "undefined" ? (new URLSearchParams(location.search).get("cat") as CategoryId | null) : null;
+  // The joystick try-out must not scroll the page while it is being used.
+  const [tryingStick, setTryingStick] = React.useState(false);
   const [category, setCategory] = React.useState<CategoryId>(devCategory && CATEGORIES.some(c => c.id === devCategory) ? devCategory : "sound");
 
   const soundEnabled = useSettingsStore(s => s.soundEnabled);
@@ -201,7 +203,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             <SettingRow label={t("settings.joystickSkin")} icon="color-palette" tint="#F48FB1" stacked>
               <Segmented options={skinOptions} value={joystickSkin} onChange={setJoystickSkin} accessibilityLabel={t("settings.joystickSkin")} />
               <View style={styles.tryRow}>
-                <JoystickPreview skin={joystickSkin} radius={56} />
+                <JoystickPreview skin={joystickSkin} radius={56} onActiveChange={setTryingStick} />
                 <Text style={styles.tryText} maxFontSizeMultiplier={1.3}>
                   {t("settings.joystickTry")}
                 </Text>
@@ -427,7 +429,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const railWidth = Math.min(230, Math.max(180, width * 0.24));
   const navItems = CATEGORIES.map(c => ({ id: c.id, icon: c.icon, tint: c.tint, label: t(c.label) }));
   const paneBody = (
-    <ScrollView contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
+    <ScrollView scrollEnabled={!tryingStick} contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
       <View style={styles.paneInner}>{panes[category]}</View>
     </ScrollView>
   );

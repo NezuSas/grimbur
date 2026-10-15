@@ -152,18 +152,23 @@ export default JoystickBase;
 /**
  * A place to try the style: the stick follows the finger. Used in Settings so the choice can be felt before playing.
  */
-export const JoystickPreview = memo(({ skin, radius = 54 }: { skin: JoystickSkin; radius?: number }) => {
+export const JoystickPreview = memo(({ skin, radius = 54, onActiveChange }: { skin: JoystickSkin; radius?: number; /** True while a finger is on it: a parent scroll view must not scroll then. */ onActiveChange?: (active: boolean) => void }) => {
   const [thumb, setThumb] = useState({ x: 0, y: 0 });
   const [active, setActive] = useState<Direction | null>(null);
   const prev = useRef<Direction | null>(null);
   const R = radius;
+  const latestActive = useRef(onActiveChange);
+  latestActive.current = onActiveChange;
   const responder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
+        // Once the finger is down this view keeps the touch: a scroll view around it must not take it over.
+        onPanResponderTerminationRequest: () => false,
         onPanResponderGrant: () => {
           prev.current = null;
           setThumb({ x: 0, y: 0 });
+          latestActive.current?.(true);
         },
         onPanResponderMove: (_e, g) => {
           setThumb({ x: g.dx, y: g.dy });
@@ -174,17 +179,19 @@ export const JoystickPreview = memo(({ skin, radius = 54 }: { skin: JoystickSkin
           prev.current = null;
           setThumb({ x: 0, y: 0 });
           setActive(null);
+          latestActive.current?.(false);
         },
         onPanResponderTerminate: () => {
           prev.current = null;
           setThumb({ x: 0, y: 0 });
           setActive(null);
+          latestActive.current?.(false);
         },
       }),
     [R],
   );
   return (
-    <View {...responder.panHandlers} style={{ width: R * 2, height: R * 2 }} accessible={false} importantForAccessibility="no">
+    <View {...responder.panHandlers} style={[{ width: R * 2, height: R * 2 }, { touchAction: "none" } as object]} accessible={false} importantForAccessibility="no">
       <JoystickBase skin={skin} radius={R} thumb={thumb} active={active} />
     </View>
   );
