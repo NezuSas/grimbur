@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RootStackParamList } from "../navigation/types";
-import BoardView from "../ui/components/BoardView";
+import BoardView, { type ArrowShot } from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
 import AttackPanel from "../ui/components/AttackPanel";
 import ToolBar from "../ui/components/ToolBar";
@@ -13,10 +13,10 @@ import RelicTray from "../ui/components/RelicTray";
 import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import { GAME_ROW_PADDING, MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
-import { gameReducer, initialState } from "../core/engine/reducer";
+import { arrowPath, gameReducer, initialState } from "../core/engine/reducer";
 import { Direction, GameAction, GameState } from "../core/engine/types";
 import { NO_PERKS } from "../core/engine/heroes";
-import { stepTarget } from "../core/engine/travel";
+import { lineOfFire, stepTarget } from "../core/engine/travel";
 import { SHOP_PRICES, type Door } from "../core/engine/shop";
 import { LESSONS, LessonDef, advanceLesson, lessonState } from "../core/tutorial/lessons";
 import characters from "../data/characters";
@@ -171,11 +171,28 @@ export default function LessonScreen({ navigation, route }: Props) {
     },
     [state.playerIndex, state.rows, state.cols, state.entityMap, flags],
   );
+  // The arrow in flight, worked out from the board as it is when the shot is taken.
+  const [shot, setShot] = useState<ArrowShot | null>(null);
+  const shotCount = useRef(0);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const attack = useCallback(() => {
+    const s = stateRef.current;
+    if (s.attack > 0) {
+      const { tiles, targetIndex } = arrowPath(s, s.facingDir);
+      if (tiles.length > 0) setShot({ key: ++shotCount.current, dir: s.facingDir, tiles: tiles.length, hit: targetIndex !== -1 });
+    }
     setIsAttacking(true);
     dispatch({ type: "ATTACK" });
     if (attackTimer.current) clearTimeout(attackTimer.current);
     attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
+  }, []);
+
+  // Development only: shoots once shortly after opening (to capture the arrow in flight).
+  useEffect(() => {
+    if (!__DEV__ || !route.params.devShoot) return;
+    const timer = setTimeout(attack, route.params.devShoot);
+    return () => clearTimeout(timer);
   }, []);
 
   const finish = useCallback(() => navigation.goBack(), [navigation]);
@@ -293,6 +310,9 @@ export default function LessonScreen({ navigation, route }: Props) {
             facingDir={state.facingDir}
             characterIndex={0}
             isAttacking={isAttacking}
+            shot={shot}
+            aimDir={__DEV__ ? route.params.devAim ?? null : null}
+            aimTiles={__DEV__ && route.params.devAim ? new Set(lineOfFire(state.playerIndex, route.params.devAim, 4, state.rows, state.cols)) : undefined}
             highlight={step.highlight}
             flags={flags}
             biome={__DEV__ ? route.params.devBiome : undefined}

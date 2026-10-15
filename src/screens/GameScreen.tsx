@@ -16,7 +16,7 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
-import BoardView from "../ui/components/BoardView";
+import BoardView, { type ArrowShot } from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
 import AttackPanel from "../ui/components/AttackPanel";
 import CoinFlight from "../ui/components/game/CoinFlight";
@@ -48,6 +48,7 @@ import { tileCenter } from "../core/feedback/geometry";
 import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
+import { arrowPath, arrowReachOf } from "../core/engine/reducer";
 import type { Direction } from "../core/engine/types";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
@@ -258,13 +259,29 @@ export default function GameScreen({ navigation, route }: Props) {
     },
     [cancelTravel, move, flags, t, paused, runEnded, levelUpWindow],
   );
-  const manualAttack = useCallback((direction?: Direction) => { cancelTravel(); attack(direction); }, [cancelTravel, attack]);
-  // While the attack button is held, the board shows where the arrow would go.
+  // The arrow in flight: where it goes is worked out from the board as it is when the shot is taken.
+  const [shot, setShot] = useState<ArrowShot | null>(null);
+  const shotCount = useRef(0);
+  const manualAttack = useCallback(
+    (direction?: Direction) => {
+      cancelTravel();
+      const s = stateRef.current;
+      if (s.attack > 0 && !s.isGameOver && !s.isLevelUp && !s.pendingDraft) {
+        const dir = direction ?? s.facingDir;
+        const { tiles, targetIndex } = arrowPath(s, dir);
+        if (tiles.length > 0) setShot({ key: ++shotCount.current, dir, tiles: tiles.length, hit: targetIndex !== -1 });
+      }
+      attack(direction);
+    },
+    [cancelTravel, attack],
+  );
+  // While the attack button is held, the board shows where the arrow would go (its full reach: what lies ahead stays hidden).
   const [aim, setAim] = useState<Direction | "facing" | null>(null);
-  const reach = state.perks.arrowReach + relicCount(state.relics, "long_bow");
+  const aimDir: Direction | null = aim === "facing" ? state.facingDir : aim;
+  const reach = arrowReachOf(state);
   const aimTiles = useMemo(
-    () => (aim ? new Set(lineOfFire(state.playerIndex, aim === "facing" ? state.facingDir : aim, reach, state.rows, state.cols)) : undefined),
-    [aim, state.playerIndex, state.facingDir, state.rows, state.cols, reach],
+    () => (aimDir ? new Set(lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols)) : undefined),
+    [aimDir, state.playerIndex, state.rows, state.cols, reach],
   );
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
@@ -945,6 +962,8 @@ export default function GameScreen({ navigation, route }: Props) {
             onTilePress={travelTo}
             flags={flags}
             aimTiles={aimTiles}
+            aimDir={state.attack > 0 ? aimDir : null}
+            shot={shot}
             dying={state.isGameOver && !state.isVictory}
             onTileLongPress={toggleFlag}
             onReady={handleBoardReady}
