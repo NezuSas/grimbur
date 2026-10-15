@@ -17,6 +17,7 @@ import { arrowPath, gameReducer, initialState } from "../core/engine/reducer";
 import { Direction, GameAction, GameState } from "../core/engine/types";
 import { NO_PERKS } from "../core/engine/heroes";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
+import { killerTile } from "../core/feedback/diffFeedback";
 import { SHOP_PRICES, type Door } from "../core/engine/shop";
 import { LESSONS, LessonDef, advanceLesson, lessonState } from "../core/tutorial/lessons";
 import characters from "../data/characters";
@@ -122,6 +123,7 @@ export default function LessonScreen({ navigation, route }: Props) {
   // A hazard ends the try; the lesson starts over after a moment.
   useEffect(() => {
     if (!state.isGameOver) return;
+    if (__DEV__ && route.params.devHoldDeath) return; // development: keep the scene on screen (for screenshots)
     emitSound("GAME_OVER");
     setShowRetry(true);
     const timer = setTimeout(() => {
@@ -310,6 +312,8 @@ export default function LessonScreen({ navigation, route }: Props) {
             facingDir={state.facingDir}
             characterIndex={0}
             isAttacking={isAttacking}
+            dying={state.isGameOver}
+            killerTile={state.isGameOver ? killerTile(state) : null}
             shot={shot}
             aimDir={__DEV__ ? route.params.devAim ?? null : null}
             aimTiles={__DEV__ && route.params.devAim ? new Set(lineOfFire(state.playerIndex, route.params.devAim, 4, state.rows, state.cols)) : undefined}

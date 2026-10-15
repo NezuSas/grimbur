@@ -93,7 +93,8 @@ const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
 
 /** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
 /** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
-const GAME_OVER_CARD_DELAY_MS = 600;
+// The killer is shown on the board (it leaps over the hero) before the defeat card covers it.
+const GAME_OVER_CARD_DELAY_MS = 1100;
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
 
 /** A floating label: where it rises from, and how it looks. */
