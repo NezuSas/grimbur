@@ -2,8 +2,8 @@ import { LocalStats } from './runStats';
 import { HERO_UNLOCKS, isHeroUnlocked } from './heroUnlocks';
 
 export interface HeroLockProgress {
-  /** What opens the hero: reaching a floor, or winning an expedition. */
-  kind: 'floor' | 'victory';
+  /** What opens the hero: reaching a floor, winning an expedition, playing dailies or earning embers. */
+  kind: 'floor' | 'victory' | 'daily' | 'embers';
   have: number;
   need: number;
 }
@@ -13,6 +13,8 @@ export function heroLockProgress(heroIndex: number, stats: LocalStats): HeroLock
   const rule = HERO_UNLOCKS[heroIndex];
   if (!rule || rule.kind === 'free' || isHeroUnlocked(heroIndex, stats)) return null;
   if (rule.kind === 'floor') return { kind: 'floor', have: Math.min(stats.bestLevel, rule.floor), need: rule.floor };
+  if (rule.kind === 'daily') return { kind: 'daily', have: Math.min(stats.dailyRuns, rule.count), need: rule.count };
+  if (rule.kind === 'embers') return { kind: 'embers', have: Math.min(stats.lifetimeEmbers, rule.amount), need: rule.amount };
   return { kind: 'victory', have: Math.min(stats.victories, 1), need: 1 };
 }
 

@@ -87,6 +87,8 @@ export type AchievementId =
   | 'win_sera'
   | 'win_borin'
   | 'win_auric'
+  | 'win_mira'
+  | 'win_bram'
   | 'all_hero_wins';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
@@ -111,7 +113,7 @@ export const HOARDER_RELICS = 6;
 export const HIGH_ROLLER_SCORE = 5000;
 export const COLLECTOR_GEMS = 100;
 export const DEVOTEE_DAYS = 3;
-export const HERO_COUNT = 4;
+export const HERO_COUNT = 6;
 
 const forgeLevels = (s: LocalStats) => Object.values(s.forge).reduce((sum, n) => sum + n, 0);
 const forgeTotal = UPGRADES.reduce((sum, u) => sum + u.costs.length, 0);
@@ -285,6 +287,8 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   { id: 'win_sera', icon: '🏹', tier: 'hard', desc: 'heroWin', params: { n: 1 }, isMet: s => (s.heroWins[1] ?? 0) >= 1 },
   { id: 'win_borin', icon: '🪖', tier: 'hard', desc: 'heroWin', params: { n: 2 }, isMet: s => (s.heroWins[2] ?? 0) >= 1 },
   { id: 'win_auric', icon: '🤑', tier: 'hard', desc: 'heroWin', params: { n: 3 }, isMet: s => (s.heroWins[3] ?? 0) >= 1 },
+  { id: 'win_mira', icon: '🏮', tier: 'hard', desc: 'heroWin', params: { n: 4 }, isMet: s => (s.heroWins[4] ?? 0) >= 1 },
+  { id: 'win_bram', icon: '💣', tier: 'hard', desc: 'heroWin', params: { n: 5 }, isMet: s => (s.heroWins[5] ?? 0) >= 1 },
   { id: 'all_hero_wins', icon: '🏛️', tier: 'legend', params: {}, isMet: s => s.heroWins.length >= HERO_COUNT && s.heroWins.every(n => n >= 1), progress: s => ({ current: s.heroWins.filter(n => n >= 1).length, target: HERO_COUNT }) },
 ];
 

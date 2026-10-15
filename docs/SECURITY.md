@@ -29,6 +29,11 @@ The web API key in `src/lib/firebase.ts` is not a secret by design.
    run seed + action list and re-simulates it with the deterministic reducer (`core/engine/reducer.ts`) can.
    This requires the seed per run to be stored (see the daily-challenge work) and the Blaze plan.
 
+## Keeping the rules in step with the game
+
+`firestore.rules` bounds `characterIndex` by the number of heroes (now 6: indexes 0-5). When a hero is added, raise that bound
+in the rules AND redeploy them, or scores played with the new hero are rejected by the server.
+
 ## Known limits
 
 - A determined cheater can still submit a plausible fake score within the rules' ranges.

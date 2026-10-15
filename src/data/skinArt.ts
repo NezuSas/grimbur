@@ -31,6 +31,8 @@ const HERO_SKINS: SkinId[][] = [
   ['classic', 'verdant', 'frost', 'royal', 'shadow', 'gilded'],  // Sera
   ['classic', 'ember', 'frost', 'royal', 'shadow', 'gilded'],  // Borin
   ['classic', 'ember', 'verdant', 'frost', 'royal', 'shadow'],  // Auric
+  ['classic', 'ember', 'verdant', 'frost', 'royal', 'shadow', 'gilded'],  // Mira
+  ['classic', 'verdant', 'frost', 'royal', 'shadow', 'gilded'],  // Bram
 ];
 
 const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
@@ -56,6 +58,13 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       winImage: require('../assets/sprites/skins/ember/3_hero.png'),
       loseImage: require('../assets/sprites/skins/ember/3_hero.png'),
     },
+    4: {
+      playerImage: require('../assets/sprites/skins/ember/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/ember/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/ember/4_icon.png'),
+      winImage: require('../assets/sprites/skins/ember/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/ember/4_hero.png'),
+    },
   },
   verdant: {
     0: {
@@ -79,6 +88,20 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       winImage: require('../assets/sprites/skins/verdant/3_hero.png'),
       loseImage: require('../assets/sprites/skins/verdant/3_hero.png'),
     },
+    4: {
+      playerImage: require('../assets/sprites/skins/verdant/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/verdant/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/verdant/4_icon.png'),
+      winImage: require('../assets/sprites/skins/verdant/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/verdant/4_hero.png'),
+    },
+    5: {
+      playerImage: require('../assets/sprites/skins/verdant/5_hero.png'),
+      attackImage: require('../assets/sprites/skins/verdant/5_attack.png'),
+      scoreImage: require('../assets/sprites/skins/verdant/5_icon.png'),
+      winImage: require('../assets/sprites/skins/verdant/5_hero.png'),
+      loseImage: require('../assets/sprites/skins/verdant/5_hero.png'),
+    },
   },
   frost: {
     1: {
@@ -101,6 +124,20 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       scoreImage: require('../assets/sprites/skins/frost/3_icon.png'),
       winImage: require('../assets/sprites/skins/frost/3_hero.png'),
       loseImage: require('../assets/sprites/skins/frost/3_hero.png'),
+    },
+    4: {
+      playerImage: require('../assets/sprites/skins/frost/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/frost/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/frost/4_icon.png'),
+      winImage: require('../assets/sprites/skins/frost/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/frost/4_hero.png'),
+    },
+    5: {
+      playerImage: require('../assets/sprites/skins/frost/5_hero.png'),
+      attackImage: require('../assets/sprites/skins/frost/5_attack.png'),
+      scoreImage: require('../assets/sprites/skins/frost/5_icon.png'),
+      winImage: require('../assets/sprites/skins/frost/5_hero.png'),
+      loseImage: require('../assets/sprites/skins/frost/5_hero.png'),
     },
   },
   royal: {
@@ -132,6 +169,20 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       winImage: require('../assets/sprites/skins/royal/3_hero.png'),
       loseImage: require('../assets/sprites/skins/royal/3_hero.png'),
     },
+    4: {
+      playerImage: require('../assets/sprites/skins/royal/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/royal/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/royal/4_icon.png'),
+      winImage: require('../assets/sprites/skins/royal/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/royal/4_hero.png'),
+    },
+    5: {
+      playerImage: require('../assets/sprites/skins/royal/5_hero.png'),
+      attackImage: require('../assets/sprites/skins/royal/5_attack.png'),
+      scoreImage: require('../assets/sprites/skins/royal/5_icon.png'),
+      winImage: require('../assets/sprites/skins/royal/5_hero.png'),
+      loseImage: require('../assets/sprites/skins/royal/5_hero.png'),
+    },
   },
   shadow: {
     0: {
@@ -162,6 +213,20 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       winImage: require('../assets/sprites/skins/shadow/3_hero.png'),
       loseImage: require('../assets/sprites/skins/shadow/3_hero.png'),
     },
+    4: {
+      playerImage: require('../assets/sprites/skins/shadow/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/shadow/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/shadow/4_icon.png'),
+      winImage: require('../assets/sprites/skins/shadow/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/shadow/4_hero.png'),
+    },
+    5: {
+      playerImage: require('../assets/sprites/skins/shadow/5_hero.png'),
+      attackImage: require('../assets/sprites/skins/shadow/5_attack.png'),
+      scoreImage: require('../assets/sprites/skins/shadow/5_icon.png'),
+      winImage: require('../assets/sprites/skins/shadow/5_hero.png'),
+      loseImage: require('../assets/sprites/skins/shadow/5_hero.png'),
+    },
   },
   gilded: {
     0: {
@@ -184,6 +249,20 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       scoreImage: require('../assets/sprites/skins/gilded/2_icon.png'),
       winImage: require('../assets/sprites/skins/gilded/2_hero.png'),
       loseImage: require('../assets/sprites/skins/gilded/2_hero.png'),
+    },
+    4: {
+      playerImage: require('../assets/sprites/skins/gilded/4_hero.png'),
+      attackImage: require('../assets/sprites/skins/gilded/4_attack.png'),
+      scoreImage: require('../assets/sprites/skins/gilded/4_icon.png'),
+      winImage: require('../assets/sprites/skins/gilded/4_hero.png'),
+      loseImage: require('../assets/sprites/skins/gilded/4_hero.png'),
+    },
+    5: {
+      playerImage: require('../assets/sprites/skins/gilded/5_hero.png'),
+      attackImage: require('../assets/sprites/skins/gilded/5_attack.png'),
+      scoreImage: require('../assets/sprites/skins/gilded/5_icon.png'),
+      winImage: require('../assets/sprites/skins/gilded/5_hero.png'),
+      loseImage: require('../assets/sprites/skins/gilded/5_hero.png'),
     },
   },
 };

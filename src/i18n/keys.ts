@@ -23,7 +23,16 @@ export const relicText = (t: T, id: RelicId, part: 'name' | 'desc') =>
 export const unlockText = (t: T, heroIndex: number): string => {
   const rule = HERO_UNLOCKS[heroIndex];
   if (!rule || rule.kind === 'free') return '';
-  return rule.kind === 'floor' ? t('heroes.unlockFloor', { floor: rule.floor }) : t('heroes.unlockVictory');
+  switch (rule.kind) {
+    case 'floor':
+      return t('heroes.unlockFloor', { floor: rule.floor });
+    case 'daily':
+      return t('heroes.unlockDaily', { count: rule.count });
+    case 'embers':
+      return t('heroes.unlockEmbers', { count: rule.amount });
+    default:
+      return t('heroes.unlockVictory');
+  }
 };
 
 /** Localised achievement text; the description is interpolated with the real thresholds. */

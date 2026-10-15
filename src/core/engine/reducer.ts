@@ -8,7 +8,7 @@ import { modifiersFor } from './ascension';
 import { RelicId, draftRelics, relicCount, removeRelic } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
-import { VOLLEY_REACH, VOLLEY_TARGETS } from './abilities';
+import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
@@ -39,13 +39,17 @@ const replaceEntityAt = (world: World, index: number, next: GameEntity): World =
   };
 };
 
-/** Tiles explored at the start of a floor; the Old Lantern reveals the area around the spawn. */
-const startingVisited = (cols: number, rows: number, lantern: boolean): number[] => {
+/**
+ * Tiles explored at the start of a floor; the Old Lantern (or Mira's Lightbearer) reveals the area around the spawn.
+ * A hazard is never lit: its tile stays hidden, only the clues around it show.
+ */
+const startingVisited = (cols: number, rows: number, lantern: boolean, entities: readonly GameEntity[] = []): number[] => {
   if (!lantern) return [0];
+  const lethal = new Set(entities.filter(e => LETHAL_TYPES.includes(e.type)).map(e => e.index));
   const tiles: number[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      if (r + c <= 3) tiles.push(r * cols + c);
+      if (r + c <= 3 && !lethal.has(r * cols + c)) tiles.push(r * cols + c);
     }
   }
   return tiles;
@@ -64,7 +68,21 @@ const nonEmpty = <T,>(items: T[]): T[] | null => (items.length > 0 ? items : nul
 const draftContext = (state: Pick<GameState, 'perks'>) => ({
   startShield: state.perks.startShield,
   trapImmune: state.perks.trapImmune,
+  startLit: state.perks.startLit,
 });
+
+/** The bomb's blast: removes every guardian and vortex in the 3x3 around `center` (never the Wumpus). */
+const blastWorld = (world: World, center: number, cols: number): World => {
+  const pr = Math.floor(center / cols);
+  const pc = center % cols;
+  for (const e of world.entities) {
+    if (e.type === 'boss' || !LETHAL_TYPES.includes(e.type)) continue;
+    if (Math.abs(Math.floor(e.index / cols) - pr) <= 1 && Math.abs((e.index % cols) - pc) <= 1) {
+      world = removeEntityAt(world, e.index);
+    }
+  }
+  return world;
+};
 
 const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
 
@@ -723,7 +741,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         shield: state.shield || state.perks.startShield || relicCount(state.relics, 'bulwark') > 0,
         seed: seed || state.seed,
         playerIndex: 0,
-        visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0),
+        visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0 || state.perks.startLit, entities),
         // With every relic maxed there is nothing to offer: no draft, rather than an empty one that blocks input.
         pendingDraft: draft,
         altarPending: draft ? state.altarPending : false,
@@ -761,7 +779,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         attack: action.id === 'quiver' ? state.attack + 2 : state.attack,
         shield: action.id === 'bulwark' ? true : state.shield,
         visited: action.id === 'lantern'
-          ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true)]))
+          ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true, state.entities)]))
           : state.visited,
       };
     }
@@ -804,15 +822,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // Bomb: destroys every guardian and vortex in the 3x3 around the player (not the Wumpus), then the hunters act.
-      let world: World = { entities: state.entities, entityMap: state.entityMap };
-      const pr = Math.floor(state.playerIndex / state.cols);
-      const pc = state.playerIndex % state.cols;
-      for (const e of state.entities) {
-        if (e.type === 'boss' || !LETHAL_TYPES.includes(e.type)) continue;
-        if (Math.abs(Math.floor(e.index / state.cols) - pr) <= 1 && Math.abs((e.index % state.cols) - pc) <= 1) {
-          world = removeEntityAt(world, e.index);
-        }
-      }
+      const world = blastWorld({ entities: state.entities, entityMap: state.entityMap }, state.playerIndex, state.cols);
       return settle(state, world, { items, marked: state.marked.filter(i => world.entityMap[i]) });
     }
 
@@ -857,6 +867,26 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
           return db < da || (db === da && b < a) ? b : a;
         });
         return settle(state, world, { ...cooldown, visited: [...state.visited, best] });
+      }
+
+      if (ability === 'blast') {
+        // The bomb's effect without spending a bomb.
+        world = blastWorld(world, state.playerIndex, cols);
+        return settle(state, world, { ...cooldown, marked: state.marked.filter(i => world.entityMap[i]) });
+      }
+
+      if (ability === 'flare') {
+        // Every tile within two steps that is not lethal becomes explored; hazards stay hidden (their clues show).
+        const seen = new Set(state.visited);
+        const lit: number[] = [];
+        for (let i = 0; i < rows * cols; i++) {
+          if (seen.has(i) || manhattan(i, state.playerIndex, cols) > FLARE_REACH) continue;
+          const e = state.entityMap[i];
+          if (e && LETHAL_TYPES.includes(e.type)) continue;
+          lit.push(i);
+        }
+        if (lit.length === 0) return state;
+        return settle(state, world, { ...cooldown, visited: [...state.visited, ...lit] });
       }
 
       if (ability === 'magnet') {
@@ -932,7 +962,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ascension: ascension ?? 0,
         draftBonus: draftBonus ?? 0,
         relics: startingRelics,
-        visited: startingVisited(cols, rows, withRelic('lantern')),
+        visited: startingVisited(cols, rows, withRelic('lantern') || heroPerks.startLit, entities),
+        items: { ...heroPerks.startItems },
         playerIndex: 0,
         totalCoins: 0,
       };

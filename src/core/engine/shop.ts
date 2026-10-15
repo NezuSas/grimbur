@@ -37,6 +37,8 @@ export const ABILITY_COOLDOWNS: Record<AbilityId, number> = {
   volley: 12,
   brace: 18,
   magnet: 18,
+  flare: 18,
+  blast: 24,
 };
 
 export const abilityCooldown = (ability: AbilityId | null | undefined): number =>

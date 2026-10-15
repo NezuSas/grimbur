@@ -54,8 +54,8 @@ describe('achievements', () => {
     expect(newAchievements(stats, { score: 1, level: 1 })).toContain('collector');
 
     let heroes = EMPTY_STATS;
-    for (const heroIndex of [0, 1, 1, 2, 3, 0]) heroes = mergeRun(heroes, { score: 1, level: 1, heroIndex }).stats;
-    expect(heroes.heroesUsed).toEqual([0, 1, 2, 3]);
+    for (const heroIndex of [0, 1, 1, 2, 3, 4, 5, 0]) heroes = mergeRun(heroes, { score: 1, level: 1, heroIndex }).stats;
+    expect(heroes.heroesUsed).toEqual([0, 1, 2, 3, 4, 5]);
     expect(heroes.heroesUsed).toHaveLength(HERO_COUNT);
     expect(newAchievements(heroes, { score: 1, level: 1 })).toContain('hero_variety');
   });
@@ -158,13 +158,13 @@ describe('achievements', () => {
 
   it('tracks victories per hero and daily runs and wins', () => {
     let stats = mergeRun(EMPTY_STATS, { score: 1, level: 10, victory: true, heroIndex: 2 }).stats;
-    expect(stats.heroWins).toEqual([0, 0, 1, 0]);
+    expect(stats.heroWins).toEqual([0, 0, 1, 0, 0, 0]);
     expect(newAchievements(stats, { score: 1, level: 10 })).toContain('win_borin');
     stats = mergeDailyRun(stats, '2026-10-13', { score: 1, level: 10, victory: true, heroIndex: 0 }).stats;
-    expect(stats.heroWins).toEqual([1, 0, 1, 0]);
+    expect(stats.heroWins).toEqual([1, 0, 1, 0, 0, 0]);
     expect(stats.dailyRuns).toBe(1);
     expect(stats.dailyWins).toBe(1);
-    const all = { ...stats, heroWins: [1, 2, 1, 5] };
+    const all = { ...stats, heroWins: [1, 2, 1, 5, 1, 1] };
     expect(newAchievements(all, { score: 1, level: 1 })).toContain('all_hero_wins');
   });
 });

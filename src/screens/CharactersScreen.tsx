@@ -43,12 +43,11 @@ import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { equippedSkin, ownedSkins } from "../core/skins/ownership";
 import { equipSkinFor, peekLocalStats } from "../services/localStats";
 import { skinText } from "../i18n/keys";
+import { heroAccent } from "../data/heroAccent";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 
-/** Accent per hero, in the same hue as the character but softer than a pure screen colour. */
-const HERO_ACCENT = ["#69C3DE", "#E5737E", "#97C46E", "#E8BA52"] as const;
-const accentOf = (heroIndex: number) => HERO_ACCENT[heroIndex] ?? "#E8BA52";
+const accentOf = heroAccent;
 const HERO_COUNT = characters.length;
 
 /** A few motes of the hero's colour that rise behind it, so the stage feels alive. */
@@ -288,7 +287,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const nameSize = Math.round((short ? 34 : 42) * ui);
   const heroTitleSize = Math.round(13 * ui);
   const bodySize = Math.round(13 * ui);
-  const thumbSize = Math.round(Math.max(40, Math.min(58, 44 * ui)));
+  const wantedThumb = Math.round(Math.max(40, Math.min(58, 44 * ui)));
+  // The whole roster (the selected one is 12 bigger) must fit the stage width, whatever the window.
+  const rosterGap = 6;
+  const fitThumb = stage.w > 0 ? Math.floor((stage.w - 16 - 12 - rosterGap * (HERO_COUNT - 1)) / HERO_COUNT) : wantedThumb;
+  const thumbSize = Math.max(26, Math.min(wantedThumb, fitThumb));
   const locked = isLocked(selected) || !statsLoaded;
   const wornSkin = equippedSkin(stats, selected);
   const shownSkin: SkinId = wornSkin;
@@ -391,7 +394,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 </TouchableOpacity>
 
                 {/* Roster */}
-                <View style={[styles.roster, { height: rosterH }]}>
+                <View style={[styles.roster, { height: rosterH, gap: rosterGap }]}>
                   {characters.map((_, i) => (
                     <Thumb key={i} heroIndex={i} skin={equippedSkin(stats, i)} selected={i === selected} locked={isLocked(i)} size={thumbSize} onPress={go} />
                   ))}
@@ -486,11 +489,13 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     {unlockText(t, selected)}
                   </Text>
                   <Text style={styles.lockSub} maxFontSizeMultiplier={1.2}>
-                    {progress.kind === "floor" ? t("heroes.progress.floor", { have: progress.have, need: progress.need }) : t("heroes.progress.victory")}
+                    {progress.kind === "victory"
+                      ? t("heroes.progress.victory")
+                      : t(`heroes.progress.${progress.kind}` as TranslationKey, { have: progress.have, need: progress.need })}
                   </Text>
-                  {progress.kind === "floor" && (
+                  {progress.need > 1 && (
                     <View style={styles.lockTrack}>
-                      <View style={[styles.lockFill, { width: `${Math.round((progress.have / progress.need) * 100)}%`, backgroundColor: accent }]} />
+                      <View style={[styles.lockFill, { width: `${Math.round(Math.min(1, progress.have / progress.need) * 100)}%`, backgroundColor: accent }]} />
                     </View>
                   )}
                 </View>

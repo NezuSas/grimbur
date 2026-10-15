@@ -23,7 +23,7 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 | Lever | What we build | Week |
 | --- | --- | --- |
 | A goal and an ending | 10-floor expedition, Wumpus boss, victory screen | 1 |
-| Distinct heroes | 4 heroes with a perk each, unlocked by playing | 1-2 |
+| Distinct heroes | 6 heroes with a perk each, unlocked by playing | 1-2 |
 | Build variety | Relics: pick 1 of 3 after each floor, stack across the run | 2 |
 | "One more run" | Short floors, fast restart, run summary, near-miss feedback | 2-3 |
 | Daily habit | Daily challenge + streak (done), daily-only relic seed | 1 (done) |
@@ -39,6 +39,8 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 | Sera (Scarlet Archer) | **Piercing arrows**: arrows reach 2 tiles |
 | Borin (Moss Warden) | **Stoneskin**: starts every floor with a shield |
 | Auric (Gilded Delver) | **Treasure hunter**: gems worth +30%, new-tile bonus doubled |
+| Mira (Lantern Keeper) | **Lightbearer**: every floor starts with the area around the start already lit (like the Old Lantern; hazards stay hidden). Ability *Flare*. Unlock: play 5 daily challenges |
+| Bram (Blaster) | **Tinkerer**: every run starts with 1 detector and 1 bomb (also on the daily). Ability *Blast*. Unlock: earn 500 embers in total |
 
 Unlocks (implemented): Cyan free; Archer after reaching floor 4; Warden after reaching floor 7; Delver after winning an expedition.
 To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/gameConfig.ts` (never ship it on).

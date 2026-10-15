@@ -171,6 +171,8 @@ export interface DraftContext {
   startShield?: boolean;
   /** The hero is immune to traps (Trap Sense would be wasted). */
   trapImmune?: boolean;
+  /** Every floor already starts lit (the Old Lantern would be wasted). */
+  startLit?: boolean;
 }
 
 /** True when `id` can still help a run with this hero and these relics. */
@@ -178,6 +180,7 @@ export function isUsefulRelic(id: RelicId, owned: readonly RelicId[], ctx: Draft
   if (relicCount(owned, id) >= RELICS[id].max) return false;
   if (id === 'bulwark' && ctx.startShield) return false;
   if (id === 'trap_sense' && ctx.trapImmune) return false;
+  if (id === 'lantern' && ctx.startLit) return false;
   return true;
 }
 

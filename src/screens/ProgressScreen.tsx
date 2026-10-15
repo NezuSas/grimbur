@@ -125,6 +125,8 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   const pageWidth = Math.min(usable, 1000);
   const cols = pageWidth >= 760 ? 3 : pageWidth >= 480 ? 2 : 1;
   const basis = cols === 3 ? "32%" : cols === 2 ? "48.5%" : "100%";
+  // Six heroes share one row: the portraits shrink on a narrow card rather than overflow it.
+  const heroSize = Math.max(34, Math.min(58, Math.floor((pageWidth - 16 - 40 - 8 * (characters.length - 1)) / characters.length)));
   const maxWins = Math.max(1, ...stats.heroWins);
 
   return (
@@ -210,8 +212,8 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                   const used = stats.heroesUsed.includes(i);
                   return (
                     <View key={i} style={styles.hero} accessible accessibilityLabel={`${heroText(t, i, "name")}: ${wins}`}>
-                      <View style={[styles.heroFrame, wins > 0 && { borderColor: GOLD }, !used && { opacity: 0.35 }]}>
-                        <SpriteImage source={c.scoreImage} style={styles.heroIcon} accessibilityIgnoresInvertColors />
+                      <View style={[styles.heroFrame, { width: heroSize, height: heroSize, borderRadius: heroSize / 2 }, wins > 0 && { borderColor: GOLD }, !used && { opacity: 0.35 }]}>
+                        <SpriteImage source={c.scoreImage} style={[styles.heroIcon, { width: heroSize - 8, height: heroSize - 8, borderRadius: (heroSize - 8) / 2 }]} accessibilityIgnoresInvertColors />
                         {wins > 0 && (
                           <View style={styles.heroBadge}>
                             <Text style={styles.heroBadgeText} maxFontSizeMultiplier={1.1}>
@@ -336,7 +338,7 @@ const styles = StyleSheet.create({
   dayOn: { backgroundColor: "#FF9A3C" },
   dayToday: { borderWidth: 2, borderColor: "#fff" },
   heroes: { flexDirection: "row", justifyContent: "space-between", gap: 8 },
-  hero: { flex: 1, alignItems: "center", gap: 6 },
+  hero: { flex: 1, minWidth: 0, alignItems: "center", gap: 6 },
   heroFrame: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center" },
   heroIcon: { width: 50, height: 50, borderRadius: 25 },
   heroBadge: { position: "absolute", right: -4, bottom: -4, minWidth: 22, height: 22, borderRadius: 11, backgroundColor: GOLD, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },

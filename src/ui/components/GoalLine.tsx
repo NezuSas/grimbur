@@ -29,7 +29,14 @@ const GoalLine: React.FC<Props> = ({ goal, highlight = false, small = false, sca
     }
     case "hero": {
       const name = heroText(t, goal.hero, "name");
-      text = goal.metric === "floor" ? t("goal.heroFloor", { name, current: goal.current, target: goal.target }) : t("goal.heroVictory", { name });
+      text =
+        goal.metric === "floor"
+          ? t("goal.heroFloor", { name, current: goal.current, target: goal.target })
+          : goal.metric === "daily"
+            ? t("goal.heroDaily", { name, current: goal.current, target: goal.target })
+            : goal.metric === "embers"
+              ? t("goal.heroEmbers", { name, current: goal.current, target: goal.target })
+              : t("goal.heroVictory", { name });
       break;
     }
     default:

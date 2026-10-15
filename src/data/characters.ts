@@ -52,6 +52,26 @@ const characters: Character[] = [
     loseImage: require("../assets/sprites/characters/Hero_Gold.png"),
     arrowColor: "#FFD600",
   },
+  {
+    id: 5,
+    playerName: "Mira",
+    scoreImage: require("../assets/sprites/characters/Icon_Pink.png"),
+    attackImage: require("../assets/sprites/characters/Attack_Pink.png"),
+    playerImage: require("../assets/sprites/characters/Hero_Pink.png"),
+    winImage: require("../assets/sprites/characters/Hero_Pink.png"),
+    loseImage: require("../assets/sprites/characters/Hero_Pink.png"),
+    arrowColor: "#FF4FB0",
+  },
+  {
+    id: 6,
+    playerName: "Bram",
+    scoreImage: require("../assets/sprites/characters/Icon_Orange.png"),
+    attackImage: require("../assets/sprites/characters/Attack_Orange.png"),
+    playerImage: require("../assets/sprites/characters/Hero_Orange.png"),
+    winImage: require("../assets/sprites/characters/Hero_Orange.png"),
+    loseImage: require("../assets/sprites/characters/Hero_Orange.png"),
+    arrowColor: "#FF9100",
+  },
 ];
 
 export default characters;

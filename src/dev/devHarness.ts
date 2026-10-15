@@ -21,7 +21,7 @@ const today = dailyKey();
 
 const PRESETS: Record<string, Partial<LocalStats>> = {
   new: {},
-  returning: { gamesPlayed: 3, bestScore: 1800, bestLevel: 3, totalGems: 40, embers: 45, lifetimeEmbers: 45, heroesUsed: [0], history: [] },
+  returning: { gamesPlayed: 3, bestScore: 1800, bestLevel: 3, totalGems: 40, embers: 45, heroesUsed: [0], dailyRuns: 3, lifetimeEmbers: 320, heroWins: [0, 0, 0, 0, 0, 0], heroBestDepth: [0, 0, 0, 0, 0, 0], history: [] },
   veteran: {
     gamesPlayed: 42,
     victories: 3,
@@ -32,8 +32,9 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     lifetimeEmbers: 1900,
     forge: { whetstone: 1, ward: 1, purse: 2, scribe: 1 },
     maxAscension: 2,
-    heroesUsed: [0, 1, 2],
-    heroWins: [2, 1, 0, 0],
+    heroesUsed: [0, 1, 2, 4],
+    heroWins: [2, 1, 0, 0, 1, 0],
+    heroBestDepth: [2, 1, 0, 0, 0, 0],
     streak: 6,
     lastDailyDate: today,
     bestEndlessFloor: 14,

@@ -58,7 +58,7 @@ describe('validateSubmission', () => {
     ['score', { score: -1 }],
     ['score', { score: 5 * 20000 + 1 }],
     ['coins', { coins: 5 * 8 + 1 }],
-    ['characterIndex', { characterIndex: 4 }],
+    ['characterIndex', { characterIndex: 6 }],
     ['time', { time: 0 }],
     ['time', { time: 86401 }],
     ['name', { name: '' }],
