@@ -13,7 +13,7 @@ service cloud.firestore {
         && isInt(d.level) && d.level >= 1 && d.level <= 12
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
         && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
-        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 4
+        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
         && isInt(d.time) && d.time >= 1 && d.time <= 86400
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 20;
     }

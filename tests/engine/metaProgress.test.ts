@@ -313,7 +313,7 @@ describe('B: next goals', () => {
   it('finds the hero closest to opening and measures a victory by floors reached', () => {
     expect(heroGoal({ ...EMPTY_STATS, bestLevel: 3 })).toMatchObject({ hero: 1, metric: 'floor', current: 3, target: 4, remaining: 1 });
     expect(heroGoal({ ...EMPTY_STATS, bestLevel: 7 })).toMatchObject({ hero: 3, metric: 'victory', remaining: 1 });
-    expect(heroGoal({ ...EMPTY_STATS, bestLevel: 10, victories: 1 })).toBeNull();
+    expect(heroGoal({ ...EMPTY_STATS, bestLevel: 10, victories: 1, dailyRuns: 5, lifetimeEmbers: 500 })).toBeNull();
   });
 
   it('picks the open achievement closest to done', () => {
@@ -335,7 +335,7 @@ describe('B: next goals', () => {
   it('gives nothing for a bought-out veteran with no partial achievements', () => {
     const forge: Record<string, number> = {};
     for (const id of ['whetstone', 'ward', 'explorer', 'scribe', 'eagle_eye', 'purse', 'fortune', 'feather', 'start_lantern', 'start_trap_sense', 'start_iron_boots', 'start_frost', 'start_lucky_coin', 'start_long_bow', 'start_hunter', 'start_quiver', 'start_greed', 'start_bulwark']) forge[id] = 9;
-    const maxed = parseStats(JSON.stringify({ forge, bestLevel: 10, victories: 1 }));
+    const maxed = parseStats(JSON.stringify({ forge, bestLevel: 10, victories: 1, dailyRuns: 5, lifetimeEmbers: 500 }));
     expect(forgeGoal(maxed)).toBeNull();
     expect(heroGoal(maxed)).toBeNull();
   });

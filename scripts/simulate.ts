@@ -5,7 +5,7 @@
  * human can see (clues on explored tiles, visible gems/power-ups) plus
  * Minesweeper-style deduction, and only guesses when nothing is provably safe.
  *
- *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth] [aim]
+ *   npx tsx scripts/simulate.ts [runsPerFloor] [firstFloor] [lastFloor] [depth] [aim] [heroIndex]
  *
  * Output per floor: clear rate, how often the board forced a guess, and how
  * often a guess killed the bot. Use it to tune `core/difficulty/difficulty.ts`.
@@ -15,7 +15,7 @@ import { generateBoard } from '../src/core/engine/generator';
 import { omenFor } from '../src/core/engine/omens';
 import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
-import { NO_PERKS } from '../src/core/engine/heroes';
+import { NO_PERKS, getHeroPerks } from '../src/core/engine/heroes';
 import { modifiersFor } from '../src/core/engine/ascension';
 
 const RUNS = Number(process.argv[2] ?? 200);
@@ -24,6 +24,10 @@ const LAST = Number(process.argv[4] ?? 9);
 const DEPTH = Number(process.argv[5] ?? 0);
 /** Default bot only shoots a stalker it already faces (the baseline); `aim` also turns to shoot any adjacent stalker, like a quick person would. */
 const AIM = process.argv[6] === 'aim';
+
+/** Hero whose passive perks the bot plays with (default: none). The bot does not press abilities or use items. */
+const HERO = process.argv[7] === undefined ? -1 : Number(process.argv[7]);
+const PERKS = HERO >= 0 ? getHeroPerks(HERO) : NO_PERKS;
 
 type Mark = 'safe' | 'danger';
 
@@ -232,7 +236,7 @@ function playFloor(floor: number, seed: number): FloorResult {
       coins: board.coins,
       attack: Math.max(1, board.attack - modifiersFor(DEPTH).arrowPenalty),
       seed,
-      perks: NO_PERKS,
+      perks: PERKS,
       ascension: DEPTH,
     },
   );
@@ -276,7 +280,7 @@ function playFloor(floor: number, seed: number): FloorResult {
 
 const pct = (n: number, d: number) => (d === 0 ? '  -  ' : `${((100 * n) / d).toFixed(0).padStart(3)}%`);
 
-console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (${AIM ? 'aiming' : 'standard'} careful bot, no relics, no hero perks)\n`);
+console.log(`Balance simulation: ${RUNS} runs per floor, depth ${DEPTH} (${AIM ? 'aiming' : 'standard'} careful bot, no relics, ${HERO >= 0 ? `hero ${HERO} perks` : 'no hero perks'})\n`);
 console.log('floor | size  | gems | enemies pits | dens | clear | needed a guess | died on a guess | stuck | avg moves');
 console.log('------+-------+------+--------------+------+-------+----------------+-----------------+-------+----------');
 

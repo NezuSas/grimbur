@@ -11,7 +11,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(ROOT, 'src', 'assets', 'sprites', 'characters')
@@ -19,8 +19,30 @@ OUT_DIR = os.path.join(ROOT, 'src', 'assets', 'sprites', 'skins')
 TS_OUT = os.path.join(ROOT, 'src', 'data', 'skinArt.ts')
 
 # ---------------------------------------------------------------- constants
-HERO_FILES = ['Cyan', 'Red', 'Green', 'Gold']  # index = data/characters.ts order (Vael, Sera, Borin, Auric)
-HERO_NAMES = ['Vael', 'Sera', 'Borin', 'Auric']
+HERO_FILES = ['Cyan', 'Red', 'Green', 'Gold', 'Pink', 'Orange']  # index = data/characters.ts order
+HERO_NAMES = ['Vael', 'Sera', 'Borin', 'Auric', 'Mira', 'Bram']
+HERO_COUNT = len(HERO_FILES)
+
+BRAM_REGIONS = {
+    'hero': dict(
+        include=[[(128, 168), (186, 174), (240, 176), (240, 296), (134, 296)]],
+        exclude=[[(184, 150), (230, 150), (244, 196), (240, 224), (214, 226), (208, 200), (206, 186), (196, 181), (184, 175)]],
+        shirt=[(60, 130), (330, 130), (330, 300), (60, 300)],
+        shirt_exclude=[(60, 0), (330, 0), (330, 100), (60, 100)],
+    ),
+    'attack': dict(
+        include=[[(106, 182), (172, 182), (200, 200), (222, 214), (232, 250), (198, 292), (106, 292)]],
+        exclude=[[(168, 150), (196, 170), (222, 196), (218, 216), (200, 216), (184, 196), (170, 184)]],
+        shirt=[(0, 150), (330, 150), (330, 300), (0, 300)],
+        shirt_exclude=[(0, 0), (330, 0), (330, 110), (0, 110)],
+    ),
+    'icon': dict(
+        include=[[(104, 180), (156, 184), (170, 206), (176, 244), (104, 244)]],
+        exclude=[],
+        shirt=[(0, 150), (256, 150), (256, 250), (0, 250)],
+        shirt_exclude=[(0, 0), (256, 0), (256, 100), (0, 100)],
+    ),
+}
 
 # Per-hero mask band. hue_lo/hue_hi in degrees (the band may wrap through 0), hue_soft = feather width in degrees,
 # sat_min / val_min = thresholds, *_soft = feather width of the ramp above the threshold.
@@ -30,6 +52,13 @@ HERO_MASKS = {
     1: dict(hue_lo=336, hue_hi=3, hue_soft=6, sat_min=0.62, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=352),
     2: dict(stone=True, hue_lo=68, hue_hi=160, hue_soft=14, sat_min=0.34, sat_soft=0.14, val_min=0.20, val_soft=0.10, hue_center=100),
     3: dict(hue_lo=22, hue_hi=60, hue_soft=4, sat_min=0.86, sat_soft=0.08, val_min=0.5, val_soft=0.12, hue_center=42, min_density=0.42),
+    # Mira: crimson/magenta hood and cape (the wand gem is hue ~300-315, outside the band; cream and brass stay natural).
+    4: dict(hue_lo=322, hue_hi=358, hue_soft=8, sat_min=0.45, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=342),
+    # Bram: the beard/hair share the apron's hue, so the apron is selected by POSITION (include/exclude polygons per sprite
+    # kind, pixel coordinates of the 384px poses / 256px icon) on top of a hue band. 'shirt' = the grey-blue cloth that gets a
+    # mild grade in the legendary themes (never the goggle lenses: 'shirt_exclude').
+    5: dict(hue_lo=2, hue_hi=30, hue_soft=5, sat_min=0.5, sat_soft=0.12, val_min=0.12, val_soft=0.10, hue_center=16,
+            regions=BRAM_REGIONS),
 }
 
 # Themes in display order. Hue themes: target hue (deg), saturation multiplier, value multiplier, whitening amount.
@@ -50,11 +79,12 @@ GILDED_RAMP = [(0.0, (96, 58, 8)), (0.4, (188, 130, 28)), (0.75, (236, 184, 62))
 GILDED_WARM = (255, 214, 120)   # warm highlight added on the brightest cloth
 
 LEGENDARY = ('shadow', 'gilded')
+SHIRT_STRENGTH = 0.55  # Bram: how far the grey shirt follows the legendary grade
 STONE_SAT_MAX = 0.30  # Borin: pixels less saturated than this count as stone in legendary grades
 
 SKIN_ORDER = ['classic', 'ember', 'verdant', 'frost', 'royal', 'shadow', 'gilded']
 # Hero index -> the theme that already matches its classic colour (not offered).
-REDUNDANT = {0: 'frost', 1: 'ember', 2: 'verdant', 3: 'gilded'}
+REDUNDANT = {0: 'frost', 1: 'ember', 2: 'verdant', 3: 'gilded', 5: 'ember'}  # Mira (4) has all six themes
 
 SKIN_ACCENT = {
     'classic': '#E8BA52', 'ember': '#FF7043', 'verdant': '#8BC34A', 'frost': '#4FC3F7',
@@ -116,11 +146,26 @@ def band_weight(h, lo, hi, soft):
     return np.clip(1 - dist / soft, 0, 1)
 
 
-def cloth_mask(h, s, v, m, alpha):
+def poly_mask(size, polys):
+    im = Image.new('L', size, 0)
+    d = ImageDraw.Draw(im)
+    for p in polys:
+        d.polygon(p, fill=255)
+    im = im.filter(ImageFilter.GaussianBlur(1.2))
+    return np.asarray(im, dtype=np.float32) / 255.0
+
+
+def cloth_mask(h, s, v, m, alpha, kind='hero'):
     w = band_weight(h, m['hue_lo'], m['hue_hi'], m['hue_soft'])
     w = w * ramp(s, m['sat_min'] - m['sat_soft'] * 0.5, m['sat_soft'])
     w = w * ramp(v, m['val_min'] - m['val_soft'] * 0.5, m['val_soft'])
     w = w * (alpha > 0.02)
+    reg = m.get('regions', {}).get(kind)
+    if reg:
+        size = (alpha.shape[1], alpha.shape[0])
+        w = w * poly_mask(size, reg['include'])
+        if reg['exclude']:
+            w = w * (1 - poly_mask(size, reg['exclude']))
     if m.get('min_density'):
         # drop thin rim-light slivers on leather: the real cloth forms big solid regions, slivers have low local density
         d = Image.fromarray((w * 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(5))
@@ -142,16 +187,24 @@ def sample_ramp(stops, t):
 
 
 # ---------------------------------------------------------------- recolouring
-def recolor(img, hero, skin):
+def recolor(img, hero, skin, kind='hero'):
     a = np.asarray(img.convert('RGBA'), dtype=np.float32) / 255.0
     rgb, alpha = a[..., :3], a[..., 3]
     h, s, v = rgb_to_hsv(rgb)
     m = HERO_MASKS[hero]
-    w = cloth_mask(h, s, v, m, alpha)
+    w = cloth_mask(h, s, v, m, alpha, kind)
     if m.get('stone') and skin in LEGENDARY:
         # Borin's armour is grey stone: legendary grades also re-map the (near-neutral) stone, not just the moss
         stone = (1 - ramp(s, STONE_SAT_MAX - 0.08, 0.08)) * ramp(v, 0.18, 0.1) * (alpha > 0.02)
         w = np.maximum(w, stone)
+    shirt = None
+    reg = m.get('regions', {}).get(kind)
+    if reg and skin in LEGENDARY:
+        size = (alpha.shape[1], alpha.shape[0])
+        shirt = band_weight(h, 195, 285, 15) * ramp(s, 0.10, 0.08) * ramp(v, 0.12, 0.08) * (alpha > 0.02)
+        shirt = shirt * poly_mask(size, [reg['shirt']]) * (1 - poly_mask(size, [reg['shirt_exclude']]))
+        shirt = shirt * SHIRT_STRENGTH
+        w = np.maximum(w, shirt)
     w = w[..., None]
 
     if skin in HUE_SKINS:
@@ -223,14 +276,14 @@ def write_ts():
     L.append("")
     L.append("/** Skins that exist for each hero index, classic first (a theme equal to the hero's own colour is skipped). */")
     L.append("const HERO_SKINS: SkinId[][] = [")
-    for hero in range(4):
+    for hero in range(HERO_COUNT):
         L.append("  [" + ', '.join("'%s'" % s for s in skins_for(hero)) + "],  // " + HERO_NAMES[hero])
     L.append("];")
     L.append("")
     L.append("const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {")
     for skin in SKIN_ORDER[1:]:
         L.append("  %s: {" % skin)
-        for hero in range(4):
+        for hero in range(HERO_COUNT):
             if skin == REDUNDANT.get(hero):
                 continue
             base = "../assets/sprites/skins/%s/%d_" % (skin, hero)
@@ -265,7 +318,7 @@ def write_ts():
 # ---------------------------------------------------------------- contact sheets
 def contact_sheets(outdir, results):
     os.makedirs(outdir, exist_ok=True)
-    for hero in range(4):
+    for hero in range(HERO_COUNT):
         skins = skins_for(hero)
         W = 300
         sheet = Image.new('RGBA', (W * len(skins), W * 2 + 150), (34, 28, 42, 255))
@@ -285,12 +338,12 @@ def main():
     ap.add_argument('--no-quantize', action='store_true')
     args = ap.parse_args()
     results = {}
-    for hero in range(4):
+    for hero in range(HERO_COUNT):
         for kind, prefix in KINDS:
             src = Image.open(os.path.join(SRC_DIR, '%s_%s.png' % (prefix, HERO_FILES[hero]))).convert('RGBA')
             results[(hero, 'classic', kind)] = src
             for skin in skins_for(hero)[1:]:
-                out = recolor(src, hero, skin)
+                out = recolor(src, hero, skin, kind)
                 results[(hero, skin, kind)] = out
                 d = os.path.join(OUT_DIR, skin)
                 os.makedirs(d, exist_ok=True)

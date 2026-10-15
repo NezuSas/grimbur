@@ -46,8 +46,8 @@ export const SKINS: Record<SkinId, SkinInfo> = {
   },
 };
 
-/** The theme matching each hero's classic colour is not offered (Vael, Sera, Borin, Auric). */
-const EXCLUDED_BY_HERO: readonly SkinId[] = ['frost', 'ember', 'verdant', 'gilded'];
+/** The theme matching each hero's classic colour is not offered (Vael, Sera, Borin, Auric, Mira has none, Bram). */
+const EXCLUDED_BY_HERO: readonly (SkinId | undefined)[] = ['frost', 'ember', 'verdant', 'gilded', undefined, 'ember'];
 
 /** Skins offered to each hero (index = hero index): classic first, then the catalog order. */
 export const SKINS_BY_HERO: readonly (readonly SkinId[])[] = Array.from({ length: HERO_COUNT }, (_, hero) =>

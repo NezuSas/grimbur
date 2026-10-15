@@ -38,6 +38,9 @@ describe('skin catalog', () => {
     expect(SKINS_BY_HERO[1]).not.toContain('ember');
     expect(SKINS_BY_HERO[2]).not.toContain('verdant');
     expect(SKINS_BY_HERO[3]).not.toContain('gilded');
+    expect(SKINS_BY_HERO[4]).toEqual([...SKIN_IDS]); // Mira: magenta is none of the themes
+    expect(SKINS_BY_HERO[5]).not.toContain('ember'); // Bram: copper-orange
+    expect(SKINS_BY_HERO[5]).toHaveLength(SKIN_IDS.length - 1);
     for (const list of SKINS_BY_HERO) expect(list[0]).toBe('classic');
   });
 });
@@ -46,7 +49,7 @@ describe('parseStats and skins', () => {
   it('gives old saves no skins and depth 0', () => {
     const s = parseStats(JSON.stringify({ bestScore: 5, embers: 10 }));
     expect(s.skins).toEqual({ owned: [], equipped: {} });
-    expect(s.heroBestDepth).toEqual([0, 0, 0, 0]);
+    expect(s.heroBestDepth).toEqual(new Array(HERO_COUNT).fill(0));
   });
 
   it('survives garbage', () => {
@@ -62,7 +65,7 @@ describe('parseStats and skins', () => {
     }));
     expect(s.skins.owned.sort()).toEqual(['0:ember', '0:royal', '1:shadow']);
     expect(s.skins.equipped).toEqual({ '0': 'ember', '1': 'shadow' }); // equipped must be owned
-    expect(s.heroBestDepth).toEqual([5, 0, 0, 0]);
+    expect(s.heroBestDepth).toEqual([5, 0, 0, 0, 0, 0]);
   });
 });
 
@@ -137,7 +140,7 @@ describe('heroBestDepth', () => {
     s = mergeRun(s, { score: 1, level: 10, victory: true, heroIndex: 1, ascension: 1, day: '2026-01-01' }).stats;
     s = mergeRun(s, { score: 1, level: 10, victory: false, heroIndex: 2, ascension: 4, day: '2026-01-01' }).stats;
     s = mergeRun(s, { score: 1, level: 10, victory: true, heroIndex: 0, ascension: 4, mode: 'daily', day: '2026-01-01' }).stats;
-    expect(s.heroBestDepth).toEqual([0, 3, 0, 0]);
+    expect(s.heroBestDepth).toEqual([0, 3, 0, 0, 0, 0]);
   });
 });
 

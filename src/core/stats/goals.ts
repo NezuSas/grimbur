@@ -6,7 +6,7 @@ import { HERO_UNLOCKS, isHeroUnlocked } from './heroUnlocks';
 /** The things a player can reach for next: a Forge purchase, a hero to unlock, an achievement almost done. */
 export type Goal =
   | { kind: 'forge'; id: UpgradeId; cost: number; remaining: number; progress: number; affordable: boolean }
-  | { kind: 'hero'; hero: number; metric: 'floor' | 'victory'; current: number; target: number; remaining: number; progress: number }
+  | { kind: 'hero'; hero: number; metric: 'floor' | 'victory' | 'daily' | 'embers'; current: number; target: number; remaining: number; progress: number }
   | { kind: 'achievement'; id: AchievementId; current: number; target: number; progress: number };
 
 /** Floors in an expedition: the progress towards "slay the Wumpus" is measured against it. */
@@ -55,6 +55,26 @@ export function heroGoal(stats: LocalStats): Extract<Goal, { kind: 'hero' }> | n
             target: rule.floor,
             remaining: Math.max(0, rule.floor - stats.bestLevel),
             progress: Math.min(1, stats.bestLevel / rule.floor),
+          }
+        : rule.kind === 'daily'
+        ? {
+            kind: 'hero',
+            hero,
+            metric: 'daily',
+            current: Math.min(stats.dailyRuns, rule.count),
+            target: rule.count,
+            remaining: Math.max(0, rule.count - stats.dailyRuns),
+            progress: Math.min(1, stats.dailyRuns / rule.count),
+          }
+        : rule.kind === 'embers'
+        ? {
+            kind: 'hero',
+            hero,
+            metric: 'embers',
+            current: Math.min(stats.lifetimeEmbers, rule.amount),
+            target: rule.amount,
+            remaining: Math.max(0, rule.amount - stats.lifetimeEmbers),
+            progress: Math.min(1, stats.lifetimeEmbers / rule.amount),
           }
         : {
             kind: 'hero',

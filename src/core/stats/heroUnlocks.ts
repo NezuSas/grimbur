@@ -3,7 +3,9 @@ import { LocalStats } from './runStats';
 export type UnlockRule =
   | { kind: 'free' }
   | { kind: 'floor'; floor: number }
-  | { kind: 'victory' };
+  | { kind: 'victory' }
+  | { kind: 'daily'; count: number }
+  | { kind: 'embers'; amount: number };
 
 /** Unlock rule per hero, same order as `HEROES` / `data/characters`. */
 export const HERO_UNLOCKS: readonly UnlockRule[] = [
@@ -11,6 +13,8 @@ export const HERO_UNLOCKS: readonly UnlockRule[] = [
   { kind: 'floor', floor: 4 },
   { kind: 'floor', floor: 7 },
   { kind: 'victory' },
+  { kind: 'daily', count: 5 },
+  { kind: 'embers', amount: 500 },
 ];
 
 export function isRuleMet(rule: UnlockRule, stats: LocalStats): boolean {
@@ -21,6 +25,10 @@ export function isRuleMet(rule: UnlockRule, stats: LocalStats): boolean {
       return stats.bestLevel >= rule.floor;
     case 'victory':
       return stats.victories >= 1;
+    case 'daily':
+      return stats.dailyRuns >= rule.count;
+    case 'embers':
+      return stats.lifetimeEmbers >= rule.amount;
   }
 }
 

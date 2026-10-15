@@ -25,11 +25,11 @@ import { useT } from "../i18n/useT";
 import { heroText, skinText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
 import { useSettingsStore } from "../state/settings/store";
+import { heroAccent } from "../data/heroAccent";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 
-const HERO_ACCENT = ["#69C3DE", "#E5737E", "#97C46E", "#E8BA52"] as const;
-const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? HERO_ACCENT[hero] ?? "#E8BA52" : SKIN_ACCENT[skin]);
+const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
 const RARITY_COLOR = { free: "#9FA8DA", rare: "#4FC3F7", legendary: "#FFD54F" } as const;
 
 type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; onPress: (skin: SkinId) => void };
@@ -84,6 +84,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [filter, setFilter] = useState<CollectionFilter>("all");
   const [picked, setPicked] = useState<SkinId | null>(route.params?.skin ?? null);
   const [gridWidth, setGridWidth] = useState(0);
+  const [tabsWidth, setTabsWidth] = useState(0);
   const heroRef = useRef(hero);
   heroRef.current = hero;
 
@@ -167,6 +168,8 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
       : t("skin.needEmbers", { n: Math.max(0, state.price - stats.embers) });
 
   // The hero image gives way to the price and progress of an outfit that is not owned yet.
+  // Six tabs: when each gets less than ~78 px the portrait goes over the count instead of beside it.
+  const tight = tabsWidth > 0 && (tabsWidth - 8 * (characters.length - 1)) / characters.length < 78;
   const detailImage = Math.max(90, Math.min(260, height - (owned ? 240 : 310)));
 
   return (
@@ -187,11 +190,11 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.body}>
           {/* ── Left: the hero tabs, the filters and the grid of outfits ───────────────────────────── */}
           <View style={styles.left}>
-            <View style={styles.tabs}>
+            <View style={styles.tabs} onLayout={e => setTabsWidth(e.nativeEvent.layout.width)}>
               {characters.map((_, i) => {
                 const count = heroCollectionCount(stats, i);
                 const on = i === hero;
-                const a = HERO_ACCENT[i] ?? "#E8BA52";
+                const a = heroAccent(i);
                 return (
                   <TouchableOpacity
                     key={i}
@@ -200,9 +203,9 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                     accessibilityRole="tab"
                     accessibilityState={{ selected: on }}
                     accessibilityLabel={t("collection.heroTab", { name: heroText(t, i, "name"), owned: count.owned, total: count.total })}
-                    style={[styles.tab, { borderColor: on ? a : "rgba(255,255,255,0.18)", backgroundColor: on ? a + "26" : "rgba(255,255,255,0.05)" }]}
+                    style={[styles.tab, tight && styles.tabTight, { borderColor: on ? a : "rgba(255,255,255,0.18)", backgroundColor: on ? a + "26" : "rgba(255,255,255,0.05)" }]}
                   >
-                    <SpriteImage source={skinArt(i, equippedSkin(stats, i)).scoreImage} style={styles.tabImage} resizeMode="cover" accessibilityIgnoresInvertColors />
+                    <SpriteImage source={skinArt(i, equippedSkin(stats, i)).scoreImage} style={tight ? styles.tabImageTight : styles.tabImage} resizeMode="cover" accessibilityIgnoresInvertColors />
                     <Text style={[styles.tabCount, on && { color: a }]} maxFontSizeMultiplier={1.2}>
                       {count.owned}/{count.total}
                     </Text>
@@ -336,6 +339,8 @@ const styles = StyleSheet.create({
   left: { flex: 1.2, gap: 8 },
   tabs: { flexDirection: "row", gap: 8 },
   tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: MIN_TOUCH - 4, borderRadius: 14, borderWidth: 1.5, paddingHorizontal: 6 },
+  tabTight: { flexDirection: "column", gap: 1, paddingHorizontal: 2, paddingVertical: 3 },
+  tabImageTight: { width: 26, height: 26, borderRadius: 13 },
   tabImage: { width: 30, height: 30, borderRadius: 15 },
   tabCount: { color: "#cfc9e8", fontWeight: "900", fontSize: 12 },
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },

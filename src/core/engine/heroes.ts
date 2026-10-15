@@ -17,6 +17,10 @@ export interface HeroPerks {
   coinMultiplier: number;
   /** Multiplier applied to the new-tile exploration bonus. */
   newTileMultiplier: number;
+  /** Every floor starts with the area around the start tile already explored (the Old Lantern's light). */
+  startLit: boolean;
+  /** One-use items in the bag at the start of every run. */
+  startItems: { detector: number; bomb: number };
   /** The hero's active ability (null when none). */
   ability: AbilityId | null;
 }
@@ -28,6 +32,8 @@ export const NO_PERKS: HeroPerks = {
   startShield: false,
   coinMultiplier: 1,
   newTileMultiplier: 1,
+  startLit: false,
+  startItems: { detector: 0, bomb: 0 },
   ability: null,
 };
 
@@ -57,6 +63,16 @@ export const HEROES: readonly HeroInfo[] = [
     perkName: 'Treasure hunter',
     perkDescription: 'Gems are worth +30%. Exploring pays double.',
     perks: { ...NO_PERKS, coinMultiplier: 1.3, newTileMultiplier: 2, ability: 'magnet' },
+  },
+  {
+    perkName: 'Lightbearer',
+    perkDescription: 'Every floor starts with the area around you already lit.',
+    perks: { ...NO_PERKS, startLit: true, ability: 'flare' },
+  },
+  {
+    perkName: 'Tinkerer',
+    perkDescription: 'Every run starts with a detector and a bomb.',
+    perks: { ...NO_PERKS, startItems: { detector: 1, bomb: 1 }, ability: 'blast' },
   },
 ];
 

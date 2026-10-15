@@ -8,8 +8,8 @@ const levelUp = { rows: 6, cols: 9, entities: [coin(10)], coins: 1, attack: 3, s
 
 describe('hero table', () => {
   it('has a distinct perk per hero and a safe fallback', () => {
-    expect(HEROES).toHaveLength(4);
-    expect(new Set(HEROES.map(h => h.perkName)).size).toBe(4);
+    expect(HEROES).toHaveLength(6);
+    expect(new Set(HEROES.map(h => h.perkName)).size).toBe(6);
     expect(getHeroPerks(99)).toBe(NO_PERKS);
   });
 });
