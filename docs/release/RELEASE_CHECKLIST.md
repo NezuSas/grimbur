@@ -134,7 +134,7 @@ Pendiente / decisiones deliberadas:
 1. Nombre/marca sin decidir (A1) y identificadores permanentes (A2).
 2. Firebase `mario-s-grid` heredado y reglas de Firestore **sin desplegar** (B1, B2).
 3. Sin proveedor de analítica real: sin él no hay métricas de las puertas D1/D7 salvo los informes de Play (C1).
-4. Faltan las capturas de pantalla (D2); el gráfico de funciones y el icono 512 ya están en `docs/release/store/`.
+4. Las 8 capturas (`docs/release/store/screenshots/`), el gráfico de funciones y el icono 512 ya están en `docs/release/store/`. Antes de subirlas, vuelve a generarlas si el juego cambió y, si quieres, hazlas también en inglés (ver el README de esa carpeta).
 5. Procedencia del arte sin documentar y dos WAV sospechosos dentro de `assets/` (D3).
 6. Placeholders pendientes: correo de contacto y URL de la política (`TODO(owner)`).
 7. Prueba cerrada: 12 testers x 14 días (F4, F5); hay que empezarla cuanto antes.
