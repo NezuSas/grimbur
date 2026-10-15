@@ -22,6 +22,7 @@ export interface BackupSettings {
   controlPosition: 'left' | 'right';
   attackButton: 'side' | 'center';
   movePad: 'fixed' | 'floating';
+  joystickSkin: 'console' | 'arcade';
   controlSize: 'small' | 'medium' | 'large';
   swipeMove: boolean;
   dragAim: boolean;
@@ -123,6 +124,7 @@ export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
   controlPosition: 'right',
   attackButton: 'side',
   movePad: 'fixed',
+  joystickSkin: 'console',
   controlSize: 'medium',
   swipeMove: false,
   dragAim: true,
@@ -150,6 +152,7 @@ export function sanitizeSettings(value: unknown): BackupSettings {
     controlPosition: oneOf(v.controlPosition, ['left', 'right'] as const, d.controlPosition),
     attackButton: oneOf(v.attackButton, ['side', 'center'] as const, d.attackButton),
     movePad: oneOf(v.movePad, ['fixed', 'floating'] as const, d.movePad),
+    joystickSkin: oneOf(v.joystickSkin, ['console', 'arcade'] as const, d.joystickSkin),
     controlSize: oneOf(v.controlSize, ['small', 'medium', 'large'] as const, d.controlSize),
     swipeMove: bool(v.swipeMove, d.swipeMove),
     dragAim: bool(v.dragAim, d.dragAim),

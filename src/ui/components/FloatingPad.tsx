@@ -1,14 +1,15 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { PanResponder, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import type { Direction } from "../../core/engine/types";
 import { REPEAT_FIRST_MS, REPEAT_MS, clampPadCenter, floatingDirection } from "../../core/input/floatingPad";
 import { haptic } from "../../shared/haptics";
 import { useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
 import { AttackButton } from "./DirectionPad";
+import JoystickBase from "./JoystickBase";
+import { useSettingsStore } from "../../state/settings/store";
 
-const GOLD = "#FFD54F";
+const NO_THUMB = { x: 0, y: 0 };
 
 type Props = {
   onMove: (direction: Direction) => void;
@@ -20,12 +21,7 @@ type Props = {
   arrows: number;
 };
 
-const SIDES: { dir: Direction; icon: keyof typeof Ionicons.glyphMap; dx: number; dy: number }[] = [
-  { dir: "UP", icon: "caret-up", dx: 0, dy: -1 },
-  { dir: "DOWN", icon: "caret-down", dx: 0, dy: 1 },
-  { dir: "LEFT", icon: "caret-back", dx: -1, dy: 0 },
-  { dir: "RIGHT", icon: "caret-forward", dx: 1, dy: 0 },
-];
+const SIDES: { dir: Direction }[] = [{ dir: "UP" }, { dir: "DOWN" }, { dir: "LEFT" }, { dir: "RIGHT" }];
 
 /**
  * A pad that appears under the thumb. Put a finger anywhere in the control zone and slide toward a side: one step per side
@@ -37,6 +33,7 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
   const zoneW = controlPanelWidth;
   const zoneH = D;
   const baseR = D * 0.42;
+  const skin = useSettingsStore(s => s.joystickSkin);
 
   const [origin, setOrigin] = useState<{ x: number; y: number } | null>(null);
   const [thumb, setThumb] = useState({ x: 0, y: 0 });
@@ -122,9 +119,6 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
     LEFT: t("a11y.moveLeft"),
     RIGHT: t("a11y.moveRight"),
   };
-  const chevron = baseR * 0.34;
-  const reach = baseR * 0.68;
-  const nub = baseR * 0.46;
 
   return (
     <View
@@ -138,29 +132,17 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
         if (names[dir]) onMove(dir);
       }}
     >
-      {/* Waiting: a faint ring says where to put the thumb */}
+      {/* Waiting: the stick at rest, faint, says where to put the thumb */}
       {!origin && (
-        <View pointerEvents="none" style={[styles.ghost, { width: baseR * 2, height: baseR * 2, borderRadius: baseR, left: zoneW / 2 - baseR, top: zoneH / 2 - baseR }]}>
-          {SIDES.map(s => (
-            <View key={s.dir} style={{ position: "absolute", left: baseR + s.dx * reach - chevron, top: baseR + s.dy * reach - chevron, width: chevron * 2, height: chevron * 2, alignItems: "center", justifyContent: "center" }}>
-              <Ionicons name={s.icon} size={chevron * 1.1} color="rgba(255,255,255,0.28)" />
-            </View>
-          ))}
+        <View pointerEvents="none" style={{ position: "absolute", opacity: 0.5, left: zoneW / 2 - baseR, top: zoneH / 2 - baseR }}>
+          <JoystickBase skin={skin} radius={baseR} thumb={NO_THUMB} active={null} />
         </View>
       )}
 
-      {/* Touching: the pad opens under the thumb */}
+      {/* Touching: the joystick opens under the thumb and follows it */}
       {origin && (
-        <View pointerEvents="none" style={[styles.base, { width: baseR * 2, height: baseR * 2, borderRadius: baseR, left: origin.x - baseR, top: origin.y - baseR }]}>
-          {SIDES.map(s => {
-            const on = active === s.dir;
-            return (
-              <View key={s.dir} style={{ position: "absolute", left: baseR + s.dx * reach - chevron, top: baseR + s.dy * reach - chevron, width: chevron * 2, height: chevron * 2, alignItems: "center", justifyContent: "center" }}>
-                <Ionicons name={s.icon} size={chevron * (on ? 1.5 : 1.15)} color={on ? GOLD : "rgba(255,255,255,0.85)"} />
-              </View>
-            );
-          })}
-          <View style={[styles.nub, { width: nub * 2, height: nub * 2, borderRadius: nub, left: baseR + thumb.x - nub, top: baseR + thumb.y - nub }, active && styles.nubOn]} />
+        <View pointerEvents="none" style={{ position: "absolute", left: origin.x - baseR, top: origin.y - baseR }}>
+          <JoystickBase skin={skin} radius={baseR} thumb={thumb} active={active} />
         </View>
       )}
 
@@ -176,10 +158,6 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
 
 const styles = StyleSheet.create({
   zone: { justifyContent: "center", alignItems: "center" },
-  ghost: { position: "absolute", borderWidth: 2, borderStyle: "dashed", borderColor: "rgba(255,213,79,0.32)", backgroundColor: "rgba(14,11,31,0.35)" },
-  base: { position: "absolute", backgroundColor: "rgba(14,11,31,0.86)", borderWidth: 3, borderColor: "rgba(255,213,79,0.7)" },
-  nub: { position: "absolute", backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 2, borderColor: "rgba(255,255,255,0.6)" },
-  nubOn: { backgroundColor: "rgba(255,213,79,0.4)", borderColor: GOLD },
   corner: { position: "absolute", right: 0, bottom: 0 },
 });
 
