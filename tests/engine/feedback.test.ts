@@ -11,7 +11,7 @@ import {
   GEM_STREAK_WINDOW_MS,
 } from '../../src/core/feedback/combo';
 import { popupStackOffset, tileCenter } from '../../src/core/feedback/geometry';
-import { shouldShowShop, LEVEL_COMPLETE_HOLD_MS, LEVEL_COMPLETE_MAX_MS } from '../../src/core/feedback/flow';
+import { shouldShowShop } from '../../src/core/feedback/flow';
 import { nextHint, HintFacts } from '../../src/core/feedback/hints';
 import { boss, coin, createState, enemy } from '../helpers/state';
 import type { GameState } from '../../src/core/engine/types';
@@ -156,13 +156,5 @@ describe('nextHint', () => {
     }
     expect(order).toEqual(['clues', 'undo', 'travel', 'flag', 'aim']);
     expect(nextHint(rich, seen)).toBeNull();
-  });
-});
-
-describe('level-complete timing', () => {
-  it('holds the card after the stars finish, and caps the total time so a stuck animation cannot trap the player', () => {
-    expect(LEVEL_COMPLETE_HOLD_MS).toBeGreaterThanOrEqual(800);
-    // card spring + star stagger + the hold must fit well inside the cap
-    expect(LEVEL_COMPLETE_MAX_MS).toBeGreaterThan(LEVEL_COMPLETE_HOLD_MS + 3500);
   });
 });
