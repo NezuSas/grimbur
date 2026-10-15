@@ -36,6 +36,23 @@ BRAM_REGIONS = {
         shirt=[(0, 150), (330, 150), (330, 300), (0, 300)],
         shirt_exclude=[(0, 0), (330, 0), (330, 110), (0, 110)],
     ),
+    # win: arm raised, laughing. The apron is the lower-front cloth; the beard ends ~y197 and the braid hangs at x217-240, y187-217.
+    'win': dict(
+        include=[[(134, 212), (160, 200), (212, 198), (214, 214), (226, 226), (246, 236), (246, 262), (242, 306), (160, 310), (126, 300), (126, 240)]],
+        exclude=[[(214, 182), (246, 182), (246, 222), (226, 224), (214, 214)]],
+        seed=(0.55, 0.7, 9),
+        shirt=[(60, 130), (330, 130), (330, 300), (60, 300)],
+        shirt_exclude=[(60, 0), (330, 0), (330, 115), (60, 115)],
+    ),
+    # lose: sitting, only two slivers of apron show (left of the bomb bandolier, and below the belt); the beard/braid cover the rest.
+    'lose': dict(
+        include=[[(118, 225), (142, 222), (150, 242), (192, 248), (194, 283), (146, 284), (124, 262)],
+                 [(140, 284), (193, 284), (197, 300), (192, 340), (133, 340), (133, 322), (140, 322)]],
+        exclude=[[(138, 190), (222, 190), (222, 236), (190, 244), (165, 242), (146, 226)]],
+        seed=(0.55, 0.7, 9),
+        shirt=[(60, 190), (330, 190), (330, 280), (60, 280)],
+        shirt_exclude=[(60, 0), (330, 0), (330, 200), (60, 200)],
+    ),
     'icon': dict(
         include=[[(104, 180), (156, 184), (170, 206), (176, 244), (104, 244)]],
         exclude=[],
@@ -51,7 +68,13 @@ HERO_MASKS = {
     0: dict(hue_lo=170, hue_hi=262, hue_soft=14, sat_min=0.22, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=205),
     1: dict(hue_lo=336, hue_hi=3, hue_soft=6, sat_min=0.62, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=352),
     2: dict(stone=True, hue_lo=68, hue_hi=160, hue_soft=14, sat_min=0.34, sat_soft=0.14, val_min=0.20, val_soft=0.10, hue_center=100),
-    3: dict(hue_lo=22, hue_hi=60, hue_soft=4, sat_min=0.86, sat_soft=0.08, val_min=0.5, val_soft=0.12, hue_center=42, min_density=0.42),
+    3: dict(hue_lo=22, hue_hi=60, hue_soft=4, sat_min=0.86, sat_soft=0.08, val_min=0.5, val_soft=0.12, hue_center=42, min_density=0.42,
+        # win/lose poses: the held gem and the sparkles stay natural gold; the lose pose's goggle rims and hat buckle too
+        keep={'win': [[(222, 24), (298, 24), (298, 98), (224, 98)],
+                      [(100, 200), (118, 200), (118, 222), (100, 222)],
+                      [(206, 36), (226, 36), (226, 60), (206, 60)],
+                      [(236, 160), (266, 160), (266, 192), (236, 192)]],
+              'lose': [[(186, 90), (320, 90), (320, 182), (186, 182)]]}),
     # Mira: crimson/magenta hood and cape (the wand gem is hue ~300-315, outside the band; cream and brass stay natural).
     4: dict(hue_lo=322, hue_hi=358, hue_soft=8, sat_min=0.45, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=342),
     # Bram: the beard/hair share the apron's hue, so the apron is selected by POSITION (include/exclude polygons per sprite
@@ -91,7 +114,8 @@ SKIN_ACCENT = {
     'royal': '#B388FF', 'shadow': '#9575CD', 'gilded': '#FFD54F',
 }
 
-KINDS = [('hero', 'Hero'), ('attack', 'Attack'), ('icon', 'Icon')]
+KINDS = [('hero', 'Hero'), ('attack', 'Attack'), ('icon', 'Icon'), ('win', 'Win'), ('lose', 'Lose')]
+CONTACT_KINDS = ['hero', 'attack', 'icon', 'win', 'lose']
 QUANTIZE = True
 
 
@@ -166,6 +190,16 @@ def cloth_mask(h, s, v, m, alpha, kind='hero'):
         w = w * poly_mask(size, reg['include'])
         if reg['exclude']:
             w = w * (1 - poly_mask(size, reg['exclude']))
+        if reg.get('seed'):
+            # win/lose: belt, pouches and bomb straps share the apron's hue but are darker. Keep only what lies within a few
+            # pixels of the bright, saturated apron core (stains inside the apron are small, so they are kept).
+            vmin, smin, grow = reg['seed']
+            core = ((v > vmin) & (s > smin) & (w > 0.5)).astype(np.uint8) * 255
+            core = Image.fromarray(core).filter(ImageFilter.MaxFilter(grow)).filter(ImageFilter.GaussianBlur(1.0))
+            w = w * (np.asarray(core, dtype=np.float32) / 255.0)
+    keep = m.get('keep', {}).get(kind)
+    if keep:  # regions that always stay natural (held gem, sparkles, goggle rims...)
+        w = w * (1 - poly_mask((alpha.shape[1], alpha.shape[0]), keep))
     if m.get('min_density'):
         # drop thin rim-light slivers on leather: the real cloth forms big solid regions, slivers have low local density
         d = Image.fromarray((w * 255).astype(np.uint8)).filter(ImageFilter.BoxBlur(5))
@@ -291,8 +325,8 @@ def write_ts():
             L.append("      playerImage: require('%shero.png')," % base)
             L.append("      attackImage: require('%sattack.png')," % base)
             L.append("      scoreImage: require('%sicon.png')," % base)
-            L.append("      winImage: require('%shero.png')," % base)
-            L.append("      loseImage: require('%shero.png')," % base)
+            L.append("      winImage: require('%swin.png')," % base)
+            L.append("      loseImage: require('%slose.png')," % base)
             L.append("    },")
         L.append("  },")
     L.append("};")
@@ -320,15 +354,15 @@ def contact_sheets(outdir, results):
     os.makedirs(outdir, exist_ok=True)
     for hero in range(HERO_COUNT):
         skins = skins_for(hero)
-        W = 300
-        sheet = Image.new('RGBA', (W * len(skins), W * 2 + 150), (34, 28, 42, 255))
+        W = 260
+        sheet = Image.new('RGBA', (W * len(skins), W * 5), (34, 28, 42, 255))
         for i, skin in enumerate(skins):
-            for j, kind in enumerate(['hero', 'attack', 'icon']):
+            for kind in CONTACT_KINDS:
                 im = results[(hero, skin, kind)]
-                size = W if kind != 'icon' else 150
+                row = CONTACT_KINDS.index(kind)
+                x, y, size = i * W, row * W, (130 if kind == 'icon' else W)
                 im = im.resize((size, size), Image.LANCZOS)
-                y = j * W if j < 2 else 2 * W
-                sheet.alpha_composite(im, (i * W, y))
+                sheet.alpha_composite(im, (x, y))
         sheet.convert('RGB').save(os.path.join(outdir, 'contact_%d_%s.png' % (hero, HERO_NAMES[hero])))
 
 
