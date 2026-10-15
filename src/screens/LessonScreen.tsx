@@ -227,7 +227,7 @@ export default function LessonScreen({ navigation, route }: Props) {
     >
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.6)" }]} />
       <StatusBar hidden />
-      {banner}
+      {__DEV__ && route.params.devHideBanner ? null : banner}
 
       {lesson.kind === "board" ? (
         <View
