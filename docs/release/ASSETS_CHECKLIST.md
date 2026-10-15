@@ -82,7 +82,7 @@ for p in sys.argv[1:]:
 ## 5. Lista final de subida (Play)
 
 - [ ] Icono 512 (`docs/release/store/icon-512.png`).
-- [ ] Gráfico de funciones 1024 x 500 sin alfa.
+- [x] Gráfico de funciones 1024 x 500 sin alfa: `docs/release/store/feature-graphic.png` (se regenera con `python scripts/makeFeatureGraphic.py`; el título lo dibuja el script con la tipografía del juego, así que al cambiar el nombre basta editar `TITLE`/`SUBTITLE`).
 - [ ] 2-8 capturas de teléfono 16:9, ES y EN.
 - [ ] (Opcional) capturas de tableta y vídeo de YouTube.
 - [ ] Textos de `STORE_LISTING.md` con los `TODO(owner)` resueltos.

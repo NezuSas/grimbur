@@ -66,7 +66,7 @@ Cada paso depende del anterior salvo que se indique "en paralelo". Las fechas re
 
 | # | Tarea | Resp. | Duración |
 | --- | --- | --- | --- |
-| D1 | **Icono 512x512**: ya generado en `docs/release/store/icon-512.png`. Producir el **gráfico de funciones 1024x500** (falta; ver `ASSETS_CHECKLIST.md`). | OWNER/DEV | 0.5-1 día |
+| D1 | **Icono 512x512**: ya generado en `docs/release/store/icon-512.png`. El **gráfico de funciones 1024x500** ya está en `docs/release/store/feature-graphic.png` (en inglés; si quieres uno en español, cambia `TAGLINE` en `scripts/makeFeatureGraphic.py` y vuelve a ejecutarlo). | OWNER/DEV | 0.5-1 día |
 | D2 | **Capturas** horizontales según el guion de `STORE_LISTING.md` (mín. 2, recomendado 8; 16:9) en ES y EN. Se capturan de un dispositivo real. `scripts/screenshots.ps1` sirve para pasadas rápidas en web, no para la tienda. | OWNER | 0.5 día |
 | D3 | **Arte y audio**: `docs/ASSETS.md` aún dice "Source: ?" en casi todos los sprites. Documentar origen y licencia (IA incluida). **Borrar `assets/wumpa.wav` y `assets/laba.wav`** (sin uso en el código, posible audio de Crash Bandicoot; pueden empaquetarse por `assetBundlePatterns`). El historial de git conserva imágenes de Mario/Pokémon: no publicar nunca el repositorio. Play no pide pruebas, pero una reclamación sí. | OWNER | 0.5 día |
 | D4 | Vídeo promocional (opcional, YouTube, 30-60 s). | OWNER | 0.5 día |
@@ -134,7 +134,7 @@ Pendiente / decisiones deliberadas:
 1. Nombre/marca sin decidir (A1) y identificadores permanentes (A2).
 2. Firebase `mario-s-grid` heredado y reglas de Firestore **sin desplegar** (B1, B2).
 3. Sin proveedor de analítica real: sin él no hay métricas de las puertas D1/D7 salvo los informes de Play (C1).
-4. Faltan gráfico de funciones y capturas (D1, D2); el icono 512 ya está en `docs/release/store/icon-512.png`.
+4. Faltan las capturas de pantalla (D2); el gráfico de funciones y el icono 512 ya están en `docs/release/store/`.
 5. Procedencia del arte sin documentar y dos WAV sospechosos dentro de `assets/` (D3).
 6. Placeholders pendientes: correo de contacto y URL de la política (`TODO(owner)`).
 7. Prueba cerrada: 12 testers x 14 días (F4, F5); hay que empezarla cuanto antes.
