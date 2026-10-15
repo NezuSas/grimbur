@@ -2,8 +2,8 @@ import type { Direction, GameState } from '../engine/types';
 import { stepTarget } from '../engine/travel';
 
 /**
- * The floating pad: the player puts a thumb anywhere in the control zone and a pad appears under it. Sliding to a side
- * takes a step; holding repeats it. The rules live here (pure) so they can be tested.
+ * The joystick: the player puts a thumb anywhere in the control zone and slides it; the stick follows the thumb's travel.
+ * Sliding to a side takes a step; holding repeats it. The rules live here (pure) so they can be tested.
  */
 
 /** Fraction of the pad's radius the thumb must leave before a side is read (the dead zone in the middle). */
@@ -26,12 +26,6 @@ export function floatingDirection(dx: number, dy: number, radius: number, previo
   if (ax >= ay * DOMINANCE) return dx > 0 ? 'RIGHT' : 'LEFT';
   if (ay >= ax * DOMINANCE) return dy > 0 ? 'DOWN' : 'UP';
   return previous;
-}
-
-/** Where the pad's centre goes: under the thumb, but kept far enough from the edges of its zone for the whole pad to fit. */
-export function clampPadCenter(x: number, y: number, zoneWidth: number, zoneHeight: number, padRadius: number): { x: number; y: number } {
-  const clamp = (v: number, lo: number, hi: number) => (lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
-  return { x: clamp(x, padRadius, zoneWidth - padRadius), y: clamp(y, padRadius, zoneHeight - padRadius) };
 }
 
 type StepState = Pick<GameState, 'playerIndex' | 'rows' | 'cols' | 'visited' | 'entityMap' | 'isGameOver' | 'isLevelUp' | 'pendingDraft'>;

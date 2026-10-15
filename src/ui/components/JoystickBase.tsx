@@ -63,15 +63,15 @@ const ConsoleStick = ({ radius: R, thumb, active }: Omit<Props, "skin">) => {
   return (
     <View style={{ width: R * 2, height: R * 2 }}>
       {/* The well */}
-      <LinearGradient colors={["#07080d", "#1b1e2b"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.fill, { borderRadius: R, borderWidth: 3, borderColor: active ? light : "rgba(255,255,255,0.16)" }]} />
+      <LinearGradient colors={["#07080d", "#1b1e2b"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.fill, { borderRadius: R, borderWidth: 3, borderColor: "rgba(255,255,255,0.16)" }]} />
       <View style={[styles.center, { width: R * 1.56, height: R * 1.56, borderRadius: R, left: R * 0.22, top: R * 0.22, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)" }]} />
-      <View style={[styles.center, { width: R * 1.24, height: R * 1.24, borderRadius: R, left: R * 0.38, top: R * 0.38, borderWidth: 1, borderColor: active ? "rgba(77,163,255,0.5)" : "rgba(255,255,255,0.05)" }]} />
+      <View style={[styles.center, { width: R * 1.24, height: R * 1.24, borderRadius: R, left: R * 0.38, top: R * 0.38, borderWidth: 1, borderColor: "rgba(255,255,255,0.06)" }]} />
       <Marks radius={R} active={active} color={light} offset={0.74} />
 
       {/* The stick: shadow, dome, concave top, grip dots and a soft highlight */}
       <View style={{ position: "absolute", left: R - S / 2 + p.x, top: R - S / 2 + p.y, width: S, height: S }}>
         <View style={{ position: "absolute", left: S * 0.04, top: S * 0.1, width: S, height: S, borderRadius: S / 2, backgroundColor: "rgba(0,0,0,0.45)" }} />
-        <LinearGradient colors={["#6a6f82", "#2a2d38", "#15171f"]} start={{ x: 0.25, y: 0.1 }} end={{ x: 0.75, y: 1 }} style={[styles.fill, { borderRadius: S / 2, borderWidth: 2, borderColor: active ? light : "rgba(255,255,255,0.4)" }]} />
+        <LinearGradient colors={["#6a6f82", "#2a2d38", "#15171f"]} start={{ x: 0.25, y: 0.1 }} end={{ x: 0.75, y: 1 }} style={[styles.fill, { borderRadius: S / 2, borderWidth: 2, borderColor: "rgba(255,255,255,0.4)" }]} />
         {dots.map((a, i) => (
           <View
             key={i}
@@ -104,7 +104,7 @@ const ArcadeStick = ({ radius: R, thumb, active }: Omit<Props, "skin">) => {
   return (
     <View style={{ width: R * 2, height: R * 2 }}>
       {/* The plate */}
-      <LinearGradient colors={["#34343f", "#14141a"]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={[styles.fill, { borderRadius: R * 0.3, borderWidth: 3, borderColor: active ? light : "#585868" }]} />
+      <LinearGradient colors={["#34343f", "#14141a"]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={[styles.fill, { borderRadius: R * 0.3, borderWidth: 3, borderColor: "#585868" }]} />
       {corners.map(([x, y], i) => (
         <View key={i} style={{ position: "absolute", left: x - screw, top: y - screw, width: screw * 2, height: screw * 2, borderRadius: screw, backgroundColor: "#a8a8b6", borderWidth: 1, borderColor: "#5b5b69", alignItems: "center", justifyContent: "center" }}>
           <View style={{ width: screw * 1.3, height: Math.max(1.5, screw * 0.2), backgroundColor: "#55555f", transform: [{ rotate: `${i * 40 + 20}deg` }] }} />
@@ -132,10 +132,10 @@ const ArcadeStick = ({ radius: R, thumb, active }: Omit<Props, "skin">) => {
       <View style={{ position: "absolute", left: R + p.x - (B * lift) / 2 + B * 0.1, top: R + p.y - (B * lift) / 2 + B * 0.16, width: B * lift, height: B * lift, borderRadius: B, backgroundColor: "rgba(0,0,0,0.4)" }} />
       <View style={{ position: "absolute", left: R + p.x - (B * lift) / 2, top: R + p.y - (B * lift) / 2, width: B * lift, height: B * lift }}>
         <LinearGradient
-          colors={active ? ["#ffb4a8", "#ff3d33", "#8f0000"] : ["#ff8a80", "#e53935", "#7f0000"]}
+          colors={["#ff8a80", "#e53935", "#7f0000"]}
           start={{ x: 0.3, y: 0.15 }}
           end={{ x: 0.8, y: 0.95 }}
-          style={[styles.fill, { borderRadius: B, borderWidth: 1.5, borderColor: active ? light : "rgba(255,255,255,0.25)" }]}
+          style={[styles.fill, { borderRadius: B, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)" }]}
         />
         <View style={{ position: "absolute", left: B * lift * 0.2, top: B * lift * 0.12, width: B * lift * 0.34, height: B * lift * 0.2, borderRadius: B, backgroundColor: "rgba(255,255,255,0.7)", transform: [{ rotate: "-28deg" }] }} />
       </View>
@@ -156,21 +156,18 @@ export const JoystickPreview = memo(({ skin, radius = 54 }: { skin: JoystickSkin
   const [thumb, setThumb] = useState({ x: 0, y: 0 });
   const [active, setActive] = useState<Direction | null>(null);
   const prev = useRef<Direction | null>(null);
-  const start = useRef({ x: 0, y: 0 });
   const R = radius;
   const responder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
-        onPanResponderGrant: e => {
-          start.current = { x: e.nativeEvent.locationX - R, y: e.nativeEvent.locationY - R };
-          setThumb(start.current);
+        onPanResponderGrant: () => {
+          prev.current = null;
+          setThumb({ x: 0, y: 0 });
         },
         onPanResponderMove: (_e, g) => {
-          const x = start.current.x + g.dx;
-          const y = start.current.y + g.dy;
-          setThumb({ x, y });
-          prev.current = floatingDirection(x, y, R, prev.current);
+          setThumb({ x: g.dx, y: g.dy });
+          prev.current = floatingDirection(g.dx, g.dy, R, prev.current);
           setActive(prev.current);
         },
         onPanResponderRelease: () => {
