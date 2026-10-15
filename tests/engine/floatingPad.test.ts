@@ -1,4 +1,4 @@
-import { FLOATING_DEAD_ZONE, REPEAT_FIRST_MS, REPEAT_MS, canRepeatStep, floatingDirection } from '../../src/core/input/floatingPad';
+import { FLOATING_DEAD_ZONE, FLOATING_STAY_ZONE, MIN_STEP_GAP_MS, REPEAT_FIRST_MS, REPEAT_MS, REVERSE_STEP_GAP_MS, canRepeatStep, floatingDirection, stepWait } from '../../src/core/input/floatingPad';
 import { initialState } from '../../src/core/engine/reducer';
 import type { GameState } from '../../src/core/engine/types';
 
@@ -32,6 +32,57 @@ describe('floatingDirection', () => {
   it('repeats at a pace a player can follow', () => {
     expect(REPEAT_FIRST_MS).toBeGreaterThan(REPEAT_MS);
     expect(REPEAT_MS).toBeGreaterThanOrEqual(150);
+  });
+});
+
+describe('hysteresis: a thumb resting near the edge does not flicker', () => {
+  const R = 60;
+  it('needs more travel to enter a side than to stay in it', () => {
+    const between = R * ((FLOATING_DEAD_ZONE + FLOATING_STAY_ZONE) / 2);
+    expect(floatingDirection(between, 0, R, null)).toBeNull(); // not enough to start a step
+    expect(floatingDirection(between, 0, R, 'RIGHT')).toBe('RIGHT'); // enough to keep holding it
+  });
+});
+
+describe('stepWait: steps are decisions, not reflexes', () => {
+  it('lets the first step go at once', () => {
+    expect(stepWait(10_000, { at: 0, dir: null }, 'RIGHT')).toBe(0);
+  });
+
+  it('makes a quick second step wait for the pace limit', () => {
+    expect(stepWait(1_100, { at: 1_000, dir: 'RIGHT' }, 'RIGHT')).toBe(MIN_STEP_GAP_MS - 100);
+    expect(stepWait(1_100, { at: 1_000, dir: 'RIGHT' }, 'UP')).toBe(MIN_STEP_GAP_MS - 100);
+    expect(stepWait(1_000 + MIN_STEP_GAP_MS, { at: 1_000, dir: 'RIGHT' }, 'UP')).toBe(0);
+  });
+
+  it('makes a step straight back wait longer (wiggling the stick)', () => {
+    expect(REVERSE_STEP_GAP_MS).toBeGreaterThan(MIN_STEP_GAP_MS);
+    expect(stepWait(1_100, { at: 1_000, dir: 'RIGHT' }, 'LEFT')).toBe(REVERSE_STEP_GAP_MS - 100);
+    expect(stepWait(1_000 + MIN_STEP_GAP_MS, { at: 1_000, dir: 'RIGHT' }, 'LEFT')).toBeGreaterThan(0);
+  });
+
+  it('never lets a wiggling stick go faster than the pace limit', () => {
+    // The thumb alternates RIGHT / LEFT, holding each side for 120 ms. As in the game, a step happens when its wait is over
+    // only if the thumb is still on that side by then; otherwise the flick is dropped.
+    const HOLD = 120;
+    const last: { at: number; dir: 'LEFT' | 'RIGHT' | null } = { at: -10_000, dir: null };
+    const steps: { at: number; dir: 'LEFT' | 'RIGHT' }[] = [];
+    let dir: 'LEFT' | 'RIGHT' = 'RIGHT';
+    for (let t = 0; t < 2_000; t += HOLD) {
+      const wait = stepWait(t, last, dir);
+      if (wait < HOLD) {
+        const at = t + wait;
+        steps.push({ at, dir });
+        last.at = at;
+        last.dir = dir;
+      }
+      dir = dir === 'RIGHT' ? 'LEFT' : 'RIGHT';
+    }
+    for (let i = 1; i < steps.length; i++) {
+      const gap = steps[i].at - steps[i - 1].at;
+      expect(gap).toBeGreaterThanOrEqual(steps[i].dir !== steps[i - 1].dir ? REVERSE_STEP_GAP_MS : MIN_STEP_GAP_MS);
+    }
+    expect(steps.length).toBeLessThanOrEqual(Math.ceil(2_000 / MIN_STEP_GAP_MS)); // an unrestricted stick would take 16
   });
 });
 
