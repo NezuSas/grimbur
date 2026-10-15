@@ -28,6 +28,7 @@ export interface BackupSettings {
   dragAim: boolean;
   language: 'auto' | 'en' | 'es';
   tutorialSeen: boolean;
+  storySeen: boolean;
   achievementsSeen: number;
   hintsSeen: string[];
 }
@@ -130,6 +131,7 @@ export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
   dragAim: true,
   language: 'auto',
   tutorialSeen: false,
+  storySeen: false,
   achievementsSeen: 0,
   hintsSeen: [],
 };
@@ -158,6 +160,7 @@ export function sanitizeSettings(value: unknown): BackupSettings {
     dragAim: bool(v.dragAim, d.dragAim),
     language: oneOf(v.language, ['auto', 'en', 'es'] as const, d.language),
     tutorialSeen: bool(v.tutorialSeen, d.tutorialSeen),
+    storySeen: bool(v.storySeen, d.storySeen),
     achievementsSeen: seen,
     hintsSeen: hints,
   };

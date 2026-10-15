@@ -237,6 +237,8 @@ const GameOverOverlay = ({
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
 
+  const heroNo = character.id - 1;
+  const quote = demo ? null : t(`story.${victory ? 'win' : 'lose'}.${heroNo}` as TranslationKey);
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
   const tip = !victory && deathCause ? t(`over.tip.${deathCause}` as TranslationKey) : null;
 
@@ -328,6 +330,13 @@ const GameOverOverlay = ({
       <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }, short && { fontSize: 20, letterSpacing: 1 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {title.toLocaleUpperCase()}
       </Text>
+
+      {/* The hero speaks: a line in their own voice for the win or the fall */}
+      {quote ? (
+        <Text style={[styles.quote, { color: accent }]} maxFontSizeMultiplier={1.3}>
+          {"“"}{quote}{"”"}
+        </Text>
+      ) : null}
 
       {/* How far the run got: one pip per floor */}
       {!endless && height >= 340 && (
@@ -564,6 +573,7 @@ const styles = StyleSheet.create({
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   left: { alignItems: 'center', gap: 8 },
   halo: { position: 'absolute' },
+  quote: { fontStyle: 'italic', fontWeight: '700', fontSize: 14, opacity: 0.95 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
   headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
   killerBadge: { position: 'absolute', backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },

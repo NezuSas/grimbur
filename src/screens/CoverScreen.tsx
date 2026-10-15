@@ -20,6 +20,7 @@ import { emitSound } from "../audio/audioEventBus";
 type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 
 const CoverScreen: React.FC<Props> = ({ navigation }) => {
+  const storySeen = useSettingsStore(s => s.storySeen);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
 
   useFocusEffect(
@@ -72,7 +73,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         resizeMode="cover"
       >
         <CoverCard
-          onPressPlay={() => navigation.navigate("CharactersScreen", { mode: "expedition" })}
+          onPressPlay={() => (stats.gamesPlayed === 0 && !storySeen ? navigation.navigate("StoryScreen") : navigation.navigate("CharactersScreen", { mode: "expedition" }))}
           onPressDaily={() => navigation.navigate("CharactersScreen", { mode: "daily" })}
           onPressEndless={() =>
             endlessPaywalled ? navigation.navigate("PaywallScreen", { source: "endless" }) : navigation.navigate("CharactersScreen", { mode: "endless" })

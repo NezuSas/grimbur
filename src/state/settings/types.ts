@@ -31,6 +31,8 @@ export interface SettingsState {
   language: LanguagePreference;
   /** True once the player has finished or skipped the tutorial. */
   tutorialSeen: boolean;
+  /** True once the opening story has been shown (it plays once, before the first descent). */
+  storySeen: boolean;
   /** Achievements unlocked when the player last opened the achievements screen (drives the red dot on the cover). */
   achievementsSeen: number;
   /** One-time in-game hints the player has already read (ability, undo, items). */
@@ -53,6 +55,7 @@ export interface SettingsState {
   setDragAim: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
+  setStorySeen: (seen: boolean) => void;
   setAchievementsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
   markReviewAsked: (at: number) => void;
