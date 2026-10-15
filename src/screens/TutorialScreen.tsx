@@ -5,11 +5,11 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RootStackParamList } from "../navigation/types";
-import BoardView from "../ui/components/BoardView";
+import BoardView, { type ArrowShot } from "../ui/components/BoardView";
 import Controls from "../ui/components/DirectionPad";
 import AttackPanel from "../ui/components/AttackPanel";
 import { GAME_ROW_PADDING, MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
-import { gameReducer, initialState } from "../core/engine/reducer";
+import { arrowPath, gameReducer, initialState } from "../core/engine/reducer";
 import { Direction } from "../core/engine/types";
 import { NO_PERKS } from "../core/engine/heroes";
 import { GAME_CONFIG } from "../config/gameConfig";
@@ -115,7 +115,17 @@ export default function TutorialScreen({ navigation, route }: Props) {
   }, [state.isGameOver]);
 
   const move = useCallback((direction: Direction) => dispatch({ type: "MOVE", direction }), []);
+  // The arrow in flight, worked out from the board as it is when the shot is taken.
+  const [shot, setShot] = useState<ArrowShot | null>(null);
+  const shotCount = useRef(0);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const attack = useCallback(() => {
+    const s = stateRef.current;
+    if (s.attack > 0) {
+      const { tiles, targetIndex } = arrowPath(s, s.facingDir);
+      if (tiles.length > 0) setShot({ key: ++shotCount.current, dir: s.facingDir, tiles: tiles.length, hit: targetIndex !== -1 });
+    }
     setIsAttacking(true);
     dispatch({ type: "ATTACK" });
     if (attackTimer.current) clearTimeout(attackTimer.current);
@@ -245,6 +255,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           facingDir={state.facingDir}
           characterIndex={characterIndex}
           isAttacking={isAttacking}
+          shot={shot}
           highlight={highlight}
         />
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>

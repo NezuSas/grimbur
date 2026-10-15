@@ -13,6 +13,9 @@ import { stepTarget } from "../../core/engine/travel";
 import { getNearbyHazards, NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 
+/** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
+export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
+
 type Props = {
   level: number;
   rows: number;
@@ -35,6 +38,10 @@ type Props = {
   flags?: ReadonlySet<number>;
   /** Tiles an arrow would cross right now (shown while the attack button is held). */
   aimTiles?: ReadonlySet<number>;
+  /** The direction being aimed while the attack button is held: the hero turns that way and draws the bow. */
+  aimDir?: Direction | null;
+  /** The last arrow shot: it flies across the board from the hero. */
+  shot?: ArrowShot | null;
   /** Long press on a tile (toggles its flag). */
   onTileLongPress?: (index: number) => void;
   /** Called once every tile image of the current floor has been drawn. */
@@ -77,7 +84,7 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome
 }: {
   index: number;
   tileSize: number;
@@ -92,8 +99,12 @@ const GridCell = memo(({
   highlighted: boolean;
   /** The player marked this unexplored tile as dangerous. */
   flagged: boolean;
-  /** An arrow would fly over this tile. */
-  aimed: boolean;
+  /** The direction of the arrow that would fly over this tile (null when none would). */
+  aimed: Direction | null;
+  /** How many tiles from the hero this tile is along the aim line (1 = the next one). */
+  aimStep: number;
+  /** This is the last tile the arrow can reach. */
+  aimLast: boolean;
   /** Direction the hero faces when this is the tile in front of it (where a plain shot would go). */
   facing: Direction | null;
   /** The tile's base image has been drawn. */
@@ -351,7 +362,13 @@ const GridCell = memo(({
         </View>
       )}
 
-      {aimed && <View style={styles.aim} pointerEvents="none" />}
+      {aimed && (
+        <View style={[styles.aim, aimLast && styles.aimLast]} pointerEvents="none">
+          {/* A chevron along the line of fire, fading with distance; a ring marks where the arrow stops */}
+          <Ionicons name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#FF8A80" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
+          {aimLast && <View style={[styles.aimRing, { width: tileSize * 0.62, height: tileSize * 0.62, borderRadius: tileSize * 0.31 }]} />}
+        </View>
+      )}
 
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
 
@@ -366,7 +383,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -513,7 +530,25 @@ const BoardView: React.FC<Props> = memo(
     const idleSource = heroArt.playerImage;
     const attackSource = heroArt.attackImage;
     const facingTile = stepTarget(playerIndex, (facingDir || 'RIGHT').toUpperCase() as Direction, rows, cols);
-    const currentFacing = (facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
+    // While the attack button is held the hero already turns toward the aim and draws the bow.
+    const aiming = !!aimDir;
+    const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
+    // Looking up or down keeps the side the hero last faced (it used to snap back to the right).
+    const lastSide = useRef<"left" | "right">("right");
+    if (currentFacing === "left" || currentFacing === "right") lastSide.current = currentFacing;
+    const drawn = isAttacking || aiming;
+
+    // The arrow: flies from the hero to the tile it stops on, then a ring bursts there when it hit something.
+    const flight = useRef(new Animated.Value(1)).current;
+    const [flying, setFlying] = useState<ArrowShot | null>(null);
+    useEffect(() => {
+      if (!shot || calm) return;
+      setFlying(shot);
+      flight.setValue(0);
+      Animated.timing(flight, { toValue: 1, duration: 110 + 55 * shot.tiles, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setFlying(null);
+      });
+    }, [shot?.key]);
 
     return (
       <View style={styles.cameraContainer}>
@@ -542,7 +577,9 @@ const BoardView: React.FC<Props> = memo(
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}
                   flagged={!!flags && flags.has(i) && !visitedSet.has(i)}
-                  aimed={!!aimTiles && aimTiles.has(i)}
+                  aimed={aimTiles && aimTiles.has(i) ? aimDir : null}
+                  aimStep={aimTiles && aimTiles.has(i) ? Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) : 0}
+                  aimLast={!!aimTiles && aimTiles.has(i) && Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) === aimTiles.size}
                   facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
                   onTileLoaded={onTileLoaded}
                   pulse={pulse}
@@ -590,7 +627,7 @@ const BoardView: React.FC<Props> = memo(
                 width: tileSize * 0.8,
                 height: tileSize * 0.8,
                 transform: [
-                  { scaleX: currentFacing === "left" ? -1 : 1 },
+                  { scaleX: lastSide.current === "left" ? -1 : 1 },
                   { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
                   { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
                 ],
@@ -598,18 +635,72 @@ const BoardView: React.FC<Props> = memo(
             >
               {idleSource && (
                 <SpriteImage
-                  style={[styles.heroLayer, { opacity: isAttacking ? 0 : 1 }]}
+                  style={[styles.heroLayer, { opacity: drawn ? 0 : 1 }]}
                   source={idleSource}
                 />
               )}
               {attackSource && (
                 <SpriteImage
-                  style={[styles.heroLayer, { opacity: isAttacking ? 1 : 0 }]}
+                  style={[styles.heroLayer, { opacity: drawn ? 1 : 0 }]}
                   source={attackSource}
                 />
               )}
             </View>
           </Animated.View>
+
+          {flying && (() => {
+            const vec = flying.dir === "UP" ? { x: 0, y: -1 } : flying.dir === "DOWN" ? { x: 0, y: 1 } : flying.dir === "LEFT" ? { x: -1, y: 0 } : { x: 1, y: 0 };
+            const angle = flying.dir === "UP" ? "-90deg" : flying.dir === "DOWN" ? "90deg" : flying.dir === "LEFT" ? "180deg" : "0deg";
+            const reach = flying.tiles * tileSize;
+            const head = tileSize * 0.1;
+            return (
+              <>
+                <Animated.View
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    left: colIndex * tileSize,
+                    top: rowIndex * tileSize,
+                    width: tileSize,
+                    height: tileSize,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 9,
+                    opacity: flight.interpolate({ inputRange: [0, 0.8, 0.95], outputRange: [1, 1, flying.hit ? 0 : 0.2] }),
+                    transform: [
+                      { translateX: flight.interpolate({ inputRange: [0, 0.8], outputRange: [vec.x * tileSize * 0.35, vec.x * reach], extrapolate: "clamp" }) },
+                      { translateY: flight.interpolate({ inputRange: [0, 0.8], outputRange: [vec.y * tileSize * 0.35, vec.y * reach], extrapolate: "clamp" }) },
+                      { rotate: angle },
+                    ],
+                  }}
+                >
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={{ width: tileSize * 0.4, height: Math.max(2, tileSize * 0.07), borderRadius: 2, backgroundColor: "#F5E6B8" }} />
+                    <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#FFD54F" }} />
+                  </View>
+                </Animated.View>
+                {flying.hit && (
+                  <Animated.View
+                    pointerEvents="none"
+                    style={{
+                      position: "absolute",
+                      left: (colIndex + vec.x * flying.tiles) * tileSize,
+                      top: (rowIndex + vec.y * flying.tiles) * tileSize,
+                      width: tileSize,
+                      height: tileSize,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      zIndex: 9,
+                      opacity: flight.interpolate({ inputRange: [0, 0.78, 0.86, 1], outputRange: [0, 0, 0.95, 0] }),
+                      transform: [{ scale: flight.interpolate({ inputRange: [0, 0.78, 1], outputRange: [0.3, 0.3, 1.5] }) }],
+                    }}
+                  >
+                    <View style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, borderWidth: 3, borderColor: "#FFD54F" }} />
+                  </Animated.View>
+                )}
+              </>
+            );
+          })()}
         </Animated.View>
       </View>
     );
@@ -636,7 +727,9 @@ const styles = StyleSheet.create({
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
   facingMark: { position: "absolute", left: 4, top: 4, right: 4, bottom: 4, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center", zIndex: 3 },
-  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.22)", zIndex: 7 },
+  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,82,82,0.6)", backgroundColor: "rgba(255,82,82,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
+  aimLast: { borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.24)" },
+  aimRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,255,255,0.85)" },
   highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD700", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },

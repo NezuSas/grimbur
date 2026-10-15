@@ -422,6 +422,32 @@ export const initialState: GameState = {
  * Wumpus Adventures — Pure Reducer
  * No side-effects (logs, events, replays) allowed here.
  */
+/** How many tiles an arrow flies: the hero's reach plus the bows (the Glass Bow trades safety for two more tiles). */
+export const arrowReachOf = (state: Pick<GameState, 'perks' | 'relics'>): number =>
+  state.perks.arrowReach + relicCount(state.relics, 'long_bow') + 2 * relicCount(state.relics, 'glass_bow');
+
+/**
+ * The flight of an arrow shot toward `aim`: the tiles it crosses (up to its reach, ending on the first hostile one, if any)
+ * and the tile it hits (-1 when it flies on without hitting). The reducer, the aim preview and the arrow animation all use it,
+ * so what the board shows is what the shot does.
+ */
+export function arrowPath(
+  state: Pick<GameState, 'playerIndex' | 'rows' | 'cols' | 'perks' | 'relics' | 'entityMap'>,
+  aim: Direction,
+): { tiles: number[]; targetIndex: number } {
+  const tiles: number[] = [];
+  let cursor = state.playerIndex;
+  const reach = arrowReachOf(state);
+  for (let step = 0; step < reach; step++) {
+    cursor = neighbour(cursor, aim, state.rows, state.cols);
+    if (cursor === -1) break;
+    tiles.push(cursor);
+    const type = state.entityMap[cursor]?.type;
+    if (type === 'boss' || (type && GUARDIAN_TYPES.includes(type))) return { tiles, targetIndex: cursor };
+  }
+  return { tiles, targetIndex: -1 };
+}
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'MOVE': {
@@ -621,18 +647,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       // An aimed shot turns the hero toward the target first; a plain shot keeps the current facing.
       const aim = action.direction ?? state.facingDir;
 
-      // The arrow flies up to `arrowReach` tiles and hits the first hostile one.
-      let targetIndex = -1;
-      let cursor = state.playerIndex;
-      for (let step = 0; step < state.perks.arrowReach + relicCount(state.relics, 'long_bow') + 2 * relicCount(state.relics, 'glass_bow'); step++) {
-        cursor = neighbour(cursor, aim, rows, cols);
-        if (cursor === -1) break;
-        const type = state.entityMap[cursor]?.type;
-        if (type === 'boss' || (type && GUARDIAN_TYPES.includes(type))) {
-          targetIndex = cursor;
-          break;
-        }
-      }
+      // The arrow flies up to its reach and hits the first hostile tile.
+      const { targetIndex } = arrowPath(state, aim);
 
       let world: World = { entities: state.entities, entityMap: state.entityMap };
       let newScore = state.score;
