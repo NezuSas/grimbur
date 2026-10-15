@@ -238,9 +238,35 @@ export default function LessonScreen({ navigation, route }: Props) {
           totalCoins={19}
           time={412}
           character={characterWithSkin(route.params.devGameOver.hero, route.params.devGameOver.skin)}
-          deathCause={route.params.devGameOver.cause}
+          deathCause={route.params.devGameOver.victory ? null : route.params.devGameOver.cause}
+          victory={route.params.devGameOver.victory}
           onRetry={() => {}}
           onMainMenu={() => {}}
+          // The fullest card a real run can produce (every optional line at once), to check it fits small phones.
+          {...(route.params.devGameOver.full
+            ? {
+                floors: 10,
+                dailyLabel: "2026-10-14",
+                depth: 3,
+                streak: 7,
+                bestScore: 9000,
+                isNewBest: true,
+                embers: 190,
+                payout: { run: 60, milestone: 30, daily: 25, welcomeBack: 40, achievements: 35, total: 190 },
+                achievements: ["win_mira", "win_bram", "first_blood", "explorer", "hoarder"],
+                unlocks: { heroes: [4], depth: 3, endless: true, skins: [{ hero: 4, skin: "shadow" }] },
+                goals: [
+                  { kind: "forge", id: "ward", cost: 80, remaining: 0, progress: 1, affordable: true },
+                  { kind: "hero", hero: 5, metric: "embers", current: 320, target: 500, remaining: 180, progress: 0.64 },
+                ],
+                canBuyNow: true,
+                explainEmbers: true,
+                gemsLeft: 1,
+                onForge: () => {},
+                onShare: () => {},
+                onTryUnlock: () => {},
+              }
+            : {})}
         />
       ) : null}
 
