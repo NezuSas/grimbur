@@ -11,7 +11,7 @@ import { useGameLayout } from "../ui/layout/useGameLayout";
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD, TIER_ORDER, AchievementTier } from "../core/stats/achievements";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { closestAchievements } from "../core/stats/goals";
-import { getLocalStats, peekLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats, syncAchievements } from "../services/localStats";
 import { useT } from "../i18n/useT";
 import { useSettingsStore } from "../state/settings/store";
 import { achievementText } from "../i18n/keys";
@@ -34,7 +34,10 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      getLocalStats()
+      // Unlocks what the numbers already satisfy first, so a full bar never sits next to a locked card.
+      syncAchievements()
+        .then(r => r.stats)
+        .catch(() => getLocalStats())
         .then(loaded => {
           setStats(loaded);
           setAchievementsSeen(Object.keys(loaded.achievements).length); // clears the red dot on the cover
