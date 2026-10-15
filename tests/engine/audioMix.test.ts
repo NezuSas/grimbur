@@ -101,3 +101,32 @@ describe('the mix table', () => {
     expect(gainFor(-18, -12)).toBeCloseTo(0.501, 2);
   });
 });
+
+describe('the footstep is audible on a phone speaker', () => {
+  // A phone speaker cannot reproduce anything much below ~150 Hz. The first recording of the step kept 98.5 % of its
+  // energy there, so on a phone a single step was silent (only the stacked clicks of fast steps were heard).
+  it('keeps most of its energy above 150 Hz', () => {
+    const { samples, rate } = readWav(path.join(ASSETS, 'sfx', 'move.wav'));
+    const n = samples.length;
+    const hann = (i: number) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
+    const x = samples.map((s, i) => s * hann(i));
+    const energyAt = (k: number) => {
+      let re = 0;
+      let im = 0;
+      for (let i = 0; i < n; i++) {
+        re += x[i] * Math.cos((2 * Math.PI * k * i) / n);
+        im -= x[i] * Math.sin((2 * Math.PI * k * i) / n);
+      }
+      return re * re + im * im;
+    };
+    const lastLowBin = Math.floor((150 * n) / rate);
+    let low = 0;
+    let total = 0;
+    for (let k = 1; k <= n / 2; k++) {
+      const e = energyAt(k);
+      total += e;
+      if (k <= lastLowBin) low += e;
+    }
+    expect(low / total).toBeLessThan(0.15);
+  });
+});
