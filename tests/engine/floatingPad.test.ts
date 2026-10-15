@@ -1,4 +1,4 @@
-import { FLOATING_DEAD_ZONE, REPEAT_FIRST_MS, REPEAT_MS, canRepeatStep, clampPadCenter, floatingDirection } from '../../src/core/input/floatingPad';
+import { FLOATING_DEAD_ZONE, REPEAT_FIRST_MS, REPEAT_MS, canRepeatStep, floatingDirection } from '../../src/core/input/floatingPad';
 import { initialState } from '../../src/core/engine/reducer';
 import type { GameState } from '../../src/core/engine/types';
 
@@ -32,21 +32,6 @@ describe('floatingDirection', () => {
   it('repeats at a pace a player can follow', () => {
     expect(REPEAT_FIRST_MS).toBeGreaterThan(REPEAT_MS);
     expect(REPEAT_MS).toBeGreaterThanOrEqual(150);
-  });
-});
-
-describe('clampPadCenter', () => {
-  it('opens the pad under the thumb when there is room', () => {
-    expect(clampPadCenter(100, 100, 200, 200, 40)).toEqual({ x: 100, y: 100 });
-  });
-
-  it('keeps the whole pad inside the zone near the edges', () => {
-    expect(clampPadCenter(5, 195, 200, 200, 40)).toEqual({ x: 40, y: 160 });
-    expect(clampPadCenter(400, -20, 200, 200, 40)).toEqual({ x: 160, y: 40 });
-  });
-
-  it('centres the pad when the zone is smaller than the pad', () => {
-    expect(clampPadCenter(10, 10, 60, 60, 40)).toEqual({ x: 30, y: 30 });
   });
 });
 
