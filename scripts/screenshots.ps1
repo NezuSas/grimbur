@@ -14,6 +14,7 @@ param(
   [string]$Tag = '',
   [string]$Pad = '',
   [string]$Skin = '',
+  [string]$Cat = '',
   [switch]$Calm,
   [double]$Scale = 1
 )
@@ -32,6 +33,7 @@ foreach ($screen in $Screens) {
     if ($Calm) { $url += "&calm=1" }
     if ($Pad) { $url += "&pad=$Pad" }
     if ($Skin) { $url += "&skin=$Skin" }
+    if ($Cat) { $url += "&cat=$Cat" }
     if ($Params) { $url += "&params=$([uri]::EscapeDataString($Params))" }
     # Start-Process -Wait is the reliable way to let headless Chrome finish writing the file; retry if the machine is busy.
     $args = @('--headless=new', '--disable-gpu', '--hide-scrollbars', "--user-data-dir=$profile", "--window-size=$w,$h", "--force-device-scale-factor=$Scale", "--virtual-time-budget=$Budget", "--screenshot=$out", $url)

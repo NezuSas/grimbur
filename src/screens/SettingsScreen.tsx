@@ -1,25 +1,19 @@
 import React from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  TextInput,
-  Share,
-  ImageBackground,
-  useWindowDimensions,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
+import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
 import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../state/settings/types";
 import { JoystickPreview } from "../ui/components/JoystickBase";
+import ScreenHeader from "../ui/components/ScreenHeader";
+import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, ToggleSwitch } from "../ui/components/settings/SettingsParts";
+import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
+import { emitSound } from "../audio/audioEventBus";
 import { resetLocalStats } from "../services/localStats";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
 import { decodeBackup, summarize } from "../core/stats/backup";
@@ -27,95 +21,31 @@ import type { DecodeFailure } from "../core/stats/backup";
 import { VOLUME_STEPS } from "../core/audio/volume";
 import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
+import type { TranslationKey } from "../i18n/en";
+import { GAME_CONFIG } from "../config/gameConfig";
+import appJson from "../../app.json";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
 
-type RowProps = {
-  label: string;
-  hint?: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  children: React.ReactNode;
-  /** Stack the control under the label (long segmented controls on narrow windows). */
-  stacked?: boolean;
-  /** Fades the row (its control stays usable), e.g. volumes while the master sound switch is off. */
-  dimmed?: boolean;
-};
+type CategoryId = "sound" | "controls" | "access" | "language" | "data" | "about";
+const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: string; label: TranslationKey }[] = [
+  { id: "sound", icon: "volume-high", tint: "#4FC3F7", label: "settings.section.sound" },
+  { id: "controls", icon: "game-controller", tint: "#FFAB40", label: "settings.section.controls" },
+  { id: "access", icon: "eye", tint: "#9EE37D", label: "settings.section.accessibility" },
+  { id: "language", icon: "language", tint: "#CE93D8", label: "settings.section.language" },
+  { id: "data", icon: "save", tint: "#80CBC4", label: "settings.section.data" },
+  { id: "about", icon: "information-circle", tint: "#B0BEC5", label: "settings.section.about" },
+];
 
-/** Module-level so the screen never remounts its rows. */
-const SettingRow = ({ label, hint, icon, children, stacked, dimmed }: RowProps) => (
-  <View style={[styles.settingRow, stacked && styles.settingRowStacked, dimmed && { opacity: 0.5 }]}>
-    <View style={styles.settingLabelContainer}>
-      <Ionicons name={icon} size={24} color="#FFD700" style={{ marginRight: 14 }} />
-      <View style={{ flexShrink: 1 }}>
-        <Text style={styles.settingLabel} maxFontSizeMultiplier={1.3}>
-          {label}
-        </Text>
-        {hint ? (
-          <Text style={styles.settingHint} maxFontSizeMultiplier={1.3}>
-            {hint}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-    {children}
-  </View>
-);
-
-/** A titled group of rows. */
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <View>
-    <Text style={styles.sectionTitle} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-      {title.toLocaleUpperCase()}
-    </Text>
-    <View style={styles.mainCard}>{children}</View>
-  </View>
-);
-
-type SegmentOption<V extends string> = { value: V; label: string };
-
-function Segmented<V extends string>({
-  options,
-  value,
-  onChange,
-  accessibilityLabel,
-}: {
-  options: SegmentOption<V>[];
-  value: V;
-  onChange: (value: V) => void;
-  accessibilityLabel: string;
-}) {
-  return (
-    <View style={styles.segmentedContainer} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
-      {options.map(option => {
-        const active = option.value === value;
-        return (
-          <TouchableOpacity
-            key={option.value}
-            onPress={() => onChange(option.value)}
-            style={[styles.segment, active && styles.segmentActive]}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: active }}
-            accessibilityLabel={option.label}
-          >
-            <Text
-              style={[styles.segmentText, active && styles.segmentTextActive]}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              maxFontSizeMultiplier={1.2}
-            >
-              {option.label.toLocaleUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
+/** A link is shown only once it points to a real page (the shipped defaults are placeholders). */
+const isReal = (value: string | undefined) => !!value && !value.includes("example.com");
 
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
-  const { spacing, fontSize, insets } = useGameLayout();
+  // Development only (web): `?cat=controls` opens that category, for screenshots.
+  const devCategory = __DEV__ && typeof location !== "undefined" ? (new URLSearchParams(location.search).get("cat") as CategoryId | null) : null;
+  const [category, setCategory] = React.useState<CategoryId>(devCategory && CATEGORIES.some(c => c.id === devCategory) ? devCategory : "sound");
 
   const soundEnabled = useSettingsStore(s => s.soundEnabled);
   const hapticsEnabled = useSettingsStore(s => s.hapticsEnabled);
@@ -124,17 +54,27 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const language = useSettingsStore(s => s.language);
   const attackButton = useSettingsStore(s => s.attackButton);
   const movePad = useSettingsStore(s => s.movePad);
-  const setMovePad = useSettingsStore(s => s.setMovePad);
   const joystickSkin = useSettingsStore(s => s.joystickSkin);
-  const setJoystickSkin = useSettingsStore(s => s.setJoystickSkin);
   const controlSize = useSettingsStore(s => s.controlSize);
-  const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
   const musicVolume = useSettingsStore(s => s.musicVolume);
   const sfxVolume = useSettingsStore(s => s.sfxVolume);
   const setMusicVolume = useSettingsStore(s => s.setMusicVolume);
   const setSfxVolume = useSettingsStore(s => s.setSfxVolume);
+  const setMovePad = useSettingsStore(s => s.setMovePad);
+  const setJoystickSkin = useSettingsStore(s => s.setJoystickSkin);
+  const setControlSize = useSettingsStore(s => s.setControlSize);
+  const setAttackButton = useSettingsStore(s => s.setAttackButton);
+  const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
+  const setDragAim = useSettingsStore(s => s.setDragAim);
+  const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
+  const setHapticsEnabled = useSettingsStore(s => s.setHapticsEnabled);
+  const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
+  const setControlPosition = useSettingsStore(s => s.setControlPosition);
+  const setLanguage = useSettingsStore(s => s.setLanguage);
+
+  // ── Data: delete, backup, restore (unchanged behaviour) ────────────────────────────────────────────────
   const [deleteStep, setDeleteStep] = React.useState<0 | 1 | 2>(0);
   const onDelete = async () => {
     if (deleteStep === 0) {
@@ -185,18 +125,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     }
     setRestoreNotice({ ok: done, text: done ? t("backup.restored") : t("backup.restoreFailed") });
   };
-  const setAttackButton = useSettingsStore(s => s.setAttackButton);
-  const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
-  const setDragAim = useSettingsStore(s => s.setDragAim);
-  const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
-  const setHapticsEnabled = useSettingsStore(s => s.setHapticsEnabled);
-  const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
-  const setControlPosition = useSettingsStore(s => s.setControlPosition);
-  const setLanguage = useSettingsStore(s => s.setLanguage);
 
-  // The SafeAreaView already removes the notch insets from the space the card lives in.
-  const cardWidth = Math.min(width - insets.left - insets.right - 32, 560);
-
+  // ── Options ─────────────────────────────────────────────────────────────────────────────────────────────
   const controlOptions: SegmentOption<ControlPosition>[] = [
     { value: "left", label: t("settings.left") },
     { value: "right", label: t("settings.right") },
@@ -224,330 +154,341 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     { value: "es", label: t("settings.languageEs") },
   ];
 
-  const volumeOptions: SegmentOption<string>[] = VOLUME_STEPS.map(step => ({ value: String(step), label: t("settings.volumeLevel", { n: step }) }));
+  // ── Panes ───────────────────────────────────────────────────────────────────────────────────────────────
+  const soundPane = (
+    <>
+      <SettingCard>
+        <SettingRow label={t("settings.sound")} icon={soundEnabled ? "volume-high" : "volume-mute"} tint="#4FC3F7">
+          <ToggleSwitch value={soundEnabled} onValueChange={setSoundEnabled} accessibilityLabel={t("settings.sound")} />
+        </SettingRow>
+      </SettingCard>
+      <SettingCard title={t("settings.volumes")}>
+        <SettingRow label={t("settings.music")} icon="musical-notes" tint="#B39DDB" stacked dimmed={!soundEnabled}>
+          <LevelSlider
+            value={musicVolume}
+            steps={VOLUME_STEPS}
+            onChange={setMusicVolume}
+            valueLabel={t("settings.volumeLevel", { n: musicVolume })}
+            accessibilityLabel={t("settings.music")}
+          />
+        </SettingRow>
+        <RowDivider />
+        <SettingRow label={t("settings.effects")} icon="pulse" tint="#FF8A65" stacked dimmed={!soundEnabled}>
+          <LevelSlider
+            value={sfxVolume}
+            steps={VOLUME_STEPS}
+            onChange={setSfxVolume}
+            // A sample at the new level, so it can be judged by ear (the level reaches the player a moment after it changes).
+            onRelease={() => setTimeout(() => emitSound("COIN_COLLECTED"), 140)}
+            valueLabel={t("settings.volumeLevel", { n: sfxVolume })}
+            accessibilityLabel={t("settings.effects")}
+          />
+        </SettingRow>
+      </SettingCard>
+    </>
+  );
 
-  const switchColors = { false: "#555", true: "#4caf50" };
+  const controlsPane = (
+    <>
+      <SettingCard title={t("settings.group.move")}>
+        <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#FFAB40" stacked>
+          <Segmented options={padOptions} value={movePad} onChange={setMovePad} accessibilityLabel={t("settings.movePad")} />
+        </SettingRow>
+        {movePad === "floating" && (
+          <>
+            <RowDivider />
+            <SettingRow label={t("settings.joystickSkin")} icon="color-palette" tint="#F48FB1" stacked>
+              <Segmented options={skinOptions} value={joystickSkin} onChange={setJoystickSkin} accessibilityLabel={t("settings.joystickSkin")} />
+              <View style={styles.tryRow}>
+                <JoystickPreview skin={joystickSkin} radius={56} />
+                <Text style={styles.tryText} maxFontSizeMultiplier={1.3}>
+                  {t("settings.joystickTry")}
+                </Text>
+              </View>
+            </SettingRow>
+          </>
+        )}
+        <RowDivider />
+        <SettingRow label={t("settings.swipe")} hint={t("settings.swipeHint")} icon="swap-horizontal" tint="#4DB6AC">
+          <ToggleSwitch value={swipeMove} onValueChange={setSwipeMove} accessibilityLabel={t("settings.swipe")} />
+        </SettingRow>
+      </SettingCard>
+
+      <SettingCard title={t("settings.group.attack")}>
+        <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#FF7043" stacked>
+          <Segmented options={attackOptions} value={attackButton} onChange={setAttackButton} accessibilityLabel={t("settings.attackButton")} />
+        </SettingRow>
+        <RowDivider />
+        <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate" tint="#EF5350">
+          <ToggleSwitch value={dragAim} onValueChange={setDragAim} accessibilityLabel={t("settings.dragAim")} />
+        </SettingRow>
+      </SettingCard>
+
+      <SettingCard title={t("settings.group.layout")}>
+        <SettingRow label={t("settings.controls")} icon="game-controller" tint="#FFD54F" stacked>
+          <Segmented options={controlOptions} value={controlPosition} onChange={setControlPosition} accessibilityLabel={t("settings.controls")} />
+        </SettingRow>
+        <RowDivider />
+        <SettingRow label={t("settings.controlSize")} icon="resize" tint="#81C784" stacked>
+          <Segmented options={sizeOptions} value={controlSize} onChange={setControlSize} accessibilityLabel={t("settings.controlSize")} />
+        </SettingRow>
+      </SettingCard>
+    </>
+  );
+
+  const accessPane = (
+    <SettingCard>
+      <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#9EE37D">
+        <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
+      </SettingRow>
+      <RowDivider />
+      <SettingRow label={t("settings.reduceFlash")} hint={t("settings.reduceFlashHint")} icon="flash-off-outline" tint="#FFF176">
+        <ToggleSwitch value={reduceFlash} onValueChange={setReduceFlash} accessibilityLabel={t("settings.reduceFlash")} />
+      </SettingRow>
+    </SettingCard>
+  );
+
+  const languagePane = (
+    <SettingCard>
+      <SettingRow label={t("settings.language")} icon="language" tint="#CE93D8" stacked>
+        <Segmented options={languageOptions} value={language} onChange={setLanguage} accessibilityLabel={t("settings.language")} />
+      </SettingRow>
+    </SettingCard>
+  );
+
+  const dataPane = (
+    <>
+      <SettingCard title={t("settings.group.backup")}>
+        <SettingRow label={t("backup.copy")} hint={t("backup.copyHint")} icon="copy-outline" tint="#80CBC4">
+          <RoundAction icon="copy" onPress={onCopyCode} label={t("backup.copy")} />
+        </SettingRow>
+        {backupNotice ? (
+          <Text style={[styles.notice, backupNotice.ok ? styles.noticeOk : styles.noticeBad]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+            {backupNotice.text}
+          </Text>
+        ) : null}
+        <RowDivider />
+        <SettingRow label={t("backup.restore")} hint={t("backup.restoreHint")} icon="download-outline" tint="#4FC3F7">
+          <RoundAction
+            icon={restoreOpen ? "chevron-up" : "chevron-down"}
+            label={t("backup.restore")}
+            onPress={() => {
+              setRestoreOpen(open => !open);
+              setPending(null);
+              setRestoreNotice(null);
+            }}
+          />
+        </SettingRow>
+        {restoreOpen ? (
+          <View style={styles.restorePanel}>
+            <TextInput
+              value={codeText}
+              onChangeText={text => {
+                setCodeText(text);
+                setPending(null);
+                setRestoreNotice(null);
+              }}
+              placeholder={t("backup.placeholder")}
+              placeholderTextColor="#777"
+              style={styles.codeInput}
+              multiline
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              accessibilityLabel={t("backup.restore")}
+            />
+            {pending ? (
+              <View style={styles.confirmBox}>
+                <Text style={styles.confirmText} maxFontSizeMultiplier={1.3}>
+                  {t("backup.summary", { runs: pending.runs, score: pending.bestScore.toLocaleString(), embers: pending.embers, achievements: pending.achievements })}
+                </Text>
+                <Text style={styles.confirmWarn} maxFontSizeMultiplier={1.3}>
+                  {t("backup.warn")}
+                </Text>
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity style={[styles.pill, styles.pillDanger]} onPress={onConfirmRestore} accessibilityRole="button">
+                    <Text style={styles.pillDangerText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {t("backup.confirm").toLocaleUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.pill, styles.pillGhost]} onPress={() => setPending(null)} accessibilityRole="button">
+                    <Text style={styles.pillGhostText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {t("backup.cancel").toLocaleUpperCase()}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={[styles.pill, styles.pillGhost]} onPress={onPaste} accessibilityRole="button">
+                  <Text style={styles.pillGhostText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                    {t("backup.paste").toLocaleUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.pill, styles.pillGold]} onPress={onCheck} accessibilityRole="button">
+                  <Text style={styles.pillGoldText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                    {t("backup.check").toLocaleUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            {restoreNotice ? (
+              <Text style={[styles.notice, restoreNotice.ok ? styles.noticeOk : styles.noticeBad]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+                {restoreNotice.text}
+              </Text>
+            ) : null}
+          </View>
+        ) : restoreNotice?.ok ? (
+          <Text style={[styles.notice, styles.noticeOk]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+            {restoreNotice.text}
+          </Text>
+        ) : null}
+      </SettingCard>
+
+      <SettingCard title={t("settings.group.support")}>
+        <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline" tint="#B0BEC5">
+          <RoundAction icon="share-outline" label={t("settings.audioLog")} onPress={() => Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {})} />
+        </SettingRow>
+      </SettingCard>
+
+      <SettingCard title={t("settings.group.danger")}>
+        <SettingRow label={t("settings.delete")} hint={deleteStep === 2 ? t("settings.deleteDone") : t("settings.deleteHint")} icon="trash-outline" tint="#FF8A80">
+          <RoundAction
+            icon={deleteStep === 2 ? "checkmark" : "trash"}
+            tone={deleteStep === 1 ? "dangerOn" : "danger"}
+            disabled={deleteStep === 2}
+            onPress={onDelete}
+            label={deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.delete")}
+          />
+        </SettingRow>
+      </SettingCard>
+
+      <View style={styles.infoBox}>
+        <Ionicons name="information-circle-outline" size={18} color="#aaa" />
+        <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
+          {t("settings.autosave")}
+        </Text>
+      </View>
+    </>
+  );
+
+  const version = (appJson as { expo?: { version?: string } }).expo?.version ?? "";
+  const aboutPane = (
+    <>
+      <View style={styles.aboutHero}>
+        <Text style={styles.aboutName} maxFontSizeMultiplier={1.2}>
+          WUMPUS
+        </Text>
+        <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
+          ADVENTURES
+        </Text>
+        <Text style={styles.aboutTag} maxFontSizeMultiplier={1.3}>
+          {t("cover.tagline")}
+        </Text>
+        <View style={styles.versionPill}>
+          <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>
+            {t("settings.version", { v: version })}
+          </Text>
+        </View>
+      </View>
+      {isReal(GAME_CONFIG.support.email) || isReal(GAME_CONFIG.monetization.privacyUrl) || isReal(GAME_CONFIG.monetization.termsUrl) ? (
+        <SettingCard>
+          {isReal(GAME_CONFIG.support.email) && (
+            <SettingRow label={t("settings.contact")} hint={GAME_CONFIG.support.email} icon="mail" tint="#4FC3F7">
+              <RoundAction icon="open-outline" label={t("settings.contact")} onPress={() => void Linking.openURL(`mailto:${GAME_CONFIG.support.email}`).catch(() => {})} />
+            </SettingRow>
+          )}
+          {isReal(GAME_CONFIG.monetization.privacyUrl) && (
+            <>
+              <RowDivider />
+              <SettingRow label={t("settings.privacy")} icon="shield-checkmark" tint="#81C784">
+                <RoundAction icon="open-outline" label={t("settings.privacy")} onPress={() => void Linking.openURL(GAME_CONFIG.monetization.privacyUrl).catch(() => {})} />
+              </SettingRow>
+            </>
+          )}
+          {isReal(GAME_CONFIG.monetization.termsUrl) && (
+            <>
+              <RowDivider />
+              <SettingRow label={t("settings.terms")} icon="document-text" tint="#FFB74D">
+                <RoundAction icon="open-outline" label={t("settings.terms")} onPress={() => void Linking.openURL(GAME_CONFIG.monetization.termsUrl).catch(() => {})} />
+              </SettingRow>
+            </>
+          )}
+        </SettingCard>
+      ) : null}
+    </>
+  );
+
+  const panes: Record<CategoryId, React.ReactNode> = { sound: soundPane, controls: controlsPane, access: accessPane, language: languagePane, data: dataPane, about: aboutPane };
+
+  // Wide windows get a rail of categories on the left; narrow ones a row of chips on top.
+  const wide = width >= 640;
+  const railWidth = Math.min(230, Math.max(180, width * 0.24));
+  const paneBody = (
+    <ScrollView contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.paneInner}>{panes[category]}</View>
+    </ScrollView>
+  );
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)" }}>
-        <View style={[styles.header, { paddingVertical: spacing(12), minHeight: MIN_TOUCH + 12 }]}>
-          <TouchableOpacity
-            style={[styles.backButton, { left: 12 }]}
-            onPress={() => navigation.goBack()}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={t("a11y.back")}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <Text style={[styles.title, { fontSize: fontSize(26) }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-            {t("settings.title").toLocaleUpperCase()}
-          </Text>
-        </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+        <ScreenHeader title={t("settings.title")} onBack={() => navigation.goBack()} />
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={{ width: cardWidth, gap: 14 }}>
-            <Section title={t("settings.section.sound")}>
-              <SettingRow label={t("settings.sound")} icon={soundEnabled ? "volume-high" : "volume-mute"}>
-                <Switch
-                  value={soundEnabled}
-                  onValueChange={setSoundEnabled}
-                  trackColor={switchColors}
-                  accessibilityLabel={t("settings.sound")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.music")} icon="musical-notes" stacked dimmed={!soundEnabled}>
-                <Segmented
-                  options={volumeOptions}
-                  value={String(musicVolume)}
-                  onChange={v => setMusicVolume(Number(v))}
-                  accessibilityLabel={t("settings.music")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.effects")} icon="pulse" stacked dimmed={!soundEnabled}>
-                <Segmented
-                  options={volumeOptions}
-                  value={String(sfxVolume)}
-                  onChange={v => setSfxVolume(Number(v))}
-                  accessibilityLabel={t("settings.effects")}
-                />
-              </SettingRow>
-            </Section>
-
-            <Section title={t("settings.section.controls")}>
-              <SettingRow label={t("settings.controls")} icon="game-controller" stacked>
-                <Segmented
-                  options={controlOptions}
-                  value={controlPosition}
-                  onChange={setControlPosition}
-                  accessibilityLabel={t("settings.controls")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" stacked>
-                <Segmented
-                  options={padOptions}
-                  value={movePad}
-                  onChange={setMovePad}
-                  accessibilityLabel={t("settings.movePad")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              {movePad === "floating" && (
-                <>
-                  <SettingRow label={t("settings.joystickSkin")} icon="color-palette" stacked>
-                    <Segmented
-                      options={skinOptions}
-                      value={joystickSkin}
-                      onChange={setJoystickSkin}
-                      accessibilityLabel={t("settings.joystickSkin")}
-                    />
-                    <View style={styles.joystickTry}>
-                      <JoystickPreview skin={joystickSkin} radius={56} />
-                      <Text style={styles.joystickTryText} maxFontSizeMultiplier={1.3}>
-                        {t("settings.joystickTry")}
-                      </Text>
+        {wide ? (
+          <View style={styles.body}>
+            <ScrollView style={{ width: railWidth, flexGrow: 0 }} contentContainerStyle={styles.rail} showsVerticalScrollIndicator={false}>
+              {CATEGORIES.map(c => {
+                const on = c.id === category;
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    onPress={() => setCategory(c.id)}
+                    activeOpacity={0.85}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.railItem, on && { backgroundColor: c.tint + "1F", borderColor: c.tint + "88" }]}
+                  >
+                    <View style={[styles.railChip, { backgroundColor: c.tint + (on ? "40" : "22") }]}>
+                      <Ionicons name={c.icon} size={20} color={c.tint} />
                     </View>
-                  </SettingRow>
-
-                  <View style={styles.separator} />
-                </>
-              )}
-
-              <SettingRow label={t("settings.controlSize")} icon="resize" stacked>
-                <Segmented
-                  options={sizeOptions}
-                  value={controlSize}
-                  onChange={setControlSize}
-                  accessibilityLabel={t("settings.controlSize")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" stacked>
-                <Segmented
-                  options={attackOptions}
-                  value={attackButton}
-                  onChange={setAttackButton}
-                  accessibilityLabel={t("settings.attackButton")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate">
-                <Switch
-                  value={dragAim}
-                  onValueChange={setDragAim}
-                  trackColor={switchColors}
-                  accessibilityLabel={t("settings.dragAim")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.swipe")} hint={t("settings.swipeHint")} icon="swap-horizontal">
-                <Switch
-                  value={swipeMove}
-                  onValueChange={setSwipeMove}
-                  trackColor={switchColors}
-                  accessibilityLabel={t("settings.swipe")}
-                />
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline">
-                <Switch
-                  value={hapticsEnabled}
-                  onValueChange={setHapticsEnabled}
-                  trackColor={switchColors}
-                  accessibilityLabel={t("settings.haptics")}
-                />
-              </SettingRow>
-            </Section>
-
-            <Section title={t("settings.section.accessibility")}>
-              <SettingRow label={t("settings.reduceFlash")} hint={t("settings.reduceFlashHint")} icon="flash-off-outline">
-                <Switch
-                  value={reduceFlash}
-                  onValueChange={setReduceFlash}
-                  trackColor={switchColors}
-                  accessibilityLabel={t("settings.reduceFlash")}
-                />
-              </SettingRow>
-            </Section>
-
-            <Section title={t("settings.section.language")}>
-              <SettingRow label={t("settings.language")} icon="language" stacked>
-                <Segmented
-                  options={languageOptions}
-                  value={language}
-                  onChange={setLanguage}
-                  accessibilityLabel={t("settings.language")}
-                />
-              </SettingRow>
-            </Section>
-
-            <Section title={t("settings.section.data")}>
-              <SettingRow label={t("backup.copy")} hint={t("backup.copyHint")} icon="copy-outline">
-                <TouchableOpacity
-                  style={styles.logButton}
-                  onPress={onCopyCode}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("backup.copy")}
-                >
-                  <Ionicons name="copy" size={20} color="#000" />
-                </TouchableOpacity>
-              </SettingRow>
-              {backupNotice ? (
-                <Text
-                  style={[styles.notice, backupNotice.ok ? styles.noticeOk : styles.noticeBad]}
-                  accessibilityLiveRegion="polite"
-                  maxFontSizeMultiplier={1.3}
-                >
-                  {backupNotice.text}
-                </Text>
-              ) : null}
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("backup.restore")} hint={t("backup.restoreHint")} icon="download-outline">
-                <TouchableOpacity
-                  style={styles.logButton}
-                  onPress={() => {
-                    setRestoreOpen(open => !open);
-                    setPending(null);
-                    setRestoreNotice(null);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: restoreOpen }}
-                  accessibilityLabel={t("backup.restore")}
-                >
-                  <Ionicons name={restoreOpen ? "chevron-up" : "chevron-down"} size={20} color="#000" />
-                </TouchableOpacity>
-              </SettingRow>
-              {restoreOpen ? (
-                <View style={styles.restorePanel}>
-                  <TextInput
-                    value={codeText}
-                    onChangeText={text => {
-                      setCodeText(text);
-                      setPending(null);
-                      setRestoreNotice(null);
-                    }}
-                    placeholder={t("backup.placeholder")}
-                    placeholderTextColor="#777"
-                    style={styles.codeInput}
-                    multiline
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    spellCheck={false}
-                    accessibilityLabel={t("backup.restore")}
-                  />
-                  {pending ? (
-                    <View style={styles.confirmBox}>
-                      <Text style={styles.confirmText} maxFontSizeMultiplier={1.3}>
-                        {t("backup.summary", { runs: pending.runs, score: pending.bestScore.toLocaleString(), embers: pending.embers, achievements: pending.achievements })}
-                      </Text>
-                      <Text style={styles.confirmWarn} maxFontSizeMultiplier={1.3}>
-                        {t("backup.warn")}
-                      </Text>
-                      <View style={styles.buttonRow}>
-                        <TouchableOpacity style={[styles.pill, styles.pillDanger]} onPress={onConfirmRestore} accessibilityRole="button">
-                          <Text style={styles.pillDangerText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                            {t("backup.confirm").toLocaleUpperCase()}
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.pill, styles.pillGhost]} onPress={() => setPending(null)} accessibilityRole="button">
-                          <Text style={styles.pillGhostText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                            {t("backup.cancel").toLocaleUpperCase()}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    <View style={styles.buttonRow}>
-                      <TouchableOpacity style={[styles.pill, styles.pillGhost]} onPress={onPaste} accessibilityRole="button">
-                        <Text style={styles.pillGhostText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                          {t("backup.paste").toLocaleUpperCase()}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={[styles.pill, styles.pillGold]} onPress={onCheck} accessibilityRole="button">
-                        <Text style={styles.pillGoldText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                          {t("backup.check").toLocaleUpperCase()}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  {restoreNotice ? (
-                    <Text
-                      style={[styles.notice, restoreNotice.ok ? styles.noticeOk : styles.noticeBad]}
-                      accessibilityLiveRegion="polite"
-                      maxFontSizeMultiplier={1.3}
-                    >
-                      {restoreNotice.text}
+                    <Text style={[styles.railLabel, on && { color: "#fff" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                      {t(c.label)}
                     </Text>
-                  ) : null}
-                </View>
-              ) : restoreNotice?.ok ? (
-                <Text style={[styles.notice, styles.noticeOk]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
-                  {restoreNotice.text}
-                </Text>
-              ) : null}
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline">
-                <TouchableOpacity
-                  style={styles.logButton}
-                  onPress={() => {
-                    Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {});
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("settings.audioLog")}
-                >
-                  <Ionicons name="share-outline" size={20} color="#000" />
-                </TouchableOpacity>
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <SettingRow label={t("settings.delete")} hint={deleteStep === 2 ? t("settings.deleteDone") : t("settings.deleteHint")} icon="trash-outline">
-                <TouchableOpacity
-                  style={[styles.deleteButton, deleteStep === 1 && { backgroundColor: "#FF5252" }]}
-                  onPress={onDelete}
-                  disabled={deleteStep === 2}
-                  accessibilityRole="button"
-                  accessibilityLabel={deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.delete")}
-                >
-                  <Ionicons name={deleteStep === 2 ? "checkmark" : "trash"} size={20} color={deleteStep === 1 ? "#fff" : "#FF8A80"} />
-                </TouchableOpacity>
-              </SettingRow>
-
-              <View style={styles.separator} />
-
-              <View style={styles.infoBox}>
-                <Ionicons name="information-circle-outline" size={20} color="#aaa" />
-                <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
-                  {t("settings.autosave")}
-                </Text>
-              </View>
-            </Section>
+                    {on ? <View style={[styles.railBar, { backgroundColor: c.tint }]} /> : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            <View style={{ flex: 1 }}>{paneBody}</View>
           </View>
-        </ScrollView>
+        ) : (
+          <View style={{ flex: 1 }}>
+            <View style={styles.chipsWrap}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+              {CATEGORIES.map(c => {
+                const on = c.id === category;
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    onPress={() => setCategory(c.id)}
+                    activeOpacity={0.85}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.topChip, on && { backgroundColor: c.tint + "26", borderColor: c.tint }]}
+                  >
+                    <Ionicons name={c.icon} size={18} color={c.tint} />
+                    <Text style={[styles.topChipText, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {t(c.label)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            </View>
+            {paneBody}
+          </View>
+        )}
       </SafeAreaView>
     </ImageBackground>
   );
@@ -555,77 +496,29 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    borderBottomWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    zIndex: 10,
-  },
-  scrollContent: { alignItems: "center", paddingVertical: 20 },
-  backButton: {
-    position: "absolute",
-    width: MIN_TOUCH,
-    height: MIN_TOUCH,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: MIN_TOUCH / 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: { color: "#fff", fontWeight: "900", letterSpacing: 4, textAlign: "center" },
-  sectionTitle: { color: "#FFD700", fontWeight: "900", fontSize: 12, letterSpacing: 2, marginBottom: 6, marginLeft: 6 },
-  mainCard: {
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    padding: 16,
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    minHeight: MIN_TOUCH,
-    paddingVertical: 6,
-  },
-  settingRowStacked: { flexDirection: "column", alignItems: "stretch" },
-  settingLabelContainer: { flexDirection: "row", alignItems: "center", flexShrink: 1 },
-  settingLabel: { color: "#fff", fontWeight: "700", fontSize: 16 },
-  settingHint: { color: "#a9a9a9", fontSize: 12, marginTop: 2 },
-  joystickTry: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8 },
-  joystickTryText: { flex: 1, color: "#b8b4d0", fontSize: 13, fontWeight: "700" },
-  separator: { height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginVertical: 10 },
-  segmentedContainer: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 12,
-    padding: 3,
-  },
-  segment: {
-    flex: 1,
-    minHeight: MIN_TOUCH,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 8,
-  },
-  deleteButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, borderWidth: 1.5, borderColor: "#FF8A80", alignItems: "center", justifyContent: "center" },
-  logButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#FFD700", alignItems: "center", justifyContent: "center" },
-  segmentActive: { backgroundColor: "#FFD700" },
-  segmentText: { color: "#d0d0d0", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
-  segmentTextActive: { color: "#000" },
-  notice: { fontSize: 12, fontWeight: "700", marginTop: 6, paddingHorizontal: 4 },
+  body: { flex: 1, flexDirection: "row" },
+  rail: { padding: 12, gap: 8 },
+  railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
+  railChip: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  railLabel: { flex: 1, color: "#b9b4d4", fontWeight: "800", fontSize: 14 },
+  railBar: { position: "absolute", left: 0, top: 10, bottom: 10, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
+  chipsWrap: { height: 62, flexShrink: 0 },
+  chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, alignItems: "center" },
+  topChip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 42, paddingHorizontal: 14, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)" },
+  topChipText: { color: "#b9b4d4", fontWeight: "800", fontSize: 13 },
+  paneContent: { paddingHorizontal: 14, paddingVertical: 14, alignItems: "center" },
+  paneInner: { width: "100%", maxWidth: 640, gap: 16 },
+  tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
+  tryText: { flex: 1, color: "#b8b4d0", fontSize: 13, fontWeight: "700" },
+  notice: { fontSize: 12.5, fontWeight: "700", paddingBottom: 10, paddingHorizontal: 4 },
   noticeOk: { color: "#9ee37d" },
   noticeBad: { color: "#FF8A80" },
-  restorePanel: { gap: 10, marginTop: 8 },
+  restorePanel: { gap: 10, paddingBottom: 12 },
   codeInput: { minHeight: 72, maxHeight: 120, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#fff", padding: 10, fontSize: 13, textAlignVertical: "top" },
   buttonRow: { flexDirection: "row", gap: 10 },
   pill: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
-  pillGold: { backgroundColor: "#FFD700" },
-  pillGoldText: { color: "#000", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
+  pillGold: { backgroundColor: GOLD },
+  pillGoldText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   pillGhost: { borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)" },
   pillGhostText: { color: "#fff", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   pillDanger: { backgroundColor: "#FF5252" },
@@ -633,8 +526,14 @@ const styles = StyleSheet.create({
   confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(255,82,82,0.1)", borderWidth: 1, borderColor: "rgba(255,82,82,0.4)" },
   confirmText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   confirmWarn: { color: "#FF8A80", fontSize: 12 },
-  infoBox: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
+  infoBox: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 6 },
   infoText: { color: "#b0b0b0", fontSize: 12, flexShrink: 1 },
+  aboutHero: { alignItems: "center", paddingVertical: 20, borderRadius: 18, backgroundColor: "rgba(18,14,38,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
+  aboutName: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 6 },
+  aboutSub: { color: "#fff", fontWeight: "900", fontSize: 14, letterSpacing: 8 },
+  aboutTag: { color: "#a9a3c6", fontSize: 13, fontWeight: "700", marginTop: 8, textAlign: "center", paddingHorizontal: 16 },
+  versionPill: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)" },
+  versionText: { color: "#d8d2f0", fontWeight: "800", fontSize: 12.5, letterSpacing: 0.6 },
 });
 
 export default SettingsScreen;
