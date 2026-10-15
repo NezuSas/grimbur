@@ -600,7 +600,7 @@ const BoardView: React.FC<Props> = memo(
         <Animated.View
           style={[
             styles.boardFrame,
-            { width: boardWidth, height: boardHeight, transform: [{ translateX: shakeAnim }] },
+            { width: boardWidth, height: boardHeight, transform: [{ translateX: shakeAnim }], overflow: dying && killerTile != null ? "visible" : "hidden" },
           ]}
         >
           {/* Grid Cells optimization */}
@@ -752,6 +752,23 @@ const BoardView: React.FC<Props> = memo(
             );
           })()}
 
+          {/* A spotlight on the killer: the rest of the board dims so nothing competes with it */}
+          {dying && killerTile != null && killerEntityType && (
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: boardWidth,
+                height: boardHeight,
+                backgroundColor: "rgba(10,3,14,0.6)",
+                zIndex: 24,
+                opacity: strike.interpolate({ inputRange: [0, 0.4], outputRange: [0, 1], extrapolate: "clamp" }),
+              }}
+            />
+          )}
+
           {dying && killerTile != null && killerEntityType && (() => {
             const kr = Math.floor(killerTile / cols);
             const kc = killerTile % cols;
@@ -759,7 +776,7 @@ const BoardView: React.FC<Props> = memo(
             const toward = { x: Math.sign(colIndex - kc), y: Math.sign(rowIndex - kr) };
             const isPit = killerEntityType === "pit";
             const source = isPit ? ASSETS.pit : killerEntityType === "stalker" ? ASSETS.stalker : killerEntityType === "sleeper" ? ASSETS.sleeper : killerEntityType === "boss" ? ASSETS.boss : ASSETS.enemy;
-            const big = tileSize * (killerEntityType === "boss" ? 1.5 : 1.25);
+            const big = tileSize * (killerEntityType === "boss" ? 2.4 : 1.95);
             const slash = (angle: string, offset: number, key: string) => (
               <Animated.View
                 key={key}
