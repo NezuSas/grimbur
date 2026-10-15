@@ -110,3 +110,4 @@ TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of th
 | `src/assets/sprites/characters/Win_Green.png`, `Lose_Green.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Borin; `scripts/processHeroArt.py --poses` |
 | `src/assets/sprites/characters/Win_Gold.png`, `Lose_Gold.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Auric; `scripts/processHeroArt.py --poses` (also removes the faint alpha haze) |
 | `src/assets/sprites/characters/Win_Pink.png`, `Lose_Pink.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Mira; `scripts/processHeroArt.py --poses` |
+| `src/assets/sprites/characters/Win_Orange.png`, `Lose_Orange.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Bram; `scripts/processHeroArt.py --poses` |
