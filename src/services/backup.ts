@@ -18,6 +18,7 @@ export async function createBackupCode(): Promise<string | null> {
       attackButton: s.attackButton,
       controlSize: s.controlSize,
       swipeMove: s.swipeMove,
+      dragAim: s.dragAim,
       language: s.language,
       tutorialSeen: s.tutorialSeen,
       achievementsSeen: s.achievementsSeen,

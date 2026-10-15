@@ -181,6 +181,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const hitFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
+  const dragAim = useSettingsStore(s => s.dragAim);
   const hintsSeen = useSettingsStore(s => s.hintsSeen);
   const markHintSeen = useSettingsStore(s => s.markHintSeen);
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
@@ -282,6 +283,17 @@ export default function GameScreen({ navigation, route }: Props) {
   const aimTiles = useMemo(
     () => (aimDir ? new Set(lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols)) : undefined),
     [aimDir, state.playerIndex, state.rows, state.cols, reach],
+  );
+  // Drag from the hero: letting go on a side shoots that way (without arrows it is refused, like the button).
+  const fireDragged = useCallback(
+    (direction: Direction) => {
+      if (stateRef.current.attack <= 0) {
+        haptic.notify(NotificationFeedbackType.Warning);
+        return;
+      }
+      manualAttack(direction);
+    },
+    [manualAttack],
   );
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
@@ -968,6 +980,8 @@ export default function GameScreen({ navigation, route }: Props) {
             onTileLongPress={toggleFlag}
             onReady={handleBoardReady}
             onSwipe={swipeMove ? manualMove : undefined}
+            onAimDrag={dragAim ? setAim : undefined}
+            onAimFire={dragAim ? fireDragged : undefined}
             killerTile={state.isGameOver && !state.isVictory ? killerTile(state) : null}
             shakeKey={shakeKey}
             flagPing={flagPing}

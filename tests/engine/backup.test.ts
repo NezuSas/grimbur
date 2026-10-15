@@ -143,3 +143,12 @@ describe('backup code', () => {
     expect(sanitizeSettings('x')).toEqual(DEFAULT_BACKUP_SETTINGS);
   });
 });
+
+describe('the drag-to-shoot setting travels in a backup', () => {
+  it('defaults to on and keeps an explicit off', () => {
+    const { sanitizeSettings } = require('../../src/core/stats/backup');
+    expect(sanitizeSettings({}).dragAim).toBe(true);
+    expect(sanitizeSettings({ dragAim: false }).dragAim).toBe(false);
+    expect(sanitizeSettings({ dragAim: 'no' }).dragAim).toBe(true);
+  });
+});

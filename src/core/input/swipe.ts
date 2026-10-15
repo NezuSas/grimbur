@@ -33,3 +33,13 @@ export function aimFromDrag(dx: number, dy: number, minDistance = AIM_MIN_DISTAN
   if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? 'RIGHT' : 'LEFT';
   return dy > 0 ? 'DOWN' : 'UP';
 }
+
+/** A drag from the hero aims once the finger is this far from where it started (a fraction of a tile, within sane limits). */
+export const heroAimDistance = (tileSize: number): number => Math.min(30, Math.max(14, tileSize * 0.34));
+
+/**
+ * The side aimed by a drag that started on the hero, or null while the finger is still on (or came back to) the hero:
+ * dragging back onto the hero is how a shot is cancelled.
+ */
+export const heroAimFromDrag = (dx: number, dy: number, tileSize: number): Direction | null =>
+  aimFromDrag(dx, dy, heroAimDistance(tileSize));

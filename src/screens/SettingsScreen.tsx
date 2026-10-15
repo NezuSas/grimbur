@@ -125,6 +125,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlSize = useSettingsStore(s => s.controlSize);
   const setControlSize = useSettingsStore(s => s.setControlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
+  const dragAim = useSettingsStore(s => s.dragAim);
   const musicVolume = useSettingsStore(s => s.musicVolume);
   const sfxVolume = useSettingsStore(s => s.sfxVolume);
   const setMusicVolume = useSettingsStore(s => s.setMusicVolume);
@@ -181,6 +182,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
   const setAttackButton = useSettingsStore(s => s.setAttackButton);
   const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
+  const setDragAim = useSettingsStore(s => s.setDragAim);
   const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
   const setHapticsEnabled = useSettingsStore(s => s.setHapticsEnabled);
   const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
@@ -295,6 +297,17 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                   value={attackButton}
                   onChange={setAttackButton}
                   accessibilityLabel={t("settings.attackButton")}
+                />
+              </SettingRow>
+
+              <View style={styles.separator} />
+
+              <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate">
+                <Switch
+                  value={dragAim}
+                  onValueChange={setDragAim}
+                  trackColor={switchColors}
+                  accessibilityLabel={t("settings.dragAim")}
                 />
               </SettingRow>
 
