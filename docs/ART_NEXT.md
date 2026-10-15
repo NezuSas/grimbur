@@ -222,3 +222,22 @@ Adjunta: `src/assets/sprites/enemies/Wumpus_Boss.png`, `Hero_Cyan.png` y `Icon_G
 
 Puedes mandármelos por lotes. En cuanto me digas "ya están las del paquete N", los reviso, los recorto, los comprimo, los conecto
 al juego, y te muestro capturas. Si algo no se ve bien contra el resto, te digo exactamente qué pedirle de nuevo a ChatGPT.
+
+---
+
+## Paquete 4b: iconos de las habilidades de Mira y Bram (2 imágenes)
+
+Hoy usan temporalmente el icono del ojo (Destello) y el de la bomba (Estallido). Mismo estilo que `Ability_*.png`: adjunta
+`src/assets/sprites/tools/Ability_Scout.png` y `Ability_Magnet.png` como referencia. 1024x1024, transparente, en
+`src/assets/sprites/tools/`.
+
+- `Ability_Flare.png` — *Same art style, bold dark outline, glossy shading, golden rim and glow as the attached ability icons. A
+  game ability icon for "flare": a bright magenta-and-white starburst of light radiating from a small brass lantern flame, soft
+  rays spreading outward in all directions, small sparkles. Big readable shape filling about 80% of the frame. 1024x1024,
+  transparent background, centered, no text, no shadow.*
+- `Ability_Blast.png` — *Same art style, bold dark outline, glossy shading, golden rim and glow as the attached ability icons. A
+  game ability icon for "blast": a big orange explosion burst with a small black round bomb at its center, fiery rays and smoke
+  puffs. It must look different from a plain bomb icon: the explosion is the main shape. Big readable shape filling about 80% of
+  the frame. 1024x1024, transparent background, centered, no text, no shadow.*
+
+Cuando estén guardados, los conecto en `src/ui/toolArt.ts` (reemplazan a los provisionales).

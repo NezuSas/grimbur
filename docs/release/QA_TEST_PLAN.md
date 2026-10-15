@@ -53,7 +53,7 @@ Hacer con la app recién instalada (sin datos). Alternativa: Ajustes > Borrar mi
 
 **Expedición**
 
-- [ ] Elegir cada héroe bloqueado/desbloqueado (Vael libre; Sera al llegar al piso 4; Borin al piso 7; Auric al ganar): los bloqueados muestran el requisito y no se pueden elegir.
+- [ ] Elegir cada héroe bloqueado/desbloqueado (Vael libre; Sera al llegar al piso 4; Borin al piso 7; Auric al ganar; Mira tras jugar 5 retos diarios; Bram tras ganar 500 brasas en total): los bloqueados muestran el requisito y no se pueden elegir.
 - [ ] Mover con la cruceta; con "Deslizar para moverse" activado; tocar una casilla explorada para caminar hasta ella (se detiene si algo cambia); pulsación larga marca un peligro y la casilla marcada no se pisa.
 - [ ] Disparar: botón de ataque, mantener y arrastrar para apuntar sin mover (el tablero muestra la trayectoria).
 - [ ] Habilidad del héroe: botón dorado sobre la cruceta, enfriamiento y recarga visibles.
