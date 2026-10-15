@@ -33,6 +33,8 @@ export interface SettingsState {
   tutorialSeen: boolean;
   /** True once the opening story has been shown (it plays once, before the first descent). */
   storySeen: boolean;
+  /** A local reminder in the evening for the daily challenge (off until the player asks for it). */
+  remindersEnabled: boolean;
   /** Achievements unlocked when the player last opened the achievements screen (drives the red dot on the cover). */
   achievementsSeen: number;
   /** One-time in-game hints the player has already read (ability, undo, items). */
@@ -56,6 +58,7 @@ export interface SettingsState {
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
   setStorySeen: (seen: boolean) => void;
+  setRemindersEnabled: (enabled: boolean) => void;
   setAchievementsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
   markReviewAsked: (at: number) => void;

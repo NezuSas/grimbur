@@ -14,6 +14,8 @@ import { CategoryNav } from "../ui/components/CategoryNav";
 import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, ToggleSwitch } from "../ui/components/settings/SettingsParts";
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
+import { cancelReminders, remindersSupported, requestReminderPermission, syncReminders } from "../services/reminders";
+import { getLocalStats } from "../services/localStats";
 import { emitSound } from "../audio/audioEventBus";
 import { resetLocalStats } from "../services/localStats";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
@@ -76,6 +78,23 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
   const setControlPosition = useSettingsStore(s => s.setControlPosition);
   const setLanguage = useSettingsStore(s => s.setLanguage);
+  const remindersEnabled = useSettingsStore(s => s.remindersEnabled);
+  const setRemindersEnabled = useSettingsStore(s => s.setRemindersEnabled);
+  const [reminderDenied, setReminderDenied] = React.useState(false);
+  const onToggleReminders = async (on: boolean) => {
+    setReminderDenied(false);
+    if (!on) {
+      setRemindersEnabled(false);
+      await cancelReminders();
+      return;
+    }
+    if (!(await requestReminderPermission())) {
+      setReminderDenied(true);
+      return;
+    }
+    setRemindersEnabled(true);
+    void syncReminders(await getLocalStats());
+  };
 
   // ── Data: delete, backup, restore (unchanged behaviour) ────────────────────────────────────────────────
   const [deleteStep, setDeleteStep] = React.useState<0 | 1 | 2>(0);
@@ -244,6 +263,14 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#9EE37D">
         <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
       </SettingRow>
+      {remindersSupported() ? (
+        <>
+          <RowDivider />
+          <SettingRow label={t("settings.reminder")} hint={reminderDenied ? t("settings.reminderDenied") : t("settings.reminderHint")} icon="notifications" tint="#FFB74D">
+            <ToggleSwitch value={remindersEnabled} onValueChange={onToggleReminders} accessibilityLabel={t("settings.reminder")} />
+          </SettingRow>
+        </>
+      ) : null}
       <RowDivider />
       <SettingRow label={t("settings.reduceFlash")} hint={t("settings.reduceFlashHint")} icon="flash-off-outline" tint="#FFF176">
         <ToggleSwitch value={reduceFlash} onValueChange={setReduceFlash} accessibilityLabel={t("settings.reduceFlash")} />

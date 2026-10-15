@@ -887,6 +887,13 @@ export const es: Record<TranslationKey, string> = {
   'story.lose.5': "Eso explotó distinto a lo que calculé.",
   'manual.heroes.story': "Historia",
   'manual.replayStory': "Leer la historia",
+  'settings.reminder': "Recordatorio diario",
+  'settings.reminderHint': "Una notificación por la tarde si el reto diario sigue abierto. Se queda en tu teléfono.",
+  'settings.reminderDenied': "Las notificaciones están bloqueadas para esta app. Actívalas en los ajustes del teléfono.",
+  'reminder.daily.title': "La cueva de hoy te espera",
+  'reminder.daily.body': "El reto diario es la misma cueva para todos. ¿Puedes con ella?",
+  'reminder.streak.title': "Mantén tu racha de {count} días",
+  'reminder.streak.body': "Juega el reto de hoy antes de medianoche para no perderla.",
   'manual.title': 'Cómo jugar',
   'manual.replayTutorial': 'Repetir el tutorial',
 

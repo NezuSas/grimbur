@@ -29,6 +29,7 @@ export interface BackupSettings {
   language: 'auto' | 'en' | 'es';
   tutorialSeen: boolean;
   storySeen: boolean;
+  remindersEnabled: boolean;
   achievementsSeen: number;
   hintsSeen: string[];
 }
@@ -132,6 +133,7 @@ export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
   language: 'auto',
   tutorialSeen: false,
   storySeen: false,
+  remindersEnabled: false,
   achievementsSeen: 0,
   hintsSeen: [],
 };
@@ -161,6 +163,7 @@ export function sanitizeSettings(value: unknown): BackupSettings {
     language: oneOf(v.language, ['auto', 'en', 'es'] as const, d.language),
     tutorialSeen: bool(v.tutorialSeen, d.tutorialSeen),
     storySeen: bool(v.storySeen, d.storySeen),
+    remindersEnabled: bool(v.remindersEnabled, d.remindersEnabled),
     achievementsSeen: seen,
     hintsSeen: hints,
   };

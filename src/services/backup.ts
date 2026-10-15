@@ -24,6 +24,7 @@ export async function createBackupCode(): Promise<string | null> {
       language: s.language,
       tutorialSeen: s.tutorialSeen,
       storySeen: s.storySeen,
+      remindersEnabled: s.remindersEnabled,
       achievementsSeen: s.achievementsSeen,
       hintsSeen: s.hintsSeen,
     };
