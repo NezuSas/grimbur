@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { PanResponder, StyleSheet, View } from "react-native";
 import type { Direction } from "../../core/engine/types";
-import { REPEAT_FIRST_MS, REPEAT_MS, floatingDirection } from "../../core/input/floatingPad";
+import { REPEAT_FIRST_MS, REPEAT_MS, floatingDirection, stepWait } from "../../core/input/floatingPad";
 import { haptic } from "../../shared/haptics";
 import { useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
@@ -50,9 +50,22 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
   };
   useEffect(() => stopRepeat, []);
 
+  const lastStep = useRef<{ at: number; dir: Direction | null }>({ at: 0, dir: null });
   const step = (dir: Direction) => {
+    lastStep.current = { at: Date.now(), dir };
     haptic.impact();
     latest.current.onMove(dir);
+  };
+  /** A new side: the step happens now, or when the pace limit allows it if the stick is still held that way by then. */
+  const beginSide = (dir: Direction) => {
+    const wait = stepWait(Date.now(), lastStep.current, dir);
+    const fire = () => {
+      if (dirRef.current !== dir) return; // the thumb already left: a flick that is over moves nobody
+      step(dir);
+      scheduleRepeat(dir, REPEAT_FIRST_MS);
+    };
+    if (wait <= 0) fire();
+    else timer.current = setTimeout(fire, wait);
   };
   const scheduleRepeat = (dir: Direction, delay: number) => {
     stopRepeat();
@@ -90,10 +103,7 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
             dirRef.current = next;
             setActive(next);
             stopRepeat();
-            if (next) {
-              step(next);
-              scheduleRepeat(next, REPEAT_FIRST_MS);
-            }
+            if (next) beginSide(next);
           }
         },
         onPanResponderRelease: release,
