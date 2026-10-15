@@ -112,3 +112,4 @@ TODO(owner): confirm the plan's commercial-use terms and keep a screenshot of th
 | `src/assets/sprites/characters/Win_Pink.png`, `Lose_Pink.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Mira; `scripts/processHeroArt.py --poses` |
 | `src/assets/sprites/characters/Win_Orange.png`, `Lose_Orange.png` | ChatGPT image generation (owner's paid plan) | Victory and defeat poses of Bram; `scripts/processHeroArt.py --poses` |
 | `src/assets/sprites/skins/<skin>/<hero>_win.png`, `_lose.png` | Derived from the victory/defeat poses by `scripts/generateSkins.py` | Every outfit now has its own victory and defeat pose (4.5 MB for all outfits in total) |
+| `docs/release/store/Banner_Raw.png` -> `feature-graphic.png` | ChatGPT image generation (owner's paid plan) + title drawn by `scripts/makeFeatureGraphic.py` in Fredoka | 1024x500 Google Play feature graphic; the raw art has no text |
