@@ -169,8 +169,9 @@ const GameOverOverlay = ({
   const accent = victory || demo ? '#FFD54F' : '#FF5252';
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
-  const sprite = killerSprite ?? heroSprite;
-  const spriteSize = compact ? 104 : 150;
+  // The hero's own defeat pose is the picture; whoever struck is a small badge beside it (and named under it).
+  const sprite = heroSprite;
+  const spriteSize = compact ? 120 : 176;
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
@@ -214,6 +215,11 @@ const GameOverOverlay = ({
     <View style={[styles.left, wide && { width: '38%' }]}>
       <View style={[styles.spriteRing, { borderColor: accent, width: spriteSize + 24, height: spriteSize + 24, borderRadius: (spriteSize + 24) / 2 }]}>
         <SpriteImage source={sprite} style={{ width: spriteSize, height: spriteSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        {killerSprite ? (
+          <View style={[styles.killerBadge, { borderColor: accent, width: spriteSize * 0.4, height: spriteSize * 0.4, borderRadius: spriteSize * 0.2 }]}>
+            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.34, height: spriteSize * 0.34 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          </View>
+        ) : null}
       </View>
       {killerName && (
         <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
@@ -457,6 +463,7 @@ const styles = StyleSheet.create({
   },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   left: { alignItems: 'center', gap: 8 },
+  killerBadge: { position: 'absolute', right: -6, bottom: -4, backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   spriteRing: {
     borderWidth: 3,
     backgroundColor: 'rgba(255,255,255,0.05)',
