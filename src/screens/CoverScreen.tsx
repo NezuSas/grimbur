@@ -8,6 +8,7 @@ import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
 import { getLocalStats, peekLocalStats, syncAchievements } from "../services/localStats";
+import { syncReminders } from "../services/reminders";
 import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
@@ -33,6 +34,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         .catch(() => getLocalStats())
         .then(loaded => {
           setStats(loaded);
+          void syncReminders(loaded); // the evening reminder moves on once the daily is played
           // Let the cover settle before any rating dialog.
           if (active) timer = setTimeout(() => void maybeRequestReview(loaded), 1500);
         })

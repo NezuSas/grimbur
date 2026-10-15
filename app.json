@@ -49,6 +49,12 @@
       ],
       "expo-asset",
       [
+        "expo-notifications",
+        {
+          "color": "#FFD54F"
+        }
+      ],
+      [
         "expo-localization",
         {
           "supportedLocales": [
