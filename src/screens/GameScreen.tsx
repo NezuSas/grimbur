@@ -95,6 +95,8 @@ const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
 /** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
 // The killer is shown on the board (it leaps over the hero) before the defeat card covers it.
 const GAME_OVER_CARD_DELAY_MS = 1100;
+/** The run is saved this long after a death, once the killer's strike on the board has played. */
+const RECORD_AFTER_STRIKE_MS = 650;
 const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
 
 /** A floating label: where it rises from, and how it looks. */
@@ -465,7 +467,13 @@ export default function GameScreen({ navigation, route }: Props) {
     }
 
     let cancelled = false;
-    const resultPromise = recordCurrentRun();
+    // Saving the run (reading and writing the stats, achievements, unlocks) is real work for the JS thread. Doing it in the
+    // very frame the hero steps onto the killer made the death animation stutter, so it starts right after the strike has
+    // played and still finishes well before the card appears. (Leaving the screen records the run on its own.)
+    let recordTimer: ReturnType<typeof setTimeout> | undefined;
+    const resultPromise = new Promise<RunResult | null>(resolve => {
+      recordTimer = setTimeout(() => resolve(recordCurrentRun()), s.isVictory ? 0 : RECORD_AFTER_STRIKE_MS);
+    });
 
     // The card appears right away; nothing here waits for the network.
     const timer = setTimeout(async () => {
@@ -487,6 +495,7 @@ export default function GameScreen({ navigation, route }: Props) {
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      clearTimeout(recordTimer);
     };
   }, [runEnded]);
 

@@ -520,6 +520,31 @@ const BoardView: React.FC<Props> = memo(
       Animated.timing(strike, { toValue: 1, duration: 560, easing: Easing.out(Easing.back(1.7)), useNativeDriver: true }).start();
     }, [dying, killerTile, calm]);
 
+    // The hero fades (or, swallowed by a vortex, shrinks). These values are bound to the hero from the very first render and
+    // only change value: swapping the style from a number to an animated value at the moment of death, while the step
+    // animation is still running, made the hero stutter.
+    const heroFade = useRef(new Animated.Value(1)).current;
+    const heroShrink = useRef(new Animated.Value(1)).current;
+    useEffect(() => {
+      if (!dying || killerTile == null) {
+        heroFade.setValue(1);
+        heroShrink.setValue(1);
+        return;
+      }
+      const swallowed = entityMap[killerTile]?.type === "pit";
+      const toOpacity = swallowed ? 0.12 : 0.5;
+      const toScale = swallowed ? 0.2 : 1;
+      if (calm) {
+        heroFade.setValue(toOpacity);
+        heroShrink.setValue(toScale);
+        return;
+      }
+      Animated.parallel([
+        Animated.timing(heroFade, { toValue: toOpacity, duration: 260, useNativeDriver: true }),
+        Animated.timing(heroShrink, { toValue: toScale, duration: 420, useNativeDriver: true }),
+      ]).start();
+    }, [dying, killerTile, calm]);
+
     // A heavy hit (the Wumpus took an arrow): a short, firm shake.
     const lastShakeKey = useRef(shakeKey);
     useEffect(() => {
@@ -634,11 +659,12 @@ const BoardView: React.FC<Props> = memo(
                 width: tileSize,
                 height: tileSize,
                 position: "absolute",
-                opacity: dying && killerTile != null ? strike.interpolate({ inputRange: [0, 1], outputRange: [1, killerEntityType === "pit" ? 0.12 : 0.5] }) : 1,
+                opacity: heroFade,
                 transform: [
                   { translateX: playerPos.x }, 
                   { translateY: playerPos.y },
-                  { scale: dying && killerTile != null && killerEntityType === "pit" ? strike.interpolate({ inputRange: [0, 1], outputRange: [1, 0.2] }) : playerScale }
+                  { scale: playerScale },
+                  { scale: heroShrink }
                 ],
               },
             ]}

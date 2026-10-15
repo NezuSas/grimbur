@@ -87,23 +87,44 @@ const KILLERS: Partial<Record<EntityType, number>> = {
 };
 
 /** Counts a number up to its value (a small reward moment for the score). */
-function useCountUp(target: number, active: boolean, durationMs = 900): number {
+function useCountUp(target: number, active: boolean, durationMs = 900, delayMs = 0): number {
   const [value, setValue] = useState(0);
   useEffect(() => {
     if (!active) {
       setValue(0);
       return;
     }
+    if (durationMs <= 0) {
+      setValue(target);
+      return;
+    }
     const anim = new Animated.Value(0);
     const id = anim.addListener(({ value: v }) => setValue(Math.round(v)));
-    Animated.timing(anim, { toValue: target, duration: durationMs, useNativeDriver: false }).start(() => setValue(target));
+    // The card comes in first; counting starts once it has settled (it is a JS-driven animation: it must not compete with the entrance).
+    const timer = setTimeout(() => {
+      Animated.timing(anim, { toValue: target, duration: durationMs, useNativeDriver: false }).start(() => setValue(target));
+    }, delayMs);
     return () => {
+      clearTimeout(timer);
       anim.removeListener(id);
       anim.stopAnimation();
     };
-  }, [target, active, durationMs]);
+  }, [target, active, durationMs, delayMs]);
   return value;
 }
+
+/**
+ * The score, counting up. It lives in its own component so that each frame of the count re-renders only this number and not
+ * the whole card (it used to re-render every row of the card ~60 times a second while the card was coming in).
+ */
+const CountedScore = ({ score, active, calm, style }: { score: number; active: boolean; calm: boolean; style: React.ComponentProps<typeof Text>['style'] }) => {
+  const shown = useCountUp(score, active, calm ? 0 : 800, 420);
+  return (
+    <Text style={style} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+      {shown.toLocaleString()}
+    </Text>
+  );
+};
 
 /** A block of the card that slides up and fades in after `delay` ms, so the rewards arrive one by one (instantly when calm). */
 const Reveal = ({ delay, calm, children }: { delay: number; calm: boolean; children: React.ReactNode }) => {
@@ -160,7 +181,6 @@ const GameOverOverlay = ({
   const insets = useSafeAreaInsets();
   const cardAnim = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
-  const shownScore = useCountUp(score, visible);
   const calm = useSettingsStore(st => st.reduceFlash);
 
   useEffect(() => {
@@ -320,9 +340,7 @@ const GameOverOverlay = ({
 
       <View style={styles.scoreRow} accessible accessibilityLabel={`${t('over.score')}: ${score}`}>
         <Text style={styles.scoreLabel} maxFontSizeMultiplier={1.2}>{t('over.score').toLocaleUpperCase()}</Text>
-        <Text style={styles.scoreValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-          {shownScore.toLocaleString()}
-        </Text>
+        <CountedScore score={score} active={visible} calm={calm} style={styles.scoreValue} />
         {isNewBest ? (
           <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
             🏅 {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
