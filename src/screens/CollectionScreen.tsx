@@ -145,7 +145,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const short = height < 360;
   const ui = Math.max(0.85, Math.min(1.5, width / 900, height / 540));
   const gap = 10;
-  const minCard = Math.round(96 * Math.min(ui, 1.25));
+  const minCard = Math.round(96 * Math.min(height >= 600 ? Math.max(ui, 1.4) : ui, 1.5));
   const cols = Math.max(2, Math.floor((gridWidth + gap) / (minCard + gap)));
   const cardSize = gridWidth > 0 ? Math.floor((gridWidth - gap * (cols - 1)) / cols) : minCard;
 
@@ -170,7 +170,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   // The hero image gives way to the price and progress of an outfit that is not owned yet.
   // Six tabs: when each gets less than ~78 px the portrait goes over the count instead of beside it.
   const tight = tabsWidth > 0 && (tabsWidth - 8 * (characters.length - 1)) / characters.length < 78;
-  const detailImage = Math.max(90, Math.min(260, height - (owned ? 240 : 310)));
+  const detailImage = Math.max(90, Math.min(height >= 600 ? Math.round(height * 0.46) : 260, height - (owned ? 240 : 310)));
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
