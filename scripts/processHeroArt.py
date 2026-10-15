@@ -2,6 +2,7 @@
 Prepares the art of a new hero so it matches the existing ones (Vael is the reference):
 
   python scripts/processHeroArt.py <source dir with Hero_X.png, Attack_X.png, Icon_X.png> Pink Orange
+  python scripts/processHeroArt.py --poses <source dir with Win_X.png, Lose_X.png> Cyan     (victory and defeat poses)
 
 For each colour name X it writes src/assets/sprites/characters/{Hero,Attack,Icon}_X.png:
   - standing and shooting poses: 384x384, the hero as tall as Vael, feet on the same line, centred, and BOTH poses scaled and
@@ -98,7 +99,30 @@ def process_hero(src_dir, name):
     print(f'{name}: scale {scale:.3f}, hero {os.path.getsize(os.path.join(ROOT, f"Hero_{name}.png")) // 1024} KB')
 
 
+# Win / Lose poses are drawn on a 1254 px canvas with the hero filling it like the standing pose does, so one fixed scale keeps the
+# character the same size in every pose; the feet sit on the same line and the pose is centred on its own body.
+POSE_SCALE = 0.29
+
+
+def process_poses(src_dir, name):
+    for kind in ('Win', 'Lose'):
+        path = os.path.join(src_dir, f'{kind}_{name}.png')
+        if not os.path.exists(path):
+            print(f'{kind}_{name}: not found, skipped')
+            continue
+        im = Image.open(path).convert('RGBA')
+        x0, y0, x1, y1 = bbox(im)
+        out = place(im, POSE_SCALE, (x0 + x1) / 2, y1)
+        ob = bbox(out)
+        assert ob[0] >= 0 and ob[2] <= CANVAS and ob[1] >= 0, f'{kind}_{name} does not fit the canvas at the fixed scale: {ob}'
+        out.save(os.path.join(ROOT, f'{kind}_{name}.png'), optimize=True)
+        print(f'{kind}_{name}: {ob}, {os.path.getsize(os.path.join(ROOT, f"{kind}_{name}.png")) // 1024} KB')
+
+
 if __name__ == '__main__':
-    src = sys.argv[1]
-    for colour in sys.argv[2:]:
-        process_hero(src, colour)
+    args = sys.argv[1:]
+    poses = '--poses' in args
+    args = [a for a in args if a != '--poses']
+    src = args[0]
+    for colour in args[1:]:
+        (process_poses if poses else process_hero)(src, colour)
