@@ -79,3 +79,26 @@ describe('recordRun reports the whole payout once', () => {
     expect(r.unlocks).toEqual({ heroes: [], depth: null, endless: false });
   });
 });
+
+describe('syncAchievements', () => {
+  beforeEach(() => store.clear());
+
+  it('unlocks (and pays) the achievements the stored numbers already satisfy, once', async () => {
+    const { syncAchievements } = require('../../src/services/localStats');
+    // Numbers that reached several goals without a run evaluating them (an achievement added later, a restored backup).
+    store.set('wumpus.stats.v1', JSON.stringify({ gamesPlayed: 12, totalGems: 300, lifetimeEmbers: 1200, embers: 50, bestLevel: 5 }));
+    const first = await syncAchievements();
+    expect(first.achievements).toEqual(expect.arrayContaining(['embers_100', 'embers_1000', 'gems_250', 'ten_runs']));
+    expect(first.stats.achievements.embers_1000).toBeDefined();
+    expect(first.stats.embers).toBeGreaterThan(50); // their embers were paid
+    const again = await syncAchievements();
+    expect(again.achievements).toEqual([]); // nothing is paid twice
+    expect(again.stats.embers).toBe(first.stats.embers);
+  });
+
+  it('does not unlock run-based achievements out of thin air', async () => {
+    const { syncAchievements } = require('../../src/services/localStats');
+    const r = await syncAchievements();
+    expect(r.achievements).toEqual([]);
+  });
+});

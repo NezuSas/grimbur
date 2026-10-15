@@ -110,6 +110,21 @@ async function recordDailyRunNow(run: RunResult, key: string) {
 }
 
 /**
+ * Unlocks the achievements the stored numbers already satisfy. They are normally evaluated when a run ends or something is
+ * bought, so one that was added later (or whose number was reached by a restored backup) would show a full bar and stay
+ * locked until the next run. Resolves with the achievements it just unlocked (their embers are paid).
+ */
+export const syncAchievements = (): Promise<{ stats: LocalStats; achievements: AchievementId[] }> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const achievements = newAchievements(before, { score: 0, level: 1 });
+    if (achievements.length === 0) return { stats: before, achievements };
+    const stats = claimUnlockedSkins(withAchievements(before, achievements, dailyKey())).stats;
+    await save(stats);
+    return { stats, achievements };
+  });
+
+/**
  * Buys the next level of a Forge upgrade and evaluates the achievements it may complete (first_forge, smith...).
  * Resolves with the new stats and the achievements earned, or null when it cannot be bought.
  */

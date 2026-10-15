@@ -7,7 +7,7 @@ import CoverCard from "../ui/components/CoverCard";
 import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
-import { getLocalStats, peekLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats, syncAchievements } from "../services/localStats";
 import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
@@ -27,7 +27,9 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
       emitSound('COVER_SCREEN_START');
       let active = true;
       let timer: ReturnType<typeof setTimeout> | undefined;
-      getLocalStats()
+      syncAchievements()
+        .then(r => r.stats)
+        .catch(() => getLocalStats())
         .then(loaded => {
           setStats(loaded);
           // Let the cover settle before any rating dialog.
