@@ -46,6 +46,13 @@ const PLAY_CALLED_AT: Record<string, number> = {};
 /** Whether that play had to seek first (the slow path). */
 const PLAY_SEEKED: Record<string, boolean> = {};
 const RETRY_AFTER_MS = 5000;
+/**
+ * Sounds whose "already rewound, just play" path did not start on this device (seen on Android: a step after a pause was
+ * silent while a step that interrupted the previous one, which seeks first, always sounded). Those seek before every play.
+ */
+const ALWAYS_SEEK: Record<string, boolean> = {};
+/** How long a play() may take to report `playing` before it is treated as a silent failure and redone with a seek. */
+const SILENT_PLAY_MS = 220;
 
 /**
  * Ensures a player is loaded and syncs target state.
@@ -210,11 +217,24 @@ function toLegacyHandle(name: string): LegacySoundHandle {
         if (rate !== 1 || RATE_SET[voice]) {
           try { p.setPlaybackRate?.(rate); RATE_SET[voice] = rate !== 1; } catch {}
         }
-        PLAY_SEEKED[voice] = !REWOUND[voice];
-        if (!REWOUND[voice]) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
+        const seekFirst = !REWOUND[voice] || ALWAYS_SEEK[name];
+        PLAY_SEEKED[voice] = seekFirst;
+        if (seekFirst) p.seekTo(0); // restarting a voice that was cut short (all voices busy)
+        const trustedRewind = !seekFirst;
         REWOUND[voice] = false;
-        PLAY_CALLED_AT[voice] = Date.now();
+        const calledAt = Date.now();
+        PLAY_CALLED_AT[voice] = calledAt;
         p.play();
+        if (trustedRewind) {
+          // Self-healing: a voice that did not start sounding is restarted the way that always works, and the sound
+          // is marked so its next plays go that way directly.
+          setTimeout(() => {
+            if (PLAY_CALLED_AT[voice] !== calledAt) return; // it started: nothing to fix
+            ALWAYS_SEEK[name] = true;
+            audioLog('sfx', `${voice} silent after rewind: redone with a seek, seeking from now on`);
+            try { p.pause(); p.seekTo(0); PLAY_SEEKED[voice] = true; PLAY_CALLED_AT[voice] = Date.now(); p.play(); } catch {}
+          }, SILENT_PLAY_MS);
+        }
       } catch (e) {
         console.warn(`[AudioEngine:${name}] one-shot error:`, e);
       }
