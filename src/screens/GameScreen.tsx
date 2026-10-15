@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView, { type ArrowShot } from "../ui/components/BoardView";
+import { LinearGradient } from "expo-linear-gradient";
 import Controls from "../ui/components/DirectionPad";
 import FloatingPad from "../ui/components/FloatingPad";
 import AttackPanel from "../ui/components/AttackPanel";
@@ -453,9 +454,11 @@ export default function GameScreen({ navigation, route }: Props) {
     const time = sessionTimeRef.current;
     if (!s.isVictory) {
       // Immediate feedback: the board shakes (see BoardView) and the screen flashes red, then settles.
+      // A short, light flash that is gone before the card: the red wash used to stay on screen at 28% and cover the very
+      // thing the player needs to see (what killed them).
       Animated.sequence([
-        Animated.timing(deathFlash, { toValue: reduceFlash ? 0.3 : 0.65, duration: 90, useNativeDriver: true }),
-        Animated.timing(deathFlash, { toValue: 0.28, duration: 450, useNativeDriver: true }),
+        Animated.timing(deathFlash, { toValue: reduceFlash ? 0.08 : 0.34, duration: 70, useNativeDriver: true }),
+        Animated.timing(deathFlash, { toValue: 0, duration: 520, useNativeDriver: true }),
       ]).start();
     }
     if (s.isVictory) {
@@ -1070,10 +1073,17 @@ export default function GameScreen({ navigation, route }: Props) {
         pointerEvents="none"
       />
 
+      {/* The death blow: red closes in from the edges of the screen (like damage in a console game) and leaves the middle,
+          where the killer is, clean. A full-screen red wash hid the very thing the player needs to see. */}
       <Animated.View
-        style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: deathFlash, zIndex: 997 }]}
+        style={[StyleSheet.absoluteFill, { opacity: deathFlash.interpolate({ inputRange: [0, 0.34], outputRange: [0, 1], extrapolate: "clamp" }), zIndex: 997 }]}
         pointerEvents="none"
-      />
+      >
+        <LinearGradient colors={["rgba(255,23,68,0.72)", "rgba(255,23,68,0)"]} style={{ position: "absolute", left: 0, right: 0, top: 0, height: "15%" }} />
+        <LinearGradient colors={["rgba(255,23,68,0)", "rgba(255,23,68,0.72)"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "15%" }} />
+        <LinearGradient colors={["rgba(255,23,68,0.72)", "rgba(255,23,68,0)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "11%" }} />
+        <LinearGradient colors={["rgba(255,23,68,0)", "rgba(255,23,68,0.72)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "11%" }} />
+      </Animated.View>
 
       {/* A shield (or feather) soaked a deadly touch: a short red flash */}
       <Animated.View

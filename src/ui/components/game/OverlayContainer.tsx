@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Keyboard, Platform, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Keyboard, Platform, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   children: React.ReactNode;
   /** Let touches inside text inputs keep the keyboard open. */
   keyboardAvoiding?: boolean;
+  /** The dimmed layer fades in over this long (ms) instead of cutting to black in one frame. */
+  fadeMs?: number;
 };
 
 /**
@@ -14,8 +16,13 @@ type Props = {
  *  - scrolls when the content is taller than the window (small landscape phones, big fonts, keyboard),
  *  - tells screen readers that only its content is active (`accessibilityViewIsModal`).
  */
-const OverlayContainer = ({ children, keyboardAvoiding = false }: Props) => {
+const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220 }: Props) => {
   const insets = useSafeAreaInsets();
+  // The layer used to appear at once at 88% black while the card inside took 200 ms to come in: one almost-black frame in between.
+  const fade = useRef(new Animated.Value(fadeMs > 0 ? 0 : 1)).current;
+  useEffect(() => {
+    if (fadeMs > 0) Animated.timing(fade, { toValue: 1, duration: fadeMs, useNativeDriver: true }).start();
+  }, [fade, fadeMs]);
   const { height } = useWindowDimensions();
   const [keyboard, setKeyboard] = useState(0);
 
@@ -35,8 +42,8 @@ const OverlayContainer = ({ children, keyboardAvoiding = false }: Props) => {
   }, [keyboardAvoiding]);
 
   return (
-    <View
-      style={styles.overlay}
+    <Animated.View
+      style={[styles.overlay, { opacity: fade }]}
       accessibilityViewIsModal
       importantForAccessibility="yes"
     >
@@ -58,7 +65,7 @@ const OverlayContainer = ({ children, keyboardAvoiding = false }: Props) => {
       >
         {children}
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 };
 
