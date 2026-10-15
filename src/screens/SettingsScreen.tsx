@@ -10,6 +10,7 @@ import { useSettingsStore } from "../state/settings/store";
 import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../state/settings/types";
 import { JoystickPreview } from "../ui/components/JoystickBase";
 import ScreenHeader from "../ui/components/ScreenHeader";
+import { CategoryNav } from "../ui/components/CategoryNav";
 import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, ToggleSwitch } from "../ui/components/settings/SettingsParts";
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
@@ -424,6 +425,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   // Wide windows get a rail of categories on the left; narrow ones a row of chips on top.
   const wide = width >= 640;
   const railWidth = Math.min(230, Math.max(180, width * 0.24));
+  const navItems = CATEGORIES.map(c => ({ id: c.id, icon: c.icon, tint: c.tint, label: t(c.label) }));
   const paneBody = (
     <ScrollView contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
       <View style={styles.paneInner}>{panes[category]}</View>
@@ -437,55 +439,12 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {wide ? (
           <View style={styles.body}>
-            <ScrollView style={{ width: railWidth, flexGrow: 0 }} contentContainerStyle={styles.rail} showsVerticalScrollIndicator={false}>
-              {CATEGORIES.map(c => {
-                const on = c.id === category;
-                return (
-                  <TouchableOpacity
-                    key={c.id}
-                    onPress={() => setCategory(c.id)}
-                    activeOpacity={0.85}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: on }}
-                    style={[styles.railItem, on && { backgroundColor: c.tint + "1F", borderColor: c.tint + "88" }]}
-                  >
-                    <View style={[styles.railChip, { backgroundColor: c.tint + (on ? "40" : "22") }]}>
-                      <Ionicons name={c.icon} size={20} color={c.tint} />
-                    </View>
-                    <Text style={[styles.railLabel, on && { color: "#fff" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                      {t(c.label)}
-                    </Text>
-                    {on ? <View style={[styles.railBar, { backgroundColor: c.tint }]} /> : null}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+            <CategoryNav items={navItems} value={category} onChange={setCategory} wide railWidth={railWidth} />
             <View style={{ flex: 1 }}>{paneBody}</View>
           </View>
         ) : (
           <View style={{ flex: 1 }}>
-            <View style={styles.chipsWrap}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-              {CATEGORIES.map(c => {
-                const on = c.id === category;
-                return (
-                  <TouchableOpacity
-                    key={c.id}
-                    onPress={() => setCategory(c.id)}
-                    activeOpacity={0.85}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: on }}
-                    style={[styles.topChip, on && { backgroundColor: c.tint + "26", borderColor: c.tint }]}
-                  >
-                    <Ionicons name={c.icon} size={18} color={c.tint} />
-                    <Text style={[styles.topChipText, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                      {t(c.label)}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-            </View>
+            <CategoryNav items={navItems} value={category} onChange={setCategory} wide={false} />
             {paneBody}
           </View>
         )}
@@ -497,15 +456,6 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
-  rail: { padding: 12, gap: 8 },
-  railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
-  railChip: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  railLabel: { flex: 1, color: "#b9b4d4", fontWeight: "800", fontSize: 14 },
-  railBar: { position: "absolute", left: 0, top: 10, bottom: 10, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
-  chipsWrap: { height: 62, flexShrink: 0 },
-  chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, alignItems: "center" },
-  topChip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 42, paddingHorizontal: 14, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)" },
-  topChipText: { color: "#b9b4d4", fontWeight: "800", fontSize: 13 },
   paneContent: { paddingHorizontal: 14, paddingVertical: 14, alignItems: "center" },
   paneInner: { width: "100%", maxWidth: 640, gap: 16 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },

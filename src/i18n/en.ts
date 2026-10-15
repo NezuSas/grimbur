@@ -739,7 +739,7 @@ export const en = {
   'manual.quick.4': 'Floor 10: slay the Wumpus.',
   'manual.controls.title': 'Controls',
   'manual.controls.move.label': 'Move',
-  'manual.controls.move.detail': 'Tap the pad (or swipe on the board if you turned it on in Settings). One tap is one step.',
+  'manual.controls.move.detail': 'Tap the pad for one step per tap. Or switch to the joystick in Settings: put your thumb anywhere in the control zone and slide to a side; hold to keep walking over explored ground. You can also swipe on the board if you turn it on.',
   'manual.controls.attack.label': 'Shoot',
   'manual.controls.attack.detail': 'Tap the lightning button to shoot where the hero faces. Or press your hero and drag to a side: the board shows where the arrow will go; let go to fire, drag back to cancel.',
   'manual.controls.travel.label': 'Walk there',
@@ -747,6 +747,9 @@ export const en = {
   'manual.controls.flag.label': 'Mark danger',
   'manual.controls.flag.detail': 'Hold your finger on an unexplored tile to flag it. You cannot step on a flagged tile until you remove the flag.',
   'manual.title': 'How to play',
+  'manual.nav.start': 'Start here',
+  'manual.prev': 'Previous',
+  'manual.next': 'Next',
   'manual.replayTutorial': 'Replay the tutorial',
 
   'manual.mission.title': 'The mission',
