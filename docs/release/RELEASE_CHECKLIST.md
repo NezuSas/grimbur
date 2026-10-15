@@ -9,7 +9,7 @@ Documentos hermanos en `docs/release/`: `LAUNCH_PLAN.md`, `STORE_LISTING.md`, `P
 
 ## 0. Qué ya está hecho en el repo
 
-- [x] Juego completo: expedición de 10 pisos con Wumpus final, reliquias (elige 1 de 3), 4 héroes (Vael, Sera, Borin, Auric) con poder y habilidad, acechadores, durmientes, presagios, cuevas por bioma, tienda entre pisos, puertas, altar, reliquias malditas.
+- [x] Juego completo: expedición de 10 pisos con Wumpus final, reliquias (elige 1 de 3), 6 héroes (Vael, Sera, Borin, Auric, Mira, Bram) con poder, habilidad y trajes coleccionables, acechadores, durmientes, presagios, cuevas por bioma, tienda entre pisos, puertas, altar, reliquias malditas.
 - [x] Modos: Expedición, Reto diario (misma cueva para todos, racha), Descenso sin fin (se desbloquea al vencer al Wumpus).
 - [x] Seis profundidades de dificultad (Normal a Legendaria) que se desbloquean ganando.
 - [x] La Forja: mejoras permanentes con brasas (18 mejoras; no se aplican al reto diario). Pantalla "Mi progreso" y 104 logros.

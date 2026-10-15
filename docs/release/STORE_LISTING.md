@@ -30,7 +30,7 @@ HOW IT PLAYS
 - Clues, not luck: each tile you reveal shows how many guardians and vortexes touch it. Gems are always visible, dangers never are.
 - Ten floors, one Wumpus: descend through ten floors of growing danger to the Wumpus lair. It hunts you, so aim true.
 - Draft relics: after each floor pick 1 of 3 relics. They stack for the whole expedition. Beware the cursed ones: powerful, but they take something back.
-- Four heroes, four styles: Vael (traps never hurt), Sera (arrows pierce two tiles), Borin (starts every floor shielded) and Auric (richer gems). Each also has an ability that recharges as you play. Unlock them by diving deeper and by winning.
+- Six heroes, six styles: Vael (traps never hurt), Sera (arrows pierce two tiles), Borin (starts every floor shielded), Auric (richer gems), Mira (lights up every floor) and Bram (starts with a bomb and a detector). Each also has an ability that recharges as you play. Unlock them by diving deeper, by winning and by coming back every day. Dress them in more than 30 outfits.
 - Shop, altar and doors: spend the gems you collect between floors on arrows, a shield, a detector or a bomb, trade a shield for a second relic, and choose between two doors, each with its own twist.
 - Cave twists: crystal veins, magma tunnels and omens that change the rules of a floor, so no two floors feel the same.
 - Stalkers and sleepers: late-game guardians that walk toward you, or wake up when you come close. Turn, aim and fire before they strike. Undo your last step once per floor.
@@ -59,7 +59,7 @@ Contact: <TODO(owner): support email>
 **What's new (first release, <=500):**
 
 ```text
-First release. 10 floors and the Wumpus, four heroes, relics, the Forge, a daily challenge, endless descent, six difficulty depths and 100+ achievements. Available in English and Spanish. Feedback is welcome at <TODO(owner): support email>.
+First release. 10 floors and the Wumpus, six heroes with outfits, relics, the Forge, a daily challenge, endless descent, six difficulty depths and 100+ achievements. Available in English and Spanish. Feedback is welcome at <TODO(owner): support email>.
 ```
 
 **Promo text (App Store, <=170):** `Deduce where the dangers hide, draft relics, grab every gem and slay the Wumpus. A new cave every day. No ads.`
@@ -86,7 +86,7 @@ CÓMO SE JUEGA
 - Pistas, no suerte: cada casilla revelada te dice cuántos guardianes y vórtices la rodean. Las gemas siempre se ven; los peligros, nunca.
 - Diez pisos, un Wumpus: desciende por diez pisos cada vez más peligrosos hasta la guarida del Wumpus. Te persigue, así que apunta bien.
 - Elige reliquias: tras cada piso escoges 1 de 3. Se acumulan durante toda la expedición. Cuidado con las malditas: muy poderosas, pero te quitan algo.
-- Cuatro héroes, cuatro estilos: Vael (las trampas no le hacen daño), Sera (sus flechas atraviesan dos casillas), Borin (empieza cada piso con escudo) y Auric (gemas más valiosas). Cada uno tiene además una habilidad que se recarga al jugar. Se desbloquean descendiendo más y ganando.
+- Seis héroes, seis estilos: Vael (las trampas no le hacen daño), Sera (sus flechas atraviesan dos casillas), Borin (empieza cada piso con escudo), Auric (gemas más valiosas), Mira (ilumina cada piso) y Bram (empieza con una bomba y un detector). Cada uno tiene además una habilidad que se recarga al jugar. Se desbloquean descendiendo más, ganando y volviendo cada día. Vístelos con más de 30 trajes.
 - Tienda, altar y puertas: entre pisos gasta las gemas en flechas, escudo, detector o bomba, cambia un escudo por una segunda reliquia y elige entre dos puertas, cada una con su giro.
 - Giros de la cueva: vetas de cristal, túneles de magma y presagios que cambian las reglas de un piso para que ninguno se sienta igual.
 - Acechadores y durmientes: guardianes de los últimos pisos que caminan hacia ti o despiertan si te acercas. Gira, apunta y dispara antes de que ataquen. Deshaz tu último paso una vez por piso.
@@ -173,7 +173,7 @@ Texto superpuesto: una línea, fuente gruesa, borde oscuro, fuera del 8 % del ma
 | 1 | Tablero en el piso 4-5 con 6-8 casillas exploradas, pistas de guardián y vórtice visibles, un par de gemas, héroe Sera con flecha apuntando (GameScreen) | Read the clues. Beat the cave. | Lee las pistas. Vence la cueva. |
 | 2 | Momento de deducción: marca de peligro (bandera) en una casilla sospechosa junto a dos pistas iguales (GameScreen, tras pulsación larga) | Every floor solvable by deduction | Cada piso se resuelve deduciendo |
 | 3 | Elección de reliquia: 3 cartas con una maldita (marco rojo) (overlay tras limpiar el piso 3) | Draft a relic after every floor | Elige una reliquia en cada piso |
-| 4 | Selección de héroe con los 4 y el modo en Expedición (CharactersScreen) | Four heroes, four ways to play | Cuatro héroes, cuatro estilos |
+| 4 | Selección de héroe con el héroe grande, sus trajes y el modo en Expedición (CharactersScreen) | Six heroes, six ways to play | Seis héroes, seis estilos |
 | 5 | Piso 10, lucha contra el Wumpus con sus corazones visibles en el HUD y la aguja de wind-up (GameScreen) | Slay the Wumpus | Vence al Wumpus |
 | 6 | La Forja con mejoras compradas y brasas (ForgeScreen, preset con progreso) | Forge permanent upgrades | Forja mejoras permanentes |
 | 7 | Portada con el reto diario y la racha (CoverScreen, racha de 5+) | A new cave every day | Una cueva nueva cada día |
