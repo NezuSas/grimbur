@@ -105,6 +105,19 @@ function useCountUp(target: number, active: boolean, durationMs = 900): number {
   return value;
 }
 
+/** A block of the card that slides up and fades in after `delay` ms, so the rewards arrive one by one (instantly when calm). */
+const Reveal = ({ delay, calm, children }: { delay: number; calm: boolean; children: React.ReactNode }) => {
+  const v = useRef(new Animated.Value(calm ? 1 : 0)).current;
+  useEffect(() => {
+    if (calm) {
+      v.setValue(1);
+      return;
+    }
+    Animated.timing(v, { toValue: 1, duration: 340, delay, useNativeDriver: true }).start();
+  }, [calm, delay, v]);
+  return <Animated.View style={{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>{children}</Animated.View>;
+};
+
 const GameOverOverlay = ({
   visible,
   score,
@@ -162,6 +175,31 @@ const GameOverOverlay = ({
     }
   }, [visible]);
 
+  // The hero pops in and then floats gently; the embers breakdown folds away until it is asked for.
+  const heroPop = useRef(new Animated.Value(0.82)).current;
+  const heroFloat = useRef(new Animated.Value(0)).current;
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  useEffect(() => {
+    if (!visible) {
+      heroPop.setValue(0.82);
+      setShowBreakdown(false);
+      return;
+    }
+    if (calm) {
+      heroPop.setValue(1);
+      return;
+    }
+    Animated.spring(heroPop, { toValue: 1, friction: 6, tension: 90, delay: 120, useNativeDriver: true }).start();
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(heroFloat, { toValue: 1, duration: 1900, useNativeDriver: true }),
+        Animated.timing(heroFloat, { toValue: 0, duration: 1900, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [visible, calm, heroPop, heroFloat]);
+
   if (!visible) return null;
 
   const wide = width >= 560;
@@ -171,7 +209,8 @@ const GameOverOverlay = ({
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   // The hero's own defeat pose is the picture; whoever struck is a small badge beside it (and named under it).
   const sprite = heroSprite;
-  const spriteSize = height < 330 ? 96 : compact ? 120 : 176;
+  const spriteSize = height < 330 ? 104 : compact ? 132 : 196;
+  const haloSize = Math.round(spriteSize * 1.2);
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
@@ -213,11 +252,24 @@ const GameOverOverlay = ({
 
   const left = (
     <View style={[styles.left, wide && { width: '38%' }]}>
-      <View style={[styles.spriteRing, { borderColor: accent, width: spriteSize + 24, height: spriteSize + 24, borderRadius: (spriteSize + 24) / 2 }]}>
-        <SpriteImage source={sprite} style={{ width: spriteSize, height: spriteSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <View style={{ width: haloSize, height: haloSize, alignItems: 'center', justifyContent: 'center' }}>
+        {/* A halo of light in the colour of the moment (gold for a win, red for a defeat) instead of a frame */}
+        <View pointerEvents="none" style={[styles.halo, { width: haloSize, height: haloSize, borderRadius: haloSize / 2, backgroundColor: accent + '14' }]} />
+        <View pointerEvents="none" style={[styles.halo, { width: haloSize * 0.78, height: haloSize * 0.78, borderRadius: haloSize, backgroundColor: accent + '22' }]} />
+        <View pointerEvents="none" style={[styles.halo, { width: haloSize * 0.56, height: haloSize * 0.56, borderRadius: haloSize, backgroundColor: accent + '30' }]} />
+        <Animated.View
+          style={{
+            transform: [
+              { scale: heroPop },
+              { translateY: heroFloat.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) },
+            ],
+          }}
+        >
+          <SpriteImage source={sprite} style={{ width: spriteSize, height: spriteSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        </Animated.View>
         {killerSprite ? (
-          <View style={[styles.killerBadge, { borderColor: accent, width: spriteSize * 0.4, height: spriteSize * 0.4, borderRadius: spriteSize * 0.2 }]}>
-            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.34, height: spriteSize * 0.34 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <View style={[styles.killerBadge, { borderColor: accent, width: spriteSize * 0.36, height: spriteSize * 0.36, borderRadius: spriteSize * 0.18, right: haloSize * 0.04, bottom: haloSize * 0.05 }]}>
+            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.3, height: spriteSize * 0.3 }} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
         ) : null}
       </View>
@@ -242,7 +294,7 @@ const GameOverOverlay = ({
 
   const info = (
     <>
-      <Text style={[styles.title, { color: accent }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {title.toLocaleUpperCase()}
       </Text>
 
@@ -276,6 +328,15 @@ const GameOverOverlay = ({
         ) : null}
       </View>
 
+      {(nearGems || nearBest) && (
+        <View style={styles.headline} accessibilityLiveRegion="polite">
+          <Ionicons name="flag" size={18} color="#FFD54F" />
+          <Text style={styles.headlineText} maxFontSizeMultiplier={1.2}>
+            {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
+          </Text>
+        </View>
+      )}
+
       <View style={styles.statsRow}>
         {stats.map(s => (
           <View key={s.label} style={styles.stat} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
@@ -286,9 +347,18 @@ const GameOverOverlay = ({
           </View>
         ))}
         {embers && embers > 0 ? (
-          <View style={[styles.stat, styles.embersPill]} accessible accessibilityLabel={plural('over.embers', embers)}>
+          <TouchableOpacity
+            style={[styles.stat, styles.embersPill]}
+            onPress={breakdown ? () => setShowBreakdown(v => !v) : undefined}
+            disabled={!breakdown}
+            activeOpacity={0.8}
+            accessibilityRole={breakdown ? 'button' : 'text'}
+            accessibilityState={breakdown ? { expanded: showBreakdown } : undefined}
+            accessibilityLabel={`${plural('over.embers', embers)}${breakdown ? `. ${breakdown}` : ''}`}
+          >
             <Text style={styles.embersText} maxFontSizeMultiplier={1.2}>🔥 {plural('over.embers', embers).toLocaleUpperCase()}</Text>
-          </View>
+            {breakdown ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#FFAB40" /> : null}
+          </TouchableOpacity>
         ) : null}
       </View>
 
@@ -298,7 +368,7 @@ const GameOverOverlay = ({
         </Text>
       ) : null}
 
-      {breakdown ? (
+      {breakdown && showBreakdown ? (
         <Text style={styles.breakdown} maxFontSizeMultiplier={1.2}>
           {breakdown}
         </Text>
@@ -326,17 +396,15 @@ const GameOverOverlay = ({
         </Text>
       ) : null}
 
-      {(nearGems || nearBest) && (
-        <Text style={styles.nearMiss} maxFontSizeMultiplier={1.2}>
-          {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
-        </Text>
-      )}
       {achievements && achievements.length > 0 && (
-        <Text style={styles.achievement} maxFontSizeMultiplier={1.2}>
-          🏆 {plural('over.achievements', achievements.length, { names: achievementNames }).toLocaleUpperCase()}
-        </Text>
+        <Reveal delay={700} calm={calm}>
+          <Text style={styles.achievement} maxFontSizeMultiplier={1.2}>
+            🏆 {plural('over.achievements', achievements.length, { names: achievementNames }).toLocaleUpperCase()}
+          </Text>
+        </Reveal>
       )}
       {unlockRows.length > 0 && (
+        <Reveal delay={1000} calm={calm}>
         <View style={styles.unlockCard} accessibilityLiveRegion="polite">
           <Text style={styles.unlockTitle} maxFontSizeMultiplier={1.2}>🔓 {t('over.unlock.title').toLocaleUpperCase()}</Text>
           {unlockRows.map(row => (
@@ -350,13 +418,16 @@ const GameOverOverlay = ({
             </View>
           ))}
         </View>
+        </Reveal>
       )}
       {!demo && goals && goals.length > 0 && (
-        <View style={styles.goals} accessible accessibilityLabel={t('over.goalTitle')}>
-          {goals.map((g, i) => (
-            <GoalLine key={`${g.kind}${i}`} goal={g} highlight={!!canBuyNow && g.kind === 'forge' && g.affordable} />
-          ))}
-        </View>
+        <Reveal delay={1300} calm={calm}>
+          <View style={styles.goals} accessible accessibilityLabel={t('over.goalTitle')}>
+            {goals.map((g, i) => (
+              <GoalLine key={`${g.kind}${i}`} goal={g} highlight={!!canBuyNow && g.kind === 'forge' && g.affordable} />
+            ))}
+          </View>
+        </Reveal>
       )}
       {demo && (
         <Text style={styles.demoBody} maxFontSizeMultiplier={1.2}>
@@ -486,7 +557,10 @@ const styles = StyleSheet.create({
   },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   left: { alignItems: 'center', gap: 8 },
-  killerBadge: { position: 'absolute', right: -6, bottom: -4, backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  halo: { position: 'absolute' },
+  headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
+  headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
+  killerBadge: { position: 'absolute', backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   spriteRing: {
     borderWidth: 3,
     backgroundColor: 'rgba(255,255,255,0.05)',
