@@ -23,6 +23,7 @@ export interface BackupSettings {
   attackButton: 'side' | 'center';
   controlSize: 'small' | 'medium' | 'large';
   swipeMove: boolean;
+  dragAim: boolean;
   language: 'auto' | 'en' | 'es';
   tutorialSeen: boolean;
   achievementsSeen: number;
@@ -122,6 +123,7 @@ export const DEFAULT_BACKUP_SETTINGS: BackupSettings = {
   attackButton: 'side',
   controlSize: 'medium',
   swipeMove: false,
+  dragAim: true,
   language: 'auto',
   tutorialSeen: false,
   achievementsSeen: 0,
@@ -147,6 +149,7 @@ export function sanitizeSettings(value: unknown): BackupSettings {
     attackButton: oneOf(v.attackButton, ['side', 'center'] as const, d.attackButton),
     controlSize: oneOf(v.controlSize, ['small', 'medium', 'large'] as const, d.controlSize),
     swipeMove: bool(v.swipeMove, d.swipeMove),
+    dragAim: bool(v.dragAim, d.dragAim),
     language: oneOf(v.language, ['auto', 'en', 'es'] as const, d.language),
     tutorialSeen: bool(v.tutorialSeen, d.tutorialSeen),
     achievementsSeen: seen,

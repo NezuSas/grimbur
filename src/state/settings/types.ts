@@ -20,6 +20,8 @@ export interface SettingsState {
   controlSize: ControlSize;
   /** Swipe on the board to move one step (the pad keeps working). */
   swipeMove: boolean;
+  /** Shoot by dragging from the hero toward a side and letting go (the attack button keeps working). */
+  dragAim: boolean;
   language: LanguagePreference;
   /** True once the player has finished or skipped the tutorial. */
   tutorialSeen: boolean;
@@ -40,6 +42,7 @@ export interface SettingsState {
   setControlSize: (size: ControlSize) => void;
   setAttackButton: (placement: AttackButtonPlacement) => void;
   setSwipeMove: (enabled: boolean) => void;
+  setDragAim: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
   setAchievementsSeen: (count: number) => void;

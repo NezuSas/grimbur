@@ -42,6 +42,9 @@ type Props = {
   aimDir?: Direction | null;
   /** The last arrow shot: it flies across the board from the hero. */
   shot?: ArrowShot | null;
+  /** Drag from the hero to shoot: the side being aimed (null when none / cancelled), and the shot when the finger is lifted. */
+  onAimDrag?: (direction: Direction | null) => void;
+  onAimFire?: (direction: Direction) => void;
   /** Long press on a tile (toggles its flag). */
   onTileLongPress?: (index: number) => void;
   /** Called once every tile image of the current floor has been drawn. */
@@ -383,7 +386,7 @@ const GridCell = memo(({
 });
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -592,7 +595,7 @@ const BoardView: React.FC<Props> = memo(
             })}
           </View>
 
-          {(onTilePress || onSwipe || onTileLongPress) && (
+          {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
             <BoardTouchLayer
               tileSize={tileSize}
               rows={rows}
@@ -600,6 +603,9 @@ const BoardView: React.FC<Props> = memo(
               onTilePress={onTilePress}
               onSwipe={onSwipe}
               onTileLongPress={onTileLongPress}
+              heroIndex={playerIndex}
+              onAimDrag={onAimDrag}
+              onAimFire={onAimFire}
             />
           )}
 
