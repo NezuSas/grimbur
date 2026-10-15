@@ -15,9 +15,8 @@ export const ABILITY_ART: Record<AbilityId, ImageSourcePropType> = {
   volley: require('../assets/sprites/tools/Ability_Volley.png'),
   brace: require('../assets/sprites/tools/Ability_Brace.png'),
   magnet: require('../assets/sprites/tools/Ability_Magnet.png'),
-  // Placeholders until the two new abilities get their own pictures.
-  flare: require('../assets/sprites/tools/Ability_Scout.png'),
-  blast: require('../assets/sprites/tools/Tool_Bomb.png'),
+  flare: require('../assets/sprites/tools/Ability_Flare.png'),
+  blast: require('../assets/sprites/tools/Ability_Blast.png'),
 };
 
 /** What each shop card shows. */
