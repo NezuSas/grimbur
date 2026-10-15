@@ -23,6 +23,7 @@ export async function createBackupCode(): Promise<string | null> {
       dragAim: s.dragAim,
       language: s.language,
       tutorialSeen: s.tutorialSeen,
+      storySeen: s.storySeen,
       achievementsSeen: s.achievementsSeen,
       hintsSeen: s.hintsSeen,
     };

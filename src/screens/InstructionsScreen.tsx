@@ -219,6 +219,13 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
         <Ionicons name="chevron-forward" size={20} color="#1a1200" />
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.storyButton} onPress={() => navigation.navigate("StoryScreen", { replay: true })} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t("manual.replayStory")}>
+        <Ionicons name="book" size={20} color={START_COLOR} />
+        <Text style={styles.storyButtonText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+          {t("manual.replayStory").toLocaleUpperCase()}
+        </Text>
+      </TouchableOpacity>
+
       <View>
         <Text style={styles.lessonsTitle} maxFontSizeMultiplier={1.2}>
           {t("manual.lessons").toLocaleUpperCase()}
@@ -400,6 +407,9 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
               </View>
             </View>
+            <Text style={styles.heroStory} maxFontSizeMultiplier={1.3}>
+              {t(`story.bio.${i}` as TranslationKey)}
+            </Text>
             <View style={styles.heroLine}>
               <View style={styles.heroTag}>
                 <Text style={styles.heroTagText}>{t("manual.heroes.perk").toLocaleUpperCase()}</Text>
@@ -743,6 +753,8 @@ const styles = StyleSheet.create({
   stepText: { color: "#e4e0f4", textAlign: "center", fontWeight: "800", fontSize: 13.5, lineHeight: 18 },
   cta: { minHeight: MIN_TOUCH + 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: START_COLOR, borderRadius: 18, paddingHorizontal: 18, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   ctaText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1.5, fontSize: 15, flexShrink: 1 },
+  storyButton: { minHeight: MIN_TOUCH + 4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.08)", paddingHorizontal: 16 },
+  storyButtonText: { color: START_COLOR, fontWeight: "900", letterSpacing: 1.5, fontSize: 14, flexShrink: 1 },
   lessonsTitle: { color: START_COLOR, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
   lessonsHint: { color: "#a9a3c6", fontSize: 13, marginTop: 2 },
   lessons: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 10 },
@@ -760,6 +772,7 @@ const styles = StyleSheet.create({
   lockChip: { maxWidth: 130, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(255,204,128,0.12)", borderWidth: 1, borderColor: "rgba(255,204,128,0.5)" },
   lockFree: { backgroundColor: "rgba(165,214,167,0.12)", borderColor: "rgba(165,214,167,0.5)" },
   lockText: { flexShrink: 1, color: "#ffcc80", fontWeight: "800", fontSize: 11 },
+  heroStory: { color: "#c3bedb", fontStyle: "italic", fontSize: 13.5, lineHeight: 19 },
   heroLine: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(255,255,255,0.04)", borderRadius: 12, padding: 10 },
   heroTag: { minWidth: 50, paddingHorizontal: 6, paddingVertical: 4, borderRadius: 8, backgroundColor: "rgba(244,143,177,0.2)", alignItems: "center" },
   heroTagText: { color: "#f48fb1", fontWeight: "900", fontSize: 10, letterSpacing: 1 },

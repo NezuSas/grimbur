@@ -8,6 +8,8 @@ export type RootStackParamList = {
   CoverScreen: undefined;
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
   CollectionScreen: { hero?: number; skin?: SkinId } | undefined;
+  /** The opening story; `replay` returns to the previous screen instead of starting a run. */
+  StoryScreen: { replay?: boolean } | undefined;
   CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
