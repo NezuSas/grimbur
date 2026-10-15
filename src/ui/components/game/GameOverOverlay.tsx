@@ -204,6 +204,8 @@ const GameOverOverlay = ({
 
   const wide = width >= 560;
   const compact = height < 460;
+  // On a very short window the buttons share one row: a big Retry plus icon-only Menu / Forge / Share.
+  const short = height < 340;
   const accent = victory || demo ? '#FFD54F' : '#FF5252';
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
@@ -250,6 +252,15 @@ const GameOverOverlay = ({
     ...(unlocks?.skins ?? []).map(s => ({ kind: 'skin' as const, skin: s, text: t('over.unlock.skin', { name: `${heroText(t, s.hero, 'name')} · ${skinText(t, s.skin as SkinId)}` }) })),
   ];
 
+  const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
+    ...(explainEmbers && embers && embers > 0 ? [{ key: 'explain', icon: 'information-circle' as const, color: '#FFCC80', text: t('over.explainEmbers') }] : []),
+    ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
+    ...(achievements && achievements.length > 0 ? [{ key: 'ach', icon: 'trophy' as const, color: '#FFD54F', text: plural('over.achievements', achievements.length, { names: achievementNames }) }] : []),
+    ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#ff8a80', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),
+    ...(dailyLabel && freezeUsed ? [{ key: 'fused', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeUsed') }] : []),
+    ...(dailyLabel && freezeEarned ? [{ key: 'fearn', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeEarned') }] : []),
+  ];
+
   const left = (
     <View style={[styles.left, wide && { width: '38%' }]}>
       <View style={{ width: haloSize, height: haloSize, alignItems: 'center', justifyContent: 'center' }}>
@@ -294,7 +305,7 @@ const GameOverOverlay = ({
 
   const info = (
     <>
-      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }, short && { fontSize: 20, letterSpacing: 1 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {title.toLocaleUpperCase()}
       </Text>
 
@@ -362,46 +373,23 @@ const GameOverOverlay = ({
         ) : null}
       </View>
 
-      {explainEmbers && embers && embers > 0 ? (
-        <Text style={styles.explain} maxFontSizeMultiplier={1.2}>
-          {t('over.explainEmbers')}
-        </Text>
-      ) : null}
-
       {breakdown && showBreakdown ? (
         <Text style={styles.breakdown} maxFontSizeMultiplier={1.2}>
           {breakdown}
         </Text>
       ) : null}
 
-      {payout && payout.welcomeBack > 0 ? (
-        <Text style={styles.bonus} maxFontSizeMultiplier={1.2}>
-          🎁 {t('over.welcomeBack', { count: payout.welcomeBack }).toLocaleUpperCase()}
-        </Text>
-      ) : null}
-
-      {dailyLabel && streakLost ? (
-        <Text style={styles.streakLost} maxFontSizeMultiplier={1.2}>
-          💔 {t('over.streakLost', { best: bestStreak ?? streakLost }).toLocaleUpperCase()}
-        </Text>
-      ) : null}
-      {dailyLabel && freezeUsed ? (
-        <Text style={styles.bonus} maxFontSizeMultiplier={1.2}>
-          🧊 {t('over.freezeUsed').toLocaleUpperCase()}
-        </Text>
-      ) : null}
-      {dailyLabel && freezeEarned ? (
-        <Text style={styles.bonus} maxFontSizeMultiplier={1.2}>
-          🧊 {t('over.freezeEarned').toLocaleUpperCase()}
-        </Text>
-      ) : null}
-
-      {achievements && achievements.length > 0 && (
-        <Reveal delay={700} calm={calm}>
-          <Text style={styles.achievement} maxFontSizeMultiplier={1.2}>
-            🏆 {plural('over.achievements', achievements.length, { names: achievementNames }).toLocaleUpperCase()}
-          </Text>
-        </Reveal>
+      {notes.length > 0 && (
+        <View style={styles.notes}>
+          {notes.map((n, i) => (
+            <Reveal key={n.key} delay={450 + i * 260} calm={calm}>
+              <View style={styles.noteRow}>
+                <Ionicons name={n.icon} size={16} color={n.color} style={styles.noteIcon} />
+                <Text style={[styles.noteText, { color: n.color }]} maxFontSizeMultiplier={1.2}>{n.text}</Text>
+              </View>
+            </Reveal>
+          ))}
+        </View>
       )}
       {unlockRows.length > 0 && (
         <Reveal delay={1000} calm={calm}>
@@ -468,27 +456,27 @@ const GameOverOverlay = ({
         accessibilityLabel={t('over.retry')}
       >
         <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
-        <Text style={[styles.retryText, victory && { color: '#000' }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.retryText, victory && { color: '#000' }, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {t('over.retry').toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
       )}
 
-      <View style={styles.secondary}>
+      <View style={[styles.secondary, short && { flexShrink: 0 }]}>
         {demo && onUnlock ? (
           <TouchableOpacity style={styles.sideButton} onPress={onRetry} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.retry')}>
             <Ionicons name="refresh" size={18} color="#fff" />
-            <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>
+            {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
-        <TouchableOpacity style={styles.sideButton} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
+        <TouchableOpacity style={[styles.sideButton, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
           <Ionicons name="home" size={18} color="#fff" />
-          <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>
+          {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
-          <TouchableOpacity style={[styles.sideButton, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
+          <TouchableOpacity style={[styles.sideButton, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
             <Ionicons name="hammer" size={18} color={canBuyNow ? '#1a0f00' : '#FFAB40'} />
-            <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>
+            {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         {onShare ? (
@@ -509,7 +497,7 @@ const GameOverOverlay = ({
       <ScrollView style={styles.infoScroll} contentContainerStyle={styles.infoContent} showsVerticalScrollIndicator={false}>
         {info}
       </ScrollView>
-      <View style={styles.actions}>{actions}</View>
+      <View style={[styles.actions, short && styles.actionsShort]}>{actions}</View>
     </View>
   ) : (
     <View style={styles.right}>
@@ -574,6 +562,7 @@ const styles = StyleSheet.create({
   infoScroll: { flexShrink: 1, flexGrow: 0 },
   infoContent: { gap: 8 },
   actions: { gap: 8 },
+  actionsShort: { flexDirection: 'row', alignItems: 'center', width: '100%' },
   title: { fontSize: 24, fontWeight: '900', letterSpacing: 2 },
   pips: { flexDirection: 'row', gap: 4 },
   pip: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)' },
@@ -601,6 +590,10 @@ const styles = StyleSheet.create({
   breakdown: { color: '#c9b79a', fontWeight: '700', fontSize: 11, letterSpacing: 0.4 },
   streakLost: { color: '#ff8a80', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   goals: { gap: 6, alignSelf: 'stretch' },
+  notes: { gap: 5, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 12, paddingVertical: 8, paddingHorizontal: 10 },
+  noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  noteIcon: { marginTop: 1 },
+  noteText: { flex: 1, fontWeight: '700', fontSize: 12.5, lineHeight: 17 },
   unlockCard: { gap: 6, backgroundColor: 'rgba(118,255,3,0.1)', borderColor: 'rgba(118,255,3,0.7)', borderWidth: 2, borderRadius: 14, padding: 10 },
   unlockTitle: { color: '#76FF03', fontWeight: '900', fontSize: 13, letterSpacing: 1.5 },
   unlockRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -621,6 +614,9 @@ const styles = StyleSheet.create({
   },
   tipText: { color: '#e6e0c8', fontSize: 12, flex: 1 },
   retry: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
     minHeight: MIN_TOUCH + 6,
     borderRadius: 16,
     flexDirection: 'row',
@@ -649,5 +645,6 @@ const styles = StyleSheet.create({
   forgeButton: { borderColor: 'rgba(255,171,64,0.6)', backgroundColor: 'rgba(255,171,64,0.12)' },
   forgeButtonPrimary: { backgroundColor: '#FFAB40', borderColor: '#FFD180' },
   iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: MIN_TOUCH, width: MIN_TOUCH, minWidth: MIN_TOUCH, paddingHorizontal: 0 },
+  iconShort: { flexBasis: 38, width: 38, minWidth: 38 },
   sideText: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 });
