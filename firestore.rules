@@ -25,8 +25,8 @@ service cloud.firestore {
     // straight to the database: no control or direction-changing characters, no links, not only spaces.
     function validName(n) {
       return n.trim().size() >= 1
-        && n.matches('^[^\x00-\x1f\x7f\x{200b}-\x{200f}\x{202a}-\x{202e}\x{2066}-\x{2069}]+$')
-        && !n.lower().matches('.*(http|www\.|://).*');
+        && n.matches('^[^\\x00-\\x1f\\x7f\\x{200b}-\\x{200f}\\x{202a}-\\x{202e}\\x{2066}-\\x{2069}]+$')
+        && !n.lower().matches('.*(http|www\\.|://).*');
     }
 
     match /highscores/{scoreId} {
