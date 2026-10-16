@@ -17,20 +17,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView, { type ArrowShot } from "../ui/components/BoardView";
-import { LinearGradient } from "expo-linear-gradient";
+import ScreenFlashes from "../ui/components/game/ScreenFlashes";
+import GameOverlays from "./game/GameOverlays";
+import RunLoadingCover from "../ui/components/game/RunLoadingCover";
 import Controls from "../ui/components/DirectionPad";
 import FloatingPad from "../ui/components/FloatingPad";
 import AttackPanel from "../ui/components/AttackPanel";
 import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
-import GameOverOverlay from "../ui/components/game/GameOverOverlay";
-import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
-import PauseOverlay from "../ui/components/game/PauseOverlay";
 import FloorBanner from "../ui/components/game/FloorBanner";
-import RunLoadingCover from "../ui/components/game/RunLoadingCover";
 import RelicTray from "../ui/components/RelicTray";
-import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
-import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import ToolBar from "../ui/components/ToolBar";
 import CoachHint from "../ui/components/game/CoachHint";
 import ScorePopup from "../ui/components/game/ScorePopup";
@@ -50,7 +46,7 @@ import { tileCenter } from "../core/feedback/geometry";
 import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
-import { altarIsFree, arrowPath, arrowReachOf } from "../core/engine/reducer";
+import { arrowPath, arrowReachOf } from "../core/engine/reducer";
 import { canRepeatStep } from "../core/input/floatingPad";
 import type { Direction } from "../core/engine/types";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
@@ -841,7 +837,6 @@ export default function GameScreen({ navigation, route }: Props) {
   })();
 
   const removeCoin = (id: number) => setActiveCoins(prev => prev.filter(c => c.id !== id));
-  const flashPeak = reduceFlash ? 0.25 : 1;
 
   // The run starts in an effect, so the very first render still holds the engine's empty placeholder board.
   // Showing it would flash a wrong board for a moment: wait until the real run exists.
@@ -1008,44 +1003,11 @@ export default function GameScreen({ navigation, route }: Props) {
         />
       ))}
 
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: "#FFF", opacity: Animated.multiply(combatFlash, flashPeak), zIndex: 999 },
-        ]}
-        pointerEvents="none"
-      />
-
-      {/* The death blow: red closes in from the edges of the screen (like damage in a console game) and leaves the middle,
-          where the killer is, clean. A full-screen red wash hid the very thing the player needs to see. */}
-      <Animated.View
-        style={[StyleSheet.absoluteFill, { opacity: deathFlash.interpolate({ inputRange: [0, 0.34], outputRange: [0, 1], extrapolate: "clamp" }), zIndex: 997 }]}
-        pointerEvents="none"
-      >
-        <LinearGradient colors={["rgba(255,23,68,0.72)", "rgba(255,23,68,0)"]} style={{ position: "absolute", left: 0, right: 0, top: 0, height: "15%" }} />
-        <LinearGradient colors={["rgba(255,23,68,0)", "rgba(255,23,68,0.72)"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "15%" }} />
-        <LinearGradient colors={["rgba(255,23,68,0.72)", "rgba(255,23,68,0)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: "11%" }} />
-        <LinearGradient colors={["rgba(255,23,68,0)", "rgba(255,23,68,0.72)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "11%" }} />
-      </Animated.View>
-
-      {/* A shield (or feather) soaked a deadly touch: a short red flash */}
-      <Animated.View
-        style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: hitFlash, zIndex: 996 }]}
-        pointerEvents="none"
-      />
+      <ScreenFlashes combat={combatFlash} death={deathFlash} hit={hitFlash} vortex={vortexFlash} calm={reduceFlash} />
 
       {toast && (
         <Toast text={toast.text} toastKey={toast.key} top={insets.top + hudHeight + 8} onDone={() => setToast(null)} />
       )}
-
-      {/* Purple flash on vortex teleport */}
-      <Animated.View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: "rgba(156,39,176,0.55)", opacity: vortexFlash, zIndex: 998 },
-        ]}
-        pointerEvents="none"
-      />
 
       {hint && (
         <CoachHint
@@ -1061,83 +1023,30 @@ export default function GameScreen({ navigation, route }: Props) {
         />
       )}
 
-      <IntermissionOverlay
-        visible={intermission && levelUpWindow}
-        nextFloor={state.level + 1}
-        nextIsLair={isLairFloor(state.mode, state.level + 1)}
-        newBiome={isNewBiome(state.level + 1, state.mode) ? biomeFor(state.level + 1, state.mode) : null}
-        gems={state.gems}
-        shield={state.shield}
-        altarFree={altarIsFree(state)}
-        items={state.items}
-        doors={doors}
-        chosen={door}
-        onChoose={setDoor}
-        onBuy={handleBuy}
-        altarUsed={state.altarUsed}
-        onAltar={handleAltar}
-        onGo={handleGo}
-      />
-
-      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLair} onPick={handlePickRelic} />
-
-      <PauseOverlay
-        visible={paused}
-        onResume={() => setPaused(false)}
-        onRestart={handleRetry}
-        onMainMenu={handleMainMenu}
-      />
-
-      <GameOverOverlay
-        visible={showGameOver}
-        score={state.score}
-        level={state.level}
-        totalCoins={state.totalCoins}
-        time={clock.get()}
+      <GameOverlays
+        state={state}
         character={selectedCharacter}
-        deathCause={state.deathCause}
-        victory={state.isVictory}
-        bestScore={runResult?.bestScore}
-        isNewBest={runResult?.isNewBest}
-        dailyLabel={isDaily ? dailyDate : undefined}
-        depth={ascension}
-        streak={runResult?.streak}
-        unlockedHeroes={runResult?.unlocked}
-        achievements={runResult?.achievements}
-        embers={runResult?.embers}
-        payout={runResult?.payout}
-        streakLost={runResult?.streakLost}
-        bestStreak={runResult?.bestStreak}
-        freezeUsed={runResult?.freezeUsed}
-        freezeEarned={runResult?.freezeEarned}
-        unlocks={runResult?.unlocks}
-        onTryUnlock={handleTryUnlock}
-        goals={runResult?.goals}
-        canBuyNow={runResult?.canBuyNow}
-        explainEmbers={runResult?.early}
-        missionsDone={runResult?.missionsDone}
-        rankUp={runResult?.rankUp}
-        gemsLeft={state.isGameOver ? state.coins : undefined}
-        onShare={handleShare}
-        floors={GAME_CONFIG.expedition.floors}
-        endless={mode === "endless"}
-        demo={demoEnd}
-        onUnlock={handleUnlock}
-        onForge={() => navigation.navigate("ForgeScreen")}
-        onRetry={handleRetry}
-        onMainMenu={handleMainMenu}
-      />
-
-      <RunLoadingCover visible={bootCover} />
-
-      <HighScoreEntryModal
-        visible={showHighScoreEntry}
-        score={state.score}
-        level={state.level}
-        totalCoins={state.totalCoins}
         time={clock.get()}
-        onSubmit={handleHighScoreSubmit}
-        onSkip={() => setShowHighScoreEntry(false)}
+        bootCover={bootCover}
+        shop={{ visible: intermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
+        onPickRelic={handlePickRelic}
+        pause={{ visible: paused, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
+        gameOver={{
+          visible: showGameOver,
+          result: runResult,
+          isDaily,
+          dailyDate,
+          ascension,
+          endless: mode === "endless",
+          demo: demoEnd,
+          onTryUnlock: handleTryUnlock,
+          onShare: handleShare,
+          onUnlock: handleUnlock,
+          onForge: () => navigation.navigate("ForgeScreen"),
+          onRetry: handleRetry,
+          onMainMenu: handleMainMenu,
+        }}
+        highScore={{ visible: showHighScoreEntry, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
       />
     </ImageBackground>
     </Profiler>
