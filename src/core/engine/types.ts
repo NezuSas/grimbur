@@ -100,6 +100,10 @@ export interface GameState {
   /** The board just before the last step, so one step per floor can be taken back. */
   undo: UndoSnapshot | null;
   undoUsed: boolean;
+  /** The board just before the action that killed the hero: what a revive goes back to (null while alive). */
+  lastBreath?: UndoSnapshot | null;
+  /** Times the hero was revived with embers in this run. */
+  revives?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
   lairRescues?: number;
 }
@@ -120,6 +124,8 @@ export type GameAction =
   | { type: 'USE_ABILITY' }
   /** Takes back the last step (once per floor). */
   | { type: 'UNDO' }
+  /** Brings the hero back to just before the fatal action (see core/engine/revive.ts). */
+  | { type: 'REVIVE' }
   | {
       type: 'RESET';
       character: Character;
@@ -164,5 +170,6 @@ export interface GameEngineInterface {
   useItem: (item: 'detector' | 'bomb') => void;
   useAbility: () => void;
   undo: () => void;
+  revive: () => void;
   pickRelic: (id: RelicId) => void;
 }

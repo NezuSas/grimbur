@@ -5,6 +5,7 @@ import { coinReward, killValue, levelClearBonus } from './scoring';
 import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
+import { REVIVE_ARROWS } from './revive';
 import { RelicId, draftRelics, relicCount } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
@@ -40,7 +41,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
     gems += relicCount(relics, 'greed');
   } else {
     world = wakeSleepers(world, state.playerIndex, cols);
-    const acted = huntersAct(world, state.playerIndex, rows, cols, turn, hunterSlowdown(relics));
+    const acted = huntersAct(world, state.playerIndex, rows, cols, turn, hunterSlowdown(relics), modifiersFor(state.ascension).hunterHaste);
     world = acted.world;
     for (const hitter of acted.hits) {
       const absorbed = tryAbsorb(shield, relics);
@@ -71,6 +72,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
     deathCause: over ? cause : null,
     abilityCd: patch.abilityCd ?? Math.max(0, state.abilityCd - 1),
     undo: null,
+    lastBreath: over ? snapshotOf(state) : null,
     lastPickup: null,
     vortexCost: null,
   };
@@ -341,7 +343,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         world = wakeSleepers(world, nextIndex, cols);
       }
       if (!newIsGameOver && !floorCleared && !absorbedThisMove && !retracing) {
-        const acted = huntersAct(world, nextIndex, rows, cols, newTurn, hunterSlowdown(state.relics));
+        const acted = huntersAct(world, nextIndex, rows, cols, newTurn, hunterSlowdown(state.relics), modifiersFor(state.ascension).hunterHaste);
         world = acted.world;
         for (const hitter of acted.hits) {
           if (!absorbHit()) {
@@ -385,6 +387,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         abilityCd: Math.max(0, state.abilityCd - 1),
         // One step per floor can be taken back, never the one that ended the run or cleared the floor.
         undo: state.undoUsed || newIsGameOver || newIsLevelUp ? null : snapshotOf(state),
+        lastBreath: newIsGameOver ? snapshotOf(state) : null,
         deathCause: newIsGameOver ? newDeathCause : null,
       };
     }
@@ -445,7 +448,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
       if (!newIsLevelUp) {
         world = wakeSleepers(world, state.playerIndex, cols);
-        const acted = huntersAct(world, state.playerIndex, rows, cols, newTurn, hunterSlowdown(state.relics));
+        const acted = huntersAct(world, state.playerIndex, rows, cols, newTurn, hunterSlowdown(state.relics), modifiersFor(state.ascension).hunterHaste);
         world = acted.world;
         for (const hitter of acted.hits) {
           const absorbed = tryAbsorb(newShield, newRelics);
@@ -479,6 +482,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         turn: newTurn,
         abilityCd: Math.max(0, state.abilityCd - 1),
         undo: null,
+        lastBreath: newIsGameOver ? snapshotOf(state) : null,
         lastPickup: null,
       };
     }
@@ -703,6 +707,15 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     case 'UNDO': {
       if (!state.undo || state.undoUsed || state.isGameOver || state.isLevelUp || state.pendingDraft) return state;
       return { ...state.undo, undo: null, undoUsed: true };
+    }
+
+    case 'REVIVE': {
+      const before = state.lastBreath;
+      if (!state.isGameOver || state.isVictory || !before) return state;
+      // Back to just before the fatal action, with a shield and a few arrows; the tile that killed is flagged so it is not stepped on blind.
+      const killer = state.playerIndex;
+      const marked = killer !== before.playerIndex && !before.marked.includes(killer) ? [...before.marked, killer] : before.marked;
+      return { ...before, undo: null, lastBreath: null, revives: (state.revives ?? 0) + 1, shield: true, attack: Math.max(before.attack, REVIVE_ARROWS), marked, isGameOver: false, deathCause: null };
     }
 
     case 'RESET': {

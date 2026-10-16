@@ -10,7 +10,7 @@ const count = (entities: { type: string }[], type: string) => entities.filter(e 
 
 describe('modifiers', () => {
   it('stack from depth to depth', () => {
-    expect(modifiersFor(0)).toEqual({ arrowPenalty: 0, stalkerFloor: GAME_CONFIG.stalker.minFloor, bossHpBonus: 0, enemyBonus: 0, pitBonus: 0, trapPenaltyMultiplier: 1, extraTraps: 0, draftSize: 3 });
+    expect(modifiersFor(0)).toEqual({ arrowPenalty: 0, stalkerFloor: GAME_CONFIG.stalker.minFloor, bossHpBonus: 0, enemyBonus: 0, pitBonus: 0, trapPenaltyMultiplier: 1, extraTraps: 0, stalkerBonus: 0, hunterHaste: 0, draftSize: 3 });
     expect(modifiersFor(1).arrowPenalty).toBe(1);
     expect(modifiersFor(2).stalkerFloor).toBe(5);
     expect(modifiersFor(3).bossHpBonus).toBe(1);

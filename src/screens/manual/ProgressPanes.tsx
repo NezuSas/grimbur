@@ -102,6 +102,7 @@ export const ForgePane = ({ kit }: { kit: Kit }) => {
           </View>
         </View>
       ))}
+      {fact("manual.forge.revive", "#ff8a80", icon("heart", "#ff8a80"))}
       {fact("manual.forge.daily", "#4fc3f7", icon("calendar", "#4fc3f7"))}
       {fact("manual.forge.collection", "#f48fb1", icon("shirt", "#f48fb1"))}
       {fact("manual.forge.achievements", "#81c784", icon("ribbon", "#81c784"))}

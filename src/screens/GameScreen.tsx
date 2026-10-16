@@ -60,6 +60,7 @@ import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useBoardInput } from "./game/useBoardInput";
 import { useGameFeedback } from "./game/useGameFeedback";
 import { useRunRecord } from "./game/useRunRecord";
+import { useRevive } from "./game/useRevive";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
 import { buildShareMessage } from "./game/shareMessage";
@@ -87,7 +88,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive } = useGameEngine();
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
   const [intermission, setIntermission] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
@@ -161,9 +162,11 @@ export default function GameScreen({ navigation, route }: Props) {
   const resetTimer = useCallback(() => clock.reset(), [clock]);
 
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
+  const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
+  const second = useRevive({ state, isDaily, runNumber, revive, onRevived });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
-    runEnded,
+    runEnded: runEnded && !second.holdEnd,
     characterIndex,
     ascension,
     mode,
@@ -177,7 +180,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
   // accessibilityViewIsModal).
-  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry || intermission;
+  const overlayOpen = paused || !!state.pendingDraft || showGameOver || second.visible || showHighScoreEntry || intermission;
   const behindOverlay = {
     importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
     accessibilityElementsHidden: overlayOpen,
@@ -691,6 +694,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onRetry: handleRetry,
           onMainMenu: handleMainMenu,
         }}
+        revive={{ visible: second.visible, price: second.price, embers: second.embers, left: second.left, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
         highScore={{ visible: showHighScoreEntry, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
       />
     </ImageBackground>

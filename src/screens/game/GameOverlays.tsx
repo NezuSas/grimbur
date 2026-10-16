@@ -4,6 +4,7 @@ import HighScoreEntryModal from "../../ui/components/game/HighScoreEntryModal";
 import IntermissionOverlay from "../../ui/components/game/IntermissionOverlay";
 import PauseOverlay from "../../ui/components/game/PauseOverlay";
 import RelicDraftOverlay from "../../ui/components/game/RelicDraftOverlay";
+import ReviveOverlay from "../../ui/components/game/ReviveOverlay";
 import RunLoadingCover from "../../ui/components/game/RunLoadingCover";
 import { altarIsFree } from "../../core/engine/reducer";
 import { biomeFor, isNewBiome } from "../../core/engine/biomes";
@@ -50,6 +51,7 @@ type Props = {
     onRetry: () => void;
     onMainMenu: () => void;
   };
+  revive: { visible: boolean; price: number; embers: number; left: number; busy: boolean; onRevive: () => void; onDecline: () => void };
   highScore: { visible: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
 };
 
@@ -57,7 +59,7 @@ type Props = {
  * Every overlay that covers the game screen: the shop between floors, the relic draft, the pause card, the result card and the
  * high-score entry. The screen decides when each is visible; this only draws them from the state.
  */
-const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop, onPickRelic, pause, gameOver, highScore }) => {
+const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop, onPickRelic, pause, gameOver, revive, highScore }) => {
   const result = gameOver.result;
   const levelUpWindow = state.isLevelUp && !state.isVictory;
   return (
@@ -83,6 +85,8 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} />
 
       <PauseOverlay visible={pause.visible} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} />
+
+      <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} left={revive.left} busy={revive.busy} onRevive={revive.onRevive} onDecline={revive.onDecline} />
 
       <GameOverOverlay
         visible={gameOver.visible}
