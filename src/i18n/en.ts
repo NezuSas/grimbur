@@ -69,6 +69,7 @@ export const en = {
   'heroes.state.locked': 'locked',
   'heroes.state.open': 'available',
   'heroes.depth': 'Difficulty',
+  'heroes.depthReward': 'Win bonus: +{n} embers.',
   'heroes.locked': 'Locked',
   'heroes.unlockFloor': 'Reach floor {floor}',
   'heroes.unlockVictory': 'Win an expedition',

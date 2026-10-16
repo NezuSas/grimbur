@@ -34,7 +34,7 @@ import { useT } from "../i18n/useT";
 import { heroText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
-import { metaEffects } from "../core/stats/forge";
+import { VICTORY_EMBERS_PER_DEPTH, metaEffects } from "../core/stats/forge";
 import { dailyKey } from "../core/engine/seed";
 import { haptic } from "../shared/haptics";
 import type { TranslationKey } from "../i18n/en";
@@ -201,7 +201,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // The difficulty picker only appears once there is something to choose (after the first victory).
   const showDepth = mode === "expedition" && maxDepth > 0;
   const modeTitle = t(`heroes.mode.${mode}` as TranslationKey);
-  const modeRule = t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
+  // On a harder depth the line says what that depth changes and what winning it pays on top.
+  const depthRule = showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
+  const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
   const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : "#E8BA52";
 
   // The hero fills the stage above the roster.
@@ -331,7 +333,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 )}
               </View>
               {!short && (
-                <Text style={styles.modeRule} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                <Text style={styles.modeRule} numberOfLines={3} maxFontSizeMultiplier={1.2}>
                   {modeRule}
                 </Text>
               )}

@@ -69,6 +69,7 @@ export const es: Record<TranslationKey, string> = {
   'heroes.state.locked': 'bloqueado',
   'heroes.state.open': 'disponible',
   'heroes.depth': 'Dificultad',
+  'heroes.depthReward': 'Bono por ganar: +{n} brasas.',
   'heroes.select': 'Elegir',
   'heroes.locked': 'Bloqueado',
   'heroes.unlockFloor': 'Llega al piso {floor}',
