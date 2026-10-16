@@ -4,11 +4,11 @@ import { GAME_CONFIG } from '../../config/gameConfig';
  * Ascension ("Depth"): harder versions of the same expedition, unlocked one at a time by
  * winning. Each depth keeps every earlier penalty, so depth 5 stacks them all.
  *
- *   1  one arrow fewer on every floor
- *   2  stalkers already from floor 5
- *   3  the Wumpus has one more heart
- *   4  traps hurt twice as much and each floor has one more
- *   5  relic drafts offer only 2 choices
+ *   1  one arrow fewer on every floor, one more guardian
+ *   2  stalkers already from floor 5, one more vortex
+ *   3  the Wumpus has one more heart, another guardian
+ *   4  traps hurt twice as much and each floor has one more, another vortex
+ *   5  relic drafts offer only 2 choices, one more guardian and vortex, the Wumpus has another heart
  */
 export const MAX_ASCENSION = 5;
 
@@ -19,6 +19,10 @@ export interface AscensionModifiers {
   stalkerFloor: number;
   /** Extra hearts on the Wumpus. */
   bossHpBonus: number;
+  /** Guardians added to every floor from floor 2 (the floors stay solvable: see the generator). */
+  enemyBonus: number;
+  /** Vortexes added to every floor from floor 2. */
+  pitBonus: number;
   trapPenaltyMultiplier: number;
   /** Extra traps per floor (from floor 3, where traps start). */
   extraTraps: number;
@@ -36,7 +40,9 @@ export function modifiersFor(ascension: number): AscensionModifiers {
   return {
     arrowPenalty: a >= 1 ? 1 : 0,
     stalkerFloor: a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
-    bossHpBonus: a >= 3 ? 1 : 0,
+    bossHpBonus: a >= 5 ? 2 : a >= 3 ? 1 : 0,
+    enemyBonus: [0, 1, 1, 2, 2, 3][a],
+    pitBonus: [0, 0, 1, 1, 2, 3][a],
     trapPenaltyMultiplier: a >= 4 ? 2 : 1,
     extraTraps: a >= 4 ? 1 : 0,
     draftSize: a >= 5 ? 2 : 3,

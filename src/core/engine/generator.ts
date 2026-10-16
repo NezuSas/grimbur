@@ -93,6 +93,15 @@ export function generateBoard(
   const stalkersAllowed = level >= GAME_CONFIG.stalker.earlyFloor;
   let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + (stalkersAllowed ? 0 : omen.stalkerDelta) + pressure.enemies);
   let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits + biome.extraPits + (options.extraPits ?? 0));
+  // Deeper depths put more hazards on every floor from the second, but never more than a share of the room the hero has to cross.
+  if (level >= 2 && !withBoss && (mods.enemyBonus > 0 || mods.pitBonus > 0)) {
+    const room = Math.floor((totalCells - safeIndices.length) * 0.4);
+    const hazards = enemyBudget + pitBudget;
+    const extra = Math.max(0, Math.min(mods.enemyBonus + mods.pitBonus, room - hazards));
+    const enemyExtra = Math.min(mods.enemyBonus, extra);
+    enemyBudget += enemyExtra;
+    pitBudget += Math.min(mods.pitBonus, extra - enemyExtra);
+  }
   // The lair is a fight with the Wumpus, not a minefield with a Wumpus in it.
   if (withBoss) {
     enemyBudget = Math.min(enemyBudget, GAME_CONFIG.boss.lairGuardians);
