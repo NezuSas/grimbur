@@ -651,8 +651,13 @@ export const es: Record<TranslationKey, string> = {
 
   'share.daily':
     'Wumpus Adventures · Reto {date}\nPiso {floor} · {score} pts · {gems}{streak}\nLa misma cueva para todos hoy. ¿Puedes superarme?',
-  'share.run':
-    'Wumpus Adventures{depth}\n{result} · {score} pts · {gems}\n¿Puedes llegar más hondo?',
+  'share.title': "Wumpus Adventures · {hero}{depth}",
+  'share.line': "{result} · {score} pts · {gems} · ⏱ {time}",
+  'share.invite': "¿Puedes llegar más profundo?",
+  'share.endless': "Descenso sin fin · piso {floor}",
+  'share.score': "puntos",
+  'share.daily.label': "Reto #{n}",
+  'share.dialog': "Comparte tu resultado",
   'share.reached': 'Llegué al piso {floor}',
   'share.won': 'Vencí al Wumpus',
   'share.streak_one': ' · racha de {count} día',

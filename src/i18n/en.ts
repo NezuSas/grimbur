@@ -650,8 +650,13 @@ export const en = {
 
   'share.daily':
     'Wumpus Adventures · Daily {date}\nFloor {floor} · {score} pts · {gems}{streak}\nSame cave for everyone today. Can you beat me?',
-  'share.run':
-    'Wumpus Adventures{depth}\n{result} · {score} pts · {gems}\nCan you go deeper?',
+  'share.title': "Wumpus Adventures · {hero}{depth}",
+  'share.line': "{result} · {score} pts · {gems} · ⏱ {time}",
+  'share.invite': "Can you go deeper?",
+  'share.endless': "Endless descent · floor {floor}",
+  'share.score': "points",
+  'share.daily.label': "Daily #{n}",
+  'share.dialog': "Share your result",
   'share.reached': 'Reached floor {floor}',
   'share.won': 'Slew the Wumpus',
   'share.streak_one': ' · {count}-day streak',

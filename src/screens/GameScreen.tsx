@@ -6,7 +6,6 @@ import {
   Animated,
   AppState,
   BackHandler,
-  Share,
   ImageBackground,
   useWindowDimensions,
 } from "react-native";
@@ -64,7 +63,10 @@ import { useRevive } from "./game/useRevive";
 import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
-import { buildShareMessage } from "./game/shareMessage";
+import { buildShareCard, buildShareMessage } from "./game/shareMessage";
+import ShareCard from "../ui/components/ShareCard";
+import type { ShareCardData } from "../ui/components/ShareCard";
+import { shareResult } from "../services/shareResult";
 import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
@@ -325,20 +327,27 @@ export default function GameScreen({ navigation, route }: Props) {
     [pickRelic],
   );
 
+  // The picture that is shared is drawn off-screen only while it is being captured.
+  const [shareCard, setShareCard] = useState<ShareCardData | null>(null);
+  const shareCardRef = useRef<View>(null);
+  const sharing = useRef(false);
   const handleShare = useCallback(async () => {
-    const s = stateRef.current;
-    const message = buildShareMessage(
-      { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory },
-      { isDaily, dailyDate, ascension, streak: runResult?.streak },
-      { t, plural },
-    );
-    analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
+    if (sharing.current) return; // a second tap while the picture is being made
+    sharing.current = true;
     try {
-      await Share.share({ message });
-    } catch (e) {
-      console.warn("[GameScreen] share error:", e);
+      const s = stateRef.current;
+      const run = { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory, time: sessionTimeRef.current };
+      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName };
+      const message = buildShareMessage(run, opts, { t, plural });
+      analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
+      setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
+      await new Promise<void>(resolve => setTimeout(resolve, 280)); // the card lays out and its pictures draw
+      await shareResult(shareCardRef, message, t("share.dialog"));
+    } finally {
+      setShareCard(null);
+      sharing.current = false;
     }
-  }, [dailyDate, runResult, t, plural, isDaily, ascension]);
+  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, selectedCharacter, sessionTimeRef]);
 
   // ── Floor cleared → level-complete screen → next floor ────────────────────
   useEffect(() => {
@@ -672,6 +681,12 @@ export default function GameScreen({ navigation, route }: Props) {
           onDone={() => markHintSeen(hint.id)}
         />
       )}
+
+      {shareCard ? (
+        <View ref={shareCardRef} collapsable={false} pointerEvents="none" style={{ position: "absolute", left: -4000, top: 0 }}>
+          <ShareCard {...shareCard} />
+        </View>
+      ) : null}
 
       <GameOverlays
         state={state}
