@@ -20,7 +20,7 @@ type Params = {
 export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
   const used = state.refills ?? 0;
   const price = refillPrice(used);
-  const dry = playing && !isDaily && state.attack <= 0 && price !== null;
+  const dry = playing && !isDaily && state.attack <= 0;
   const [embers, setEmbers] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -40,7 +40,7 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
   }, [dry, used]);
 
   const buy = useCallback(async () => {
-    if (busy || price === null) return;
+    if (busy) return;
     setBusy(true);
     try {
       const paid = await spendEmbersFor(price);
@@ -56,6 +56,6 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
     }
   }, [busy, price, state.level, refill]);
 
-  const show = dry && price !== null && embers !== null && embers >= price;
-  return { show, price: price ?? 0, arrows: REFILL_ARROWS, busy, buy };
+  const show = dry && embers !== null && embers >= price;
+  return { show, price, arrows: REFILL_ARROWS, busy, buy };
 }

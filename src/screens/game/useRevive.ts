@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { analytics } from "../../services/analytics";
 import { getLocalStats, spendEmbersFor } from "../../services/localStats";
-import { MAX_REVIVES, revivePrice } from "../../core/engine/revive";
+import { revivePrice } from "../../core/engine/revive";
 import type { GameState } from "../../core/engine/types";
 import { GAME_OVER_CARD_DELAY_MS } from "./types";
 
@@ -24,8 +24,8 @@ type Gate = { key: string; result: "offer" | "none" | "declined" };
  */
 export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Params) {
   const used = state.revives ?? 0;
-  const price = revivePrice(used);
-  const eligible = state.isGameOver && !state.isVictory && !isDaily && !!state.lastBreath && price !== null;
+  const price = revivePrice(used, state.level, state.ascension);
+  const eligible = state.isGameOver && !state.isVictory && !isDaily && !!state.lastBreath;
   const key = `${runNumber}:${used}`;
   const [gate, setGate] = useState<Gate | null>(null);
   const [embers, setEmbers] = useState(0);
@@ -34,7 +34,7 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Para
 
   // Are there embers enough? (The purse is read the moment the hero falls.)
   useEffect(() => {
-    if (!eligible || price === null) {
+    if (!eligible) {
       setVisible(false);
       return;
     }
@@ -65,7 +65,7 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Para
   }, [key]);
 
   const accept = useCallback(async () => {
-    if (busy || price === null) return;
+    if (busy) return;
     setBusy(true);
     try {
       const paid = await spendEmbersFor(price);
@@ -86,5 +86,5 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Para
 
   // The record of the run waits while the question is open (and for the moment it takes to read the purse).
   const holdEnd = eligible && (gate?.key !== key || gate.result === "offer");
-  return { visible, price: price ?? 0, embers, left: MAX_REVIVES - used, busy, accept, decline, holdEnd };
+  return { visible, price, embers, used, busy, accept, decline, holdEnd };
 }
