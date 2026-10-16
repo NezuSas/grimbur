@@ -152,7 +152,6 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 
   // ── Sizes ────────────────────────────────────────────────────────────────────────────────────
-  const short = height < 360;
   const ui = Math.max(0.85, Math.min(1.5, width / 900, height / 540));
   const gap = 10;
   const minCard = Math.round(96 * Math.min(height >= 600 ? Math.max(ui, 1.4) : ui, 1.5));

@@ -1,7 +1,6 @@
-import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Image } from 'react-native';
 import { RELICS, type RelicId } from '../../core/engine/relics';
 import Text from './Text';
 import { RELIC_IMAGES } from '../relicImages';

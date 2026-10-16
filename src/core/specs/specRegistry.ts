@@ -55,6 +55,6 @@ export function getSpec(feature: SpecFeature): string {
  * Returns all registered feature domains and their spec file paths.
  * @returns An array of [feature, path] tuples.
  */
-export function listSpecs(): Array<[SpecFeature, string]> {
-  return Object.entries(specRegistry) as Array<[SpecFeature, string]>;
+export function listSpecs(): [SpecFeature, string][] {
+  return Object.entries(specRegistry) as [SpecFeature, string][];
 }

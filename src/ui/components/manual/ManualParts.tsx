@@ -58,8 +58,6 @@ export const SubHeading = ({ text, color = "#FFD54F" }: { text: string; color?: 
   </Text>
 );
 
-type TileArt = { hidden: ImageSourcePropType; revealed: ImageSourcePropType; sound: ImageSourcePropType };
-
 /**
  * How to read a tile, drawn: an uncovered tile in the middle with one sound icon, and its four neighbours as hidden tiles with a
  * question mark (the diagonals stay dark, because clues never look at them).

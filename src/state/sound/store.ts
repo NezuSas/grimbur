@@ -171,7 +171,7 @@ function toLegacyHandle(name: string): LegacySoundHandle {
     const vol = TARGET_VOLUMES[name] ?? 1.0;
     try {
         p.volume = vol;
-    } catch(e) {}
+    } catch {}
 
     setTimeout(() => hammerVolumeLoop(count + 1), 100);
   };

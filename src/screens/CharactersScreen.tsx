@@ -21,7 +21,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { emitSound } from "../audio/audioEventBus";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GAME_CONFIG } from "../config/gameConfig";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats , equipSkinFor, peekLocalStats } from "../services/localStats";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { cycleHero, heroLockProgress, startingHero } from "../core/stats/heroProgress";
@@ -31,7 +31,7 @@ import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { ABILITY_ART } from "../ui/toolArt";
 import { Ionicons } from "@expo/vector-icons";
 import { useT } from "../i18n/useT";
-import { heroText, unlockText } from "../i18n/keys";
+import { heroText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { metaEffects } from "../core/stats/forge";
@@ -41,8 +41,8 @@ import type { TranslationKey } from "../i18n/en";
 import SpriteImage from "../ui/components/SpriteImage";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { equippedSkin, ownedSkins } from "../core/skins/ownership";
-import { equipSkinFor, peekLocalStats } from "../services/localStats";
-import { skinText } from "../i18n/keys";
+
+
 import { heroAccent } from "../data/heroAccent";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
