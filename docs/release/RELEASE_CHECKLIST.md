@@ -1,6 +1,6 @@
 # Checklist de lanzamiento: de hoy a producción
 
-Estado verificado contra el repositorio el 2026-10-14 (rama `feat/ascension-forge`). Leyenda: `[x]` hecho en el repo, `[ ]` pendiente.
+Estado verificado contra el repositorio el 2026-10-16 (rama `feat/ascension-forge`). Leyenda: `[x]` hecho en el repo, `[ ]` pendiente.
 Responsables: **DEV** = código del repo (agentes/tú), **OWNER** = solo tú (cuentas, dinero, legal, personas), **AMBOS**.
 Duraciones orientativas para una sola persona; las esperas de terceros (Google, bancos) no las controlas.
 
@@ -11,8 +11,11 @@ Documentos hermanos en `docs/release/`: `LAUNCH_PLAN.md`, `STORE_LISTING.md`, `P
 
 - [x] Juego completo: expedición de 10 pisos con Wumpus final, reliquias (elige 1 de 3), 6 héroes (Vael, Sera, Borin, Auric, Mira, Bram) con poder, habilidad y trajes coleccionables, acechadores, durmientes, presagios, cuevas por bioma, tienda entre pisos, puertas, altar, reliquias malditas.
 - [x] Modos: Expedición, Reto diario (misma cueva para todos, racha), Descenso sin fin (se desbloquea al vencer al Wumpus).
-- [x] Seis profundidades de dificultad (Normal a Legendaria) que se desbloquean ganando.
-- [x] La Forja: mejoras permanentes con brasas (18 mejoras; no se aplican al reto diario). Pantalla "Mi progreso" y 104 logros.
+- [x] Seis profundidades de dificultad (Normal a Legendaria) que se desbloquean ganando; las altas (4 y 5) están pensadas para exigir mejoras de la Forja (más guardianes, vórtices y acechadores, menos flechas).
+- [x] La Forja: mejoras permanentes con brasas (21 mejoras, incluidas Alforja, Manos rápidas y Segundo aliento; no se aplican al reto diario).
+- [x] Segunda oportunidad (revivir con brasas, sin límite fijo, precio creciente por uso, piso y profundidad) y flechas por brasas a mitad de partida; ninguna de las dos en el reto diario. Es moneda del juego, no dinero real.
+- [x] Rango de 12 niveles sobre las brasas ganadas en total, con escalera visible en Misiones; Misiones diarias y semanales.
+- [x] Tarjetas emergentes con estilo común (`ui/components/game/popup.tsx`), pantalla de carga alineada con el splash nativo (verificar el encaje en un APK real). Pantalla "Mi progreso" y 104 logros.
 - [x] Tutorial jugable en el primer arranque + 4 lecciones opcionales en el manual (deducir, reliquias, tienda, herramientas); consejos de primer uso.
 - [x] Bilingüe EN/ES (idioma automático o manual), accesibilidad: reducir destellos, tamaño/posición de controles, deslizar para mover, etiquetas a11y.
 - [x] Orientación horizontal bloqueada (`app.json` `orientation: landscape`; actividad Android con `screenOrientation=landscape`); pasada responsive en todas las pantallas.
