@@ -253,7 +253,7 @@ describe('parseStats tolerates old saves', () => {
   });
 
   it('roundtrips the new fields through a backup code', () => {
-    const stats: LocalStats = { ...EMPTY_STATS, streak: 9, bestStreak: 12, freezes: 2, lastPlayedDate: '2026-10-05', lastDailyDate: '2026-10-05', embers: 77 };
+    const stats: LocalStats = { ...EMPTY_STATS, streak: 9, bestStreak: 12, freezes: 2, lastPlayedDate: '2026-10-05', lastDailyDate: '2026-10-05', embers: 77, lifetimeEmbers: 77 };
     const result = decodeBackup(encodeBackup(stats, DEFAULT_BACKUP_SETTINGS));
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.stats).toEqual(stats);

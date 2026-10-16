@@ -33,6 +33,15 @@ export function useProximityAudio(
     vortexNear.current = pit;
   }, [playerIndex, rows, cols, entityMap, isGameOver, isLevelUp]);
 
+  // Leaving the screen (or the run) must silence the hazard hums at once.
+  useEffect(
+    () => () => {
+      emitSound('STOP_GUARDIAN_NEAR');
+      emitSound('STOP_VORTEX_NEAR');
+    },
+    [],
+  );
+
   // Going to the background pauses every player, so the loops are silent when the player comes back even though
   // the hazard is still next to them: start them again from the current situation.
   useEffect(() => {

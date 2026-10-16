@@ -19,6 +19,8 @@ import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { clearHidden, hideEntry, loadHidden } from "../services/moderation";
 import { buildReportMailto } from "../core/leaderboard/moderation";
+import type { TranslationKey } from "../i18n/en";
+import { isReal } from "../config/isReal";
 import { GAME_CONFIG } from "../config/gameConfig";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
@@ -126,7 +128,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     <View style={styles.offlineNotice} accessibilityLiveRegion="polite">
       <Ionicons name="cloud-offline-outline" size={18} color="#FFCC80" />
       <Text style={styles.offlineText} maxFontSizeMultiplier={1.2}>
-        {t(age.unit === "minutes" && age.n === 0 ? "scores.offline.now" : `scores.offline.${age.unit}`, { n: age.n })}
+        {t(((age.unit === "minutes" && age.n === 0 ? "scores.offline.now" : age.n === 1 && age.unit === "hours" ? "scores.offline.hours1" : age.n === 1 && age.unit === "days" ? "scores.offline.days1" : `scores.offline.${age.unit}`) as TranslationKey), { n: age.n })}
       </Text>
       <TouchableOpacity style={styles.offlineRetry} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
         <Ionicons name="refresh" size={18} color="#1a1030" />
@@ -201,6 +203,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity style={styles.reportButton} onPress={() => hide(item.id)} accessibilityRole="button" accessibilityLabel={t("scores.report.hide")}>
               <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.hide").toLocaleUpperCase()}</Text>
             </TouchableOpacity>
+            {isReal(GAME_CONFIG.support.email) ? (
             <TouchableOpacity
               style={styles.reportButton}
               onPress={() => {
@@ -213,6 +216,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             >
               <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.send").toLocaleUpperCase()}</Text>
             </TouchableOpacity>
+            ) : null}
           </View>
         </View>
       )}

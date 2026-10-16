@@ -68,7 +68,8 @@ export async function restoreBackupCode(code: string): Promise<boolean> {
   if (!decoded.ok) return false;
   try {
     await replaceLocalStats(decoded.stats);
-    useSettingsStore.setState(decoded.settings);
+    // Reminders need this phone's permission: a restored "on" would show an active switch with nothing behind it.
+    useSettingsStore.setState({ ...decoded.settings, remindersEnabled: false });
     return true;
   } catch (e) {
     console.warn('[Backup] restore failed', e);

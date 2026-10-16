@@ -50,7 +50,7 @@ import { tileCenter } from "../core/feedback/geometry";
 import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
-import { arrowPath, arrowReachOf } from "../core/engine/reducer";
+import { altarIsFree, arrowPath, arrowReachOf } from "../core/engine/reducer";
 import { canRepeatStep } from "../core/input/floatingPad";
 import type { Direction } from "../core/engine/types";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
@@ -251,6 +251,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const stepSoundedAt = useRef(0);
   const manualMove = useCallback(
     (d: Parameters<typeof move>[0]) => {
+      if (pausedRef.current) return; // a stick still held under the pause card must not walk the hero
       cancelTravel();
       const s = stateRef.current;
       const target = stepTarget(s.playerIndex, d, s.rows, s.cols);
@@ -275,6 +276,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const shotCount = useRef(0);
   const manualAttack = useCallback(
     (direction?: Direction) => {
+      if (pausedRef.current) return;
       cancelTravel();
       const s = stateRef.current;
       if (s.attack > 0 && !s.isGameOver && !s.isLevelUp && !s.pendingDraft) {
@@ -297,7 +299,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // The floating pad keeps walking while it is held, but only over explored, empty ground (never blindly).
   const flagsRef = useRef(flags);
   flagsRef.current = flags;
-  const canRepeatMove = useCallback((direction: Direction) => canRepeatStep(stateRef.current, direction, flagsRef.current), []);
+  const canRepeatMove = useCallback((direction: Direction) => !pausedRef.current && canRepeatStep(stateRef.current, direction, flagsRef.current), []);
   // Drag from the hero: letting go on a side shoots that way (without arrows it is refused, like the button).
   const fireDragged = useCallback(
     (direction: Direction) => {
@@ -357,7 +359,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
     if (runRecorded.current) return null;
     const s = stateRef.current;
-    const progressed = s.turn > 0 || s.score > 0 || s.level > 1;
+    // One step and quit is not a game: it would pay embers and tick the "runs played" goals for nothing.
+    const progressed = s.isGameOver || s.isVictory || s.level > 1 || s.turn >= 12;
     if (!progressed) return null;
     runRecorded.current = true;
 
@@ -366,7 +369,8 @@ export default function GameScreen({ navigation, route }: Props) {
       level: s.level,
       victory: s.isVictory,
       gems: s.totalCoins,
-      relics: s.relics.length,
+      // Only the relics picked in this run: the ones a Forge upgrade starts with would make relic goals free
+      relics: Math.max(0, s.relics.length - (route.params?.meta?.startRelics?.length ?? 0)),
       time: sessionTimeRef.current,
       heroIndex: characterIndex,
       ascension,
@@ -382,6 +386,7 @@ export default function GameScreen({ navigation, route }: Props) {
       return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, missionsDone: r.missionsDone, rankUp: r.rankUp, early: r.stats.gamesPlayed <= 2 };
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
+      runRecorded.current = false; // nothing was saved: the retry, the unmount or the card may try again
       return null;
     }
   }, [isDaily, dailyDate, characterIndex, ascension, mode]);
@@ -1004,8 +1009,9 @@ export default function GameScreen({ navigation, route }: Props) {
             onTileLongPress={toggleFlag}
             onReady={handleBoardReady}
             onSwipe={swipeMove ? manualMove : undefined}
-            onAimDrag={dragAim ? setAim : undefined}
-            onAimFire={dragAim ? fireDragged : undefined}
+            // With "swipe to move" on, a swipe that starts on the hero must move it, so drag-to-shoot gives way.
+            onAimDrag={dragAim && !swipeMove ? setAim : undefined}
+            onAimFire={dragAim && !swipeMove ? fireDragged : undefined}
             killerTile={state.isGameOver && !state.isVictory ? killerTile(state) : null}
             shakeKey={shakeKey}
             flagPing={flagPing}
@@ -1129,6 +1135,7 @@ export default function GameScreen({ navigation, route }: Props) {
         newBiome={isNewBiome(state.level + 1, state.mode) ? biomeFor(state.level + 1, state.mode) : null}
         gems={state.gems}
         shield={state.shield}
+        altarFree={altarIsFree(state)}
         items={state.items}
         doors={doors}
         chosen={door}

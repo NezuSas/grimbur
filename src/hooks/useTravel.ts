@@ -53,8 +53,16 @@ export function useTravel(state: GameState, move: (d: Direction) => void, enable
       const start = { coins: s.coins, attack: s.attack, shield: s.shield, relics: s.relics.length, level: s.level };
       let step = 0;
       let expected = s.playerIndex;
+      let from = s.playerIndex;
+      let late = 0;
       timer.current = setInterval(() => {
         const cur = stateRef.current;
+        // The last step may simply not have been drawn yet (a busy phone): wait a few ticks before calling it a stall.
+        if (cur.playerIndex === from && expected !== from && late < 3) {
+          late++;
+          return;
+        }
+        late = 0;
         const stalled =
           !enabledRef.current ||
           cur.isGameOver ||
@@ -89,6 +97,7 @@ export function useTravel(state: GameState, move: (d: Direction) => void, enable
         step++;
         moveRef.current(dir);
         // Predict where this step lands; a mismatch on the next tick means something intervened.
+        from = expected;
         expected = next;
         if (step >= path.length) cancel();
       }, STEP_MS);

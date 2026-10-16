@@ -156,15 +156,15 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
 
   const read = (e: GestureResponderEvent) => dpadDirection(e.nativeEvent.locationX, e.nativeEvent.locationY, D, deadZone);
 
+  // The step happens the moment the thumb lands (not when it lifts): it answers sooner, and a thumb that drifts off the disc
+  // before lifting can no longer cancel the press.
   const handlePressIn = (e: GestureResponderEvent) => {
     pressed.current = read(e);
     setActive(pressed.current);
-  };
-  const handlePress = () => {
-    const dir = pressed.current;
-    if (!dir) return;
-    haptic.impact();
-    onMove(dir);
+    if (pressed.current) {
+      haptic.impact();
+      onMove(pressed.current);
+    }
   };
   const handlePressOut = () => {
     setActive(null);
@@ -245,7 +245,6 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
       <Pressable
         style={StyleSheet.absoluteFill}
         onPressIn={handlePressIn}
-        onPress={handlePress}
         onPressOut={handlePressOut}
         accessible={false}
         importantForAccessibility="no"

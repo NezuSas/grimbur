@@ -124,11 +124,21 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, []);
 
+  const buying = useRef(false);
   const buy = useCallback(
     async (skin: SkinId) => {
-      const bought = await buySkinFor(heroRef.current, skin);
+      if (buying.current) return; // a second tap while the first purchase is still being saved
+      buying.current = true;
+      let bought: LocalStats | null = null;
+      try {
+        bought = await buySkinFor(heroRef.current, skin);
+      } finally {
+        if (!bought) buying.current = false;
+      }
       if (!bought) return;
-      const worn = await equipSkinFor(heroRef.current, skin);
+      const worn = await equipSkinFor(heroRef.current, skin).finally(() => {
+        buying.current = false;
+      });
       setStats(worn ?? bought);
       analytics.track("forge_purchase", { upgrade: `skin_${skin}`, level: 1, cost: SKINS[skin].price });
       haptic.notify(NotificationFeedbackType.Success);

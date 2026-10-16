@@ -26,9 +26,39 @@ let latest: LocalStats | null = null;
 /** The stats as they are right now, if they have been read this session (the splash screen reads them). */
 export const peekLocalStats = (): LocalStats | null => latest;
 
+/**
+ * A device whose clock was wrong for a moment (set a year ahead, then fixed) leaves dates in the future in the save, and every
+ * "only ever forward" rule (daily bonus, streak, welcome-back) then waits for that date. Dates more than a day ahead of now
+ * are treated as today, so one wrong clock cannot freeze the daily rewards.
+ */
+export function sanitizeClock(stats: LocalStats, now: Date = new Date()): LocalStats {
+  const limit = dailyKey(new Date(now.getTime() + 36 * 3600 * 1000));
+  const today = dailyKey(now);
+  const fix = (day: string | null) => (day !== null && day > limit ? today : day);
+  const lastBonusDate = fix(stats.lastBonusDate);
+  const lastPlayedDate = fix(stats.lastPlayedDate);
+  const lastDailyDate = fix(stats.lastDailyDate);
+  if (lastBonusDate === stats.lastBonusDate && lastPlayedDate === stats.lastPlayedDate && lastDailyDate === stats.lastDailyDate) return stats;
+  return { ...stats, lastBonusDate, lastPlayedDate, lastDailyDate };
+}
+
+/** Counts reads so that a slow, older one never overwrites the newer value kept in memory. */
+let readSeq = 0;
+
 export async function getLocalStats(): Promise<LocalStats> {
-  latest = parseStats(await AsyncStorage.getItem(STORAGE_KEY));
-  return latest;
+  const ticket = ++readSeq;
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  // A save that cannot be read must not be silently replaced by an empty one on the next write: keep a copy first.
+  if (raw) {
+    try {
+      JSON.parse(raw);
+    } catch {
+      await AsyncStorage.setItem(`${STORAGE_KEY}.corrupt`, raw).catch(() => {});
+    }
+  }
+  const stats = sanitizeClock(parseStats(raw));
+  if (ticket >= readSeq || latest === null) latest = stats;
+  return stats;
 }
 
 /**
@@ -198,6 +228,8 @@ export const equipSkinFor = (hero: number, skin: SkinId): Promise<LocalStats | n
 export async function resetLocalStats(): Promise<void> {
   await serialized(async () => {
     await AsyncStorage.removeItem(STORAGE_KEY);
+    await AsyncStorage.removeItem(`${STORAGE_KEY}.corrupt`).catch(() => {});
+    latest = null; // the screens must not draw the deleted progress on their first frame
   });
 }
 
