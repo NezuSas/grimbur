@@ -170,3 +170,12 @@ describe('rank', () => {
     expect(rankUp(30, 500)).toBe(5);
   });
 });
+
+describe('weekly missions respect what the player can do', () => {
+  it('never offers "play with 3 heroes" to someone with fewer than 3 unlocked', () => {
+    for (let d = 1; d <= 28; d++) {
+      const week = `2026-0${1 + (d % 9)}-${String(d).padStart(2, '0')}`;
+      expect(weeklySelection(week, 1).some(m => m.metric === 'heroes')).toBe(false);
+    }
+  });
+});

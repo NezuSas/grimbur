@@ -13,6 +13,7 @@ import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { claimMissionReward, getMissions, peekLocalStats } from "../services/localStats";
 import { DAILY_BONUS, MissionDef, MissionProgress, bonusReady, isComplete, missionDef, syncMissions } from "../core/stats/missions";
+import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { rankOf } from "../core/stats/rank";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
@@ -31,7 +32,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   const [stats, setStats] = useState<LocalStats>(() => {
     const known = peekLocalStats() ?? EMPTY_STATS;
     // Until the saved ones are read, show what today's missions would be (nothing flashes empty).
-    return { ...known, missions: syncMissions(known.missions, dailyKey()) };
+    return { ...known, missions: syncMissions(known.missions, dailyKey(), HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, known)).length) };
   });
   const [now, setNow] = useState(() => new Date());
 

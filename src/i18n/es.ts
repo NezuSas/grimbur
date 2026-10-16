@@ -404,7 +404,7 @@ export const es: Record<TranslationKey, string> = {
   'omen.calm.name': 'Presagio: Calma',
   'omen.calm.rule': 'Un guardián y un vórtice menos, pero una gema menos.',
   'omen.arsenal.name': 'Presagio: Arsenal',
-  'omen.arsenal.rule': '+2 flechas, pero un vórtice más y un acechador al acecho.',
+  'omen.arsenal.rule': '+2 flechas, pero un vórtice más y un cazador más (un acechador errante desde el piso 4).',
 
   'over.gemsLeft_one': '¡Solo {count} gema para superar el piso {floor}!',
   'over.gemsLeft_other': '¡Solo {count} gemas para superar el piso {floor}!',
