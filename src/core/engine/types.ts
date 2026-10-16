@@ -100,6 +100,8 @@ export interface GameState {
   /** The board just before the last step, so one step per floor can be taken back. */
   undo: UndoSnapshot | null;
   undoUsed: boolean;
+  /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
+  lairRescues?: number;
 }
 
 /** What taking a step back restores. */

@@ -38,8 +38,13 @@ const stopTrack = (handle: LegacySoundHandle | null) => {
 };
 
 export function useSoundManager(): void {
-  const { sounds: currentSounds, ready } = useSoundStore();
-  const { soundEnabled: currentSoundEnabled, musicVolume, sfxVolume } = useSettingsStore();
+  // Each value on its own: this hook lives in the root component, and subscribing to a whole store re-rendered the entire
+  // app whenever ANY setting changed (a hint marked as seen, a toggle in Settings...).
+  const currentSounds = useSoundStore(s => s.sounds);
+  const ready = useSoundStore(s => s.ready);
+  const currentSoundEnabled = useSettingsStore(s => s.soundEnabled);
+  const musicVolume = useSettingsStore(s => s.musicVolume);
+  const sfxVolume = useSettingsStore(s => s.sfxVolume);
   
   const soundsRef = useRef(currentSounds);
   const soundEnabledRef = useRef(currentSoundEnabled);
