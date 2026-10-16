@@ -84,12 +84,15 @@ export function useSoundManager(): void {
     if (!handle || !soundEnabledRef.current) return;
     const ticket = bumpEpoch(handle); // a stop that arrives while this is still being prepared wins
     handle.stop().catch(() => {}).finally(() => {
-      handle.setNumberOfLoops(0).then(() => {
-        if (epochOf(handle) !== ticket) return;
-        handle.setVolume(scaledVolume(vol, sfxLevelRef.current)).then(() => {
-          if (epochOf(handle) === ticket) handle.play();
-        });
-      });
+      handle
+        .setNumberOfLoops(0)
+        .then(() => {
+          if (epochOf(handle) !== ticket) return;
+          return handle.setVolume(scaledVolume(vol, sfxLevelRef.current)).then(() => {
+            if (epochOf(handle) === ticket) handle.play();
+          });
+        })
+        .catch(() => {});
     });
   };
 

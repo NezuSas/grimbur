@@ -276,7 +276,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       const hero = selectedRef.current;
       if (equippedSkin(stats, hero) === skin) return;
       haptic.impact();
-      void equipSkinFor(hero, skin).then(next => next && setStats(next));
+      void equipSkinFor(hero, skin).then(next => next && setStats(next)).catch(() => {});
     },
     [stats],
   );
