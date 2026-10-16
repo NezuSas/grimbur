@@ -3,7 +3,6 @@ import {
   Animated,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   View,
   useWindowDimensions,
 } from "react-native";
@@ -12,6 +11,7 @@ import Text from "../Text";
 import { formatTime } from '../../../shared/utils/formatTime';
 import { checkName } from '../../../core/leaderboard/validation';
 import OverlayContainer from './OverlayContainer';
+import { PopButton, PopupPanel } from './popup';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -116,31 +116,8 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
       )}
 
       <View style={styles.buttons}>
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={onSkip}
-          disabled={saving}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.skip')}
-        >
-          <Text style={styles.skipText} numberOfLines={1} maxFontSizeMultiplier={1.3}>
-            {t('common.skip').toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.saveButton, (!name.trim() || saving) && { opacity: 0.45 }]}
-          onPress={submit}
-          disabled={!name.trim() || saving}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('entry.save')}
-          accessibilityState={{ disabled: !name.trim() || saving, busy: saving }}
-        >
-          <Text style={styles.saveText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-            {(saving ? t('entry.saving') : t('entry.save')).toLocaleUpperCase()}
-          </Text>
-        </TouchableOpacity>
+        <PopButton variant="secondary" label={t('common.skip')} onPress={onSkip} disabled={saving} style={styles.skipButton} />
+        <PopButton label={saving ? t('entry.saving') : t('entry.save')} accessibilityLabel={t('entry.save')} onPress={submit} disabled={!name.trim() || saving} style={styles.saveButton} />
       </View>
     </View>
   );
@@ -148,10 +125,10 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 1001 }]} pointerEvents="box-none">
       <OverlayContainer keyboardAvoiding>
-        <View style={[styles.card, { width: Math.min((width - Math.max(insets.left, 12) - Math.max(insets.right, 12)) * 0.98, compact ? 640 : 380) }, compact && styles.cardRow]}>
+        <PopupPanel tint="#FFD54F" width={Math.min((width - Math.max(insets.left, 12) - Math.max(insets.right, 12)) * 0.98, compact ? 640 : 380)} style={compact ? styles.cardRow : styles.card}>
           {summary}
           {form}
-        </View>
+        </PopupPanel>
       </OverlayContainer>
     </Animated.View>
   );
@@ -160,19 +137,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
 export default HighScoreEntryModal;
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: '#FFD700',
-    padding: 16,
-    gap: 10,
-    shadowColor: '#FFD700',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 20,
-  },
+  card: { gap: 10 },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
   summary: { alignItems: 'center', gap: 4, flex: 1 },
   form: { gap: 8, flex: 1.2, width: '100%' },
@@ -183,38 +148,17 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     minHeight: MIN_TOUCH,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 14,
     paddingHorizontal: 14,
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,213,79,0.45)',
   },
   error: { color: '#FF8A80', fontSize: 12, fontWeight: '700' },
   buttons: { flexDirection: 'row', gap: 10 },
-  skipButton: {
-    flex: 1,
-    minHeight: MIN_TOUCH,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
-  },
-  skipText: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1 },
-  saveButton: {
-    flex: 1.6,
-    minHeight: MIN_TOUCH,
-    backgroundColor: '#FFD700',
-    borderRadius: 14,
-    paddingHorizontal: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomWidth: 3,
-    borderBottomColor: 'rgba(0,0,0,0.2)',
-  },
-  saveText: { color: '#000', fontWeight: '900', fontSize: 14, letterSpacing: 1 },
+  skipButton: { flex: 1 },
+  saveButton: { flex: 1.6 },
 });

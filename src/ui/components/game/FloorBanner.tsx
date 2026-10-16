@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import Text from "../Text";
 
 type Props = {
@@ -57,10 +58,14 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
       accessibilityLiveRegion="polite"
       style={[styles.wrap, minTop > 0 && { top: Math.max(minTop, windowHeight * 0.14) }, { opacity, transform: [{ translateY: lift }] }]}
     >
-      <View style={styles.card}>
-        <Text style={styles.title} maxFontSizeMultiplier={1.2}>
-          {title.toLocaleUpperCase()}
-        </Text>
+      <LinearGradient colors={['rgba(43,32,80,0.96)', 'rgba(18,12,38,0.96)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.card}>
+        <View style={styles.titleRow}>
+          <Text style={styles.diamond}>◆</Text>
+          <Text style={styles.title} maxFontSizeMultiplier={1.2}>
+            {title.toLocaleUpperCase()}
+          </Text>
+          <Text style={styles.diamond}>◆</Text>
+        </View>
         {omenName ? (
           <>
             <Text style={styles.omen} maxFontSizeMultiplier={1.2}>
@@ -78,7 +83,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
             {story}
           </Text>
         ) : null}
-      </View>
+      </LinearGradient>
     </Animated.View>
   );
 };
@@ -93,16 +98,23 @@ const styles = StyleSheet.create({
     zIndex: 40,
   },
   card: {
-    backgroundColor: 'rgba(0,0,0,0.72)',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-    paddingHorizontal: 22,
-    paddingVertical: 8,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: 'rgba(255,213,79,0.7)',
+    paddingHorizontal: 24,
+    paddingVertical: 9,
     alignItems: 'center',
     maxWidth: '80%',
+    overflow: 'hidden',
+    shadowColor: '#FFD54F',
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 10,
   },
-  title: { color: '#fff', fontWeight: '900', fontSize: 18, letterSpacing: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  diamond: { color: '#FFD54F', fontSize: 9 },
+  title: { color: '#fff', fontWeight: '900', fontSize: 19, letterSpacing: 4, textShadowColor: 'rgba(255,213,79,0.6)', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 8 },
   omen: { color: '#FFD54F', fontWeight: '900', fontSize: 13, letterSpacing: 2, marginTop: 2 },
   story: { color: '#cdb8ff', fontSize: 12.5, fontStyle: 'italic', textAlign: 'center', marginTop: 5 },
   rule: { color: '#e0e0e0', fontSize: 12, textAlign: 'center', marginTop: 1 },
