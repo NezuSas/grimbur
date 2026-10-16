@@ -165,7 +165,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
   const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
   const arrowShop = useArrowRefill({ state, isDaily, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
-  const second = useRevive({ state, isDaily, runNumber, revive, onRevived });
+  const second = useRevive({ state, isDaily, runNumber, revive, onRevived, freeFirst: !!route.params?.meta?.freeRevive });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
     runEnded: runEnded && !second.holdEnd,

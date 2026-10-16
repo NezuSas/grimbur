@@ -30,7 +30,7 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, onRevive, onDecline
         <Text style={styles.body} maxFontSizeMultiplier={1.3}>
           {t("revive.body")}
         </Text>
-        <PopButton label={`${t("revive.cta")}  ·  🔥 ${price}`} glyph="❤️" busy={busy} onPress={onRevive} accessibilityLabel={`${t("revive.cta")}: ${price}`} />
+        <PopButton label={`${t("revive.cta")}  ·  ${price === 0 ? t("revive.free").toLocaleUpperCase() : `🔥 ${price}`}`} glyph="❤️" busy={busy} onPress={onRevive} accessibilityLabel={`${t("revive.cta")}: ${price}`} />
         <Text style={styles.meta} maxFontSizeMultiplier={1.2}>
           {t("revive.balance", { n: embers.toLocaleString() })}
           {used > 0 ? `  ·  ${t("revive.used", { n: used })}` : ""}

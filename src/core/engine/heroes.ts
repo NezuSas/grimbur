@@ -21,6 +21,8 @@ export interface HeroPerks {
   startLit: boolean;
   /** One-use items in the bag at the start of every run. */
   startItems: { detector: number; bomb: number };
+  /** The ability recharges this many actions sooner (Forge). */
+  abilityHaste?: number;
   /** The hero's active ability (null when none). */
   ability: AbilityId | null;
 }

@@ -602,7 +602,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       if (!ability || state.abilityCd > 0 || state.isGameOver || state.isLevelUp || state.pendingDraft) return state;
       const { rows, cols } = state;
       let world: World = { entities: state.entities, entityMap: state.entityMap };
-      const cooldown = { abilityCd: abilityCooldown(ability) };
+      const cooldown = { abilityCd: Math.max(1, abilityCooldown(ability) - (state.perks.abilityHaste ?? 0)) };
 
       if (ability === 'brace') {
         if (state.shield) return state;

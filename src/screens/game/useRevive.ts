@@ -12,6 +12,8 @@ type Params = {
   /** Changes with every new run. */
   runNumber: number;
   revive: () => void;
+  /** The Forge's Second wind: the first revive of the run costs nothing. */
+  freeFirst?: boolean;
   /** The hero is back (the screen tells the player what happened). */
   onRevived: () => void;
 };
@@ -22,9 +24,9 @@ type Gate = { key: string; result: "offer" | "none" | "declined" };
  * The second chance after a death: when the hero falls and the purse can pay, the result card waits for the player's answer. It
  * only offers what can be bought (a button that cannot be pressed would be a nag). `holdEnd` tells the run record to wait.
  */
-export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Params) {
+export function useRevive({ state, isDaily, runNumber, revive, onRevived, freeFirst }: Params) {
   const used = state.revives ?? 0;
-  const price = revivePrice(used, state.level, state.ascension);
+  const price = used === 0 && freeFirst ? 0 : revivePrice(used, state.level, state.ascension);
   const eligible = state.isGameOver && !state.isVictory && !isDaily && !!state.lastBreath;
   const key = `${runNumber}:${used}`;
   const [gate, setGate] = useState<Gate | null>(null);
@@ -68,7 +70,7 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived }: Para
     if (busy) return;
     setBusy(true);
     try {
-      const paid = await spendEmbersFor(price);
+      const paid = price === 0 ? true : await spendEmbersFor(price);
       if (!paid) {
         decline();
         return;
