@@ -33,7 +33,7 @@ import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import ToolBar from "../ui/components/ToolBar";
 import CoachHint from "../ui/components/game/CoachHint";
-import ScorePopup, { PopupType } from "../ui/components/game/ScorePopup";
+import ScorePopup from "../ui/components/game/ScorePopup";
 import Toast from "../ui/components/game/Toast";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
@@ -67,10 +67,6 @@ import type { SkinId } from "../data/skinArt";
 import { addHighscore, isTopTenScore } from "../services/highscores";
 import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
-import { buildDailyShareText } from "../core/stats/share";
-import type { RunPayout } from "../core/stats/runStats";
-import type { Goal } from "../core/stats/goals";
-import type { Unlocks } from "../core/stats/unlocks";
 import { clampAscension } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
 import { hasFullGame, shouldGateDescentNow } from "../services/entitlements";
@@ -79,64 +75,13 @@ import { useSessionClock } from "../hooks/useSessionClock";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useTravel } from "../hooks/useTravel";
 import { useT } from "../i18n/useT";
+import { BIOME_TINT, GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS } from "./game/types";
+import type { Popup, RunResult } from "./game/types";
+import { dailyRunResult, runResultOf } from "./game/runResult";
+import { buildShareMessage } from "./game/shareMessage";
 import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
-
-/** The dark wash over the cave picture: each cave type leans toward its own colour. */
-// Each cave type has its own picture now (see ui/biomeArt.ts); the dark layer over it only keeps the board readable.
-const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
-  cave: "rgba(0,0,0,0.55)",
-  crystal: "rgba(0,0,0,0.5)",
-  magma: "rgba(0,0,0,0.5)",
-  lair: "rgba(0,0,0,0.5)",
-};
-
-/** How long the top-10 check may delay the entry modal; the Game Over card never waits for it. */
-/** How long the board is left on screen after a death (the red flash, the shake and the killer in view) before the card. */
-// The killer is shown on the board (it leaps over the hero) before the defeat card covers it.
-const GAME_OVER_CARD_DELAY_MS = 1100;
-/** The run is saved this long after a death, once the killer's strike on the board has played. */
-const RECORD_AFTER_STRIKE_MS = 650;
-const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
-
-/** A floating label: where it rises from, and how it looks. */
-type Popup = {
-  id: number;
-  points: number;
-  type: PopupType;
-  /** Screen position of the tile it rises from (undefined until the board has been measured). */
-  x?: number;
-  y?: number;
-  slot: number;
-  at: number;
-  sub?: string | null;
-  subColor?: string;
-  popScale?: number;
-};
-
-type RunResult = {
-  bestScore: number;
-  isNewBest: boolean;
-  streak?: number;
-  unlocked?: number[];
-  achievements?: string[];
-  embers?: number;
-  bonus?: number;
-  payout?: RunPayout;
-  streakLost?: number;
-  bestStreak?: number;
-  freezeUsed?: boolean;
-  freezeEarned?: boolean;
-  unlocks?: Unlocks;
-  goals?: Goal[];
-  canBuyNow?: boolean;
-  /** Missions this run completed, and the new rank when it was raised. */
-  missionsDone?: string[];
-  rankUp?: number | null;
-  /** One of the first runs: the game over explains gems versus embers. */
-  early?: boolean;
-};
 
 // ── Main Screen ──────────────────────────────────────────────────────────
 export default function GameScreen({ navigation, route }: Props) {
@@ -379,11 +324,10 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
-        return { bestScore: r.dailyBest, isNewBest: r.isNewDailyBest, streak: r.streak, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, streakLost: r.streakLost, bestStreak: r.bestStreak, freezeUsed: r.freezeUsed, freezeEarned: r.freezeEarned, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, missionsDone: r.missionsDone, rankUp: r.rankUp, early: r.stats.gamesPlayed <= 2 };
+        return dailyRunResult(r);
       }
       const r = await recordRun(run);
-      // The endless descent keeps its own record, measured in floors.
-      return { bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore, isNewBest: r.isNewBestScore, unlocked: r.unlocked, achievements: r.achievements, embers: r.embers, bonus: r.bonus, payout: r.payout, unlocks: { ...r.unlocks, skins: r.newSkins }, goals: r.goals, canBuyNow: r.affordableNow.length > 0, missionsDone: r.missionsDone, rankUp: r.rankUp, early: r.stats.gamesPlayed <= 2 };
+      return runResultOf(r, mode);
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
       runRecorded.current = false; // nothing was saved: the retry, the unmount or the card may try again
@@ -594,24 +538,11 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const handleShare = useCallback(async () => {
     const s = stateRef.current;
-    const streak = runResult?.streak ? plural("over.streak", runResult.streak) : "";
-    const message = isDaily
-      ? buildDailyShareText({
-          dateKey: dailyDate,
-          level: s.level,
-          floors: GAME_CONFIG.expedition.floors,
-          victory: s.isVictory,
-          title: n => t("share.daily.title", { n }),
-          scoreText: t("share.daily.score", { score: s.score.toLocaleString() }),
-          streakText: streak,
-          footer: t("share.daily.footer"),
-        })
-      : t("share.run", {
-          depth: ascension > 0 ? ` · ${t(`ascension.label.${ascension}` as TranslationKey)}` : "",
-          result: s.isVictory ? t("share.won") : t("share.reached", { floor: s.level }),
-          score: s.score.toLocaleString(),
-          gems: plural("common.gems", s.totalCoins),
-        });
+    const message = buildShareMessage(
+      { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory },
+      { isDaily, dailyDate, ascension, streak: runResult?.streak },
+      { t, plural },
+    );
     analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
     try {
       await Share.share({ message });
