@@ -208,6 +208,7 @@ export function useGameEngine(): GameEngineInterface {
   const useAbility = useCallback(() => pureDispatch({ type: 'USE_ABILITY' }), [pureDispatch]);
   const undo = useCallback(() => pureDispatch({ type: 'UNDO' }), [pureDispatch]);
   const revive = useCallback(() => pureDispatch({ type: 'REVIVE' }), [pureDispatch]);
+  const refill = useCallback(() => pureDispatch({ type: 'REFILL' }), [pureDispatch]);
 
   const pickRelic = useCallback((id: RelicId) => {
     pureDispatch({ type: 'PICK_RELIC', id });
@@ -227,5 +228,6 @@ export function useGameEngine(): GameEngineInterface {
     useAbility,
     undo,
     revive,
+    refill,
   };
 }

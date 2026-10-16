@@ -61,6 +61,7 @@ import { useBoardInput } from "./game/useBoardInput";
 import { useGameFeedback } from "./game/useGameFeedback";
 import { useRunRecord } from "./game/useRunRecord";
 import { useRevive } from "./game/useRevive";
+import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
 import { buildShareMessage } from "./game/shareMessage";
@@ -88,7 +89,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
   const [intermission, setIntermission] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
@@ -163,6 +164,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
   const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
+  const arrowShop = useArrowRefill({ state, isDaily, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
   const second = useRevive({ state, isDaily, runNumber, revive, onRevived });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
@@ -559,7 +561,7 @@ export default function GameScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
+        <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} refill={{ show: arrowShop.show, price: arrowShop.price, arrows: arrowShop.arrows, busy: arrowShop.busy, onBuy: () => void arrowShop.buy() }} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
 
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <Profiler id="board" onRender={onRenderProfile}>
