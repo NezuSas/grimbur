@@ -115,7 +115,7 @@ Contacto: <TODO(owner): correo de soporte>
 **Novedades (primera versión, <=500):**
 
 ```text
-Primera versión. 10 pisos y el Wumpus, cuatro héroes, reliquias, la Forja, reto diario, descenso sin fin, seis profundidades de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
+Primera versión. 10 pisos y el Wumpus, seis héroes, reliquias, la Forja, reto diario, descenso sin fin, seis profundidades de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
 ```
 
 **Texto promocional (App Store, <=170):** `Deduce dónde se esconden los peligros, elige reliquias, recoge todas las gemas y vence al Wumpus. Una cueva nueva cada día. Sin anuncios.`

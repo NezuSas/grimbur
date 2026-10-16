@@ -16,6 +16,7 @@ Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVAC
 | Compartir (`Share.share`) | Texto del resultado / registro de audio | Lo envía el usuario a la app que elija |
 | `expo-clipboard` (en construcción) | Código de copia de seguridad | Local; el usuario lo copia o pega |
 | `expo-store-review` (en construcción) | Ventana de reseña del sistema | Gestionado por Google/Apple |
+| Recordatorio diario (`expo-notifications`) | Una notificación **local** a las 19:00 si el reto diario sigue abierto; opcional, apagada por defecto. Se programa en el teléfono: no se envía nada a ningún servidor | Añade el permiso `POST_NOTIFICATIONS` (Android 13+, se pide solo al activarlo) y probablemente `RECEIVE_BOOT_COMPLETED`. **Comprobar en el AAB generado** y mencionarlo en la política de privacidad |
 | Anuncios | **No hay** | Ninguno |
 | Cuentas / login | **No hay** | Ninguno |
 | Permisos Android | `INTERNET`, `ACCESS_NETWORK_STATE`, `VIBRATE`, `MODIFY_AUDIO_SETTINGS`. Bloqueados: `RECORD_AUDIO`, `READ/WRITE_EXTERNAL_STORAGE` (ver `app.json`) | Sin permisos "peligrosos" |

@@ -39,9 +39,11 @@ const devLaunch = readDevHarness();
 const AUDIO_LOAD_TIMEOUT_MS = 9000;
 /** Longest the invisible warm-up may take to draw every picture once before the app starts anyway. */
 const WARMUP_TIMEOUT_MS = 10000;
+/** Longest the whole preparation (audio, settings, progress, pictures) may take before the app starts anyway. */
+const STARTUP_WATCHDOG_MS = 20000;
 
 // Keep the splash screen visible while we fetch resources
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
@@ -99,7 +101,9 @@ export default function App() {
               }),
           ),
         );
-        await Promise.all([audio, basics, stats, images]);
+        // One part that never answers (a download with no network, a player that never loads) must not hold the loading
+        // screen forever: after this long the app starts with whatever is ready.
+        await Promise.race([Promise.all([audio, basics, stats, images]), new Promise<void>(resolve => setTimeout(resolve, STARTUP_WATCHDOG_MS))]);
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
