@@ -696,7 +696,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onRetry: handleRetry,
           onMainMenu: handleMainMenu,
         }}
-        revive={{ visible: second.visible, price: second.price, embers: second.embers, left: second.left, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
+        revive={{ visible: second.visible, price: second.price, embers: second.embers, used: second.used, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
         highScore={{ visible: showHighScoreEntry, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
       />
     </ImageBackground>

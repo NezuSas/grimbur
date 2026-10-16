@@ -1,14 +1,18 @@
 import { gameReducer } from '../../src/core/engine/reducer';
-import { MAX_REVIVES, REFILL_ARROWS, REVIVE_ARROWS, refillPrice, revivePrice } from '../../src/core/engine/revive';
+import { REFILL_ARROWS, REFILL_CAP, REVIVE_ARROWS, REVIVE_CAP, refillPrice, revivePrice } from '../../src/core/engine/revive';
 import { spendEmbers } from '../../src/core/stats/spend';
 import { EMPTY_STATS } from '../../src/core/stats/runStats';
 import { coin, createState, enemy } from '../helpers/state';
 
 describe('revive', () => {
-  it('prices rise and run out', () => {
-    expect(revivePrice(0)).toBeLessThan(revivePrice(1) as number);
-    expect(revivePrice(MAX_REVIVES)).toBeNull();
+  it('prices rise with each use, floor and depth, up to a cap', () => {
+    expect(revivePrice(0)).toBe(40);
+    expect(revivePrice(1)).toBeGreaterThan(revivePrice(0));
+    expect(revivePrice(2)).toBeGreaterThan(revivePrice(1));
+    expect(revivePrice(40)).toBe(REVIVE_CAP); // never free, never beyond the cap, however many
     expect(revivePrice(-3)).toBe(revivePrice(0));
+    // deeper floors and depths cost more
+    expect(revivePrice(0, 9, 5)).toBeGreaterThan(revivePrice(0, 2, 0));
   });
 
   it('brings the hero back to just before the fatal step, shielded, with arrows, and flags the killer', () => {
@@ -46,9 +50,10 @@ describe('spendEmbers', () => {
 });
 
 describe('arrow packs', () => {
-  it('prices rise and run out', () => {
-    expect(refillPrice(0)).toBeLessThan(refillPrice(2) as number);
-    expect(refillPrice(3)).toBeNull();
+  it('prices rise with each use, floor and depth, up to a cap', () => {
+    expect(refillPrice(0)).toBe(15);
+    expect(refillPrice(2)).toBeGreaterThan(refillPrice(0));
+    expect(refillPrice(30)).toBe(REFILL_CAP);
   });
 
   it('adds a pack of arrows and counts it, but never after the end of the run', () => {

@@ -9,8 +9,8 @@ type Props = {
   visible: boolean;
   price: number;
   embers: number;
-  /** Revives still available in this run (this one included). */
-  left: number;
+  /** Revives already used in this run. */
+  used: number;
   busy: boolean;
   onRevive: () => void;
   onDecline: () => void;
@@ -19,7 +19,7 @@ type Props = {
 const TINT = "#FF8A80";
 
 /** The second chance: come back from a death for embers. It appears right after the hero falls, before the result card. */
-const ReviveOverlay = ({ visible, price, embers, left, busy, onRevive, onDecline }: Props) => {
+const ReviveOverlay = ({ visible, price, embers, used, busy, onRevive, onDecline }: Props) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   if (!visible) return null;
@@ -32,7 +32,8 @@ const ReviveOverlay = ({ visible, price, embers, left, busy, onRevive, onDecline
         </Text>
         <PopButton label={`${t("revive.cta")}  ·  🔥 ${price}`} glyph="❤️" busy={busy} onPress={onRevive} accessibilityLabel={`${t("revive.cta")}: ${price}`} />
         <Text style={styles.meta} maxFontSizeMultiplier={1.2}>
-          {t("revive.balance", { n: embers.toLocaleString() })}  ·  {t("revive.left", { n: left })}
+          {t("revive.balance", { n: embers.toLocaleString() })}
+          {used > 0 ? `  ·  ${t("revive.used", { n: used })}` : ""}
         </Text>
         <PopLink label={t("revive.decline")} onPress={onDecline} disabled={busy} />
       </PopupPanel>
