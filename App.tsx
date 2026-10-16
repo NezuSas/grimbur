@@ -1,5 +1,5 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -116,16 +116,19 @@ export default function App() {
     prepare();
   }, []);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady) {
-      // This tells the splash screen to hide immediately!
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
+  // The native splash (logo on dark) gives way as soon as the loading screen has its first frame: that one has the same colour and the
+  // same logo in the same place, so the change cannot be seen, and from then on the player sees the bar fill instead of a still picture.
+  const splashHidden = useRef(false);
+  const hideNativeSplash = useCallback(() => {
+    if (splashHidden.current) return;
+    splashHidden.current = true;
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+  const onLayoutRootView = hideNativeSplash;
 
   if (!appIsReady) {
     return (
-      <>
+      <View style={{ flex: 1, backgroundColor: "#0E0B1F" }} onLayout={hideNativeSplash}>
         <LoadingScreen progress={bar} />
         {assetsDownloaded && (
           <ImageWarmup
@@ -139,7 +142,7 @@ export default function App() {
             }}
           />
         )}
-      </>
+      </View>
     );
   }
 
