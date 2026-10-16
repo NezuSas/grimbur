@@ -5,20 +5,31 @@ const t = (key: string, params: Record<string, unknown> = {}) => `${key}${Object
 const plural = (base: string, n: number) => `${base}#${n}`;
 
 describe('buildShareMessage', () => {
-  const run = { level: 7, score: 12345, totalCoins: 9, isVictory: false };
+  const run = { level: 7, score: 12345, totalCoins: 9, isVictory: false, time: 754 };
+  const heroName = 'Vael';
 
   it('describes an expedition: depth only when it is not the normal one, result and score', () => {
-    const plain = buildShareMessage(run, { isDaily: false, dailyDate: '2026-10-16', ascension: 0 }, { t: t as never, plural: plural as never });
-    expect(plain).toContain('share.run');
+    const plain = buildShareMessage(run, { isDaily: false, dailyDate: '2026-10-16', ascension: 0, heroName }, { t: t as never, plural: plural as never });
+    expect(plain).toContain('share.title');
+    expect(plain).toContain('"hero":"Vael"');
     expect(plain).toContain('"depth":""');
     expect(plain).toContain('share.reached');
-    const deep = buildShareMessage({ ...run, isVictory: true }, { isDaily: false, dailyDate: '2026-10-16', ascension: 3 }, { t: t as never, plural: plural as never });
+    expect(plain).toContain('🟩🟩🟩🟩🟩🟩🟥⬛⬛⬛'); // floors cleared as squares
+    expect(plain).toContain('share.invite');
+    const deep = buildShareMessage({ ...run, isVictory: true }, { isDaily: false, dailyDate: '2026-10-16', ascension: 3, heroName }, { t: t as never, plural: plural as never });
     expect(deep).toContain('share.won');
     expect(deep).toContain('ascension.label.3');
+    expect(deep).toContain('👑');
+  });
+
+  it('the endless descent has no squares, only the floor reached', () => {
+    const endless = buildShareMessage({ ...run, level: 14 }, { isDaily: false, dailyDate: '2026-10-16', ascension: 0, heroName, endless: true }, { t: t as never, plural: plural as never });
+    expect(endless).toContain('share.endless');
+    expect(endless).not.toMatch(/🟩|🟥|⬛/);
   });
 
   it('uses the daily format with its title and the streak', () => {
-    const text = buildShareMessage(run, { isDaily: true, dailyDate: '2026-10-16', ascension: 0, streak: 4 }, { t: t as never, plural: plural as never });
+    const text = buildShareMessage(run, { isDaily: true, dailyDate: '2026-10-16', ascension: 0, streak: 4, heroName }, { t: t as never, plural: plural as never });
     expect(text).toContain('share.daily.title');
     expect(text).toContain('over.streak#4');
   });

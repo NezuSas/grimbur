@@ -48,6 +48,7 @@
         }
       ],
       "expo-asset",
+      "expo-sharing",
       [
         "expo-notifications",
         {
