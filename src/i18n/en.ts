@@ -403,7 +403,7 @@ export const en = {
   'omen.calm.name': 'Omen: Calm',
   'omen.calm.rule': 'One guardian and one vortex fewer, but one gem less.',
   'omen.arsenal.name': 'Omen: Arsenal',
-  'omen.arsenal.rule': '+2 arrows, but one more vortex and a stalker on the prowl.',
+  'omen.arsenal.rule': '+2 arrows, but one more vortex and one more hunter (a roaming stalker from floor 4).',
 
   'over.gemsLeft_one': 'Just {count} gem from clearing floor {floor}!',
   'over.gemsLeft_other': 'Just {count} gems from clearing floor {floor}!',

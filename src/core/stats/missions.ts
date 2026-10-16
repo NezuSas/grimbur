@@ -110,23 +110,25 @@ export function dailySelection(day: string): MissionDef[] {
 }
 
 /** This week's two missions (never two of the same metric). */
-export function weeklySelection(week: string): MissionDef[] {
+export function weeklySelection(week: string, heroesUnlocked = 99): MissionDef[] {
   const rnd = createPRNG(hash(`weekly:${week}`));
-  const first = pickOne(WEEKLY_POOL, rnd);
-  const second = pickOne(WEEKLY_POOL.filter(m => m.id !== first.id && m.metric !== first.metric), rnd);
+  // "Play with 3 different heroes" is only offered to a player who has three to choose from
+  const pool = WEEKLY_POOL.filter(m => m.metric !== 'heroes' || heroesUnlocked >= m.target);
+  const first = pickOne(pool, rnd);
+  const second = pickOne(pool.filter(m => m.id !== first.id && m.metric !== first.metric), rnd);
   return [first, second];
 }
 
 const fresh = (defs: MissionDef[]): MissionProgress[] => defs.map(m => ({ id: m.id, progress: 0, claimed: false }));
 
 /** Brings the missions to `today`: a new day replaces the daily ones, a new week the weekly ones. */
-export function syncMissions(state: MissionsState, today: string): MissionsState {
+export function syncMissions(state: MissionsState, today: string, heroesUnlocked = 99): MissionsState {
   if (!DATE_RE.test(today)) return state;
   const week = weekKeyOf(today);
   let next = state;
   // Only forward: setting the clock back must not hand out today's missions (and their rewards) again.
   if (state.day === null || today > state.day) next = { ...next, day: today, daily: fresh(dailySelection(today)), bonusClaimed: false };
-  if (state.week === null || week > state.week) next = { ...next, week, weekly: fresh(weeklySelection(week)) };
+  if (state.week === null || week > state.week) next = { ...next, week, weekly: fresh(weeklySelection(week, heroesUnlocked)) };
   return next;
 }
 

@@ -16,6 +16,7 @@ import { UpgradeId, purchase } from '../core/stats/forge';
 import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership';
 import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from '../core/stats/missions';
 import { rankUp } from '../core/stats/rank';
+import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';
 
 const STORAGE_KEY = 'wumpus.stats.v1';
@@ -78,10 +79,12 @@ async function save(stats: LocalStats) {
   latest = stats;
 }
 
+const unlockedHeroCount = (stats: LocalStats): number => HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length;
+
 /** Feeds a finished run to the missions of its day (a new day or week replaces the old ones first). */
 function withMissions(stats: LocalStats, run: RunResult, day: string): { stats: LocalStats; done: string[] } {
   if (run.progressed === false) return { stats, done: [] };
-  const applied = applyMissionRun(syncMissions(stats.missions, day), run);
+  const applied = applyMissionRun(syncMissions(stats.missions, day, unlockedHeroCount(stats)), run);
   return { stats: { ...stats, missions: applied.state }, done: applied.done };
 }
 
@@ -89,7 +92,7 @@ function withMissions(stats: LocalStats, run: RunResult, day: string): { stats: 
 export const getMissions = (day: string = dailyKey()): Promise<LocalStats> =>
   serialized(async () => {
     const before = await getLocalStats();
-    const synced = syncMissions(before.missions, day);
+    const synced = syncMissions(before.missions, day, unlockedHeroCount(before));
     if (synced === before.missions) return before;
     const stats = { ...before, missions: synced };
     await save(stats);

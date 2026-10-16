@@ -8,6 +8,7 @@ import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
 import { getLocalStats, peekLocalStats, syncAchievements } from "../services/localStats";
+import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { claimableCount, syncMissions } from "../core/stats/missions";
 import { syncReminders } from "../services/reminders";
 import { maybeRequestReview } from "../services/storeReview";
@@ -99,7 +100,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
           achievementsBadge={unlocked > achievementsSeen}
           collectionBadge={collectionBadge(stats)}
-          missionsBadge={claimableCount(syncMissions(stats.missions, today)) > 0}
+          missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0}
           onPressMissions={() => navigation.navigate("MissionsScreen")}
           onPressCollection={() => navigation.navigate("CollectionScreen")}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
