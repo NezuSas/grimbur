@@ -9,7 +9,7 @@ type Props = {
   label?: string;
 };
 
-/** Same colour and same logo size as the native splash (app.json, expo-splash-screen), so that the one gives way to the other unseen. */
+/** Same colour and same logo size as the native splash (app.json, expo-splash-screen: 288 dp canvas, monster 64% of it, so the system circle does not crop it), so that the one gives way to the other unseen. */
 export const SPLASH_BACKGROUND = '#0E0B1F';
 export const SPLASH_LOGO_SIZE = 200;
 
