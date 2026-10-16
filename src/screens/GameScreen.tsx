@@ -71,7 +71,7 @@ import { buildDailyShareText } from "../core/stats/share";
 import type { RunPayout } from "../core/stats/runStats";
 import type { Goal } from "../core/stats/goals";
 import type { Unlocks } from "../core/stats/unlocks";
-import { clampAscension, modifiersFor } from "../core/engine/ascension";
+import { clampAscension } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
 import { hasFullGame, shouldGateDescentNow } from "../services/entitlements";
 import { GAME_CONFIG } from "../config/gameConfig";

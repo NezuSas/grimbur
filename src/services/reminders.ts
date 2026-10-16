@@ -27,7 +27,7 @@ export const remindersSupported = (): boolean => Platform.OS !== 'web' && Consta
 function load(): Notifications | null {
   if (!remindersSupported()) return null;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     return require('expo-notifications') as Notifications;
   } catch {
     return null;

@@ -15,9 +15,8 @@ import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, Set
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { cancelReminders, remindersSupported, requestReminderPermission, syncReminders } from "../services/reminders";
-import { getLocalStats } from "../services/localStats";
+import { getLocalStats , resetLocalStats } from "../services/localStats";
 import { emitSound } from "../audio/audioEventBus";
-import { resetLocalStats } from "../services/localStats";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
 import { decodeBackup, summarize } from "../core/stats/backup";
 import type { DecodeFailure } from "../core/stats/backup";

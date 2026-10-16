@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
-import SpriteImage, { AnimatedSprite } from "../SpriteImage";
+import { AnimatedSprite } from "../SpriteImage";
 
 type Props = {
   startX: number;

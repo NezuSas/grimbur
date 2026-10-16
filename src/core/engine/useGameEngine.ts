@@ -13,7 +13,6 @@ import { isLairFloor, lairHeartBonus } from './lair';
 import { getHeroPerks } from './heroes';
 import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
 import { RelicId, relicCount } from './relics';
-import { GAME_CONFIG } from '../../config/gameConfig';
 import { emitGameEvent } from '../events/gameEvents';
 import { analytics } from '../../services/analytics';
 import { recordAction } from '../replay/replay';
