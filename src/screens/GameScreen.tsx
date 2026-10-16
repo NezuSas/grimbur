@@ -35,20 +35,14 @@ import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
-import { recordLatency } from "../audio/audioDiagnostics";
 import { onRenderProfile } from "../audio/renderProfile";
 import { useGameEngine } from "../core/engine/useGameEngine";
 import { getNearbyHazards } from "../core/engine/proximity";
 import { bossHearts, countGuardians } from "../core/engine/entityCounts";
-import { diffFeedback, killerTile } from "../core/feedback/diffFeedback";
-import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemStreakLabel } from "../core/feedback/combo";
-import { tileCenter } from "../core/feedback/geometry";
+import { killerTile } from "../core/feedback/diffFeedback";
 import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
-import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
-import { coinReward, killValue } from "../core/engine/scoring";
 import type { TranslationKey } from "../i18n/en";
-import { omenEffects } from "../core/engine/omens";
 import { forkDoors } from "../core/engine/shop";
 import { biomeFor, isNewBiome } from "../core/engine/biomes";
 import { isLairFloor } from "../core/engine/lair";
@@ -66,9 +60,10 @@ import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionClock } from "../hooks/useSessionClock";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useBoardInput } from "./game/useBoardInput";
+import { useGameFeedback } from "./game/useGameFeedback";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT, GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS } from "./game/types";
-import type { Popup, RunResult } from "./game/types";
+import type { RunResult } from "./game/types";
 import { dailyRunResult, runResultOf } from "./game/runResult";
 import { buildShareMessage } from "./game/shareMessage";
 import { omenText, relicText } from "../i18n/keys";
@@ -79,7 +74,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 export default function GameScreen({ navigation, route }: Props) {
   const { t, plural } = useT();
   const insets = useSafeAreaInsets();
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { width: windowWidth } = useWindowDimensions();
   const { controlPanelWidth, hudHeight, splitAttack } = useGameLayout();
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const reduceFlash = useSettingsStore(s => s.reduceFlash);
@@ -99,14 +94,8 @@ export default function GameScreen({ navigation, route }: Props) {
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
   const [intermission, setIntermission] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
-  const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
-  const [popups, setPopups] = useState<Popup[]>([]);
   // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
-  const [shieldBreakKey, setShieldBreakKey] = useState(0);
-  const [shakeKey, setShakeKey] = useState(0);
   const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
-  const [gemPop, setGemPop] = useState(1.15);
-  const gemStreak = useRef(EMPTY_STREAK);
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -118,12 +107,9 @@ export default function GameScreen({ navigation, route }: Props) {
   // "level": the level-complete card is up and the paywall follows it; "paywall": the offer is up and its answer decides.
   const gateStage = useRef<null | "level" | "paywall">(null);
   const isFocused = useIsFocused();
-  const combatFlash = useRef(new Animated.Value(0)).current;
-  const vortexFlash = useRef(new Animated.Value(0)).current;
   // Red wash that appears the instant the hero dies and stays under the game-over card.
   const deathFlash = useRef(new Animated.Value(0)).current;
   // Short red wash when a shield (or feather) soaks a deadly touch.
-  const hitFlash = useRef(new Animated.Value(0)).current;
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
@@ -177,6 +163,13 @@ export default function GameScreen({ navigation, route }: Props) {
     attack,
     onRefusedFlag,
   });
+  const { popups, activeCoins, removeCoin, removePopup, clearPopups, resetStreak, gemPop, shieldBreakKey, shakeKey, combatFlash, vortexFlash, hitFlash, boardBox, measureBoard, isResetting } = useGameFeedback({
+    state,
+    stateRef,
+    stepSoundedAt,
+    reduceFlash,
+    bootCover,
+  });
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
   // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
@@ -190,14 +183,9 @@ export default function GameScreen({ navigation, route }: Props) {
   busyRef.current = levelUpWindow || !!state.pendingDraft;
 
   // Guards / bookkeeping refs
-  const prevFeedback = useRef(state);
-  const boardOrigin = useRef<{ x: number; y: number } | null>(null);
-  const boardBox = useRef<View>(null);
   const descendOnFocus = useRef(false); //    the next floor opens as soon as the level-complete card closes
   const gameOverTriggered = useRef(false); // prevents the end-of-run flow from running twice
   const runRecorded = useRef(false); //       the run is saved to local stats exactly once
-  const justLeveledUp = useRef(false); //     suppresses a phantom MOVE sound on level start
-  const isResetting = useRef(false); //       suppresses feedback while retrying
   const leaving = useRef(false); //           blocks timers from navigating after we left
   const mounted = useRef(true);
   const floorStart = useRef({ enemies: 0, gems: 0 });
@@ -205,7 +193,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // ── Run bookkeeping ──────────────────────────────────────────────────────
   const startRun = useCallback(() => {
     deathFlash.setValue(0);
-    gemStreak.current = EMPTY_STREAK;
+    resetStreak();
     setRunNumber(n => n + 1); // replays the floor banner even when a daily restarts on the same seed
     reset(selectedCharacter, {
       heroIndex: characterIndex,
@@ -302,17 +290,6 @@ export default function GameScreen({ navigation, route }: Props) {
     };
   }, [state.seed]);
 
-  // ── Vortex teleport flash ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!state.wasTeleported) return;
-    emitSound("VORTEX_TELEPORT");
-    const peak = reduceFlash ? 0.2 : 1;
-    Animated.sequence([
-      Animated.timing(vortexFlash, { toValue: peak, duration: reduceFlash ? 250 : 120, useNativeDriver: true }),
-      Animated.timing(vortexFlash, { toValue: 0, duration: 350, useNativeDriver: true }),
-    ]).start();
-  }, [state.wasTeleported, state.playerIndex]);
-
   // ── Run end (death or victory) ───────────────────────────────────────────
   useEffect(() => {
     if (!runEnded || gameOverTriggered.current) return;
@@ -393,7 +370,7 @@ export default function GameScreen({ navigation, route }: Props) {
     isResetting.current = true;
     gameOverTriggered.current = false;
     emitSound("GAME_MUSIC_START"); // Game Over / victory stopped the loop and the focus did not change
-    setPopups([]);
+    clearPopups();
     setRunResult(null);
     setShowGameOver(false);
     setShowHighScoreEntry(false);
@@ -411,7 +388,7 @@ export default function GameScreen({ navigation, route }: Props) {
     leaving.current = true;
     void recordCurrentRun();
     setPaused(false);
-    setPopups([]);
+    clearPopups();
     setShowGameOver(false);
     emitSound("GAME_MUSIC_STOP");
     // Pop back to the existing Cover instead of stacking a second one on top of this screen.
@@ -424,7 +401,7 @@ export default function GameScreen({ navigation, route }: Props) {
       leaving.current = true;
       void recordCurrentRun();
       setPaused(false);
-      setPopups([]);
+      clearPopups();
       setShowGameOver(false);
       emitSound("GAME_MUSIC_STOP");
       if (kind === "skin" && detail) {
@@ -533,7 +510,6 @@ export default function GameScreen({ navigation, route }: Props) {
     descendOnFocus.current = false;
     const s = stateRef.current;
     if (!s.isLevelUp || s.isVictory) return;
-    justLeveledUp.current = true;
     levelUp(undefined);
   }, [isFocused]);
 
@@ -547,7 +523,6 @@ export default function GameScreen({ navigation, route }: Props) {
     if (!s.isLevelUp || s.isVictory || leaving.current) return;
     const options = forkDoors(s.runSeed, s.level + 1, s.mode);
     setIntermission(false);
-    justLeveledUp.current = true;
     // Without a fork (daily, lair) the seeded omen applies.
     levelUp(options ? options[door] : undefined);
   }, [levelUp, door]);
@@ -559,146 +534,6 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleDetector = useCallback(() => handleItem("detector"), [handleItem]);
   const handleBomb = useCallback(() => handleItem("bomb"), [handleItem]);
   const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
-
-  // ── Gameplay feedback ────────────────────────────────────────────────────
-  // Everything the player sees, hears or feels after a move is derived from the DIFFERENCE between two states
-  // (see core/feedback/diffFeedback.ts), so each event fires exactly once and buying, the detector or undo never
-  // replay an old pickup.
-  const measureBoard = useCallback(() => {
-    boardBox.current?.measureInWindow((x, y, w) => {
-      if (w > 0) boardOrigin.current = { x: x + 1, y: y + 1 };
-    });
-  }, []);
-  const { tileSize: boardTile } = useGameLayout(state.cols, state.rows);
-  useEffect(() => {
-    measureBoard();
-    const timer = setTimeout(measureBoard, 400); // the layout settles after the first frames
-    return () => clearTimeout(timer);
-  }, [state.level, state.rows, state.cols, windowWidth, windowHeight, boardTile, bootCover]);
-
-  /** Screen position of a tile (undefined until the board has been measured). */
-  const anchorOf = (tile: number): { x?: number; y?: number } => {
-    const origin = boardOrigin.current;
-    if (!origin) return {};
-    return tileCenter(tile, { originX: origin.x, originY: origin.y, tileSize: boardTile, cols: stateRef.current.cols });
-  };
-
-  const pushPopup = (popup: Omit<Popup, "id" | "slot" | "at">, tile: number) => {
-    const now = Date.now();
-    setPopups(prev => {
-      const slot = Math.min(3, prev.filter(p => now - p.at < 700).length);
-      return [...prev, { ...popup, ...anchorOf(tile), id: now + Math.random(), slot, at: now }];
-    });
-  };
-
-  const flash = (value: Animated.Value, peak: number, calmPeak: number, up: number, down: number) => {
-    Animated.sequence([
-      Animated.timing(value, { toValue: reduceFlash ? calmPeak : peak, duration: reduceFlash ? Math.max(up, 120) : up, useNativeDriver: true }),
-      Animated.timing(value, { toValue: 0, duration: reduceFlash ? Math.max(down, 160) : down, useNativeDriver: true }),
-    ]).start();
-  };
-
-  useEffect(() => {
-    const prev = prevFeedback.current;
-    prevFeedback.current = state;
-    if (prev === state || isResetting.current) return;
-
-    const sameFloor = prev.seed === state.seed && prev.runSeed === state.runSeed && prev.level === state.level;
-    const events = diffFeedback(prev, state);
-    const has = (kind: (typeof events)[number]["kind"]) => events.some(e => e.kind === kind);
-
-    // A plain step (not a gem, not a floor change, not an undo, which makes its own sound).
-    if (sameFloor && state.turn > prev.turn && state.playerIndex !== prev.playerIndex && !state.isGameOver && !state.isLevelUp && !has("coin")) {
-      // Already sounded at input time (see manualMove) for a tap; travelled and other steps sound here.
-      const sinceTap = Date.now() - stepSoundedAt.current;
-      if (sinceTap > 400) emitSound("MOVE");
-      // How long the board took to react to the tap: JS is busy for that long right after every step (it is what delays
-      // the native "playing" notification of the step sound in the audio log, not the sound itself).
-      else recordLatency("step>render", sinceTap);
-    }
-    justLeveledUp.current = false;
-
-    // The gem streak ends as soon as the player pauses (see addGem) or any non-gem move happens after the window.
-    for (const e of events) {
-      switch (e.kind) {
-        case "coin": {
-          gemStreak.current = addGem(gemStreak.current, Date.now());
-          const streak = gemStreak.current.count;
-          emitSound("COIN_COLLECTED", { rate: gemRate(streak) });
-          setGemPop(gemPopScale(streak));
-          const points = coinReward(
-            state.level,
-            state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
-            relicCount(state.relics, "lucky_coin"),
-          );
-          pushPopup({ points, type: "coin" }, e.tile);
-          const label = gemStreakLabel(streak);
-          if (label) pushPopup({ points: 0, type: "streak", sub: label, popScale: Math.min(1.4, 1 + 0.08 * streak) }, e.tile);
-          const at = anchorOf(e.tile);
-          setActiveCoins(coins => [
-            ...coins,
-            { id: Date.now() + Math.random(), x: (at.x ?? windowWidth / 2) - 16, y: (at.y ?? windowHeight / 2) - 16 },
-          ]);
-          break;
-        }
-        case "kill": {
-          emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
-          if (e.combo > 0) {
-            const look = comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter"));
-            pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
-          }
-          flash(combatFlash, 0.35, 0.08, 25, 35);
-          break;
-        }
-        case "bossHit": {
-          emitSound("BOSS_HIT");
-          haptic.impact(ImpactFeedbackStyle.Heavy);
-          pushPopup({ points: e.dead ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore, type: "boss", popScale: e.dead ? 1.4 : 1 }, e.tile);
-          flash(combatFlash, e.dead ? 0.5 : 0.35, 0.1, 25, 60);
-          if (!reduceFlash) setShakeKey(k => k + 1);
-          break;
-        }
-        case "miss": {
-          emitSound("ATTACK");
-          haptic.impact(ImpactFeedbackStyle.Light); // a miss is a soft tap; a hit has its own heavy one
-          break;
-        }
-        case "pickup": {
-          if (e.pickup === "trap") {
-            emitSound("TRAP_TRIGGERED");
-            pushPopup({ points: GAME_CONFIG.scoring.trapPenalty, type: "trap" }, e.tile);
-          } else {
-            emitSound("POWERUP");
-            pushPopup({ points: e.pickup === "ammo" ? GAME_CONFIG.pickups.ammoAmount : 0, type: e.pickup }, e.tile);
-          }
-          break;
-        }
-        case "shieldBreak": {
-          emitSound("SHIELD_BREAK");
-          haptic.notify(NotificationFeedbackType.Warning);
-          setShieldBreakKey(k => k + 1);
-          flash(hitFlash, 0.45, 0.12, 60, 190); // about 250 ms in all
-          break;
-        }
-        case "charge": {
-          emitSound("CHARGE_WARN");
-          haptic.impact(ImpactFeedbackStyle.Medium);
-          break;
-        }
-        case "hazardNear": {
-          haptic.notify(NotificationFeedbackType.Warning);
-          break;
-        }
-      }
-    }
-    // A vortex now costs an arrow (or a shop gem), and a few relics/omens pay shop gems without a pickup: say so.
-    if (sameFloor && state.vortexCost && state.vortexCost !== prev.vortexCost) {
-      pushPopup({ points: 0, type: "streak", sub: state.vortexCost === "arrow" ? "🌀 -1 🏹" : "🌀 -1 💎", subColor: "#B39DDB" }, state.playerIndex);
-    }
-    if (state.gems > prev.gems && !has("coin") && state.totalCoins === prev.totalCoins) {
-      pushPopup({ points: 0, type: "streak", sub: `+${state.gems - prev.gems} 💎`, subColor: "#4FC3F7" }, state.playerIndex);
-    }
-  }, [state]);
 
   useProximityAudio(state);
 
@@ -756,7 +591,6 @@ export default function GameScreen({ navigation, route }: Props) {
     return { id, text: t(`hint.${id}` as TranslationKey) };
   })();
 
-  const removeCoin = (id: number) => setActiveCoins(prev => prev.filter(c => c.id !== id));
 
   // The run starts in an effect, so the very first render still holds the engine's empty placeholder board.
   // Showing it would flash a wrong board for a moment: wait until the real run exists.
@@ -908,7 +742,7 @@ export default function GameScreen({ navigation, route }: Props) {
           sub={p.sub}
           subColor={p.subColor}
           popScale={p.popScale}
-          onComplete={() => setPopups(prev => prev.filter(k => k.id !== p.id))}
+          onComplete={() => removePopup(p.id)}
         />
       ))}
 
