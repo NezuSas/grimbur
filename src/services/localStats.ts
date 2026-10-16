@@ -14,6 +14,7 @@ import { nextGoals, newlyAffordable } from '../core/stats/goals';
 import { AchievementId, newAchievements, rewardFor, withAchievements } from '../core/stats/achievements';
 import { UpgradeId, purchase } from '../core/stats/forge';
 import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership';
+import { spendEmbers } from '../core/stats/spend';
 import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from '../core/stats/missions';
 import { rankUp } from '../core/stats/rank';
 import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
@@ -207,6 +208,15 @@ export const buyUpgrade = (id: UpgradeId): Promise<{ stats: LocalStats; achievem
     const stats = withAchievements(bought, achievements, dailyKey());
     await save(stats);
     return { stats, achievements };
+  });
+
+/** Spends embers on a revive; resolves with the new stats, or null when the purse is short. */
+export const spendEmbersFor = (amount: number): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = spendEmbers(await getLocalStats(), amount);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
   });
 
 /** Buys a hero skin with embers; resolves with the new stats, or null when it cannot be bought. */

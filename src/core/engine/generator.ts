@@ -118,6 +118,7 @@ export function generateBoard(
     GAME_CONFIG.stalker.maxPerFloor,
     Math.max(diff.stalkers + pressure.stalkers, earlyStalker, ascendedStalker) + (stalkersAllowed ? omen.stalkerDelta : 0),
   );
+  if (level >= mods.stalkerFloor) stalkerBudget = Math.min(GAME_CONFIG.stalker.maxPerFloor + mods.stalkerBonus, stalkerBudget + mods.stalkerBonus);
   if (withBoss) stalkerBudget = Math.min(stalkerBudget, 1);
   const coinBudget = withBoss ? 0 : Math.max(2, diff.coins + omen.coinDelta);
 

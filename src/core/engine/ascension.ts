@@ -6,9 +6,9 @@ import { GAME_CONFIG } from '../../config/gameConfig';
  *
  *   1  one arrow fewer on every floor, one more guardian
  *   2  stalkers already from floor 5, one more vortex
- *   3  the Wumpus has one more heart, another guardian
- *   4  traps hurt twice as much and each floor has one more, another vortex
- *   5  relic drafts offer only 2 choices, one more guardian and vortex, the Wumpus has another heart
+ *   3  the Wumpus has one more heart, another guardian, stalkers act sooner
+ *   4  traps hurt twice as much and each floor has one more, another vortex, one more stalker
+ *   5  relic drafts offer only 2 choices, one more guardian and vortex, one more stalker, the Wumpus has another heart
  */
 export const MAX_ASCENSION = 5;
 
@@ -26,6 +26,10 @@ export interface AscensionModifiers {
   trapPenaltyMultiplier: number;
   /** Extra traps per floor (from floor 3, where traps start). */
   extraTraps: number;
+  /** Extra roaming stalkers per floor, from `stalkerFloor` on. */
+  stalkerBonus: number;
+  /** Stalkers act this many actions sooner. */
+  hunterHaste: number;
   /** How many relics a draft offers. */
   draftSize: number;
 }
@@ -45,6 +49,8 @@ export function modifiersFor(ascension: number): AscensionModifiers {
     pitBonus: [0, 0, 1, 1, 2, 3][a],
     trapPenaltyMultiplier: a >= 4 ? 2 : 1,
     extraTraps: a >= 4 ? 1 : 0,
+    stalkerBonus: [0, 0, 0, 0, 1, 2][a],
+    hunterHaste: a >= 3 ? 1 : 0,
     draftSize: a >= 5 ? 2 : 3,
   };
 }

@@ -185,6 +185,8 @@ export const huntersAct = (
   cols: number,
   turn: number,
   slowdown: number,
+  /** Stalkers (not the Wumpus) act this many actions sooner on the deepest depths. */
+  haste = 0,
 ): { world: World; hits: EntityType[] } => {
   const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp }));
   const hits: EntityType[] = [];
@@ -194,7 +196,7 @@ export const huntersAct = (
     // A Wumpus down to its last heart is furious: it acts after every action (Frost Charm still slows it).
     const base = hunter.type === 'boss'
       ? (hunter.hp === 1 ? GAME_CONFIG.boss.furyMoveEvery : GAME_CONFIG.boss.moveEvery)
-      : GAME_CONFIG.stalker.moveEvery;
+      : GAME_CONFIG.stalker.moveEvery - haste;
     const every = Math.max(1, base + slowdown);
     if (turn % every !== 0) continue;
     const acted = hunterAct(current, hunter.index, playerIndex, rows, cols);
