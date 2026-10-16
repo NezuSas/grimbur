@@ -192,7 +192,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const canPauseRef = useRef(false);
   canPauseRef.current = canPause;
   const busyRef = useRef(false);
-  busyRef.current = levelUpWindow || !!state.pendingDraft;
+  busyRef.current = levelUpWindow || !!state.pendingDraft || second.visible; // the second-chance question is answered with its buttons
 
   // Guards / bookkeeping refs
   const descendOnFocus = useRef(false); //    the next floor opens as soon as the level-complete card closes
