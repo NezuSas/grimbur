@@ -4,6 +4,7 @@ import { planReminder } from '../core/notifications/reminderPlan';
 import { dailyKey } from '../core/engine/seed';
 import { translateNow } from '../i18n/useT';
 import { useSettingsStore } from '../state/settings/store';
+import { currentStreak } from '../core/stats/runStats';
 import type { LocalStats } from '../core/stats/runStats';
 
 /**
@@ -67,18 +68,33 @@ export async function cancelReminders(): Promise<void> {
   }
 }
 
+/** Every reminder change runs one at a time: two overlapping syncs (the cover and the Settings switch) once scheduled it twice. */
+let queue: Promise<unknown> = Promise.resolve();
+
 /** Plans the next reminder from the current stats (or removes it when reminders are off). Never throws. */
-export async function syncReminders(stats: Pick<LocalStats, 'daily' | 'streak'>, now: Date = new Date()): Promise<void> {
+export function syncReminders(stats: LocalStats, now: Date = new Date()): Promise<void> {
+  const run = queue.then(() => syncNow(stats, now));
+  queue = run.catch(() => undefined);
+  return run;
+}
+
+async function syncNow(stats: LocalStats, now: Date): Promise<void> {
   const N = load();
   if (!N) return;
   try {
     await N.cancelAllScheduledNotificationsAsync();
     if (!useSettingsStore.getState().remindersEnabled) return;
     const permission = await N.getPermissionsAsync();
-    if (!permission.granted) return;
+    if (!permission.granted) {
+      // Permission was taken away in the phone's settings (or a restored backup had the switch on): show it as off.
+      useSettingsStore.getState().setRemindersEnabled(false);
+      return;
+    }
     await ensureChannel(N);
     const dailyDone = stats.daily?.date === dailyKey(now);
-    const plan = planReminder(now, dailyDone, stats.streak);
+    // The streak that will still be alive when the reminder fires (a streak already lost is not mentioned)
+    const probe = planReminder(now, dailyDone, 0);
+    const plan = planReminder(now, dailyDone, currentStreak(stats, dailyKey(probe.at)));
     await N.scheduleNotificationAsync({
       content:
         plan.kind === 'streak'

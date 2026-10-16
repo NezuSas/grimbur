@@ -82,9 +82,13 @@ export function useSoundManager(): void {
   /** One-shot play (stops loop, plays once at given volume) */
   const playOnce = (handle: LegacySoundHandle | null, vol: number = SFX_VOL) => {
     if (!handle || !soundEnabledRef.current) return;
+    const ticket = bumpEpoch(handle); // a stop that arrives while this is still being prepared wins
     handle.stop().catch(() => {}).finally(() => {
       handle.setNumberOfLoops(0).then(() => {
-        handle.setVolume(scaledVolume(vol, sfxLevelRef.current)).then(() => handle.play());
+        if (epochOf(handle) !== ticket) return;
+        handle.setVolume(scaledVolume(vol, sfxLevelRef.current)).then(() => {
+          if (epochOf(handle) === ticket) handle.play();
+        });
       });
     });
   };

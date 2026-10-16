@@ -102,3 +102,50 @@ describe('syncAchievements', () => {
     expect(r.achievements).toEqual([]);
   });
 });
+
+describe('clock safety and review fixes', () => {
+  it('a date set far ahead and then corrected no longer freezes the daily rewards', () => {
+    const { sanitizeClock } = require('../../src/services/localStats');
+    const { EMPTY_STATS } = require('../../src/core/stats/runStats');
+    const stats = { ...EMPTY_STATS, lastBonusDate: '2027-10-15', lastPlayedDate: '2027-10-15', lastDailyDate: '2027-10-15' };
+    const fixed = sanitizeClock(stats, new Date(2026, 9, 15, 12));
+    expect(fixed.lastBonusDate).toBe('2026-10-15');
+    expect(fixed.lastPlayedDate).toBe('2026-10-15');
+    expect(fixed.lastDailyDate).toBe('2026-10-15');
+    // tomorrow (a timezone edge) and today are left alone
+    const ok = { ...EMPTY_STATS, lastBonusDate: '2026-10-16' };
+    expect(sanitizeClock(ok, new Date(2026, 9, 15, 23))).toBe(ok);
+  });
+
+  it('whole-number scores with a fractional Forge multiplier', () => {
+    const { gameReducer } = require('../../src/core/engine/reducer');
+    const { createState } = require('../helpers/state');
+    const { NO_PERKS } = require('../../src/core/engine/heroes');
+    const s = createState({ perks: { ...NO_PERKS, newTileMultiplier: 1.25 } });
+    const next = gameReducer(s, { type: 'MOVE', direction: 'RIGHT' });
+    expect(Number.isInteger(next.score)).toBe(true);
+  });
+
+  it('the altar is not free for a hero or relic that returns the shield every floor', () => {
+    const { gameReducer } = require('../../src/core/engine/reducer');
+    const { createState } = require('../helpers/state');
+    const { NO_PERKS } = require('../../src/core/engine/heroes');
+    const base = createState({ perks: { ...NO_PERKS, startShield: true } });
+    const ready = { ...base, isLevelUp: true, shield: true };
+    expect(gameReducer(ready, { type: 'ALTAR' })).toEqual(ready);
+    const plain = { ...createState(), isLevelUp: true, shield: true };
+    expect(gameReducer(plain, { type: 'ALTAR' }).altarPending).toBe(true);
+  });
+
+  it('missions only roll forward', () => {
+    const { syncMissions, EMPTY_MISSIONS } = require('../../src/core/stats/missions');
+    const today = syncMissions(EMPTY_MISSIONS, '2026-10-15');
+    expect(syncMissions(today, '2026-10-14')).toBe(today);
+    expect(syncMissions(today, '2026-10-08')).toBe(today);
+  });
+
+  it('an old save keeps its embers counted as earned', () => {
+    const { parseStats } = require('../../src/core/stats/runStats');
+    expect(parseStats(JSON.stringify({ embers: 320 })).lifetimeEmbers).toBe(320);
+  });
+});

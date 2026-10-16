@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   sliderThumb: { position: "absolute", top: 7, backgroundColor: "#fff", borderWidth: 3, borderColor: GOLD },
   sliderValue: { width: 48, textAlign: "right", color: GOLD, fontWeight: "900", fontSize: 15 },
   segmented: { flexDirection: "row", backgroundColor: "rgba(0,0,0,0.35)", borderRadius: 14, padding: 4, gap: 4 },
-  segment: { flex: 1, minHeight: 42, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
+  segment: { flex: 1, minHeight: 46, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   segmentActive: { backgroundColor: GOLD },
   segmentText: { color: "#b9b4d4", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8 },
   segmentTextActive: { color: "#1a1200" },

@@ -264,9 +264,11 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
     [toastFade],
   );
 
+  const buying = useRef(false);
   const buy = useCallback(
     async (id: UpgradeId) => {
-      if (busy) return;
+      if (busy || buying.current) return; // the ref answers at once; the state only after the next render
+      buying.current = true;
       setBusy(true);
       setError(false);
       try {
@@ -291,6 +293,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
       } catch {
         setError(true);
       } finally {
+        buying.current = false;
         setBusy(false);
       }
     },

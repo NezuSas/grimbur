@@ -37,6 +37,8 @@ type Props = {
   onChoose: (index: 0 | 1) => void;
   onBuy: (item: ShopItem) => void;
   altarUsed: boolean;
+  /** The shield comes back every floor anyway, so the altar would be free: it is not offered. */
+  altarFree?: boolean;
   onAltar: () => void;
   onGo: () => void;
 };
@@ -55,6 +57,7 @@ const IntermissionOverlay = ({
   onChoose,
   onBuy,
   altarUsed,
+  altarFree,
   onAltar,
   onGo,
 }: Props) => {
@@ -146,7 +149,7 @@ const IntermissionOverlay = ({
         })}
       </View>
 
-      {shield || altarUsed ? (
+      {(shield || altarUsed) && !altarFree ? (
         <TouchableOpacity
           disabled={!shield || altarUsed}
           onPress={onAltar}

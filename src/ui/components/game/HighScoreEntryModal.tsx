@@ -34,6 +34,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const submitting = useRef(false);
   const inputRef = useRef<TextInput>(null);
   const fade = useRef(new Animated.Value(0)).current;
 
@@ -55,18 +56,20 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, onSubmit
   const compact = height < 460;
 
   const submit = async () => {
-    if (saving) return; // guards double taps
+    if (saving || submitting.current) return; // guards double taps (the ref is set at once; the state only on the next render)
     const result = checkName(name);
     if (!result.ok) {
       setError(result.reason === 'blocked' ? t('entry.errBlocked') : t('entry.errEmpty'));
       return;
     }
+    submitting.current = true;
     setSaving(true);
     try {
       await onSubmit(result.name);
     } catch {
       setError(t('entry.errFailed'));
       setSaving(false);
+      submitting.current = false;
     }
   };
 

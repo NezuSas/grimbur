@@ -81,6 +81,6 @@ const styles = StyleSheet.create({
   railBar: { position: "absolute", left: 0, top: 10, bottom: 10, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
   chipsWrap: { height: 62, flexShrink: 0 },
   chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, alignItems: "center" },
-  topChip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 42, paddingHorizontal: 14, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)" },
+  topChip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 46, paddingHorizontal: 14, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)" },
   topChipText: { color: "#b9b4d4", fontWeight: "800", fontSize: 13 },
 });

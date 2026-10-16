@@ -448,6 +448,9 @@ export function arrowPath(
   return { tiles, targetIndex: -1 };
 }
 
+/** The altar costs the shield; where the next floor gives it back for nothing (Borin, the Bulwark) it would cost nothing. */
+export const altarIsFree = (state: Pick<GameState, 'perks' | 'relics'>): boolean => state.perks.startShield || relicCount(state.relics, 'bulwark') > 0;
+
 /** The most times a lair rescues a hero that ran out of arrows. */
 export const MAX_LAIR_RESCUES = 2;
 
@@ -508,7 +511,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         : [...state.visited];
 
       let newScore = Math.max(0, state.score + (has('iron_boots') ? 0 : GAME_CONFIG.scoring.stepCost));
-      if (isNewTile) newScore += GAME_CONFIG.scoring.newTile * perks.newTileMultiplier * (has('hasty_boots') ? 3 : 1);
+      // Whole points only: a Forge multiplier of 1.25 used to leave scores like 6.25, which the leaderboard rejects.
+      if (isNewTile) newScore += Math.round(GAME_CONFIG.scoring.newTile * perks.newTileMultiplier * (has('hasty_boots') ? 3 : 1));
 
       let newIsGameOver: boolean = false;
       let newCoins = state.coins;
@@ -862,6 +866,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     case 'ALTAR': {
       if (!state.isLevelUp || state.isVictory || state.pendingDraft || state.isGameOver) return state;
       if (!state.shield || state.altarUsed) return state;
+      // A hero or relic that hands the shield back every floor would make the offering free.
+      if (altarIsFree(state)) return state;
       return { ...state, shield: false, altarUsed: true, altarPending: true };
     }
 

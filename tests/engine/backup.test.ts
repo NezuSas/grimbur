@@ -19,6 +19,7 @@ const stats: LocalStats = {
   gamesPlayed: 17,
   victories: 3,
   embers: 250,
+  lifetimeEmbers: 250,
   forge: { whetstone: 2 },
   achievements: { first_win: '2026-01-02' },
   heroesUsed: [0, 2],

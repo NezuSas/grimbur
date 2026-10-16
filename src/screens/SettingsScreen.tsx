@@ -26,6 +26,7 @@ import type { LanguagePreference } from "../i18n/translate";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { GAME_CONFIG } from "../config/gameConfig";
+import { isReal } from "../config/isReal";
 import appJson from "../../app.json";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
@@ -41,7 +42,7 @@ const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: 
 ];
 
 /** A link is shown only once it points to a real page (the shipped defaults are placeholders). */
-const isReal = (value: string | undefined) => !!value && !value.includes("example.com");
+
 
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
@@ -105,8 +106,15 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
     if (deleteStep === 1) {
-      await resetLocalStats().catch(() => {});
+      try {
+        await resetLocalStats();
+      } catch {
+        setDeleteStep(0); // it did not work: never tell the player their data is gone when it is not
+        return;
+      }
       useSettingsStore.getState().setAchievementsSeen(0);
+      useSettingsStore.getState().setRemindersEnabled(false);
+      void cancelReminders(); // a pending "keep your streak" reminder would refer to progress that no longer exists
       setDeleteStep(2);
     }
   };

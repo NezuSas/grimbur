@@ -124,8 +124,9 @@ export function syncMissions(state: MissionsState, today: string): MissionsState
   if (!DATE_RE.test(today)) return state;
   const week = weekKeyOf(today);
   let next = state;
-  if (state.day !== today) next = { ...next, day: today, daily: fresh(dailySelection(today)), bonusClaimed: false };
-  if (state.week !== week) next = { ...next, week, weekly: fresh(weeklySelection(week)) };
+  // Only forward: setting the clock back must not hand out today's missions (and their rewards) again.
+  if (state.day === null || today > state.day) next = { ...next, day: today, daily: fresh(dailySelection(today)), bonusClaimed: false };
+  if (state.week === null || week > state.week) next = { ...next, week, weekly: fresh(weeklySelection(week)) };
   return next;
 }
 

@@ -429,7 +429,15 @@ const BoardView: React.FC<Props> = memo(
     // Player move animation
     const playerScale = useRef(new Animated.Value(1)).current;
 
+    // A new floor or a restart puts the hero on its start tile: it appears there instead of sliding in from the old spot.
+    const lastFloor = useRef({ level, seen: visited.length });
     useEffect(() => {
+      const prev = lastFloor.current;
+      lastFloor.current = { level, seen: visited.length };
+      if (level !== prev.level || visited.length < prev.seen) {
+        playerPos.setValue({ x: colIndex * tileSize, y: rowIndex * tileSize });
+        return;
+      }
       Animated.parallel([
         Animated.timing(playerPos, {
           toValue: { x: colIndex * tileSize, y: rowIndex * tileSize },

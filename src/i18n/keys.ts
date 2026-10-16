@@ -47,7 +47,9 @@ export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'):
     const params: Params = { ...(info.params ?? {}) };
     if (info.desc === 'depthWin') params.name = t(`ascension.label.${info.params.n}` as TranslationKey);
     if (info.desc === 'heroWin') params.name = t(`hero.${info.params.n}.name` as TranslationKey);
-    return t(`ach.d.${info.desc}` as TranslationKey, params);
+    // "Play 1 daily challenges" reads wrong: the singular has its own text
+    const one = (info.desc === 'dailyRuns' || info.desc === 'dailyWins') && info.params.n === 1 ? '1' : '';
+    return t(`ach.d.${info.desc}${one}` as TranslationKey, params);
   }
   return t(`ach.${id}.desc` as TranslationKey, info?.params ?? {});
 };

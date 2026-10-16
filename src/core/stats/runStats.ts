@@ -406,7 +406,8 @@ export function parseStats(raw: string | null): LocalStats {
       // Older saves: the last bonus day is the best guess of when the player was last here.
       lastPlayedDate: str(data.lastPlayedDate) ?? str(data.lastBonusDate),
       bestEndlessFloor: Math.trunc(num(data.bestEndlessFloor)),
-      lifetimeEmbers: Math.trunc(num(data.lifetimeEmbers)),
+      // Saves from before this counter existed hold embers but a lifetime of 0: it can never be below what was earned and kept.
+      lifetimeEmbers: Math.max(Math.trunc(num(data.lifetimeEmbers)), Math.trunc(num(data.embers))),
       heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),
       dailyRuns: Math.trunc(num(data.dailyRuns)),
       dailyWins: Math.trunc(num(data.dailyWins)),

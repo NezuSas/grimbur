@@ -57,8 +57,10 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   }, []);
 
   // Leaves once, however many taps arrive before the screen unmounts.
+  // A tap in the first moments is almost always a finger still moving from the board: it must not skip the card.
+  const shownAt = useRef(Date.now());
   const leave = () => {
-    if (leaving.current) return;
+    if (leaving.current || Date.now() - shownAt.current < 500) return;
     leaving.current = true;
     emitSound("LEVEL_RESUME"); // stop the fanfare and resume the in-game music
     navigation.goBack();

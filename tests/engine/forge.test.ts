@@ -19,7 +19,7 @@ import { gameReducer, initialState } from '../../src/core/engine/reducer';
 import { coin, createState } from '../helpers/state';
 import { GameAction } from '../../src/core/engine/types';
 
-const rich = { ...EMPTY_STATS, embers: 10_000 };
+const rich = { ...EMPTY_STATS, embers: 10_000, lifetimeEmbers: 10_000 };
 
 describe('embers earned', () => {
   it('pays something for every real run and a lot for a victory', () => {
