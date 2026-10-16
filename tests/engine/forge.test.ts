@@ -84,8 +84,22 @@ describe('what the upgrades do', () => {
       startRelics: ['phoenix'],
       reach: 1,
       exploreBonus: 0.5,
+      startDetectors: 0,
+      startBombs: 0,
+      abilityHaste: 0,
+      freeRevive: false,
     });
     expect(metaEffects({ whetstone: 99 }).arrows).toBe(maxLevel('whetstone'));
+  });
+
+  it('the satchel, quick hands and second wind reach the run', () => {
+    expect(metaEffects({ satchel: 1 })).toMatchObject({ startDetectors: 1, startBombs: 0 });
+    expect(metaEffects({ satchel: 2 })).toMatchObject({ startDetectors: 1, startBombs: 1 });
+    expect(metaEffects({ swift: 2 }).abilityHaste).toBe(2);
+    expect(metaEffects({ second_wind: 1 }).freeRevive).toBe(true);
+    const perks = applyMeta({ ...NO_PERKS, startItems: { detector: 0, bomb: 1 } }, { ...NO_META, startDetectors: 1, startBombs: 1, abilityHaste: 1 });
+    expect(perks.startItems).toEqual({ detector: 1, bomb: 2 });
+    expect(perks.abilityHaste).toBe(1);
   });
 
   it('merges with the hero perks', () => {

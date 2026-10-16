@@ -9,7 +9,7 @@ import type { RelicId } from '../engine/relics';
 export type UpgradeCategory = 'power' | 'economy' | 'relics';
 
 export type UpgradeId =
-  | 'whetstone' | 'ward' | 'eagle_eye' | 'scribe' | 'explorer'
+  | 'whetstone' | 'ward' | 'eagle_eye' | 'scribe' | 'explorer' | 'satchel' | 'second_wind' | 'swift'
   | 'purse' | 'fortune'
   | 'feather' | 'start_lantern' | 'start_trap_sense' | 'start_iron_boots' | 'start_frost' | 'start_lucky_coin'
   | 'start_long_bow' | 'start_hunter' | 'start_quiver' | 'start_greed' | 'start_bulwark';
@@ -33,6 +33,9 @@ export const UPGRADES: readonly UpgradeInfo[] = [
   { id: 'explorer', icon: '🧭', category: 'power', costs: [70, 200], params: { percent: 25 } },
   { id: 'scribe', icon: '📜', category: 'power', costs: [250], params: { extra: 1 } },
   { id: 'eagle_eye', icon: '🦅', category: 'power', costs: [500], params: { tiles: 1 } },
+  { id: 'satchel', icon: '🎒', category: 'power', costs: [220, 420], params: {} },
+  { id: 'swift', icon: '⚡', category: 'power', costs: [350, 650], params: { n: 1 } },
+  { id: 'second_wind', icon: '💖', category: 'power', costs: [450], params: {} },
   // Economy
   { id: 'purse', icon: '👛', category: 'economy', costs: [40, 90, 160], params: { percent: 10 } },
   { id: 'fortune', icon: '🍀', category: 'economy', costs: [120, 240], params: { percent: 15 } },
@@ -126,6 +129,13 @@ export interface MetaEffects {
   reach: number;
   /** Extra exploration points as a fraction (0.25 = +25%). */
   exploreBonus: number;
+  /** Detectors and bombs the run begins with. */
+  startDetectors: number;
+  startBombs: number;
+  /** The hero's ability recharges this many actions sooner. */
+  abilityHaste: number;
+  /** The first second chance of each run costs nothing. */
+  freeRevive: boolean;
 }
 
 export const NO_META: MetaEffects = {
@@ -136,6 +146,10 @@ export const NO_META: MetaEffects = {
   startRelics: [],
   reach: 0,
   exploreBonus: 0,
+  startDetectors: 0,
+  startBombs: 0,
+  abilityHaste: 0,
+  freeRevive: false,
 };
 
 /** Hero perks plus the Forge's permanent bonuses. */
@@ -146,6 +160,8 @@ export function applyMeta(perks: HeroPerks, meta: MetaEffects): HeroPerks {
     coinMultiplier: perks.coinMultiplier * (1 + meta.coinBonus),
     arrowReach: perks.arrowReach + meta.reach,
     newTileMultiplier: perks.newTileMultiplier * (1 + meta.exploreBonus),
+    startItems: { detector: perks.startItems.detector + meta.startDetectors, bomb: perks.startItems.bomb + meta.startBombs },
+    abilityHaste: (perks.abilityHaste ?? 0) + meta.abilityHaste,
   };
 }
 
@@ -159,6 +175,10 @@ export function metaEffects(forge: Record<string, number>): MetaEffects {
     startRelics: UPGRADES.filter(u => u.relic && lvl(u.id) > 0).map(u => u.relic as RelicId),
     reach: lvl('eagle_eye'),
     exploreBonus: lvl('explorer') * 0.25,
+    startDetectors: lvl('satchel') >= 1 ? 1 : 0,
+    startBombs: lvl('satchel') >= 2 ? 1 : 0,
+    abilityHaste: lvl('swift'),
+    freeRevive: lvl('second_wind') > 0,
   };
 }
 
