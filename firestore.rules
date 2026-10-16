@@ -15,11 +15,23 @@ service cloud.firestore {
         && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
         && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
         && isInt(d.time) && d.time >= 1 && d.time <= 86400
-        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20;
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
+        && validName(d.name)
+        // A floor takes a few seconds at the very least: a run of N floors in one second is not a play.
+        && d.time >= (d.level - 1) * 5 + 1;
+    }
+
+    // The client cleans names (src/core/leaderboard/validation.ts); the server enforces the parts that matter if someone writes
+    // straight to the database: no control or direction-changing characters, no links, not only spaces.
+    function validName(n) {
+      return n.trim().size() >= 1
+        && n.matches('^[^\x00-\x1f\x7f\x{200b}-\x{200f}\x{202a}-\x{202e}\x{2066}-\x{2069}]+$')
+        && !n.lower().matches('.*(http|www\.|://).*');
     }
 
     match /highscores/{scoreId} {
-      allow read: if true;
+      // At most 20 rows per query: the app reads the top 20.
+      allow read: if request.query.limit <= 20;
       allow create: if validScore(request.resource.data);
       allow update, delete: if false;
     }
