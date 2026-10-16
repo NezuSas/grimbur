@@ -672,9 +672,11 @@ export default function GameScreen({ navigation, route }: Props) {
     } else if (!demoEndRef.current) {
       setDemoEnd(true);
       setShowGameOver(true);
-      void recordCurrentRun().then(result => {
-        if (mounted.current && result) setRunResult(result);
-      });
+      void recordCurrentRun()
+        .then(result => {
+          if (mounted.current && result) setRunResult(result);
+        })
+        .catch(() => {});
     }
   }, [isFocused]);
 

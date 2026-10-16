@@ -139,7 +139,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [hidden, setHidden] = useState<string[]>([]);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   useEffect(() => {
-    loadHidden().then(setHidden);
+    loadHidden().then(setHidden).catch(() => {});
   }, []);
   const visible = data.filter(doc => !hidden.includes(doc.id));
   const hide = useCallback(async (id: string) => {

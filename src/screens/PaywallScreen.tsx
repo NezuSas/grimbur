@@ -47,7 +47,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
   useEffect(() => {
     mounted.current = true;
     analytics.track("paywall_view", { source });
-    loadProduct().then(p => mounted.current && setProduct(p));
+    loadProduct().then(p => mounted.current && setProduct(p)).catch(() => {});
     return () => {
       mounted.current = false;
     };
