@@ -16,7 +16,7 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
-import BoardView, { type ArrowShot } from "../ui/components/BoardView";
+import BoardView from "../ui/components/BoardView";
 import ScreenFlashes from "../ui/components/game/ScreenFlashes";
 import GameOverlays from "./game/GameOverlays";
 import RunLoadingCover from "../ui/components/game/RunLoadingCover";
@@ -45,10 +45,6 @@ import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemSt
 import { tileCenter } from "../core/feedback/geometry";
 import { shouldShowShop } from "../core/feedback/flow";
 import { nextHint } from "../core/feedback/hints";
-import { lineOfFire, stepTarget } from "../core/engine/travel";
-import { arrowPath, arrowReachOf } from "../core/engine/reducer";
-import { canRepeatStep } from "../core/input/floatingPad";
-import type { Direction } from "../core/engine/types";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../shared/haptics";
 import { coinReward, killValue } from "../core/engine/scoring";
 import type { TranslationKey } from "../i18n/en";
@@ -69,7 +65,7 @@ import { hasFullGame, shouldGateDescentNow } from "../services/entitlements";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { useSessionClock } from "../hooks/useSessionClock";
 import { useProximityAudio } from "../hooks/useProximityAudio";
-import { useTravel } from "../hooks/useTravel";
+import { useBoardInput } from "./game/useBoardInput";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT, GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS } from "./game/types";
 import type { Popup, RunResult } from "./game/types";
@@ -108,7 +104,6 @@ export default function GameScreen({ navigation, route }: Props) {
   // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
   const [shieldBreakKey, setShieldBreakKey] = useState(0);
   const [shakeKey, setShakeKey] = useState(0);
-  const [flagPing, setFlagPing] = useState<{ index: number; n: number } | null>(null);
   const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
   const [gemPop, setGemPop] = useState(1.15);
   const gemStreak = useRef(EMPTY_STREAK);
@@ -166,104 +161,29 @@ export default function GameScreen({ navigation, route }: Props) {
     if (!levelUpWindow) setIntermission(false);
   }, [levelUpWindow]);
 
-  // Tap an explored tile to walk there; any control press interrupts the walk.
-  const { travelTo, cancel: cancelTravel } = useTravel(state, move, !paused && !runEnded && !levelUpWindow && !state.pendingDraft);
-  // Tiles the player marked as dangerous (long press). Cosmetic memory aid with one safety rule: stepping
-  // onto a marked tile is refused, so a slip of the thumb cannot walk into a suspected hazard.
-  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
-  const toggleFlag = useCallback((index: number) => {
-    const s = stateRef.current;
-    if (s.visited.includes(index)) return;
-    haptic.impact();
-    setFlags(prev => {
-      const next = new Set(prev);
-      if (!next.delete(index)) next.add(index);
-      return next;
-    });
-  }, []);
-  useEffect(() => setFlags(new Set()), [state.level, state.runSeed, runNumber]);
-  // The detector flags the hazards it finds, exactly like the player's own long-press flags.
-  useEffect(() => {
-    if (state.marked.length === 0) return;
-    setFlags(prev => new Set([...prev, ...state.marked]));
-  }, [state.marked]);
-
-  /** When the step sound of the last tap was already played at input time, so the state effect does not repeat it. */
-  const stepSoundedAt = useRef(0);
-  const manualMove = useCallback(
-    (d: Parameters<typeof move>[0]) => {
-      if (pausedRef.current) return; // a stick still held under the pause card must not walk the hero
-      cancelTravel();
-      const s = stateRef.current;
-      const target = stepTarget(s.playerIndex, d, s.rows, s.cols);
-      if (flags.has(target)) {
-        haptic.notify(NotificationFeedbackType.Warning); // marked as dangerous: refuse the step
-        setFlagPing({ index: target, n: Date.now() });
-        setToast({ text: t("toast.flagged"), key: Date.now() });
-        return;
-      }
-      // A plain step (an empty tile) sounds the moment the finger lands, not after the board has re-rendered: on a slow
-      // phone that render is what players feel as a delay. Tiles with something on them keep their own sounds.
-      if (target !== -1 && !s.entityMap[target] && !s.isGameOver && !s.isLevelUp && !s.pendingDraft && !paused && !runEnded && !levelUpWindow) {
-        stepSoundedAt.current = Date.now();
-        emitSound("MOVE");
-      }
-      move(d);
-    },
-    [cancelTravel, move, flags, t, paused, runEnded, levelUpWindow],
-  );
-  // The arrow in flight: where it goes is worked out from the board as it is when the shot is taken.
-  const [shot, setShot] = useState<ArrowShot | null>(null);
-  const shotCount = useRef(0);
-  const manualAttack = useCallback(
-    (direction?: Direction) => {
-      if (pausedRef.current) return;
-      cancelTravel();
-      const s = stateRef.current;
-      if (s.attack > 0 && !s.isGameOver && !s.isLevelUp && !s.pendingDraft) {
-        const dir = direction ?? s.facingDir;
-        const { tiles, targetIndex } = arrowPath(s, dir);
-        if (tiles.length > 0) setShot({ key: ++shotCount.current, dir, tiles: tiles.length, hit: targetIndex !== -1 });
-      }
-      attack(direction);
-    },
-    [cancelTravel, attack],
-  );
-  // While the attack button is held, the board shows where the arrow would go (its full reach: what lies ahead stays hidden).
-  const [aim, setAim] = useState<Direction | "facing" | null>(null);
-  const aimDir: Direction | null = aim === "facing" ? state.facingDir : aim;
-  const reach = arrowReachOf(state);
-  const aimTiles = useMemo(
-    () => (aimDir ? new Set(lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols)) : undefined),
-    [aimDir, state.playerIndex, state.rows, state.cols, reach],
-  );
-  // The floating pad keeps walking while it is held, but only over explored, empty ground (never blindly).
-  const flagsRef = useRef(flags);
-  flagsRef.current = flags;
-  const canRepeatMove = useCallback((direction: Direction) => !pausedRef.current && canRepeatStep(stateRef.current, direction, flagsRef.current), []);
-  // Drag from the hero: letting go on a side shoots that way (without arrows it is refused, like the button).
-  const fireDragged = useCallback(
-    (direction: Direction) => {
-      if (stateRef.current.attack <= 0) {
-        haptic.notify(NotificationFeedbackType.Warning);
-        return;
-      }
-      manualAttack(direction);
-    },
-    [manualAttack],
-  );
+  // Latest values for listeners and timers (so effects do not need volatile dependencies).
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const pausedRef = useRef(false);
+  pausedRef.current = paused;
+  const onRefusedFlag = useCallback(() => setToast({ text: t("toast.flagged"), key: Date.now() }), [t]);
+  const { flags, flagPing, toggleFlag, manualMove, manualAttack, canRepeatMove, fireDragged, setAim, aimDir, aimTiles, shot, travelTo, cancelTravel, stepSoundedAt } = useBoardInput({
+    state,
+    stateRef,
+    pausedRef,
+    playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft,
+    runNumber,
+    move,
+    attack,
+    onRefusedFlag,
+  });
   const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
 
   // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
   const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft);
   const resetTimer = useCallback(() => clock.reset(), [clock]);
 
-  // Latest values for listeners and timers (so effects do not need volatile dependencies).
-  const stateRef = useRef(state);
-  stateRef.current = state;
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
-  const pausedRef = useRef(false);
-  pausedRef.current = paused;
   const canPauseRef = useRef(false);
   canPauseRef.current = canPause;
   const busyRef = useRef(false);
