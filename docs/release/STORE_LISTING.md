@@ -94,7 +94,7 @@ CÓMO SE JUEGA
 VUELVE CADA DÍA
 - Reto diario: una cueva por día, igual para todos. Mantén tu racha y comparte tu resultado.
 - La Forja: cada partida te da brasas, ganes o pierdas. Gástalas en mejoras permanentes que se quedan para siempre (no se aplican en el reto diario, que es justo para todos).
-- Seis profundidades: gana una expedición para desbloquear una más difícil. Cada una suma una penalización nueva a la anterior.
+- Seis niveles de dificultad: gana una expedición para desbloquear una más difícil. Cada una suma una penalización nueva a la anterior.
 - Descenso sin fin: sin último piso, y un Wumpus más fuerte cada diez pisos. [COMPRA]
 - Más de 100 logros, una pantalla de progreso con tu porcentaje de victorias y tendencia, y una clasificación global con el top 10.
 
@@ -115,7 +115,7 @@ Contacto: <TODO(owner): correo de soporte>
 **Novedades (primera versión, <=500):**
 
 ```text
-Primera versión. 10 pisos y el Wumpus, seis héroes, reliquias, la Forja, reto diario, descenso sin fin, seis profundidades de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
+Primera versión. 10 pisos y el Wumpus, seis héroes, reliquias, la Forja, reto diario, descenso sin fin, seis niveles de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
 ```
 
 **Texto promocional (App Store, <=170):** `Deduce dónde se esconden los peligros, elige reliquias, recoge todas las gemas y vence al Wumpus. Una cueva nueva cada día. Sin anuncios.`
