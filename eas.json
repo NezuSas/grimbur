@@ -17,6 +17,9 @@
       "channel": "preview",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "WUMPUS_ARCHS": "arm"
       }
     },
     "production": {
@@ -24,6 +27,19 @@
       "channel": "production",
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "WUMPUS_ARCHS": "arm"
+      }
+    },
+    "preview-emulator": {
+      "distribution": "internal",
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "WUMPUS_ARCHS": "all"
       }
     }
   },
