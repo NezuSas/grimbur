@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Pressable, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import SpriteImage from "../SpriteImage";
 import { ALTAR_ART, SHOP_ART } from "../../toolArt";
 import Text from "../Text";
 import OverlayContainer from "./OverlayContainer";
+import { PopButton } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { omenText } from "../../../i18n/keys";
 import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, type Door, type ShopItem } from "../../../core/engine/shop";
@@ -119,17 +121,20 @@ const IntermissionOverlay = ({
           const name = t(`shop.${item}.name` as TranslationKey);
           const desc = t(`shop.${item}.desc` as TranslationKey);
           return (
-            <TouchableOpacity
+            <Pressable
               key={item}
               disabled={!canBuy}
               onPress={() => onBuy(item)}
-              activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={`${name}. ${desc}. ${blocked ?? `${price} ${t("shop.purse", { count: price })}`}`}
               accessibilityState={{ disabled: !canBuy }}
-              style={[styles.card, { width: cardWidth, borderColor: canBuy ? color : "#4a4560", opacity: canBuy ? 1 : 0.55 }]}
+              style={({ pressed }) => [styles.cardShadow, { width: cardWidth, shadowColor: color, opacity: canBuy ? 1 : 0.55 }, pressed && { transform: [{ scale: 0.97 }] }]}
             >
-              <SpriteImage source={SHOP_ART[item]} style={{ width: compact ? 34 : 44, height: compact ? 34 : 44 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+              <LinearGradient colors={canBuy ? ["#2F2458", "#171030"] : ["#241E3A", "#151024"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.card, { borderColor: canBuy ? color : "#4a4560" }]}>
+              <View style={styles.cardLit} pointerEvents="none" />
+              <View style={[styles.artWell, { borderColor: canBuy ? color + "88" : "#4a456088", backgroundColor: canBuy ? color + "1F" : "rgba(255,255,255,0.04)" }]}>
+                <SpriteImage source={SHOP_ART[item]} style={{ width: compact ? 30 : 38, height: compact ? 30 : 38 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+              </View>
               <Text style={styles.cardName} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                 {name}
               </Text>
@@ -144,7 +149,8 @@ const IntermissionOverlay = ({
                   {blocked ?? price}
                 </Text>
               </View>
-            </TouchableOpacity>
+              </LinearGradient>
+            </Pressable>
           );
         })}
       </View>
@@ -182,7 +188,7 @@ const IntermissionOverlay = ({
                   accessibilityRole="radio"
                   accessibilityState={{ selected: on }}
                   accessibilityLabel={`${name}. ${rule}`}
-                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD700" : "#4a4560", backgroundColor: on ? "rgba(255,215,0,0.12)" : "#1a1a1a" }]}
+                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD700" : "#4a4560", backgroundColor: on ? "rgba(255,215,0,0.14)" : "#1b1530", shadowColor: "#FFD700", shadowOpacity: on ? 0.5 : 0, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: on ? 8 : 0 }]}
                 >
                   <Ionicons name={on ? "radio-button-on" : "radio-button-off"} size={18} color={on ? "#FFD700" : "#8d86a8"} />
                   <View style={styles.doorText}>
@@ -206,19 +212,9 @@ const IntermissionOverlay = ({
         </Text>
       )}
 
-      <TouchableOpacity
-        onPress={onGo}
-        disabled={!armed}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel={nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor })}
-        style={[styles.go, { marginTop: pad + 2, opacity: armed ? 1 : 0.6 }]}
-      >
-        <Text style={styles.goText} maxFontSizeMultiplier={1.2}>
-          {(nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor })).toLocaleUpperCase()}
-        </Text>
-        <Ionicons name="chevron-forward" size={20} color="#1a1030" />
-      </TouchableOpacity>
+      <View style={{ marginTop: pad + 2, width: Math.min(320, avail) }}>
+        <PopButton label={nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor })} glyph="➜" onPress={onGo} disabled={!armed} />
+      </View>
     </OverlayContainer>
   );
 };
@@ -227,30 +223,38 @@ export default IntermissionOverlay;
 
 const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  title: { color: "#FFD700", fontWeight: "900", fontSize: 20, letterSpacing: 3 },
+  title: { color: "#FFD54F", fontWeight: "900", fontSize: 22, letterSpacing: 3, textShadowColor: "rgba(255,213,79,0.55)", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
   subtitle: { color: "#bdb8d4", fontSize: 12, textAlign: "center", marginTop: 4 },
   purse: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "rgba(79,195,247,0.15)",
-    borderWidth: 1.5,
+    backgroundColor: "rgba(79,195,247,0.18)",
+    borderWidth: 2,
     borderColor: "#4FC3F7",
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    shadowColor: "#4FC3F7",
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
   },
   purseText: { color: "#fff", fontWeight: "900", fontSize: 16 },
   row: { flexDirection: "row", justifyContent: "center" },
+  cardShadow: { shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 8, borderRadius: 18 },
   card: {
-    backgroundColor: "#1a1a1a",
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 2,
     paddingVertical: 8,
     paddingHorizontal: 6,
     alignItems: "center",
     gap: 3,
+    overflow: "hidden",
   },
+  cardLit: { position: "absolute", top: 0, left: 16, right: 16, height: 2, borderRadius: 1, backgroundColor: "rgba(255,255,255,0.22)" },
+  artWell: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   cardName: { color: "#fff", fontWeight: "900", fontSize: 13, textAlign: "center", alignSelf: "stretch" },
   cardDesc: { color: "#bdb8d4", fontSize: 11, textAlign: "center" },
   price: { flexDirection: "row", alignItems: "center", gap: 3, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 },
@@ -264,7 +268,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 5,
-    backgroundColor: "rgba(206,147,216,0.1)",
+    backgroundColor: "rgba(206,147,216,0.14)",
+    shadowColor: "#CE93D8",
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
   },
   altarText: { color: "#E1BEE7", fontWeight: "700", fontSize: 12, flexShrink: 1 },
   sub: { color: "#4FC3F7", fontWeight: "800", fontSize: 12, letterSpacing: 3 },
@@ -273,16 +282,4 @@ const styles = StyleSheet.create({
   doorName: { color: "#fff", fontWeight: "900", fontSize: 14 },
   doorRule: { color: "#bdb8d4", fontSize: 11 },
   biome: { color: "#80DEEA", fontWeight: "700", fontSize: 12, textAlign: "center" },
-  go: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#F2C14E",
-    borderRadius: 20,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    borderBottomWidth: 4,
-    borderBottomColor: "#B07A1C",
-  },
-  goText: { color: "#1a1030", fontWeight: "900", fontSize: 16, letterSpacing: 2 },
 });
