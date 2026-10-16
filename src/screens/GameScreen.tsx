@@ -50,8 +50,6 @@ import characters from "../data/characters";
 import { characterWithSkin } from "../data/characterSkins";
 import { BIOME_ART } from "../ui/biomeArt";
 import type { SkinId } from "../data/skinArt";
-import { addHighscore, isTopTenScore } from "../services/highscores";
-import { recordRun, recordDailyRun } from "../services/localStats";
 import { dailyKey, dailySeed } from "../core/engine/seed";
 import { clampAscension } from "../core/engine/ascension";
 import { analytics } from "../services/analytics";
@@ -61,10 +59,9 @@ import { useSessionClock } from "../hooks/useSessionClock";
 import { useProximityAudio } from "../hooks/useProximityAudio";
 import { useBoardInput } from "./game/useBoardInput";
 import { useGameFeedback } from "./game/useGameFeedback";
+import { useRunRecord } from "./game/useRunRecord";
 import { useT } from "../i18n/useT";
-import { BIOME_TINT, GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS } from "./game/types";
-import type { RunResult } from "./game/types";
-import { dailyRunResult, runResultOf } from "./game/runResult";
+import { BIOME_TINT } from "./game/types";
 import { buildShareMessage } from "./game/shareMessage";
 import { omenText, relicText } from "../i18n/keys";
 
@@ -96,9 +93,6 @@ export default function GameScreen({ navigation, route }: Props) {
   const [door, setDoor] = useState<0 | 1>(0);
   // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
   const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
-  const [runResult, setRunResult] = useState<RunResult | null>(null);
-  const [showGameOver, setShowGameOver] = useState(false);
-  const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
   const [paused, setPaused] = useState(false);
   // The free part is over (monetisation on, last free floor cleared, full game declined): the run ends as a demo summary.
   const [demoEnd, setDemoEnd] = useState(false);
@@ -107,22 +101,14 @@ export default function GameScreen({ navigation, route }: Props) {
   // "level": the level-complete card is up and the paywall follows it; "paywall": the offer is up and its answer decides.
   const gateStage = useRef<null | "level" | "paywall">(null);
   const isFocused = useIsFocused();
-  // Red wash that appears the instant the hero dies and stays under the game-over card.
+  // Red edges that appear the instant the hero dies and fade before the game-over card.
   const deathFlash = useRef(new Animated.Value(0)).current;
-  // Short red wash when a shield (or feather) soaks a deadly touch.
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
   const movePad = useSettingsStore(s => s.movePad);
   const hintsSeen = useSettingsStore(s => s.hintsSeen);
   const markHintSeen = useSettingsStore(s => s.markHintSeen);
-  // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
-  // accessibilityViewIsModal).
-  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry || intermission;
-  const behindOverlay = {
-    importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
-    accessibilityElementsHidden: overlayOpen,
-  };
   const [runNumber, setRunNumber] = useState(0);
   // Opaque cover until the first board has really been drawn (or a safety timeout): no black or half-painted board.
   const [bootCover, setBootCover] = useState(true);
@@ -170,13 +156,34 @@ export default function GameScreen({ navigation, route }: Props) {
     reduceFlash,
     bootCover,
   });
-  const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
-
   // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
   const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft);
   const resetTimer = useCallback(() => clock.reset(), [clock]);
 
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
+  const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
+    stateRef,
+    runEnded,
+    characterIndex,
+    ascension,
+    mode,
+    isDaily,
+    dailyDate,
+    startRelics: route.params?.meta?.startRelics?.length ?? 0,
+    sessionTimeRef,
+    deathFlash,
+    reduceFlash,
+  });
+
+  // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
+  // accessibilityViewIsModal).
+  const overlayOpen = paused || !!state.pendingDraft || showGameOver || showHighScoreEntry || intermission;
+  const behindOverlay = {
+    importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
+    accessibilityElementsHidden: overlayOpen,
+  };
+  const canPause = !runEnded && !state.isLevelUp && !state.pendingDraft && !showGameOver && !showHighScoreEntry;
+
   const canPauseRef = useRef(false);
   canPauseRef.current = canPause;
   const busyRef = useRef(false);
@@ -184,10 +191,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // Guards / bookkeeping refs
   const descendOnFocus = useRef(false); //    the next floor opens as soon as the level-complete card closes
-  const gameOverTriggered = useRef(false); // prevents the end-of-run flow from running twice
-  const runRecorded = useRef(false); //       the run is saved to local stats exactly once
   const leaving = useRef(false); //           blocks timers from navigating after we left
-  const mounted = useRef(true);
   const floorStart = useRef({ enemies: 0, gems: 0 });
 
   // ── Run bookkeeping ──────────────────────────────────────────────────────
@@ -203,41 +207,6 @@ export default function GameScreen({ navigation, route }: Props) {
       ...(mode === "endless" ? { mode: "endless" as const } : {}),
     });
   }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, route.params?.meta]);
-
-  /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
-  const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
-    if (runRecorded.current) return null;
-    const s = stateRef.current;
-    // One step and quit is not a game: it would pay embers and tick the "runs played" goals for nothing.
-    const progressed = s.isGameOver || s.isVictory || s.level > 1 || s.turn >= 12;
-    if (!progressed) return null;
-    runRecorded.current = true;
-
-    const run = {
-      score: s.score,
-      level: s.level,
-      victory: s.isVictory,
-      gems: s.totalCoins,
-      // Only the relics picked in this run: the ones a Forge upgrade starts with would make relic goals free
-      relics: Math.max(0, s.relics.length - (route.params?.meta?.startRelics?.length ?? 0)),
-      time: sessionTimeRef.current,
-      heroIndex: characterIndex,
-      ascension,
-      mode,
-    };
-    try {
-      if (isDaily) {
-        const r = await recordDailyRun(run, dailyDate);
-        return dailyRunResult(r);
-      }
-      const r = await recordRun(run);
-      return runResultOf(r, mode);
-    } catch (e) {
-      console.warn("[GameScreen] recording the run failed:", e);
-      runRecorded.current = false; // nothing was saved: the retry, the unmount or the card may try again
-      return null;
-    }
-  }, [isDaily, dailyDate, characterIndex, ascension, mode]);
 
   // Start the run on mount; save whatever was played when the screen goes away.
   useEffect(() => {
@@ -290,90 +259,12 @@ export default function GameScreen({ navigation, route }: Props) {
     };
   }, [state.seed]);
 
-  // ── Run end (death or victory) ───────────────────────────────────────────
-  useEffect(() => {
-    if (!runEnded || gameOverTriggered.current) return;
-    gameOverTriggered.current = true;
-
-    const s = stateRef.current;
-    const time = sessionTimeRef.current;
-    if (!s.isVictory) {
-      // Immediate feedback: the board shakes (see BoardView) and the screen flashes red, then settles.
-      // A short, light flash that is gone before the card: the red wash used to stay on screen at 28% and cover the very
-      // thing the player needs to see (what killed them).
-      Animated.sequence([
-        Animated.timing(deathFlash, { toValue: reduceFlash ? 0.08 : 0.34, duration: 70, useNativeDriver: true }),
-        Animated.timing(deathFlash, { toValue: 0, duration: 520, useNativeDriver: true }),
-      ]).start();
-    }
-    if (s.isVictory) {
-      emitSound("LEVEL_UP"); // victory fanfare
-      analytics.track("expedition_won", { score: s.score, time, character: characterIndex, mode });
-    } else {
-      emitSound("GAME_OVER");
-      analytics.track("game_over", { level: s.level, score: s.score, time, cause: s.deathCause ?? "unknown" });
-    }
-
-    let cancelled = false;
-    // Saving the run (reading and writing the stats, achievements, unlocks) is real work for the JS thread. Doing it in the
-    // very frame the hero steps onto the killer made the death animation stutter, so it starts right after the strike has
-    // played and still finishes well before the card appears. (Leaving the screen records the run on its own.)
-    let recordTimer: ReturnType<typeof setTimeout> | undefined;
-    const resultPromise = new Promise<RunResult | null>(resolve => {
-      recordTimer = setTimeout(() => resolve(recordCurrentRun()), s.isVictory ? 0 : RECORD_AFTER_STRIKE_MS);
-    });
-
-    // The card appears right away; nothing here waits for the network.
-    const timer = setTimeout(async () => {
-      if (cancelled || !mounted.current) return;
-      setShowGameOver(true);
-
-      const result = await resultPromise;
-      if (!cancelled && mounted.current && result) setRunResult(result);
-
-      // Daily and endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
-      if (isDaily || mode === "endless") return;
-      const qualifies = await Promise.race([
-        isTopTenScore(s.score, time).catch(() => false),
-        new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
-      ]);
-      if (!cancelled && mounted.current && qualifies) setShowHighScoreEntry(true);
-    }, s.isVictory ? 700 : GAME_OVER_CARD_DELAY_MS);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-      clearTimeout(recordTimer);
-    };
-  }, [runEnded]);
-
-  const handleHighScoreSubmit = useCallback(
-    async (playerName: string) => {
-      const s = stateRef.current;
-      await addHighscore({
-        score: s.score,
-        level: s.level,
-        name: playerName,
-        coins: s.totalCoins,
-        characterIndex,
-        time: sessionTimeRef.current,
-      });
-      analytics.track("high_score_submitted", { level: s.level, score: s.score });
-      setShowHighScoreEntry(false);
-    },
-    [characterIndex],
-  );
-
   const handleRetry = useCallback(() => {
     void recordCurrentRun(); // an abandoned run still counts for unlocks
-    runRecorded.current = false;
+    rearm();
     isResetting.current = true;
-    gameOverTriggered.current = false;
     emitSound("GAME_MUSIC_START"); // Game Over / victory stopped the loop and the focus did not change
     clearPopups();
-    setRunResult(null);
-    setShowGameOver(false);
-    setShowHighScoreEntry(false);
     setDemoEnd(false);
     gateStage.current = null;
     resetTimer();
