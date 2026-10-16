@@ -104,6 +104,8 @@ export interface GameState {
   lastBreath?: UndoSnapshot | null;
   /** Times the hero was revived with embers in this run. */
   revives?: number;
+  /** Arrow packs bought with embers in this run. */
+  refills?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
   lairRescues?: number;
 }
@@ -126,6 +128,8 @@ export type GameAction =
   | { type: 'UNDO' }
   /** Brings the hero back to just before the fatal action (see core/engine/revive.ts). */
   | { type: 'REVIVE' }
+  /** Adds the arrows of an ember-bought pack (the embers are spent by the screen first). */
+  | { type: 'REFILL' }
   | {
       type: 'RESET';
       character: Character;
@@ -171,5 +175,6 @@ export interface GameEngineInterface {
   useAbility: () => void;
   undo: () => void;
   revive: () => void;
+  refill: () => void;
   pickRelic: (id: RelicId) => void;
 }

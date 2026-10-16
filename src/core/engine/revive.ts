@@ -12,3 +12,15 @@ export const REVIVE_ARROWS = 3;
 
 /** The embers the next revive costs after `used` ones, or null when no more can be bought. */
 export const revivePrice = (used: number): number | null => REVIVE_PRICES[Math.max(0, Math.trunc(used) || 0)] ?? null;
+
+/**
+ * Arrows bought with embers in the middle of a run, for the hero that ran dry. Three packs per run, each dearer than the last
+ * (never in the daily).
+ */
+export const REFILL_PRICES: readonly number[] = [15, 25, 40];
+
+/** Arrows in a pack. */
+export const REFILL_ARROWS = 3;
+
+/** The embers the next pack costs after `used` ones, or null when the run's packs are gone. */
+export const refillPrice = (used: number): number | null => REFILL_PRICES[Math.max(0, Math.trunc(used) || 0)] ?? null;

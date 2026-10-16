@@ -66,7 +66,7 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
 };
 
 export const ForgePane = ({ kit }: { kit: Kit }) => {
-  const { t, wide, heading, fact, icon } = kit;
+  const { t, wide, heading, fact, icon, image } = kit;
   const upgradeGroups = [
     { id: "power", label: t("forge.cat.power"), color: "#ff7043" },
     { id: "economy", label: t("forge.cat.economy"), color: "#ffd54f" },
@@ -103,6 +103,7 @@ export const ForgePane = ({ kit }: { kit: Kit }) => {
         </View>
       ))}
       {fact("manual.forge.revive", "#ff8a80", icon("heart", "#ff8a80"))}
+      {fact("manual.forge.arrows", "#ffab40", image(IMG.arrows, "#ffab40"))}
       {fact("manual.forge.daily", "#4fc3f7", icon("calendar", "#4fc3f7"))}
       {fact("manual.forge.collection", "#f48fb1", icon("shirt", "#f48fb1"))}
       {fact("manual.forge.achievements", "#81c784", icon("ribbon", "#81c784"))}

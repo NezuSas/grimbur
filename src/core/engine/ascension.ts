@@ -42,15 +42,15 @@ export function clampAscension(value: number): number {
 export function modifiersFor(ascension: number): AscensionModifiers {
   const a = clampAscension(ascension);
   return {
-    arrowPenalty: a >= 1 ? 1 : 0,
-    stalkerFloor: a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
+    arrowPenalty: [0, 1, 1, 1, 2, 3][a],
+    stalkerFloor: a >= 5 ? 3 : a >= 4 ? 4 : a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
     bossHpBonus: a >= 5 ? 2 : a >= 3 ? 1 : 0,
-    enemyBonus: [0, 1, 1, 2, 2, 3][a],
+    enemyBonus: [0, 1, 1, 2, 3, 5][a],
     pitBonus: [0, 0, 1, 1, 2, 3][a],
     trapPenaltyMultiplier: a >= 4 ? 2 : 1,
     extraTraps: a >= 4 ? 1 : 0,
     stalkerBonus: [0, 0, 0, 0, 1, 2][a],
-    hunterHaste: a >= 3 ? 1 : 0,
+    hunterHaste: a >= 5 ? 2 : a >= 3 ? 1 : 0,
     draftSize: a >= 5 ? 2 : 3,
   };
 }

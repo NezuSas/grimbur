@@ -15,6 +15,7 @@ export interface AnalyticsEvents {
   level_complete: { level: number; score: number; time: number };
   game_over: { level: number; score: number; time: number; cause: string };
   revived: { level: number; score: number; price: number };
+  arrows_bought: { level: number; price: number };
   powerup_collected: { kind: 'shield' | 'ammo' };
   trap_triggered: { level: number };
   high_score_submitted: { level: number; score: number };

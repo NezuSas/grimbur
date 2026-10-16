@@ -5,7 +5,7 @@ import { coinReward, killValue, levelClearBonus } from './scoring';
 import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
-import { REVIVE_ARROWS } from './revive';
+import { REFILL_ARROWS, REVIVE_ARROWS } from './revive';
 import { RelicId, draftRelics, relicCount } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
@@ -716,6 +716,11 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       const killer = state.playerIndex;
       const marked = killer !== before.playerIndex && !before.marked.includes(killer) ? [...before.marked, killer] : before.marked;
       return { ...before, undo: null, lastBreath: null, revives: (state.revives ?? 0) + 1, shield: true, attack: Math.max(before.attack, REVIVE_ARROWS), marked, isGameOver: false, deathCause: null };
+    }
+
+    case 'REFILL': {
+      if (state.isGameOver || state.isVictory || state.isLevelUp || state.pendingDraft) return state;
+      return { ...state, attack: state.attack + REFILL_ARROWS, refills: (state.refills ?? 0) + 1 };
     }
 
     case 'RESET': {

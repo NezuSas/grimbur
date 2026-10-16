@@ -1,5 +1,5 @@
 import { gameReducer } from '../../src/core/engine/reducer';
-import { MAX_REVIVES, REVIVE_ARROWS, revivePrice } from '../../src/core/engine/revive';
+import { MAX_REVIVES, REFILL_ARROWS, REVIVE_ARROWS, refillPrice, revivePrice } from '../../src/core/engine/revive';
 import { spendEmbers } from '../../src/core/stats/spend';
 import { EMPTY_STATS } from '../../src/core/stats/runStats';
 import { coin, createState, enemy } from '../helpers/state';
@@ -42,5 +42,21 @@ describe('spendEmbers', () => {
     expect(spendEmbers(rich, 101)).toBeNull();
     expect(spendEmbers(rich, 0)).toBeNull();
     expect(spendEmbers(rich, Number.NaN)).toBeNull();
+  });
+});
+
+describe('arrow packs', () => {
+  it('prices rise and run out', () => {
+    expect(refillPrice(0)).toBeLessThan(refillPrice(2) as number);
+    expect(refillPrice(3)).toBeNull();
+  });
+
+  it('adds a pack of arrows and counts it, but never after the end of the run', () => {
+    const start = createState({ attack: 0 });
+    const after = gameReducer(start, { type: 'REFILL' });
+    expect(after.attack).toBe(REFILL_ARROWS);
+    expect(after.refills).toBe(1);
+    const dead = { ...start, isGameOver: true };
+    expect(gameReducer(dead, { type: 'REFILL' })).toBe(dead);
   });
 });

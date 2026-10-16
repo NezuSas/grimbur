@@ -17,6 +17,7 @@ import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
 import { NO_PERKS, getHeroPerks } from '../src/core/engine/heroes';
 import { modifiersFor } from '../src/core/engine/ascension';
+import { UPGRADES, applyMeta, maxLevel, metaEffects, NO_META } from '../src/core/stats/forge';
 
 const RUNS = Number(process.argv[2] ?? 200);
 const FIRST = Number(process.argv[3] ?? 1);
@@ -27,7 +28,14 @@ const AIM = process.argv[6] === 'aim';
 
 /** Hero whose passive perks the bot plays with (default: none). The bot does not press abilities or use items. */
 const HERO = process.argv[7] === undefined ? -1 : Number(process.argv[7]);
-const PERKS = HERO >= 0 ? getHeroPerks(HERO) : NO_PERKS;
+const BASE_PERKS = HERO >= 0 ? getHeroPerks(HERO) : NO_PERKS;
+
+/** Forge upgrades the bot plays with: META=max (everything bought), META=half (half the levels of every upgrade, rounded up), default none. */
+const META_MODE = process.env.META ?? 'none';
+const META = META_MODE === 'none'
+  ? NO_META
+  : metaEffects(Object.fromEntries(UPGRADES.map(u => [u.id, META_MODE === 'max' ? maxLevel(u.id) : Math.ceil(maxLevel(u.id) / 2)])));
+const PERKS = applyMeta(BASE_PERKS, META);
 
 type Mark = 'safe' | 'danger';
 
@@ -235,6 +243,9 @@ function playFloor(floor: number, seed: number): FloorResult {
       entities: board.entities,
       coins: board.coins,
       attack: Math.max(1, board.attack - modifiersFor(DEPTH).arrowPenalty),
+      draftBonus: META.draftBonus,
+      startShield: META.shield,
+      startRelics: META.startRelics,
       seed,
       perks: PERKS,
       ascension: DEPTH,
