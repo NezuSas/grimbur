@@ -448,7 +448,47 @@ export function arrowPath(
   return { tiles, targetIndex: -1 };
 }
 
+/** The most times a lair rescues a hero that ran out of arrows. */
+export const MAX_LAIR_RESCUES = 2;
+
+/**
+ * The Wumpus can only be slain with arrows. A hero with none left, with none lying on the floor, cannot win the fight: the
+ * run would only wait for the Wumpus to catch up. So when that happens on the lair floor, a few bundles turn up on free tiles
+ * (enough for the Wumpus' remaining hearts), up to MAX_LAIR_RESCUES times. It only ever happens at zero arrows, so it never
+ * makes shots free: a hero that still holds an arrow, or has one to pick up, is left alone.
+ */
+export function ensureWinnable(state: GameState): GameState {
+  if (state.isGameOver || state.isVictory || state.pendingDraft || state.isLevelUp) return state;
+  if (state.attack > 0 || (state.lairRescues ?? 0) >= MAX_LAIR_RESCUES) return state;
+  const boss = state.entities.find(e => e.type === 'boss');
+  if (!boss || (boss.hp ?? 0) < 1) return state;
+  if (state.entities.some(e => e.type === 'ammo')) return state;
+
+  const wanted = Math.max(1, Math.ceil((boss.hp ?? 1) / GAME_CONFIG.pickups.ammoAmount));
+  const total = state.rows * state.cols;
+  const rnd = createPRNG(((state.seed ^ Math.imul(state.turn + 1, 2654435761)) >>> 0) || 1);
+  rnd(); // discard the weakly-mixed first sample
+  const taken = new Set<number>([state.playerIndex, ...state.entities.map(e => e.index)]);
+  const placed: GameEntity[] = [];
+  for (let tries = 0; placed.length < wanted && tries < total * 4; tries++) {
+    const index = Math.floor(rnd() * total);
+    if (taken.has(index)) continue;
+    taken.add(index);
+    placed.push({ index, type: 'ammo' });
+  }
+  if (placed.length === 0) return state;
+  const entities = [...state.entities, ...placed];
+  return { ...state, entities, entityMap: createEntityMap(entities), lairRescues: (state.lairRescues ?? 0) + 1 };
+}
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
+  const next = reduceCore(state, action);
+  // A new floor starts its own count of rescues.
+  const fresh = next.level !== state.level || next.runSeed !== state.runSeed ? { ...next, lairRescues: 0 } : next;
+  return ensureWinnable(fresh);
+}
+
+function reduceCore(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'MOVE': {
       if (state.isGameOver || state.isLevelUp || state.pendingDraft) return state;
