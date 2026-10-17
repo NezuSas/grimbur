@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { FlatList, ImageBackground, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { FlatList, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { ImageBackground, ScrollView, StyleSheet, View, useWindowDimensions } from "react-native";
+import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";

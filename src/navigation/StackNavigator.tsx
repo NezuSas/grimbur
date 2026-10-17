@@ -21,6 +21,20 @@ import SettingsScreen from "../screens/SettingsScreen";
 import AchievementsScreen from "../screens/AchievementsScreen";
 import ForgeScreen from "../screens/ForgeScreen";
 import PaywallScreen from "../screens/PaywallScreen";
+import { withUiScale } from "../ui/layout/scaledWindow";
+
+// Menu screens grow on big windows (tablets); on phones the scale is 1 and nothing changes.
+const ScaledMissionsScreen = withUiScale(MissionsScreen);
+const ScaledCollectionScreen = withUiScale(CollectionScreen);
+const ScaledHighScoresScreen = withUiScale(HighScoresScreen);
+const ScaledProgressScreen = withUiScale(ProgressScreen);
+const ScaledInstructionsScreen = withUiScale(InstructionsScreen);
+const ScaledSettingsScreen = withUiScale(SettingsScreen);
+const ScaledAchievementsScreen = withUiScale(AchievementsScreen);
+const ScaledForgeScreen = withUiScale(ForgeScreen);
+const ScaledChallengeScreen = withUiScale(ChallengeScreen);
+const ScaledDuelScreen = withUiScale(DuelScreen);
+const ScaledStoryScreen = withUiScale(StoryScreen);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,22 +59,22 @@ const StackNavigator: React.FC = () => {
         }}
       >
         <Stack.Screen name="CoverScreen" component={CoverScreen} />
-        <Stack.Screen name="StoryScreen" component={StoryScreen} />
-        <Stack.Screen name="MissionsScreen" component={MissionsScreen} />
+        <Stack.Screen name="StoryScreen" component={ScaledStoryScreen} />
+        <Stack.Screen name="MissionsScreen" component={ScaledMissionsScreen} />
         <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
-        <Stack.Screen name="CollectionScreen" component={CollectionScreen} />
+        <Stack.Screen name="CollectionScreen" component={ScaledCollectionScreen} />
         <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
-        <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
-        <Stack.Screen name="ChallengeScreen" component={ChallengeScreen} />
-        <Stack.Screen name="DuelScreen" component={DuelScreen} />
-        <Stack.Screen name="ProgressScreen" component={ProgressScreen} />
+        <Stack.Screen name="HighScoresScreen" component={ScaledHighScoresScreen} />
+        <Stack.Screen name="ChallengeScreen" component={ScaledChallengeScreen} />
+        <Stack.Screen name="DuelScreen" component={ScaledDuelScreen} />
+        <Stack.Screen name="ProgressScreen" component={ScaledProgressScreen} />
         <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
-        <Stack.Screen name="InstructionsScreen" component={InstructionsScreen} />
-        <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-        <Stack.Screen name="AchievementsScreen" component={AchievementsScreen} />
-        <Stack.Screen name="ForgeScreen" component={ForgeScreen} />
+        <Stack.Screen name="InstructionsScreen" component={ScaledInstructionsScreen} />
+        <Stack.Screen name="SettingsScreen" component={ScaledSettingsScreen} />
+        <Stack.Screen name="AchievementsScreen" component={ScaledAchievementsScreen} />
+        <Stack.Screen name="ForgeScreen" component={ScaledForgeScreen} />
         <Stack.Screen name="PaywallScreen" component={PaywallScreen} />
       </Stack.Navigator>
     </>

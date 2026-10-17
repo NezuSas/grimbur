@@ -1,6 +1,7 @@
 // src/screens/HighScoresScreen.tsx
 import React, { useEffect, useState, useCallback } from "react";
-import { FlatList, Linking, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
+import { FlatList, Linking, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
 import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";

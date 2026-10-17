@@ -1,4 +1,4 @@
-import { useWindowDimensions } from "react-native";
+import { useWindowDimensions } from "./scaledWindow";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsStore } from "../../state/settings/store";
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ImageBackground, ScrollView, Share, StyleSheet, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, ImageBackground, ScrollView, Share, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -248,7 +249,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.duelTitle} maxFontSizeMultiplier={1.2}>
                     {t("duel.open").toLocaleUpperCase()}
                   </Text>
-                  <Text style={styles.hint} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.hint, { textAlign: "left" }]} maxFontSizeMultiplier={1.2}>
                     {t("duel.openHint")}
                   </Text>
                 </View>
