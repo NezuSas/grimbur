@@ -1,5 +1,6 @@
 import { buildDailyShareText, dailyNumber, dailyPips } from "../../core/stats/share";
 import { GAME_CONFIG } from "../../config/gameConfig";
+import { formatChallengeCode } from "../../core/challenge/code";
 import { formatTime } from "../../shared/utils/formatTime";
 import type { TranslationKey } from "../../i18n/en";
 import type { Params } from "../../i18n/translate";
@@ -22,6 +23,8 @@ interface Opts {
   streak?: number;
   endless?: boolean;
   heroName: string;
+  /** The friend challenge the run belonged to: the message invites to the same cave. */
+  challengeCode?: string;
 }
 
 interface Texts {
@@ -50,7 +53,7 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
   const lines = [t("share.title", { hero: opts.heroName, depth: depth ? ` · ${depth}` : "" })];
   if (!opts.endless) lines.push(dailyPips(run.level, GAME_CONFIG.expedition.floors, run.isVictory));
   lines.push(t("share.line", { result: resultOf(run, !!opts.endless, t), score: run.score.toLocaleString(), gems: plural("common.gems" as never, run.totalCoins), time: formatTime(run.time) }));
-  lines.push(t("share.invite"));
+  lines.push(opts.challengeCode ? t("share.challenge", { code: formatChallengeCode(opts.challengeCode) }) : t("share.invite"));
   return lines.join("\n");
 }
 
@@ -70,7 +73,7 @@ export function buildShareCard(run: Run, opts: Opts, { t, plural }: Texts, chara
     depth: depth || undefined,
     daily: opts.isDaily ? t("share.daily.label", { n: dailyNumber(opts.dailyDate) }) : undefined,
     streak: opts.isDaily && opts.streak ? plural("over.streak" as never, opts.streak) : undefined,
-    invite: opts.isDaily ? t("share.daily.footer") : t("share.invite"),
+    invite: opts.challengeCode ? t("share.challenge", { code: formatChallengeCode(opts.challengeCode) }) : opts.isDaily ? t("share.daily.footer") : t("share.invite"),
     scoreLabel: t("share.score"),
   };
 }

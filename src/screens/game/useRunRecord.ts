@@ -8,6 +8,7 @@ import { recordDailyRun, recordRun } from "../../services/localStats";
 import { queueCloudSync } from "../../services/cloudBackup";
 import { getPlayerName, setPlayerName } from "../../services/playerProfile";
 import { submitDailyScore } from "../../services/dailyScores";
+import { rememberChallenge, submitChallengeScore } from "../../services/challenges";
 import type { GameState } from "../../core/engine/types";
 import type { GameMode } from "../../core/engine/seed";
 import { dailyRunResult, runResultOf } from "./runResult";
@@ -23,6 +24,8 @@ type Params = {
   mode: GameMode;
   isDaily: boolean;
   dailyDate: string;
+  /** The code of the friend challenge being played, or null: it counts for nothing but its own board (no embers, no unlocks, no streak). */
+  challengeCode?: string | null;
   /** Relics a Forge upgrade starts the run with: they are not counted as picked. */
   startRelics: number;
   /** The seconds played, read when it is needed. */
@@ -36,7 +39,7 @@ type Params = {
  * The end of a run: saving it once to the local stats, the result the card shows, the card itself and the high-score entry. It
  * keeps the guards that make each of those happen exactly once (a retry, leaving the screen and the card may all try to save).
  */
-export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mode, isDaily, dailyDate, startRelics, sessionTimeRef, deathFlash, reduceFlash }: Params) {
+export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, sessionTimeRef, deathFlash, reduceFlash }: Params) {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -47,6 +50,10 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
   /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
   const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
     if (runRecorded.current) return null;
+    if (challengeCode) {
+      runRecorded.current = true; // a friend challenge is not progress: nothing is paid and nothing unlocks
+      return null;
+    }
     const s = stateRef.current;
     // One step and quit is not a game: it would pay embers and tick the "runs played" goals for nothing.
     const progressed = s.isGameOver || s.isVictory || s.level > 1 || s.turn >= 12;
@@ -79,16 +86,23 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       runRecorded.current = false; // nothing was saved: the retry, the unmount or the card may try again
       return null;
     }
-  }, [isDaily, dailyDate, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef]);
+  }, [isDaily, dailyDate, challengeCode, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef]);
 
-  /** Sends the daily result (best effort: a bad connection only means it is not on the board). */
+  /** Sends the daily or challenge result (best effort: a bad connection only means it is not on the board). */
   const submitDaily = useCallback(
     async (name: string) => {
       const s = stateRef.current;
-      await submitDailyScore({ day: dailyDate, level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current }, name);
+      const result = { level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current };
+      if (challengeCode) {
+        await submitChallengeScore(challengeCode, result, name);
+        void rememberChallenge(challengeCode);
+        analytics.track("challenge_submitted", { level: s.level, score: s.score });
+        return;
+      }
+      await submitDailyScore({ day: dailyDate, ...result }, name);
       analytics.track("daily_board_submitted", { level: s.level, score: s.score });
     },
-    [dailyDate, characterIndex, sessionTimeRef, stateRef],
+    [dailyDate, challengeCode, characterIndex, sessionTimeRef, stateRef],
   );
 
   // ── Run end (death or victory) ───────────────────────────────────────────
@@ -133,7 +147,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       if (!cancelled && mounted.current && result) setRunResult(result);
 
       // The daily result goes to the daily board: silently under the saved name, or after asking for a name the first time.
-      if (isDaily) {
+      if (isDaily || challengeCode) {
         const saved = await getPlayerName();
         if (cancelled || !mounted.current) return;
         if (saved) void submitDaily(saved);
@@ -158,7 +172,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
 
   const handleHighScoreSubmit = useCallback(
     async (playerName: string) => {
-      if (isDaily) {
+      if (isDaily || challengeCode) {
         const saved = await setPlayerName(playerName);
         if (!saved) throw new Error("name not allowed");
         await submitDaily(saved);
@@ -177,7 +191,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       analytics.track("high_score_submitted", { level: s.level, score: s.score });
       setShowHighScoreEntry(false);
     },
-    [characterIndex, isDaily, submitDaily],
+    [characterIndex, isDaily, challengeCode, submitDaily],
   );
 
 

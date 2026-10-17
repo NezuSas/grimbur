@@ -167,3 +167,47 @@ describe('the developer notice', () => {
     await assertFails(getDocs(collection(db(), 'config')));
   });
 });
+
+describe('friend challenges', () => {
+  const pid = '7J2K9QXM4HT6RN3B';
+  const code = 'ABCD2345';
+  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, ...patch });
+  const ref = (c = code, p = pid) => doc(db(), 'challenge_scores', `${c}_${p}`);
+
+  it('accepts a result, then only a better one; never deletes', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertSucceeds(setDoc(ref(), entry({ score: 5000 })));
+    await assertFails(setDoc(ref(), entry({ score: 100 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['a bad code', { code: 'abc' }],
+    ['a bad player id', { pid: 'short' }],
+    ['a floor beyond 10', { level: 11, score: 100, coins: 1, time: 100 }],
+    ['a score above what the floors allow', { score: 6 * 20000 + 1 }],
+    ['a run too fast for its floors', { level: 10, score: 100, coins: 1, time: 3 }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = (patch.pid as string | undefined) ?? `E${String(i).padStart(15, '0')}`;
+    const c = (patch.code as string | undefined) ?? code;
+    await assertFails(setDoc(doc(db(), 'challenge_scores', `${c}_${owner}`), entry({ pid: owner, ...patch })));
+  });
+
+  it('a document id that does not match is refused', async () => {
+    await assertFails(setDoc(doc(db(), 'challenge_scores', 'whatever'), entry()));
+  });
+
+  it('lists at most 20 rows of a code, and reads one document', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'challenge_scores', `${code}_${pid}`), entry());
+    });
+    const col = collection(db(), 'challenge_scores');
+    await assertSucceeds(getDocs(query(col, where('code', '==', code), orderBy('score', 'desc'), limit(20))));
+    await assertFails(getDocs(query(col, where('code', '==', code), orderBy('score', 'desc'), limit(21))));
+    await assertFails(getDocs(query(col)));
+    await assertSucceeds(getDoc(ref()));
+  });
+});

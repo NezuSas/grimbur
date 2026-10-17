@@ -60,6 +60,7 @@ import { useBoardInput } from "./game/useBoardInput";
 import { useGameFeedback } from "./game/useGameFeedback";
 import { useRunRecord } from "./game/useRunRecord";
 import { useRevive } from "./game/useRevive";
+import { formatChallengeCode } from "../core/challenge/code";
 import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
@@ -87,7 +88,9 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const mode = route.params?.mode ?? "expedition";
   const isDaily = mode === "daily";
-  const ascension = isDaily ? 0 : clampAscension(route.params?.ascension ?? 0);
+  // A friend challenge plays the cave of its code at the difficulty of its code, without Forge upgrades, and counts for nothing but its board.
+  const challenge = route.params?.challenge ?? null;
+  const ascension = isDaily ? 0 : clampAscension(challenge ? challenge.depth : route.params?.ascension ?? 0);
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
@@ -166,8 +169,8 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
   const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
-  const arrowShop = useArrowRefill({ state, isDaily, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
-  const second = useRevive({ state, isDaily, runNumber, revive, onRevived, freeFirst: !!route.params?.meta?.freeRevive });
+  const arrowShop = useArrowRefill({ state, isDaily: isDaily || !!challenge, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
+  const second = useRevive({ state, isDaily: isDaily || !!challenge, runNumber, revive, onRevived, freeFirst: !!route.params?.meta?.freeRevive });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
     runEnded: runEnded && !second.holdEnd,
@@ -176,6 +179,7 @@ export default function GameScreen({ navigation, route }: Props) {
     mode,
     isDaily,
     dailyDate,
+    challengeCode: challenge?.code ?? null,
     startRelics: route.params?.meta?.startRelics?.length ?? 0,
     sessionTimeRef,
     deathFlash,
@@ -209,11 +213,12 @@ export default function GameScreen({ navigation, route }: Props) {
     reset(selectedCharacter, {
       heroIndex: characterIndex,
       ascension,
-      meta: route.params?.meta,
+      meta: challenge ? undefined : route.params?.meta,
+      ...(challenge ? { runSeed: challenge.seed } : {}),
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
       ...(mode === "endless" ? { mode: "endless" as const } : {}),
     });
-  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, route.params?.meta]);
+  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta]);
 
   // Start the run on mount; save whatever was played when the screen goes away.
   useEffect(() => {
@@ -337,7 +342,7 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       const s = stateRef.current;
       const run = { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory, time: sessionTimeRef.current };
-      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName };
+      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code };
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
       setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
@@ -347,7 +352,7 @@ export default function GameScreen({ navigation, route }: Props) {
       setShareCard(null);
       sharing.current = false;
     }
-  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, selectedCharacter, sessionTimeRef]);
+  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, challenge, selectedCharacter, sessionTimeRef]);
 
   // ── Floor cleared → level-complete screen → next floor ────────────────────
   useEffect(() => {
@@ -701,6 +706,7 @@ export default function GameScreen({ navigation, route }: Props) {
           result: runResult,
           isDaily,
           dailyDate,
+          challengeLabel: challenge ? formatChallengeCode(challenge.code) : null,
           ascension,
           endless: mode === "endless",
           demo: demoEnd,
@@ -712,7 +718,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onMainMenu: handleMainMenu,
         }}
         revive={{ visible: second.visible, price: second.price, embers: second.embers, used: second.used, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
-        highScore={{ visible: showHighScoreEntry, daily: isDaily, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
+        highScore={{ visible: showHighScoreEntry, daily: isDaily, challenge: !!challenge, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
       />
     </ImageBackground>
     </Profiler>

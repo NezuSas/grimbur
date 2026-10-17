@@ -40,6 +40,8 @@ type Props = {
     result: RunResult | null;
     isDaily: boolean;
     dailyDate: string;
+    /** The code of a friend challenge, when the run is one. */
+    challengeLabel?: string | null;
     ascension: number;
     endless: boolean;
     /** The free part of the game ended: the card is the demo summary with the unlock button. */
@@ -52,7 +54,7 @@ type Props = {
     onMainMenu: () => void;
   };
   revive: { visible: boolean; price: number; embers: number; used: number; busy: boolean; onRevive: () => void; onDecline: () => void };
-  highScore: { visible: boolean; daily?: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
+  highScore: { visible: boolean; daily?: boolean; challenge?: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
 };
 
 /**
@@ -100,6 +102,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         bestScore={result?.bestScore}
         isNewBest={result?.isNewBest}
         dailyLabel={gameOver.isDaily ? gameOver.dailyDate : undefined}
+        challengeLabel={gameOver.challengeLabel}
         depth={gameOver.ascension}
         streak={result?.streak}
         unlockedHeroes={result?.unlocked}
@@ -133,6 +136,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
       <HighScoreEntryModal
         visible={highScore.visible}
         daily={highScore.daily}
+        challenge={highScore.challenge}
         score={state.score}
         level={state.level}
         totalCoins={state.totalCoins}

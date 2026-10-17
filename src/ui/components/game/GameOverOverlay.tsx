@@ -46,6 +46,8 @@ type Props = {
   isNewBest?: boolean;
   /** Set for daily-challenge runs: the local day being played. */
   dailyLabel?: string;
+  /** The code of a friend challenge (shown instead of the daily line). */
+  challengeLabel?: string | null;
   /** Depth (ascension) of the run; shown when above 0. */
   depth?: number;
   streak?: number;
@@ -99,6 +101,7 @@ const GameOverOverlay = ({
   bestScore,
   isNewBest,
   dailyLabel,
+  challengeLabel,
   depth = 0,
   streak,
   unlockedHeroes,
@@ -273,6 +276,11 @@ const GameOverOverlay = ({
           🔥 {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
         </Text>
       )}
+      {challengeLabel ? (
+        <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
+          🧩 {t('challenge.label', { code: challengeLabel }).toLocaleUpperCase()}
+        </Text>
+      ) : null}
       {dailyLabel && (
         <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
           📅 {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}

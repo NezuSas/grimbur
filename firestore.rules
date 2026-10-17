@@ -88,6 +88,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Friend challenges: one document per player per challenge code (`<code>_<playerId>`); a replay can only raise the score.
+    // Limits mirror src/core/challenge and src/core/leaderboard/daily.ts.
+    function validChallenge(d, id) {
+      return d.keys().hasOnly(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+        && d.keys().hasAll(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+        && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
+        && d.pid is string && validKey(d.pid)
+        && id == d.code + '_' + d.pid
+        && isInt(d.level) && d.level >= 1 && d.level <= 10
+        && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
+        && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
+        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
+        && isInt(d.time) && d.time >= (d.level - 1) * 5 + 1 && d.time <= 86400
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
+        && validName(d.name);
+    }
+
+    match /challenge_scores/{id} {
+      allow list: if request.query.limit <= 20;
+      allow get: if true;
+      allow create: if validChallenge(request.resource.data, id);
+      allow update: if validChallenge(request.resource.data, id) && request.resource.data.score > resource.data.score;
+      allow delete: if false;
+    }
+
     // A notice from the developer, edited by hand in the console: the app reads it and cannot change it.
     match /config/{docId} {
       allow get: if docId == 'live' || docId == 'app';
