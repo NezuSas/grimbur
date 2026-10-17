@@ -35,6 +35,7 @@ import { heroText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { VICTORY_EMBERS_PER_DEPTH, metaEffects } from "../core/stats/forge";
+import { formatChallengeCode } from "../core/challenge/code";
 import { dailyKey } from "../core/engine/seed";
 import { haptic } from "../shared/haptics";
 import type { TranslationKey } from "../i18n/en";
@@ -55,6 +56,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
   const mode = route.params?.mode ?? "expedition";
+  const challenge = route.params?.challenge ?? null;
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const lastHero = useSettingsStore(s => s.lastHero);
   const setLastHero = useSettingsStore(s => s.setLastHero);
@@ -152,6 +154,12 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       if (!statsLoaded) return;
       setLastHero(heroIndex);
       // First-time players get the guided tutorial before their first expedition.
+      if (challenge) {
+        // A friend challenge: the cave and the difficulty come from its code and nobody brings Forge upgrades.
+        navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode: "expedition", ascension: challenge.depth, challenge });
+        emitSound("GAME_MUSIC_START");
+        return;
+      }
       if (!tutorialSeen && mode === "expedition") {
         navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: metaEffects(stats.forge) });
         return;
@@ -159,7 +167,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, tutorialSeen, depth, stats, statsLoaded, setLastHero],
+    [navigation, mode, challenge, tutorialSeen, depth, stats, statsLoaded, setLastHero],
   );
 
   // Tapping an owned outfit wears it at once (buying and browsing the rest happen in the collection screen).
@@ -199,10 +207,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // The difficulty picker only appears once there is something to choose (after the first victory).
-  const showDepth = mode === "expedition" && maxDepth > 0;
+  const showDepth = mode === "expedition" && maxDepth > 0 && !challenge;
   const modeTitle = t(`heroes.mode.${mode}` as TranslationKey);
   // On a harder depth the line says what that depth changes and what winning it pays on top.
-  const depthRule = showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
+  const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
   const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
   const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : "#E8BA52";
 

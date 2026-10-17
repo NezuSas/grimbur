@@ -24,12 +24,14 @@ type Props = {
   time: number;
   /** The daily challenge asks for a name to join today's ranking (a different heading). */
   daily?: boolean;
+  /** A friend challenge asks for a name to join its ranking. */
+  challenge?: boolean;
   /** Should save the score; rejects when it could not be saved. */
   onSubmit: (name: string) => Promise<void>;
   onSkip: () => void;
 };
 
-const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, onSubmit, onSkip }: Props) => {
+const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, challenge, onSubmit, onSkip }: Props) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -78,10 +80,10 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, o
   const summary = (
     <View style={styles.summary}>
       <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
-        🏆 {t(daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
+        🏆 {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
       </Text>
       <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-        {t(daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
+        {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
       </Text>
       <Text style={styles.score} maxFontSizeMultiplier={1.3}>
         {t('entry.points', { score: score.toLocaleString() })}

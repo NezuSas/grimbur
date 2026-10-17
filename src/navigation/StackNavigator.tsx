@@ -12,6 +12,7 @@ import GameScreen from "../screens/GameScreen";
 import LessonScreen from "../screens/LessonScreen";
 import TutorialScreen from "../screens/TutorialScreen";
 import HighScoresScreen from "../screens/HighScoresScreen";
+import ChallengeScreen from "../screens/ChallengeScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 import LevelCompleteScreen from "../screens/LevelCompleteScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
@@ -51,6 +52,7 @@ const StackNavigator: React.FC = () => {
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="HighScoresScreen" component={HighScoresScreen} />
+        <Stack.Screen name="ChallengeScreen" component={ChallengeScreen} />
         <Stack.Screen name="ProgressScreen" component={ProgressScreen} />
         <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
         <Stack.Screen name="InstructionsScreen" component={InstructionsScreen} />

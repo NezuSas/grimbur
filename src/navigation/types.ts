@@ -4,6 +4,9 @@ import type { LessonId } from "../core/tutorial/lessons";
 import type { SkinId } from "../data/skinArt";
 import type { Direction } from "../core/engine/types";
 
+/** A friend challenge being played: its code, the run seed and the difficulty it stands for (see core/challenge/code.ts). */
+export type ChallengeParam = { code: string; seed: number; depth: number };
+
 export type RootStackParamList = {
   CoverScreen: undefined;
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
@@ -11,12 +14,13 @@ export type RootStackParamList = {
   /** The opening story; `replay` returns to the previous screen instead of starting a run. */
   MissionsScreen: undefined;
   StoryScreen: { replay?: boolean } | undefined;
-  CharactersScreen: { mode?: GameMode; devHero?: number } | undefined;
+  CharactersScreen: { mode?: GameMode; devHero?: number; challenge?: ChallengeParam } | undefined;
+  ChallengeScreen: { code?: string } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
   LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[]; devBiome?: "cave" | "crystal" | "magma" | "lair"; devHideBanner?: boolean; devAim?: Direction; devHoldDeath?: boolean; devShoot?: number; devGameOver?: { hero: number; skin?: SkinId; cause: "enemy" | "stalker" | "sleeper" | "boss" | "pit"; victory?: boolean; full?: boolean } };
   /** `devBiome`: development only, draws the floor as that cave type (for screenshots). */
-  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; devBiome?: "cave" | "crystal" | "magma" | "lair" } | undefined;
+  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; challenge?: ChallengeParam; devBiome?: "cave" | "crystal" | "magma" | "lair" } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;
   LevelCompleteScreen: {
