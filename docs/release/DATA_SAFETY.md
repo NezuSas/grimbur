@@ -10,6 +10,7 @@ Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVAC
 | Componente | Qué hace | Datos |
 | --- | --- | --- |
 | `src/services/highscores.ts` + `firestore.rules` | Lee el top 20 (al iniciar la app y al abrir el ranking) y escribe una entrada si la partida entra en el top 10 y el jugador la guarda | Documento con 6 campos: `name`, `score`, `level`, `coins`, `characterIndex`, `time`. Sin fecha, sin ID de usuario, sin autenticación |
+| `src/services/cloudBackup.ts` + `firestore.rules` | (Opcional, desactivado por defecto) guarda el progreso como código de respaldo tras cada partida y al salir de la app, solo si el jugador activó la copia en la nube; lo lee al restaurar con la clave | Documento `backups/{clave}` con 2 campos: `code` (progreso y ajustes) y `updatedAt`. La clave es aleatoria (16 caracteres, 80 bits), sin cuenta, sin correo ni ID de dispositivo. Se borra al desactivar la opción |
 | `src/services/localStats.ts`, `src/state/settings/store.ts` | Guardan progreso y ajustes en AsyncStorage (claves `wumpus.stats.v1` y `wumpus-adventures-settings`) | Solo en el dispositivo |
 | `src/services/analytics.ts` | Fachada con 17 eventos; proveedor por defecto = consola (solo en desarrollo) | Nada sale del dispositivo hoy |
 | `expo-updates` (canal `production`) | Comprueba actualizaciones OTA de Expo | IP, versión de app/runtime, plataforma |

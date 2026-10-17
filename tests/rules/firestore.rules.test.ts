@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'fs';
 import { RulesTestEnvironment, assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { addDoc, collection, deleteDoc, doc, getDocs, limit, orderBy, query, setDoc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -68,5 +68,37 @@ describe('everything else is closed', () => {
   it('refuses other collections', async () => {
     await assertFails(setDoc(doc(db(), 'users', 'a'), { x: 1 }));
     await assertFails(getDocs(collection(db(), 'users')));
+  });
+});
+
+describe('cloud backups', () => {
+  const KEY = '7J2K9QXM4HT6RN3B';
+  const code = 'WA1.' + 'abcDEF012_-'.repeat(20) + '.abc123';
+  const backup = (k: string) => doc(db(), 'backups', k);
+  const body = () => ({ code, updatedAt: serverTimestamp() });
+
+  it('the key holder can write, read, overwrite and delete the document', async () => {
+    await assertSucceeds(setDoc(backup(KEY), body()));
+    await assertSucceeds(getDoc(backup(KEY)));
+    await assertSucceeds(setDoc(backup(KEY), body()));
+    await assertSucceeds(deleteDoc(backup(KEY)));
+  });
+
+  it('nobody lists backups', async () => {
+    await assertFails(getDocs(collection(db(), 'backups')));
+    await assertFails(getDocs(query(collection(db(), 'backups'), limit(5))));
+  });
+
+  it.each([
+    ['a key that is too short', 'ABC123', body()],
+    ['a key with forbidden letters (I, L, O, U)', 'ILOUILOUILOUILOU', body()],
+    ['a lower-case key', '7j2k9qxm4ht6rn3b', body()],
+    ['an extra field', KEY, { ...body(), admin: true }],
+    ['a code that is not a backup', KEY, { code: 'hello world, I am not a backup code', updatedAt: serverTimestamp() }],
+    ['a code too short', KEY, { code: 'WA1.x', updatedAt: serverTimestamp() }],
+    ['a code beyond 30000 characters', KEY, { code: 'WA1.' + 'a'.repeat(30001), updatedAt: serverTimestamp() }],
+    ['a made-up time', KEY, { code, updatedAt: new Date('2020-01-01') }],
+  ])('rejects %s', async (_label, key, data) => {
+    await assertFails(setDoc(backup(key as string), data as never));
   });
 });

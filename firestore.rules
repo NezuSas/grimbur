@@ -36,6 +36,23 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Cloud backup of a player's progress. The document id is a random 16-character recovery key that only its owner knows (80 bits,
+    // shown in Settings): whoever holds the key may read, write and delete that one document; nobody can list or guess them.
+    function validKey(k) { return k.matches('^[0-9A-HJKMNP-TV-Z]{16}$'); }
+
+    match /backups/{key} {
+      allow get: if validKey(key);
+      allow create, update: if validKey(key)
+        && request.resource.data.keys().hasOnly(['code', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['code', 'updatedAt'])
+        && request.resource.data.code is string
+        && request.resource.data.code.size() >= 20 && request.resource.data.code.size() <= 30000
+        && request.resource.data.code.matches('^WA[0-9]+\\.[A-Za-z0-9_.-]+$')
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if validKey(key);
+      allow list: if false;
+    }
+
     // Everything else is closed.
     match /{document=**} {
       allow read, write: if false;
