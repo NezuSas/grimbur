@@ -1005,6 +1005,9 @@ export const es: Record<TranslationKey, string> = {
   'forge.swift.desc': 'La habilidad de tu héroe se recarga {n} acción antes, por nivel.',
   'forge.second_wind.name': 'Segundo aliento',
   'forge.second_wind.desc': 'La primera segunda oportunidad de cada partida es gratis.',
+  'update.available': "Hay una versión nueva ({version}).",
+  'update.required': "Esta versión está desactualizada. Actualiza a la {version} para que todo funcione.",
+  'update.button': "Actualizar",
   'manual.title': 'Cómo jugar',
   'manual.replayTutorial': 'Repetir el tutorial',
 

@@ -90,7 +90,7 @@ service cloud.firestore {
 
     // A notice from the developer, edited by hand in the console: the app reads it and cannot change it.
     match /config/{docId} {
-      allow get: if docId == 'live';
+      allow get: if docId == 'live' || docId == 'app';
       allow list, write: if false;
     }
 

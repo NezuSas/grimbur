@@ -161,6 +161,7 @@ describe('the developer notice', () => {
       await setDoc(doc(ctx.firestore(), 'config', 'live'), { id: 'a', en: 'Hello' });
     });
     await assertSucceeds(getDoc(doc(db(), 'config', 'live')));
+    await assertSucceeds(getDoc(doc(db(), 'config', 'app')));
     await assertFails(setDoc(doc(db(), 'config', 'live'), { id: 'b', en: 'Hacked' }));
     await assertFails(getDoc(doc(db(), 'config', 'other')));
     await assertFails(getDocs(collection(db(), 'config')));
