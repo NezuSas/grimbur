@@ -1,7 +1,7 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { NavigationContainer, DarkTheme } from "@react-navigation/native";
-import { View } from "react-native";
+import { AppState, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
 import { Asset } from 'expo-asset';
@@ -23,6 +23,7 @@ import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
 import { EMPTY_STARTUP, StartupParts, startupProgress } from "./src/core/startup/progress";
 import { getLocalStats } from "./src/services/localStats";
+import { syncCloudNow } from "./src/services/cloudBackup";
 import { readDevHarness } from "./src/dev/devHarness";
 import { useImmersiveMode } from "./src/shared/immersive";
 
@@ -59,6 +60,14 @@ export default function App() {
 
   // Android: hide the system navigation bar so the game uses the whole screen.
   useImmersiveMode();
+
+  // Leaving the app saves the cloud copy (a no-op unless the player turned it on).
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", next => {
+      if (next !== "active") void syncCloudNow();
+    });
+    return () => sub.remove();
+  }, []);
 
   useEffect(() => {
     async function prepare() {

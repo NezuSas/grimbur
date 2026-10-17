@@ -19,6 +19,10 @@ import { getLocalStats , resetLocalStats } from "../services/localStats";
 import { emitSound } from "../audio/audioEventBus";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
 import { decodeBackup, summarize } from "../core/stats/backup";
+import { adoptCloudKey, disableCloud, enableCloud, fetchCloudBackup, getCloudState, syncCloudNow } from "../services/cloudBackup";
+import type { CloudState } from "../services/cloudBackup";
+import { formatKey, normalizeKey } from "../core/cloud/cloudKey";
+import * as Clipboard from "expo-clipboard";
 import type { DecodeFailure } from "../core/stats/backup";
 import { VOLUME_STEPS } from "../core/audio/volume";
 import type { LanguagePreference } from "../i18n/translate";
@@ -123,6 +127,51 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const [codeText, setCodeText] = React.useState("");
   const [pending, setPending] = React.useState<ReturnType<typeof summarize> | null>(null);
   const [restoreNotice, setRestoreNotice] = React.useState<Notice | null>(null);
+  // ── Cloud copy ──────────────────────────────────────────────────────────────────────────────────────────
+  const [cloud, setCloud] = React.useState<CloudState>({ key: null, lastSaved: null });
+  const [cloudNotice, setCloudNotice] = React.useState<Notice | null>(null);
+  const [cloudBusy, setCloudBusy] = React.useState(false);
+  React.useEffect(() => {
+    void getCloudState().then(setCloud);
+  }, []);
+  const onToggleCloud = async (on: boolean) => {
+    if (cloudBusy) return;
+    setCloudBusy(true);
+    setCloudNotice(null);
+    try {
+      if (on) {
+        const key = await enableCloud();
+        if (key) setCloudNotice({ ok: true, text: t("cloud.saved") });
+        else setCloudNotice({ ok: false, text: t("cloud.enableFailed") });
+      } else {
+        await disableCloud();
+      }
+      setCloud(await getCloudState());
+    } finally {
+      setCloudBusy(false);
+    }
+  };
+  const onSaveNow = async () => {
+    if (cloudBusy) return;
+    setCloudBusy(true);
+    try {
+      const ok = await syncCloudNow();
+      setCloudNotice({ ok, text: ok ? t("cloud.saved") : t("cloud.saveFailed") });
+      setCloud(await getCloudState());
+    } finally {
+      setCloudBusy(false);
+    }
+  };
+  const onCopyKey = async () => {
+    if (!cloud.key) return;
+    try {
+      await Clipboard.setStringAsync(cloud.key);
+      setCloudNotice({ ok: true, text: t("cloud.copied") });
+    } catch {
+      setCloudNotice({ ok: false, text: t("backup.copyFailed") });
+    }
+  };
+
   const onCopyCode = async () => {
     const code = await copyBackupCode();
     setBackupNotice(code ? { ok: true, text: t("backup.copied") } : { ok: false, text: t("backup.copyFailed") });
@@ -132,9 +181,24 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     setPending(null);
     setRestoreNotice(null);
   };
-  const onCheck = () => {
-    const result = decodeBackup(codeText);
+  // The text may be a progress code or a cloud key: a key is turned into its code first.
+  const [resolved, setResolved] = React.useState<{ code: string; key: string | null } | null>(null);
+  const onCheck = async () => {
+    let code = codeText;
+    let key: string | null = null;
+    if (normalizeKey(codeText)) {
+      const fetched = await fetchCloudBackup(codeText);
+      if (!fetched.ok) {
+        setPending(null);
+        setRestoreNotice({ ok: false, text: t(`backup.err.${fetched.reason}`) });
+        return;
+      }
+      code = fetched.code;
+      key = fetched.key;
+    }
+    const result = decodeBackup(code);
     if (result.ok) {
+      setResolved({ code, key });
       setPending(summarize(result.stats));
       setRestoreNotice(null);
     } else {
@@ -145,9 +209,14 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   };
   // Nothing is replaced until the player confirms the summary shown by "Check code".
   const onConfirmRestore = async () => {
-    const done = await restoreBackupCode(codeText);
+    const done = await restoreBackupCode(resolved?.code ?? codeText);
     setPending(null);
     if (done) {
+      if (resolved?.key) {
+        await adoptCloudKey(resolved.key);
+        setCloud(await getCloudState());
+      }
+      setResolved(null);
       setCodeText("");
       setRestoreOpen(false);
       setDeleteStep(0);
@@ -295,6 +364,45 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const dataPane = (
     <>
+      <SettingCard title={t("settings.group.cloud")}>
+        <SettingRow label={t("cloud.toggle")} hint={t("cloud.hint")} icon="cloud-outline" tint="#81D4FA">
+          <ToggleSwitch value={!!cloud.key} onValueChange={v => void onToggleCloud(v)} accessibilityLabel={t("cloud.toggle")} />
+        </SettingRow>
+        {cloud.key ? (
+          <View style={styles.restorePanel}>
+            <Text style={styles.keyLabel} maxFontSizeMultiplier={1.2}>
+              {t("cloud.key").toLocaleUpperCase()}
+            </Text>
+            <Text selectable style={styles.keyText} accessibilityLabel={`${t("cloud.key")}: ${cloud.key.split("").join(" ")}`} maxFontSizeMultiplier={1.2}>
+              {formatKey(cloud.key)}
+            </Text>
+            <Text style={styles.confirmWarn} maxFontSizeMultiplier={1.3}>
+              {t("cloud.keyHint")}
+            </Text>
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={[styles.pill, styles.pillGhost]} onPress={() => void onCopyKey()} accessibilityRole="button">
+                <Text style={styles.pillGhostText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                  {t("cloud.copyKey").toLocaleUpperCase()}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.pill, styles.pillGold, cloudBusy && { opacity: 0.6 }]} onPress={() => void onSaveNow()} disabled={cloudBusy} accessibilityRole="button">
+                <Text style={styles.pillGoldText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                  {t("cloud.saveNow").toLocaleUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.keyLast} maxFontSizeMultiplier={1.2}>
+              {cloud.lastSaved ? t("cloud.last", { time: new Date(cloud.lastSaved).toLocaleString() }) : t("cloud.never")}
+            </Text>
+          </View>
+        ) : null}
+        {cloudNotice ? (
+          <Text style={[styles.notice, cloudNotice.ok ? styles.noticeOk : styles.noticeBad]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+            {cloudNotice.text}
+          </Text>
+        ) : null}
+      </SettingCard>
+
       <SettingCard title={t("settings.group.backup")}>
         <SettingRow label={t("backup.copy")} hint={t("backup.copyHint")} icon="copy-outline" tint="#80CBC4">
           <RoundAction icon="copy" onPress={onCopyCode} label={t("backup.copy")} />
@@ -496,6 +604,9 @@ const styles = StyleSheet.create({
   paneInner: { width: "100%", maxWidth: 640, gap: 16 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
   tryText: { flex: 1, color: "#b8b4d0", fontSize: 13, fontWeight: "700" },
+  keyLabel: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  keyText: { color: "#FFD54F", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
+  keyLast: { color: "#8f8aab", fontSize: 12, fontWeight: "700", textAlign: "center" },
   notice: { fontSize: 12.5, fontWeight: "700", paddingBottom: 10, paddingHorizontal: 4 },
   noticeOk: { color: "#9ee37d" },
   noticeBad: { color: "#FF8A80" },

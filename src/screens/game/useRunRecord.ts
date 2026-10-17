@@ -5,6 +5,7 @@ import { emitSound } from "../../audio/audioEventBus";
 import { analytics } from "../../services/analytics";
 import { addHighscore, isTopTenScore } from "../../services/highscores";
 import { recordDailyRun, recordRun } from "../../services/localStats";
+import { queueCloudSync } from "../../services/cloudBackup";
 import type { GameState } from "../../core/engine/types";
 import type { GameMode } from "../../core/engine/seed";
 import { dailyRunResult, runResultOf } from "./runResult";
@@ -65,9 +66,11 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
     try {
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
+        queueCloudSync(); // the cloud copy (when the player turned it on) follows the progress
         return dailyRunResult(r);
       }
       const r = await recordRun(run);
+      queueCloudSync();
       return runResultOf(r, mode);
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);
