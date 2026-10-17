@@ -6,7 +6,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
  *
  *   1  one arrow fewer on every floor, one more guardian
  *   2  stalkers already from floor 5, one more vortex
- *   3  the Wumpus has one more heart, another guardian, stalkers act sooner
+ *   3  two arrows fewer, the Wumpus has one more heart, two more guardians and vortexes, stalkers act sooner
  *   4  traps hurt twice as much and each floor has one more, another vortex, one more stalker
  *   5  relic drafts offer only 2 choices, one more guardian and vortex, one more stalker, the Wumpus has another heart
  */
@@ -42,11 +42,11 @@ export function clampAscension(value: number): number {
 export function modifiersFor(ascension: number): AscensionModifiers {
   const a = clampAscension(ascension);
   return {
-    arrowPenalty: [0, 1, 1, 1, 2, 3][a],
+    arrowPenalty: [0, 1, 1, 2, 3, 4][a],
     stalkerFloor: a >= 5 ? 3 : a >= 4 ? 4 : a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
     bossHpBonus: a >= 5 ? 2 : a >= 3 ? 1 : 0,
-    enemyBonus: [0, 1, 1, 2, 3, 5][a],
-    pitBonus: [0, 0, 1, 1, 2, 3][a],
+    enemyBonus: [0, 1, 1, 2, 4, 6][a],
+    pitBonus: [0, 0, 1, 2, 3, 4][a],
     trapPenaltyMultiplier: a >= 4 ? 2 : 1,
     extraTraps: a >= 4 ? 1 : 0,
     stalkerBonus: [0, 0, 0, 0, 1, 2][a],

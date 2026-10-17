@@ -14,7 +14,7 @@ describe('modifiers', () => {
     expect(modifiersFor(1).arrowPenalty).toBe(1);
     expect(modifiersFor(2).stalkerFloor).toBe(5);
     expect(modifiersFor(3).bossHpBonus).toBe(1);
-    expect(modifiersFor(4)).toMatchObject({ trapPenaltyMultiplier: 2, extraTraps: 1, arrowPenalty: 2, bossHpBonus: 1 });
+    expect(modifiersFor(4)).toMatchObject({ trapPenaltyMultiplier: 2, extraTraps: 1, arrowPenalty: 3, bossHpBonus: 1 });
     expect(modifiersFor(5).draftSize).toBe(2);
   });
 
