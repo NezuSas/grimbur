@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 
 // The web config of the "Nezu Games" Firebase project (it is not a secret: the rules in firestore.rules are what protect the data).
 const firebaseConfig = {
@@ -12,4 +12,11 @@ const firebaseConfig = {
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+// Live duels listen to the other player's document: on a phone the connection may need long polling, which is detected automatically.
+export const db = (() => {
+  try {
+    return initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+  } catch {
+    return getFirestore(app); // already initialised (a hot reload)
+  }
+})();

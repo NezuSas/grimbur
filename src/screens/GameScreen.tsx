@@ -60,6 +60,8 @@ import { useBoardInput } from "./game/useBoardInput";
 import { useGameFeedback } from "./game/useGameFeedback";
 import { useRunRecord } from "./game/useRunRecord";
 import { useRevive } from "./game/useRevive";
+import { useDuel } from "./game/useDuel";
+import DuelChip from "../ui/components/game/DuelChip";
 import { formatChallengeCode } from "../core/challenge/code";
 import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
@@ -88,6 +90,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const mode = route.params?.mode ?? "expedition";
   const isDaily = mode === "daily";
+  const duelParam = route.params?.duel ?? null;
   // A friend challenge plays the cave of its code at the difficulty of its code, without Forge upgrades, and counts for nothing but its board.
   const challenge = route.params?.challenge ?? null;
   const ascension = isDaily ? 0 : clampAscension(challenge ? challenge.depth : route.params?.ascension ?? 0);
@@ -170,6 +173,18 @@ export default function GameScreen({ navigation, route }: Props) {
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
   const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
   const arrowShop = useArrowRefill({ state, isDaily: isDaily || !!challenge, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
+  const duel = useDuel({ duel: duelParam, stateRef, characterIndex, runEnded, sessionTimeRef });
+  // How a live duel stands once this player's run is over (final when the rival is done or gone).
+  const duelResult = (() => {
+    if (!duel.active || !runEnded) return null;
+    const r = duel.rival;
+    if (!r) return { headline: t("duel.label", { code: duelParam ? formatChallengeCode(duelParam.code) : "" }), line: t("duel.result.noRival"), color: "#b9b4d4" };
+    const headline = !duel.settled ? t("duel.label", { code: formatChallengeCode(duelParam?.code ?? "") }) : duel.outcome === "win" ? t("duel.result.win") : duel.outcome === "lose" ? t("duel.result.lose") : t("duel.result.tie");
+    const color = !duel.settled ? "#b9b4d4" : duel.outcome === "win" ? "#9EE37D" : duel.outcome === "lose" ? "#FF8A80" : GOLD_TEXT;
+    const params = { name: r.name, floor: r.level, score: r.score.toLocaleString() };
+    const line = !duel.settled ? t("duel.result.waiting", params) : duel.status === "away" ? t("duel.result.away", params) : t("duel.result.final", params);
+    return { headline, line, color };
+  })();
   const second = useRevive({ state, isDaily: isDaily || !!challenge, runNumber, revive, onRevived, freeFirst: !!route.params?.meta?.freeRevive });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
@@ -687,6 +702,8 @@ export default function GameScreen({ navigation, route }: Props) {
         />
       )}
 
+      <DuelChip duel={duel} level={state.level} score={state.score} top={insets.top + hudHeight - 14} />
+
       {shareCard ? (
         <View ref={shareCardRef} collapsable={false} pointerEvents="none" style={{ position: "absolute", left: -4000, top: 0 }}>
           <ShareCard {...shareCard} />
@@ -707,6 +724,7 @@ export default function GameScreen({ navigation, route }: Props) {
           isDaily,
           dailyDate,
           challengeLabel: challenge ? formatChallengeCode(challenge.code) : null,
+          duelResult,
           ascension,
           endless: mode === "endless",
           demo: demoEnd,
@@ -714,7 +732,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onShare: handleShare,
           onUnlock: handleUnlock,
           onForge: () => navigation.navigate("ForgeScreen"),
-          onRetry: handleRetry,
+          onRetry: duelParam ? handleMainMenu : handleRetry,
           onMainMenu: handleMainMenu,
         }}
         revive={{ visible: second.visible, price: second.price, embers: second.embers, used: second.used, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
@@ -724,6 +742,8 @@ export default function GameScreen({ navigation, route }: Props) {
     </Profiler>
   );
 }
+
+const GOLD_TEXT = "#FFD54F";
 
 const styles = StyleSheet.create({
   container: {

@@ -48,6 +48,8 @@ type Props = {
   dailyLabel?: string;
   /** The code of a friend challenge (shown instead of the daily line). */
   challengeLabel?: string | null;
+  /** The standing of a live duel: a headline (who won), the rival's line and the colour of the headline. */
+  duelResult?: { headline: string; line: string; color: string } | null;
   /** Depth (ascension) of the run; shown when above 0. */
   depth?: number;
   streak?: number;
@@ -102,6 +104,7 @@ const GameOverOverlay = ({
   isNewBest,
   dailyLabel,
   challengeLabel,
+  duelResult,
   depth = 0,
   streak,
   unlockedHeroes,
@@ -276,6 +279,16 @@ const GameOverOverlay = ({
           🔥 {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
         </Text>
       )}
+      {duelResult ? (
+        <View style={styles.duelBox} accessible accessibilityLabel={`${duelResult.headline}. ${duelResult.line}`}>
+          <Text style={[styles.duelHeadline, { color: duelResult.color }]} maxFontSizeMultiplier={1.2}>
+            ⚔️ {duelResult.headline.toLocaleUpperCase()}
+          </Text>
+          <Text style={styles.duelLine} maxFontSizeMultiplier={1.2}>
+            {duelResult.line}
+          </Text>
+        </View>
+      ) : null}
       {challengeLabel ? (
         <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
           🧩 {t('challenge.label', { code: challengeLabel }).toLocaleUpperCase()}
@@ -523,6 +536,9 @@ const GameOverOverlay = ({
 export default GameOverOverlay;
 
 const styles = StyleSheet.create({
+  duelBox: { alignSelf: 'stretch', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
+  duelHeadline: { fontWeight: '900', fontSize: 15, letterSpacing: 1.5, textAlign: 'center' },
+  duelLine: { color: '#d7d2ee', fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
   card: {
     backgroundColor: 'rgba(16, 12, 30, 0.97)',
     borderRadius: 26,

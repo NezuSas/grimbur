@@ -242,6 +242,19 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
                 </PopupPanel>
               </View>
 
+              <TouchableOpacity style={styles.duelLink} onPress={() => navigation.navigate("DuelScreen")} accessibilityRole="button" accessibilityLabel={t("duel.open")}>
+                <Ionicons name="flash" size={22} color="#FF8A80" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.duelTitle} maxFontSizeMultiplier={1.2}>
+                    {t("duel.open").toLocaleUpperCase()}
+                  </Text>
+                  <Text style={styles.hint} maxFontSizeMultiplier={1.2}>
+                    {t("duel.openHint")}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#b9b4d4" />
+              </TouchableOpacity>
+
               {recent.length > 0 ? (
                 <View style={{ width: wide ? panelWidth * 2 + 16 : panelWidth, gap: 8 }}>
                   <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
@@ -282,6 +295,8 @@ const styles = StyleSheet.create({
   depthRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   stepper: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,112,67,0.35)", borderWidth: 1, borderColor: "#FF7043", alignItems: "center", justifyContent: "center" },
   depthLabel: { color: "#FF9A5C", fontWeight: "900", fontSize: 15, letterSpacing: 1, minWidth: 130, textAlign: "center" },
+  duelLink: { flexDirection: "row", alignItems: "center", gap: 12, width: "100%", maxWidth: 940, minHeight: 56, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 18, borderWidth: 2, borderColor: "rgba(255,138,128,0.7)", backgroundColor: "rgba(255,138,128,0.1)" },
+  duelTitle: { color: "#FF8A80", fontWeight: "900", fontSize: 15, letterSpacing: 2 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
   empty: { color: "#c9c3e6", fontSize: 14, textAlign: "center", paddingTop: 10 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
