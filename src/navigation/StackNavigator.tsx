@@ -14,6 +14,7 @@ import TutorialScreen from "../screens/TutorialScreen";
 import HighScoresScreen from "../screens/HighScoresScreen";
 import ChallengeScreen from "../screens/ChallengeScreen";
 import DuelScreen from "../screens/DuelScreen";
+import FriendsScreen from "../screens/FriendsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 import LevelCompleteScreen from "../screens/LevelCompleteScreen";
 import InstructionsScreen from "../screens/InstructionsScreen";
@@ -32,8 +33,6 @@ const ScaledInstructionsScreen = withUiScale(InstructionsScreen);
 const ScaledSettingsScreen = withUiScale(SettingsScreen);
 const ScaledAchievementsScreen = withUiScale(AchievementsScreen);
 const ScaledForgeScreen = withUiScale(ForgeScreen);
-const ScaledChallengeScreen = withUiScale(ChallengeScreen);
-const ScaledDuelScreen = withUiScale(DuelScreen);
 const ScaledStoryScreen = withUiScale(StoryScreen);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -67,8 +66,9 @@ const StackNavigator: React.FC = () => {
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="HighScoresScreen" component={ScaledHighScoresScreen} />
-        <Stack.Screen name="ChallengeScreen" component={ScaledChallengeScreen} />
-        <Stack.Screen name="DuelScreen" component={ScaledDuelScreen} />
+        <Stack.Screen name="FriendsScreen" component={FriendsScreen} />
+        <Stack.Screen name="ChallengeScreen" component={ChallengeScreen} />
+        <Stack.Screen name="DuelScreen" component={DuelScreen} />
         <Stack.Screen name="ProgressScreen" component={ScaledProgressScreen} />
         <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
         <Stack.Screen name="InstructionsScreen" component={ScaledInstructionsScreen} />

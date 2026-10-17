@@ -116,8 +116,8 @@ service cloud.firestore {
     // Live duels: each player keeps one document `<code>_<playerId>` that they update while they play and the rival listens to.
     // Limits mirror src/core/duel/duel.ts. `updatedAt` is the server's time: it is how the rival knows someone is still there.
     function validDuel(d, id) {
-      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'updatedAt'])
-        && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'updatedAt'])
+      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
+        && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
         && d.pid is string && validKey(d.pid)
         && id == d.code + '_' + d.pid
@@ -127,6 +127,7 @@ service cloud.firestore {
         && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
         && d.victory is bool
         && isInt(d.time) && d.time >= 0 && d.time <= 86400
+        && isInt(d.stake) && d.stake >= 0 && d.stake <= 100
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
         && validName(d.name)
         && d.updatedAt == request.time;

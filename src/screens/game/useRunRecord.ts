@@ -95,7 +95,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       const result = { level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current };
       if (challengeCode) {
         await submitChallengeScore(challengeCode, result, name);
-        void rememberChallenge(challengeCode);
+        void rememberChallenge(challengeCode, result.score);
         analytics.track("challenge_submitted", { level: s.level, score: s.score });
         return;
       }

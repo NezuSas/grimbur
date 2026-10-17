@@ -49,7 +49,7 @@ type Props = {
   /** The code of a friend challenge (shown instead of the daily line). */
   challengeLabel?: string | null;
   /** The standing of a live duel: a headline (who won), the rival's line and the colour of the headline. */
-  duelResult?: { headline: string; line: string; color: string } | null;
+  duelResult?: { headline: string; line: string; prize: string; color: string } | null;
   /** Depth (ascension) of the run; shown when above 0. */
   depth?: number;
   streak?: number;
@@ -287,6 +287,11 @@ const GameOverOverlay = ({
           <Text style={styles.duelLine} maxFontSizeMultiplier={1.2}>
             {duelResult.line}
           </Text>
+          {duelResult.prize ? (
+            <Text style={[styles.duelLine, { color: duelResult.color }]} maxFontSizeMultiplier={1.2}>
+              🔥 {duelResult.prize}
+            </Text>
+          ) : null}
         </View>
       ) : null}
       {challengeLabel ? (

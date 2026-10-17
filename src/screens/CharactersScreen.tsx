@@ -157,7 +157,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       // First-time players get the guided tutorial before their first expedition.
       if (duelCode) {
         // A live duel: the lobby comes next, with the chosen hero.
-        navigation.navigate("DuelScreen", { code: duelCode, characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex) });
+        navigation.navigate("DuelScreen", { code: duelCode, characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), stake: route.params?.duel?.stake });
         return;
       }
       if (challenge) {

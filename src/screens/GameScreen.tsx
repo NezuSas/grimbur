@@ -61,6 +61,7 @@ import { useGameFeedback } from "./game/useGameFeedback";
 import { useRunRecord } from "./game/useRunRecord";
 import { useRevive } from "./game/useRevive";
 import { useDuel } from "./game/useDuel";
+import { duelResultView } from "./game/duelResult";
 import DuelChip from "../ui/components/game/DuelChip";
 import { formatChallengeCode } from "../core/challenge/code";
 import { useArrowRefill } from "./game/useArrowRefill";
@@ -174,17 +175,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const onRevived = useCallback(() => setToast({ text: t("revive.toast"), key: Date.now() }), [t]);
   const arrowShop = useArrowRefill({ state, isDaily: isDaily || !!challenge, playing: !paused && !runEnded && !levelUpWindow && !state.pendingDraft, refill });
   const duel = useDuel({ duel: duelParam, stateRef, characterIndex, runEnded, sessionTimeRef });
-  // How a live duel stands once this player's run is over (final when the rival is done or gone).
-  const duelResult = (() => {
-    if (!duel.active || !runEnded) return null;
-    const r = duel.rival;
-    if (!r) return { headline: t("duel.label", { code: duelParam ? formatChallengeCode(duelParam.code) : "" }), line: t("duel.result.noRival"), color: "#b9b4d4" };
-    const headline = !duel.settled ? t("duel.label", { code: formatChallengeCode(duelParam?.code ?? "") }) : duel.outcome === "win" ? t("duel.result.win") : duel.outcome === "lose" ? t("duel.result.lose") : t("duel.result.tie");
-    const color = !duel.settled ? "#b9b4d4" : duel.outcome === "win" ? "#9EE37D" : duel.outcome === "lose" ? "#FF8A80" : GOLD_TEXT;
-    const params = { name: r.name, floor: r.level, score: r.score.toLocaleString() };
-    const line = !duel.settled ? t("duel.result.waiting", params) : duel.status === "away" ? t("duel.result.away", params) : t("duel.result.final", params);
-    return { headline, line, color };
-  })();
+  // How a live duel stands once this player's run is over: at once when they are beaten for good, provisional while rivals still play.
+  const duelResult = duelResultView(duel.standing, duel.rivals, duel.stake, duel.prize, duelParam ? formatChallengeCode(duelParam.code) : "", t);
   const second = useRevive({ state, isDaily: isDaily || !!challenge, runNumber, revive, onRevived, freeFirst: !!route.params?.meta?.freeRevive });
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
@@ -742,8 +734,6 @@ export default function GameScreen({ navigation, route }: Props) {
     </Profiler>
   );
 }
-
-const GOLD_TEXT = "#FFD54F";
 
 const styles = StyleSheet.create({
   container: {

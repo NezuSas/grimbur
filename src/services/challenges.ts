@@ -10,7 +10,7 @@ import { getPlayerId } from './playerProfile';
 const REQUEST_TIMEOUT_MS = 8000;
 const COLLECTION = 'challenge_scores';
 const RECENT_STORAGE = 'wumpus.challenges.recent.v1';
-const MAX_RECENT = 8;
+const MAX_RECENT = 20;
 
 export interface ChallengeRow {
   code: string;
@@ -69,19 +69,39 @@ export async function loadChallengeBoard(code: string): Promise<ChallengeDoc[]> 
   return rankRows(docs.map(d => ({ doc: d, score: d.data().score, time: d.data().time }))).map(r => r.doc);
 }
 
-export async function getRecentChallenges(): Promise<string[]> {
+/** A challenge this phone has opened: its code, the best score played in it here (null: not played yet) and when it was last opened. */
+export interface RecentChallenge {
+  code: string;
+  best: number | null;
+  at: number;
+}
+
+/** The saved challenges, the most recent first (the list keeps the last 20; older ones can be reopened by typing their code). */
+export async function getRecentChallenges(): Promise<RecentChallenge[]> {
   try {
     const raw = await AsyncStorage.getItem(RECENT_STORAGE);
     const list = raw ? JSON.parse(raw) : [];
-    return Array.isArray(list) ? list.filter((x): x is string => typeof x === 'string' && CODE_PATTERN.test(x)) : [];
+    if (!Array.isArray(list)) return [];
+    const out: RecentChallenge[] = [];
+    for (const item of list) {
+      // The first version saved only the code.
+      if (typeof item === 'string' && CODE_PATTERN.test(item)) out.push({ code: item, best: null, at: 0 });
+      else if (item && typeof item === 'object' && typeof item.code === 'string' && CODE_PATTERN.test(item.code)) {
+        out.push({ code: item.code, best: Number.isFinite(item.best) ? item.best : null, at: Number.isFinite(item.at) ? item.at : 0 });
+      }
+    }
+    return out.slice(0, MAX_RECENT);
   } catch {
     return [];
   }
 }
 
-/** Remembers a code as the most recent one (the list keeps the last few). */
-export async function rememberChallenge(code: string): Promise<string[]> {
-  const next = [code, ...(await getRecentChallenges()).filter(c => c !== code)].slice(0, MAX_RECENT);
+/** Remembers a challenge as the most recent one; a score only ever raises the best. */
+export async function rememberChallenge(code: string, score?: number): Promise<RecentChallenge[]> {
+  const before = await getRecentChallenges();
+  const known = before.find(c => c.code === code);
+  const best = score !== undefined ? Math.max(known?.best ?? 0, Math.round(score)) : known?.best ?? null;
+  const next = [{ code, best, at: Date.now() }, ...before.filter(c => c.code !== code)].slice(0, MAX_RECENT);
   try {
     await AsyncStorage.setItem(RECENT_STORAGE, JSON.stringify(next));
   } catch (e) {

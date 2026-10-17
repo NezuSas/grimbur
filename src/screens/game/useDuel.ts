@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
-import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelOutcome, duelSettled, rivalStatus } from "../../core/duel/duel";
-import type { DuelOutcome, RivalStatus } from "../../core/duel/duel";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelStanding, potOf, rivalStatus } from "../../core/duel/duel";
+import type { RivalStatus, Standing } from "../../core/duel/duel";
 import type { GameState } from "../../core/engine/types";
 import { publishDuelState, watchRoom, type Room } from "../../services/duel";
+import { creditEmbersFor } from "../../services/localStats";
 import { getPlayerId } from "../../services/playerProfile";
 
 type Params = {
-  /** The duel this run belongs to (null: not a duel). */
-  duel: { code: string; name: string } | null;
+  /** The duel this run belongs to (null: not a duel). `stake` is what each player put in the pot, already paid when the run began. */
+  duel: { code: string; name: string; stake: number } | null;
   stateRef: MutableRefObject<GameState>;
   characterIndex: number;
   /** The run is over (the hero died or the Wumpus fell). */
@@ -16,27 +18,48 @@ type Params = {
   sessionTimeRef: { readonly current: number };
 };
 
-export interface DuelView {
-  active: boolean;
+export interface RivalView {
+  name: string;
+  level: number;
+  score: number;
+  victory: boolean;
   status: RivalStatus;
-  rival: { name: string; level: number; score: number; victory: boolean; time: number } | null;
-  /** Only once this player is done: how the duel stands (final when the rival is done or gone). */
-  outcome: DuelOutcome | null;
-  settled: boolean;
+  characterIndex: number;
 }
 
+export interface DuelView {
+  active: boolean;
+  rivals: RivalView[];
+  /** Only once this player's run is over: how the duel stands (decided or not yet). */
+  standing: Standing | null;
+  stake: number;
+  /** The embers this player took from the pot (the whole pot for a win, their own stake back for a tie), once paid. */
+  prize: number;
+}
+
+const paidKey = (code: string) => `wumpus.duel.paid.${code}`;
+
 /**
- * The live duel during a run: it publishes this player's floor and score (when they change, never more often than every few
- * seconds, and as a heartbeat), listens to the rival's, and works out the result once the run is over. Nothing here changes the
- * game: a failed connection only means the rival's progress is not shown.
+ * The live duel during a run: it publishes this player's floor and score (when they change, never more often than every few seconds,
+ * and as a heartbeat), listens to every rival, works out the standing once the run is over and pays the pot to the winner once.
+ * Nothing here changes the game: a failed connection only means the rivals' progress is not shown.
  */
 export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeRef }: Params): DuelView {
-  const [room, setRoom] = useState<Room>({ me: null, rival: null, full: false });
+  const [room, setRoom] = useState<Room>({ me: null, rivals: [], full: false });
   const [now, setNow] = useState(() => Date.now());
+  const [prize, setPrize] = useState(0);
   const lastSent = useRef({ level: 0, score: -1, at: 0 });
   const finished = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   const code = duel?.code ?? null;
   const name = duel?.name ?? "";
+  const stake = duel?.stake ?? 0;
 
   const send = useCallback(
     (state: "playing" | "done") => {
@@ -50,9 +73,10 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
         score: s.score,
         victory: s.isVictory,
         time: state === "done" ? Math.max(1, Math.round(sessionTimeRef.current)) : 0,
+        stake,
       }).catch(e => console.warn("[duel] could not publish:", e));
     },
-    [code, name, characterIndex, stateRef, sessionTimeRef],
+    [code, name, stake, characterIndex, stateRef, sessionTimeRef],
   );
 
   // Listening to the room and the clock that tells "away" from "playing".
@@ -101,16 +125,36 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
     send("done");
   }, [code, runEnded, send]);
 
-  const rivalDoc = room.rival;
-  const status = rivalStatus(rivalDoc, rivalDoc?.updatedAt ?? null, now);
+  // Only rivals who started count (a document still in the lobby or ready belongs to somebody who never began the run).
+  const started = room.rivals.filter(r => r.state === "playing" || r.state === "done");
+  const rivals: RivalView[] = started.map(r => ({ name: r.name, level: r.level, score: r.score, victory: r.victory, characterIndex: r.characterIndex, status: rivalStatus(r, r.updatedAt, now) }));
   const s = stateRef.current;
-  const rival = rivalDoc ? { name: rivalDoc.name, level: rivalDoc.level, score: rivalDoc.score, victory: rivalDoc.victory, time: rivalDoc.time } : null;
   const me = { victory: s.isVictory, level: s.level, score: s.score, time: Math.round(sessionTimeRef.current) };
-  return {
-    active: !!code,
-    status,
-    rival,
-    outcome: runEnded && rival ? duelOutcome(me, rival) : null,
-    settled: duelSettled(runEnded, status),
-  };
+  const standing = code && runEnded
+    ? duelStanding(
+        me,
+        true,
+        started.map((r, i) => ({ result: { victory: r.victory, level: r.level, score: r.score, time: r.time }, finished: rivals[i].status === "done" || rivals[i].status === "away" })),
+      )
+    : null;
+
+  // The pot goes to the winner once; a tie gives every stake back. A code is paid only once on this phone, however often the screen is opened.
+  const standingState = standing?.decided ? standing.state : null;
+  const matching = started.filter(r => r.stake === stake).length + 1;
+  useEffect(() => {
+    if (!code || stake <= 0 || (standingState !== "won" && standingState !== "tie")) return;
+    void (async () => {
+      try {
+        if (await AsyncStorage.getItem(paidKey(code))) return;
+        await AsyncStorage.setItem(paidKey(code), "1"); // marked first: a crash must never pay twice
+        const amount = standingState === "won" ? potOf(stake, matching) : stake;
+        const credited = await creditEmbersFor(amount);
+        if (credited && alive.current) setPrize(amount);
+      } catch (e) {
+        console.warn("[duel] could not pay the pot:", e);
+      }
+    })();
+  }, [code, stake, standingState, matching]);
+
+  return { active: !!code, rivals, standing, stake, prize };
 }

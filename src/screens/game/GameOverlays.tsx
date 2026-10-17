@@ -43,7 +43,7 @@ type Props = {
     /** The code of a friend challenge, when the run is one. */
     challengeLabel?: string | null;
     /** The standing of a live duel, when the run is one. */
-    duelResult?: { headline: string; line: string; color: string } | null;
+    duelResult?: { headline: string; line: string; prize: string; color: string } | null;
     ascension: number;
     endless: boolean;
     /** The free part of the game ended: the card is the demo summary with the unlock button. */

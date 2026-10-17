@@ -129,12 +129,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           {t("scores.noRecord")}
         </Text>
       )}
-      <TouchableOpacity style={[styles.progressLink, styles.challengeLink]} onPress={() => navigation.navigate("ChallengeScreen")} accessibilityRole="button" accessibilityLabel={t("challenge.open")}>
-        <Ionicons name="people" size={18} color="#fff" />
-        <Text style={[styles.progressLinkText, { color: "#fff" }]} maxFontSizeMultiplier={1.2}>
-          {t("challenge.open").toLocaleUpperCase()}
-        </Text>
-      </TouchableOpacity>
       <TouchableOpacity
         style={styles.progressLink}
         onPress={() => navigation.navigate("ProgressScreen")}
@@ -369,7 +363,6 @@ const styles = StyleSheet.create({
   recordCellLabel: { color: "#9a95b8", fontSize: 10, fontWeight: "800", textAlign: "center" },
   recordEmpty: { color: "#c9c3e6", fontSize: 13, marginTop: 6 },
   progressLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: MIN_TOUCH, borderRadius: 14, backgroundColor: "#F2C14E", marginTop: 8, paddingHorizontal: 12 },
-  challengeLink: { backgroundColor: "#3F51B5", marginTop: 8 },
   progressLinkText: { color: "#1a1030", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   threshold: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 },
   thresholdText: { color: "#80DEEA", fontWeight: "800", fontSize: 12, flex: 1 },

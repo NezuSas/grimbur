@@ -19,6 +19,8 @@ export interface DuelPlayer {
   victory: boolean;
   /** Seconds played, set when the player is done (0 before). */
   time: number;
+  /** Embers each player puts in the pot (0: a friendly duel). The room's stake is the one its creator chose; the others adopt it. */
+  stake: number;
 }
 
 /** A player whose last update is older than this is no longer there (closed the app, lost the connection). */
@@ -27,7 +29,12 @@ export const AWAY_AFTER_MS = 30_000;
 export const HEARTBEAT_MS = 10_000;
 /** The least time between two updates caused by score changes. */
 export const MIN_PUBLISH_MS = 2_500;
-/** Seconds of countdown once both players are ready. */
+/** Players in a duel (the room lists up to this many). */
+export const MAX_PLAYERS = 4;
+/** The stakes a duel can have, in embers, and the most the rules accept. */
+export const STAKES: readonly number[] = [0, 10, 25, 50, 100];
+export const MAX_STAKE = 100;
+/** Seconds of countdown once everyone is ready. */
 export const COUNTDOWN_SECONDS = 3;
 
 export const isAway = (updatedAtMs: number, nowMs: number): boolean => nowMs - updatedAtMs > AWAY_AFTER_MS;
@@ -44,6 +51,7 @@ export function validateDuelPlayer(p: DuelPlayer): string[] {
   if (!Number.isInteger(p.score) || p.score < 0 || p.score > p.level * 20000) problems.push('score');
   if (typeof p.victory !== 'boolean') problems.push('victory');
   if (!Number.isInteger(p.time) || p.time < 0 || p.time > 86400) problems.push('time');
+  if (!Number.isInteger(p.stake) || p.stake < 0 || p.stake > MAX_STAKE) problems.push('stake');
   return problems;
 }
 
@@ -74,3 +82,36 @@ export function rivalStatus(rival: { state: DuelState } | null, updatedAtMs: num
 
 /** Whether the duel is settled for this player: they are done and the rival is done or gone. */
 export const duelSettled = (meDone: boolean, status: RivalStatus): boolean => meDone && (status === 'done' || status === 'away');
+
+type Result = Pick<DuelPlayer, 'victory' | 'level' | 'score' | 'time'>;
+
+export type Standing = {
+  /** `won`/`lost`/`tie`: the duel is settled for this player. `leading`/`trailing`: it is not (somebody is still playing). */
+  state: 'won' | 'lost' | 'tie' | 'leading' | 'trailing';
+  /** The result cannot change any more (everyone finished, or somebody has already beaten this player for good). */
+  decided: boolean;
+  /** 1 is the best. Counts the rivals who beat this player as things stand. */
+  placement: number;
+  total: number;
+};
+
+/**
+ * How a duel stands for a player against any number of rivals, winner takes all. `rivals` carry their result so far and whether they
+ * are finished (done, or gone: a rival who stopped updating counts as finished where they stopped). A rival whose floor is already
+ * above the player's, or who slew the Wumpus first, has beaten the player for good (a floor never goes back), so a player who is
+ * finished does not have to wait for the others to learn they lost.
+ */
+export function duelStanding(me: Result, meDone: boolean, rivals: readonly { result: Result; finished: boolean }[]): Standing {
+  const total = rivals.length + 1;
+  const outcomes = rivals.map(r => duelOutcome(me, r.result));
+  const placement = 1 + outcomes.filter(o => o === 'lose').length;
+  const tied = outcomes.some(o => o === 'tie') && placement === 1;
+  const beatenForGood = rivals.some((r, i) => outcomes[i] === 'lose' && (r.finished || r.result.level > me.level || (r.result.victory && !me.victory)));
+  const everyoneDone = meDone && rivals.every(r => r.finished);
+  if (meDone && beatenForGood) return { state: 'lost', decided: true, placement, total };
+  if (everyoneDone) return { state: placement > 1 ? 'lost' : tied ? 'tie' : 'won', decided: true, placement, total };
+  return { state: placement === 1 ? 'leading' : 'trailing', decided: false, placement, total };
+}
+
+/** The embers a winner takes: everybody's stake. Only players who started count. */
+export const potOf = (stake: number, players: number): number => Math.max(0, stake) * Math.max(0, players);
