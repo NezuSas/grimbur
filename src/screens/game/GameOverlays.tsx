@@ -42,6 +42,8 @@ type Props = {
     dailyDate: string;
     /** The code of a friend challenge, when the run is one. */
     challengeLabel?: string | null;
+    /** The standing of a live duel, when the run is one. */
+    duelResult?: { headline: string; line: string; color: string } | null;
     ascension: number;
     endless: boolean;
     /** The free part of the game ended: the card is the demo summary with the unlock button. */
@@ -103,6 +105,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         isNewBest={result?.isNewBest}
         dailyLabel={gameOver.isDaily ? gameOver.dailyDate : undefined}
         challengeLabel={gameOver.challengeLabel}
+        duelResult={gameOver.duelResult}
         depth={gameOver.ascension}
         streak={result?.streak}
         unlockedHeroes={result?.unlocked}

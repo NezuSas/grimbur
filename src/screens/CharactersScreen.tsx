@@ -56,7 +56,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
   const mode = route.params?.mode ?? "expedition";
-  const challenge = route.params?.challenge ?? null;
+  const challenge = route.params?.challenge ?? route.params?.duel ?? null;
+  const duelCode = route.params?.duel?.code ?? null;
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const lastHero = useSettingsStore(s => s.lastHero);
   const setLastHero = useSettingsStore(s => s.setLastHero);
@@ -154,6 +155,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       if (!statsLoaded) return;
       setLastHero(heroIndex);
       // First-time players get the guided tutorial before their first expedition.
+      if (duelCode) {
+        // A live duel: the lobby comes next, with the chosen hero.
+        navigation.navigate("DuelScreen", { code: duelCode, characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex) });
+        return;
+      }
       if (challenge) {
         // A friend challenge: the cave and the difficulty come from its code and nobody brings Forge upgrades.
         navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode: "expedition", ascension: challenge.depth, challenge });
@@ -167,7 +173,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
       navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, challenge, tutorialSeen, depth, stats, statsLoaded, setLastHero],
+    [navigation, mode, challenge, duelCode, tutorialSeen, depth, stats, statsLoaded, setLastHero],
   );
 
   // Tapping an owned outfit wears it at once (buying and browsing the rest happen in the collection screen).

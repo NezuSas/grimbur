@@ -211,3 +211,50 @@ describe('friend challenges', () => {
     await assertSucceeds(getDoc(ref()));
   });
 });
+
+describe('live duels', () => {
+  const pid = '7J2K9QXM4HT6RN3B';
+  const code = 'ABCD2345';
+  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, updatedAt: serverTimestamp(), ...patch });
+  const ref = (c = code, p = pid) => doc(db(), 'duel_players', `${c}_${p}`);
+
+  it('a player joins and then keeps updating their own state', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertSucceeds(setDoc(ref(), entry({ state: 'ready' })));
+    await assertSucceeds(setDoc(ref(), entry({ state: 'playing', level: 3, score: 1200 })));
+    await assertSucceeds(setDoc(ref(), entry({ state: 'done', level: 4, score: 2000, time: 300 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['an unknown state', { state: 'winner' }],
+    ['a bad code', { code: 'abc' }],
+    ['a bad player id', { pid: 'short' }],
+    ['a floor beyond 10', { level: 11, score: 100 }],
+    ['a score above what the floors allow', { score: 20001 }],
+    ['an unknown hero', { characterIndex: 6 }],
+    ['a made-up time of day', { updatedAt: new Date('2020-01-01') }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = (patch.pid as string | undefined) ?? `F${String(i).padStart(15, '0')}`;
+    const c = (patch.code as string | undefined) ?? code;
+    await assertFails(setDoc(doc(db(), 'duel_players', `${c}_${owner}`), entry({ pid: owner, ...patch })));
+  });
+
+  it('a document id that does not match is refused', async () => {
+    await assertFails(setDoc(doc(db(), 'duel_players', 'whatever'), entry()));
+  });
+
+  it('lists at most 4 rows of a room and reads single documents', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'duel_players', `${code}_${pid}`), { ...entry(), updatedAt: new Date() });
+    });
+    const col = collection(db(), 'duel_players');
+    await assertSucceeds(getDocs(query(col, where('code', '==', code), limit(4))));
+    await assertFails(getDocs(query(col, where('code', '==', code), limit(5))));
+    await assertFails(getDocs(query(col)));
+    await assertSucceeds(getDoc(ref()));
+  });
+});
