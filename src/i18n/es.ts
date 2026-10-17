@@ -1035,6 +1035,7 @@ export const es: Record<TranslationKey, string> = {
   'duel.title': "Duelo en vivo",
   'duel.open': "Duelo en vivo",
   'duel.openHint': "Dos jugadores, la misma cueva al mismo tiempo.",
+  'duel.join': "Unirme a un duelo",
   'duel.create': "Crear un duelo",
   'duel.createHint': "Elige una dificultad y manda el código. Cuando los dos estén listos, corren por la misma cueva.",
   'duel.createButton': "Crear duelo",

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, ImageBackground, ImageSourcePropType, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, ImageBackground, ImageSourcePropType, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";

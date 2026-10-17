@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ImageBackground, ScrollView, StyleSheet, TextInput, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -242,9 +243,9 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           ) : (
             <View style={[styles.cols, wide && styles.colsWide]}>
               <PopupPanel tint={TINT} width={panelWidth}>
-                <Text style={styles.cardTitle} accessibilityRole="header">{t("challenge.join").toLocaleUpperCase()}</Text>
+                <Text style={styles.cardTitle} accessibilityRole="header">{t("duel.join").toLocaleUpperCase()}</Text>
                 <Text style={styles.hint}>{t("duel.joinHint")}</Text>
-                <TextInput value={typed} onChangeText={text => { setTyped(text); setError(null); }} placeholder="ABCD-EFGH" placeholderTextColor="#777" style={styles.input} autoCapitalize="characters" autoCorrect={false} spellCheck={false} maxLength={12} returnKeyType="go" onSubmitEditing={() => void goHero(typed)} accessibilityLabel={t("challenge.join")} />
+                <TextInput value={typed} onChangeText={text => { setTyped(text); setError(null); }} placeholder="ABCD-EFGH" placeholderTextColor="#777" style={styles.input} autoCapitalize="characters" autoCorrect={false} spellCheck={false} maxLength={12} returnKeyType="go" onSubmitEditing={() => void goHero(typed)} accessibilityLabel={t("duel.join")} />
                 {error ? <Text style={styles.error} accessibilityLiveRegion="polite">{error}</Text> : null}
                 <PopButton label={t("duel.joinButton")} glyph="➜" onPress={() => void goHero(typed)} disabled={typed.trim().length === 0} />
               </PopupPanel>

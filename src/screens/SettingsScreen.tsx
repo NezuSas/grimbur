@@ -1,5 +1,6 @@
 import React from "react";
-import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking, useWindowDimensions } from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";

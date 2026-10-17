@@ -1031,6 +1031,7 @@ export const en = {
   'duel.title': "Live duel",
   'duel.open': "Live duel",
   'duel.openHint': "Two players, the same cave at the same time.",
+  'duel.join': "Join a duel",
   'duel.create': "Create a duel",
   'duel.createHint': "Pick a difficulty and send the code. When both are ready, you race through the same cave.",
   'duel.createButton': "Create duel",
