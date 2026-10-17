@@ -1,13 +1,14 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
+// The web config of the "Nezu Games" Firebase project (it is not a secret: the rules in firestore.rules are what protect the data).
 const firebaseConfig = {
-  apiKey: "AIzaSyD0PSCCUG1gtzgLSsBON-7CdtxsG4iRU-8",
-  authDomain: "mario-s-grid.firebaseapp.com",
-  projectId: "mario-s-grid",
-  storageBucket: "mario-s-grid.firebasestorage.app",
-  messagingSenderId: "238779148431",
-  appId: "1:238779148431:web:789c40daf421665a5668fa",
+  apiKey: "AIzaSyBp4hse4ztfYH6h1B4X1NUURXUygPtLS8E",
+  authDomain: "nezu-games.firebaseapp.com",
+  projectId: "nezu-games",
+  storageBucket: "nezu-games.firebasestorage.app",
+  messagingSenderId: "181765743782",
+  appId: "1:181765743782:web:ab49653147e5fd2c6e8067",
 };
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
