@@ -4,5 +4,7 @@ module.exports = {
     // Audio and image files are only ever passed around by reference in tests.
     moduleNameMapper: { '\.(wav|png|jpe?g)$': '<rootDir>/tests/helpers/fileMock.js' },
     testMatch: ['**/tests/**/*.test.ts'],
+    // The rules tests need the Firestore emulator: `npm run test:rules`.
+    testPathIgnorePatterns: ['/node_modules/', '/tests/rules/'],
     setupFilesAfterEnv: [],
 };
