@@ -32,8 +32,12 @@ export const MIN_PUBLISH_MS = 2_500;
 /** Players in a duel (the room lists up to this many). */
 export const MAX_PLAYERS = 4;
 /** The stakes a duel can have, in embers, and the most the rules accept. */
-export const STAKES: readonly number[] = [0, 10, 25, 50, 100];
-export const MAX_STAKE = 100;
+export const STAKES: readonly number[] = [0, 10, 50, 100, 500, 1_000, 5_000, 10_000, 50_000, 100_000];
+export const MAX_STAKE = 100_000;
+/** From this stake on the player must confirm what they are risking. */
+export const CONFIRM_STAKE = 1_000;
+/** The share of the pot the game keeps (the embers disappear: it keeps the economy from only growing). */
+export const DUEL_FEE_PERCENT = 10;
 /** Seconds of countdown once everyone is ready. */
 export const COUNTDOWN_SECONDS = 3;
 
@@ -115,3 +119,9 @@ export function duelStanding(me: Result, meDone: boolean, rivals: readonly { res
 
 /** The embers a winner takes: everybody's stake. Only players who started count. */
 export const potOf = (stake: number, players: number): number => Math.max(0, stake) * Math.max(0, players);
+
+/** What the winner takes home: the pot minus the game's fee. */
+export const prizeOf = (stake: number, players: number): number => {
+  const pot = potOf(stake, players);
+  return pot - Math.floor((pot * DUEL_FEE_PERCENT) / 100);
+};

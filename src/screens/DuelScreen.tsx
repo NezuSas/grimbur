@@ -15,7 +15,7 @@ import characters from "../data/characters";
 import { getLocalStats, peekLocalStats, spendEmbersFor } from "../services/localStats";
 import { EMPTY_STATS, type LocalStats } from "../core/stats/runStats";
 import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/challenge/code";
-import { COUNTDOWN_SECONDS, HEARTBEAT_MS, MAX_PLAYERS, potOf, rivalStatus } from "../core/duel/duel";
+import { COUNTDOWN_SECONDS, DUEL_FEE_PERCENT, HEARTBEAT_MS, MAX_PLAYERS, prizeOf, rivalStatus } from "../core/duel/duel";
 import type { RivalStatus } from "../core/duel/duel";
 import { getPlayerId, getPlayerName, setPlayerName } from "../services/playerProfile";
 import { publishDuelState, watchRoom, type Room } from "../services/duel";
@@ -86,7 +86,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   // The creator chose the stake; everybody else adopts it from the room.
   const adopted = present.reduce((max, r) => Math.max(max, r.stake), 0);
   const myStake = creatorStake ?? adopted;
-  const pot = potOf(myStake, present.length + 1);
+  const pot = prizeOf(myStake, present.length + 1);
   const canPay = stats.embers >= myStake;
 
   const publish = useCallback(
@@ -248,13 +248,13 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.hint}>{t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}</Text>
                     {myStake > 0 ? (
                       <View style={styles.stakeBox}>
-                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}>🔥 {t("duel.stakeRoom", { n: myStake })}</Text>
-                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint")}{pot > 0 ? `  ·  🏆 ${pot}` : ""}</Text>
+                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}>🔥 {t("duel.stakeRoom", { n: myStake.toLocaleString() })}</Text>
+                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? `  ·  🏆 ${pot.toLocaleString()}` : ""}</Text>
                       </View>
                     ) : null}
                     {room.full ? <Text style={styles.error}>{t("duel.full")}</Text> : null}
                     {underway && !ready ? <Text style={styles.error}>{t("duel.underway")}</Text> : null}
-                    {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake })}</Text> : null}
+                    {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake.toLocaleString() })}</Text> : null}
                     {problem ? <Text style={styles.error} accessibilityLiveRegion="polite">{problem}</Text> : null}
                     {count !== null ? (
                       <Text style={styles.count} accessibilityLiveRegion="assertive">{count > 0 ? String(count) : t("duel.go").toLocaleUpperCase()}</Text>

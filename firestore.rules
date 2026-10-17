@@ -127,7 +127,7 @@ service cloud.firestore {
         && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
         && d.victory is bool
         && isInt(d.time) && d.time >= 0 && d.time <= 86400
-        && isInt(d.stake) && d.stake >= 0 && d.stake <= 100
+        && isInt(d.stake) && d.stake >= 0 && d.stake <= 100000
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
         && validName(d.name)
         && d.updatedAt == request.time;

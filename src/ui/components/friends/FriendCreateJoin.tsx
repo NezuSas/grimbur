@@ -11,7 +11,7 @@ import { useT } from "../../../i18n/useT";
 import type { TranslationKey } from "../../../i18n/en";
 import characters from "../../../data/characters";
 import { MAX_ASCENSION } from "../../../core/engine/ascension";
-import { STAKES } from "../../../core/duel/duel";
+import { CONFIRM_STAKE, DUEL_FEE_PERCENT, STAKES } from "../../../core/duel/duel";
 import { parseChallengeCode } from "../../../core/challenge/code";
 import { useWindowDimensions } from "../../layout/scaledWindow";
 
@@ -54,6 +54,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
   const [tab, setTab] = useState<"create" | "join">("create");
   const [depth, setDepth] = useState(0);
   const [stake, setStake] = useState(0);
+  const [confirming, setConfirming] = useState(false);
   const [typed, setTyped] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -116,14 +117,17 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                       <TouchableOpacity
                         key={n}
                         style={[styles.chip, on && { backgroundColor: tint + "33", borderColor: tint }, !affordable && styles.off]}
-                        onPress={() => setStake(n)}
+                        onPress={() => {
+                          setStake(n);
+                          setConfirming(false);
+                        }}
                         disabled={!affordable}
                         accessibilityRole="radio"
                         accessibilityState={{ selected: on, disabled: !affordable }}
-                        accessibilityLabel={n === 0 ? t("duel.stakeNone") : `${n}`}
+                        accessibilityLabel={n === 0 ? t("duel.stakeNone") : n.toLocaleString()}
                       >
                         <Text style={[styles.chipText, on && { color: "#fff" }]} maxFontSizeMultiplier={1.2}>
-                          {n === 0 ? t("duel.stakeNone") : `🔥 ${n}`}
+                          {n === 0 ? t("duel.stakeNone") : `🔥 ${n.toLocaleString()}`}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -131,13 +135,29 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                 </View>
                 {stake > 0 ? (
                   <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
-                    {t("duel.stakeHint")}
+                    {t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}
                   </Text>
                 ) : null}
               </>
             ) : null}
 
-            <PopButton label={t(mode === "duel" ? "duel.createButton" : "challenge.createButton")} glyph={mode === "duel" ? "⚔️" : "✨"} onPress={() => onCreate(depth, mode === "duel" ? stake : 0)} />
+            {mode === "duel" && stake >= CONFIRM_STAKE && confirming ? (
+              <Text style={styles.error} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+                {t("duel.confirmStake", { n: stake.toLocaleString() })}
+              </Text>
+            ) : null}
+            <PopButton
+              variant={mode === "duel" && stake >= CONFIRM_STAKE && confirming ? "danger" : "primary"}
+              label={mode === "duel" && stake >= CONFIRM_STAKE && confirming ? t("duel.confirmButton") : t(mode === "duel" ? "duel.createButton" : "challenge.createButton")}
+              glyph={mode === "duel" ? "⚔️" : "✨"}
+              onPress={() => {
+                if (mode === "duel" && stake >= CONFIRM_STAKE && !confirming) {
+                  setConfirming(true);
+                  return;
+                }
+                onCreate(depth, mode === "duel" ? stake : 0);
+              }}
+            />
           </>
         ) : (
           <>

@@ -1,4 +1,4 @@
-import { AWAY_AFTER_MS, DuelPlayer, duelOutcome, duelSettled, duelStanding, isAway, potOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
+import { AWAY_AFTER_MS, DuelPlayer, STAKES, MAX_STAKE, duelOutcome, duelSettled, duelStanding, isAway, potOf, prizeOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
 
 const base: DuelPlayer = { code: 'ABCD2345', pid: '7J2K9QXM4HT6RN3B', name: 'Oscar', characterIndex: 1, state: 'playing', level: 4, score: 1500, victory: false, time: 0, stake: 25 };
 
@@ -16,7 +16,7 @@ describe('validateDuelPlayer', () => {
     ['level', { level: 11 }],
     ['score', { score: 4 * 20000 + 1 }],
     ['time', { time: -1 }],
-    ['stake', { stake: 101 }],
+    ['stake', { stake: 100_001 }],
     ['stake', { stake: 2.5 }],
   ])('flags a bad %s', (problem, patch) => {
     expect(validateDuelPlayer({ ...base, ...patch })).toContain(problem);
@@ -120,5 +120,18 @@ describe('potOf', () => {
     expect(potOf(25, 3)).toBe(75);
     expect(potOf(0, 4)).toBe(0);
     expect(potOf(-5, 2)).toBe(0);
+  });
+
+  it('the winner takes the pot minus 10 %', () => {
+    expect(prizeOf(1000, 2)).toBe(1800);
+    expect(prizeOf(100_000, 4)).toBe(360_000);
+    expect(prizeOf(10, 3)).toBe(27);
+    expect(prizeOf(0, 4)).toBe(0);
+  });
+
+  it('the stakes grow up to the most the rules accept', () => {
+    expect(STAKES[0]).toBe(0);
+    expect([...STAKES].sort((a, b) => a - b)).toEqual([...STAKES]);
+    expect(Math.max(...STAKES)).toBe(MAX_STAKE);
   });
 });

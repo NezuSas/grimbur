@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelStanding, potOf, rivalStatus } from "../../core/duel/duel";
+import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelStanding, prizeOf, rivalStatus } from "../../core/duel/duel";
 import type { RivalStatus, Standing } from "../../core/duel/duel";
 import type { GameState } from "../../core/engine/types";
 import { publishDuelState, watchRoom, type Room } from "../../services/duel";
@@ -147,7 +147,7 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
       try {
         if (await AsyncStorage.getItem(paidKey(code))) return;
         await AsyncStorage.setItem(paidKey(code), "1"); // marked first: a crash must never pay twice
-        const amount = standingState === "won" ? potOf(stake, matching) : stake;
+        const amount = standingState === "won" ? prizeOf(stake, matching) : stake;
         const credited = await creditEmbersFor(amount);
         if (credited && alive.current) setPrize(amount);
       } catch (e) {
