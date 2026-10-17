@@ -215,7 +215,7 @@ describe('friend challenges', () => {
 describe('live duels', () => {
   const pid = '7J2K9QXM4HT6RN3B';
   const code = 'ABCD2345';
-  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, updatedAt: serverTimestamp(), ...patch });
+  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, stake: 0, updatedAt: serverTimestamp(), ...patch });
   const ref = (c = code, p = pid) => doc(db(), 'duel_players', `${c}_${p}`);
 
   it('a player joins and then keeps updating their own state', async () => {
@@ -235,6 +235,8 @@ describe('live duels', () => {
     ['an unknown hero', { characterIndex: 6 }],
     ['a made-up time of day', { updatedAt: new Date('2020-01-01') }],
     ['an extra field', { admin: true }],
+    ['a stake above 100', { stake: 101 }],
+    ['a negative stake', { stake: -1 }],
     ['a link in the name', { name: 'see www.x.com' }],
   ];
   it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {

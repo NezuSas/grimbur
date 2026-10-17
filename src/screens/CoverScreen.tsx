@@ -105,6 +105,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           onPressMissions={() => navigation.navigate("MissionsScreen")}
           onPressCollection={() => navigation.navigate("CollectionScreen")}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
+          onPressFriends={() => navigation.navigate("FriendsScreen")}
           onPressInstructions={() => navigation.navigate("InstructionsScreen")}
           onPressForge={() => navigation.navigate("ForgeScreen")}
           onPressAchievements={() => navigation.navigate("AchievementsScreen")}

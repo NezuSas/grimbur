@@ -55,6 +55,7 @@ type Props = {
   /** Missions are ready to claim: a dot on their icon. */
   missionsBadge: boolean;
   onPressScores: () => void;
+  onPressFriends: () => void;
   onPressInstructions: () => void;
   onPressForge: () => void;
   onPressAchievements: () => void;
@@ -81,7 +82,7 @@ const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolea
 };
 
 /** A round icon button with its name underneath: the menu dock. */
-const DockButton = ({ icon, label, onPress, ui, dot, dotLabel }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string }) => (
+const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string; size: number }) => (
   <Pressable
     onPress={() => {
       haptic.impact();
@@ -91,11 +92,11 @@ const DockButton = ({ icon, label, onPress, ui, dot, dotLabel }: { icon: keyof t
     accessibilityRole="button"
     accessibilityLabel={dot && dotLabel ? `${label}. ${dotLabel}` : label}
   >
-    <View style={[styles.dockCircle, { width: 52 * ui, height: 52 * ui, borderRadius: 26 * ui }]}>
-      <Ionicons name={icon} size={24 * ui} color="#F2C14E" />
+    <View style={[styles.dockCircle, { width: size, height: size, borderRadius: size / 2 }]}>
+      <Ionicons name={icon} size={Math.round(size * 0.46)} color="#F2C14E" />
       {dot ? <View style={styles.dot} /> : null}
     </View>
-    <Text style={[styles.dockLabel, { fontSize: 11 * ui }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+    <Text style={[styles.dockLabel, { fontSize: Math.min(11 * ui, Math.max(8.5, size / 4.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
       {label}
     </Text>
   </Pressable>
@@ -129,6 +130,7 @@ const CoverCard: React.FC<Props> = ({
   achievementsBadge,
   collectionBadge,
   onPressScores,
+  onPressFriends,
   onPressInstructions,
   onPressForge,
   onPressMissions,
@@ -157,6 +159,8 @@ const CoverCard: React.FC<Props> = ({
   // Phones keep the base sizes; roomier screens grow the cards, icons and text up to 1.5x.
   const ui = Math.max(1, Math.min(1.5, width / 900, height / 540));
   const menuWidth = wide ? Math.min(520 * ui, width * 0.5) : Math.min(width - 32, 560 * Math.min(ui, 1.25));
+  // Seven round buttons share the dock: they shrink on a narrow menu instead of touching each other.
+  const dockSize = Math.max(34, Math.min(52 * ui, Math.floor((menuWidth - 16) / 7) - 4));
   // Room left for the title once the menu has taken its share (side margins and the gap between them included).
   // Wide screens keep clear of the torches that frame the cave on both sides.
   const sideMargin = wide ? Math.max(16, width * (width >= 1000 ? 0.12 : 0.07)) : 16;
@@ -280,12 +284,13 @@ const CoverCard: React.FC<Props> = ({
 
       {/* A lone manual button gets no box around it: a panel for one icon looks like a mistake. */}
       <View style={firstRun ? styles.dockSolo : styles.dock}>
-        {!firstRun && <DockButton ui={ui} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
-        {!firstRun && <DockButton ui={ui} icon="flag" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
-        {!firstRun && <DockButton ui={ui} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
-        {!firstRun && <DockButton ui={ui} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
-        {!firstRun && <DockButton ui={ui} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
-        <DockButton ui={ui} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="flag" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="people" label={t("cover.friends")} onPress={onPressFriends} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
+        <DockButton ui={ui} size={dockSize} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
       </View>
     </View>
   );

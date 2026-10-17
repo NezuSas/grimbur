@@ -219,6 +219,17 @@ export const spendEmbersFor = (amount: number): Promise<LocalStats | null> =>
     return stats;
   });
 
+/** Adds embers won in a duel (they do not count for the rank: only embers earned by playing do). Resolves with the new stats. */
+export const creditEmbersFor = (amount: number): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const n = Math.trunc(amount);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    const current = await getLocalStats();
+    const stats = { ...current, embers: current.embers + n };
+    await save(stats);
+    return stats;
+  });
+
 /** Buys a hero skin with embers; resolves with the new stats, or null when it cannot be bought. */
 export const buySkinFor = (hero: number, skin: SkinId): Promise<LocalStats | null> =>
   serialized(async () => {
