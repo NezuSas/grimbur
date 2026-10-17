@@ -51,3 +51,6 @@ all_test_results.txt
 # Python
 __pycache__/
 *.pyc
+
+# Firebase emulator logs
+*-debug.log
