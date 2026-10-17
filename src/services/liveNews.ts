@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { LiveNews, parseLiveNews } from '../core/news/liveNews';
+import { AppConfig, parseAppConfig } from '../core/news/appUpdate';
 
 /** Reads the developer's notice (see core/news/liveNews.ts). Best effort: any problem means "no notice". */
 const DISMISSED_STORAGE = 'wumpus.news.dismissed.v1';
@@ -24,6 +25,24 @@ export async function loadLiveNews(): Promise<LiveNews | null> {
     return null; // not cached: the next visit to the cover tries again
   }
   return cached.news;
+}
+
+let cachedConfig: { config: AppConfig | null } | null = null;
+
+/** The update configuration (see core/news/appUpdate.ts), read from the server once per launch. */
+export async function loadAppConfig(): Promise<AppConfig | null> {
+  if (cachedConfig) return cachedConfig.config;
+  try {
+    const snap = await Promise.race([
+      getDoc(doc(db, 'config', 'app')),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), TIMEOUT_MS)),
+    ]);
+    cachedConfig = { config: snap.exists() ? parseAppConfig(snap.data()) : null };
+  } catch (e) {
+    console.warn('[news] could not read the update configuration:', e);
+    return null;
+  }
+  return cachedConfig.config;
 }
 
 export async function getDismissedNews(): Promise<string[]> {
