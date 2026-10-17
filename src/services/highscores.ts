@@ -21,6 +21,8 @@ export type HighscoreRow = {
   coins: number;
   characterIndex: number;
   time: number; // Total seconds
+  /** Set on rows of the daily and weekly boards: the phone that played it. */
+  pid?: string;
 };
 export type Doc = { id: string; data: () => HighscoreRow };
 

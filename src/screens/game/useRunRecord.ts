@@ -6,6 +6,8 @@ import { analytics } from "../../services/analytics";
 import { addHighscore, isTopTenScore } from "../../services/highscores";
 import { recordDailyRun, recordRun } from "../../services/localStats";
 import { queueCloudSync } from "../../services/cloudBackup";
+import { getPlayerName, setPlayerName } from "../../services/playerProfile";
+import { submitDailyScore } from "../../services/dailyScores";
 import type { GameState } from "../../core/engine/types";
 import type { GameMode } from "../../core/engine/seed";
 import { dailyRunResult, runResultOf } from "./runResult";
@@ -79,6 +81,16 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
     }
   }, [isDaily, dailyDate, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef]);
 
+  /** Sends the daily result (best effort: a bad connection only means it is not on the board). */
+  const submitDaily = useCallback(
+    async (name: string) => {
+      const s = stateRef.current;
+      await submitDailyScore({ day: dailyDate, level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current }, name);
+      analytics.track("daily_board_submitted", { level: s.level, score: s.score });
+    },
+    [dailyDate, characterIndex, sessionTimeRef, stateRef],
+  );
+
   // ── Run end (death or victory) ───────────────────────────────────────────
   useEffect(() => {
     if (!runEnded || gameOverTriggered.current) return;
@@ -120,8 +132,16 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       const result = await resultPromise;
       if (!cancelled && mounted.current && result) setRunResult(result);
 
-      // Daily and endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
-      if (isDaily || mode === "endless") return;
+      // The daily result goes to the daily board: silently under the saved name, or after asking for a name the first time.
+      if (isDaily) {
+        const saved = await getPlayerName();
+        if (cancelled || !mounted.current) return;
+        if (saved) void submitDaily(saved);
+        else setShowHighScoreEntry(true);
+        return;
+      }
+      // Endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
+      if (mode === "endless") return;
       const qualifies = await Promise.race([
         isTopTenScore(s.score, time).catch(() => false),
         new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
@@ -138,6 +158,13 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
 
   const handleHighScoreSubmit = useCallback(
     async (playerName: string) => {
+      if (isDaily) {
+        const saved = await setPlayerName(playerName);
+        if (!saved) throw new Error("name not allowed");
+        await submitDaily(saved);
+        setShowHighScoreEntry(false);
+        return;
+      }
       const s = stateRef.current;
       await addHighscore({
         score: s.score,
@@ -150,7 +177,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       analytics.track("high_score_submitted", { level: s.level, score: s.score });
       setShowHighScoreEntry(false);
     },
-    [characterIndex],
+    [characterIndex, isDaily, submitDaily],
   );
 
 

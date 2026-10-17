@@ -3,7 +3,13 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FlatList, Linking, ScrollView, TouchableOpacity, View, StyleSheet, ActivityIndicator, ImageBackground, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
-import { loadTop10, type Doc } from "../services/highscores";
+import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
+import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
+import { getPlayerId } from "../services/playerProfile";
+import { weekKey } from "../core/leaderboard/daily";
+import { dailyKey } from "../core/engine/seed";
+import { Segmented } from "../ui/components/settings/SettingsParts";
+import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { describeAge } from "../core/leaderboard/cache";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
@@ -26,6 +32,7 @@ import { GAME_CONFIG } from "../config/gameConfig";
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 type Status = "loading" | "ready" | "error";
+type Board = "global" | "today" | "week";
 
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
 
@@ -38,6 +45,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [mine, setMine] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   /** When the list shown is a saved copy (no connection), the time it was fetched. */
   const [offlineAt, setOfflineAt] = useState<number | null>(null);
+  const [board, setBoard] = useState<Board>("global");
+  /** This phone's id on the daily and weekly boards, to mark the player's own row. */
+  const [myId, setMyId] = useState<string | null>(null);
+  useEffect(() => {
+    void getPlayerId().then(setMyId);
+  }, []);
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const cardWidth = Math.min(usable, 1100);
@@ -45,20 +58,34 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 
   const loadData = useCallback(async () => {
     setStatus("loading");
+    setData([]);
     try {
-      const result = await loadTop10();
-      setData(result.docs);
-      setOfflineAt(result.offline ? result.at : null);
+      if (board === "global") {
+        const result = await loadTop10();
+        setData(result.docs);
+        setOfflineAt(result.offline ? result.at : null);
+      } else {
+        const day = dailyKey();
+        const rows = board === "today" ? await loadDayBoard(day) : await loadWeekBoard(weekKey(day) ?? "");
+        setData(rows.map(r => ({ id: r.id, data: () => r.data() as unknown as HighscoreRow })));
+        setOfflineAt(null);
+      }
       setStatus("ready");
     } catch (err) {
       console.warn("[HighScores] load error:", err);
       setStatus("error"); // a failed request is not an empty leaderboard
     }
-  }, []);
+  }, [board]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const boardOptions: SegmentOption<Board>[] = [
+    { value: "global", label: t("scores.tab.global") },
+    { value: "today", label: t("scores.tab.today") },
+    { value: "week", label: t("scores.tab.week") },
+  ];
 
   useFocusEffect(
     useCallback(() => {
@@ -66,7 +93,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     }, []),
   );
 
-  const tenth = data.length >= 10 ? Number(data[9].data().score) || 0 : 0;
+  const tenth = board === "global" && data.length >= 10 ? Number(data[9].data().score) || 0 : 0;
 
   const record = (
     <View style={styles.record}>
@@ -156,10 +183,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     const char = characters[row.characterIndex] || characters[0];
     const time = typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime");
     const medal = index < 3 ? MEDALS[index] : null;
+    const mineRow = !!myId && row.pid === myId;
 
     return (
       <View>
-      <View style={[styles.row, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }]}>
+      <View style={[styles.row, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }, mineRow && styles.rowMine]}>
         <View
           style={styles.rowMain}
           accessible
@@ -174,6 +202,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         <View style={{ flex: 1 }}>
           <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {row.name}
+            {mineRow ? `  ·  ${t("scores.you")}` : ""}
           </Text>
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {t("scores.floorShort", { n: row.level })}  ·  💎 {Number(row.coins) || 0}  ·  {time}
@@ -248,7 +277,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     ) : (
       <View style={styles.centerBox}>
         <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
-          {t("scores.empty")}
+          {board === "today" ? t("scores.empty.today") : board === "week" ? t("scores.empty.week") : t("scores.empty")}
         </Text>
       </View>
     );
@@ -262,9 +291,14 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
       ListHeaderComponent={
-        twoPanes && !offlineNotice ? null : (
+        twoPanes && !offlineNotice && board === "global" ? null : (
           <View style={{ marginBottom: 10, gap: 10 }}>
             {twoPanes ? null : record}
+            {board !== "global" ? (
+              <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
+                {board === "today" ? t("scores.dailyNote") : t("scores.weekNote")}
+              </Text>
+            ) : null}
             {status === "ready" ? offlineNotice : null}
           </View>
         )
@@ -287,6 +321,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
         <ScreenHeader title={t("scores.title")} onBack={() => navigation.goBack()} />
+        <View style={[styles.tabs, { width: cardWidth }]}>
+          <Segmented options={boardOptions} value={board} onChange={setBoard} accessibilityLabel={t("scores.title")} />
+        </View>
         <View style={[styles.layout, { width: cardWidth }, twoPanes ? styles.layoutRow : null]}>
           {twoPanes ? (
             <ScrollView style={styles.recordPane} showsVerticalScrollIndicator={false}>
@@ -302,6 +339,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
+  tabs: { alignSelf: "center", paddingHorizontal: 8, paddingTop: 6 },
+  boardNote: { color: "#9f9abb", fontSize: 12, textAlign: "center" },
+  rowMine: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.1)" },
   layout: { flex: 1, alignSelf: "center", padding: 8, gap: 10 },
   layoutRow: { flexDirection: "row" },
   record: {

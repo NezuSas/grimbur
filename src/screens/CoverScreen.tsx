@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/types";
 import CoverCard from "../ui/components/CoverCard";
+import NewsBanner from "../ui/components/NewsBanner";
 import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
@@ -109,6 +110,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           onPressAchievements={() => navigation.navigate("AchievementsScreen")}
           onPressSettings={() => navigation.navigate("SettingsScreen")}
         />
+        <NewsBanner />
       </ImageBackground>
     </View>
   );

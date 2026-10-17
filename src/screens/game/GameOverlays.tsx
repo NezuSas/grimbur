@@ -52,7 +52,7 @@ type Props = {
     onMainMenu: () => void;
   };
   revive: { visible: boolean; price: number; embers: number; used: number; busy: boolean; onRevive: () => void; onDecline: () => void };
-  highScore: { visible: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
+  highScore: { visible: boolean; daily?: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
 };
 
 /**
@@ -132,6 +132,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
 
       <HighScoreEntryModal
         visible={highScore.visible}
+        daily={highScore.daily}
         score={state.score}
         level={state.level}
         totalCoins={state.totalCoins}

@@ -14,6 +14,7 @@ export interface AnalyticsEvents {
   game_start: { mode: 'expedition' | 'daily' | 'endless'; character: number };
   level_complete: { level: number; score: number; time: number };
   game_over: { level: number; score: number; time: number; cause: string };
+  daily_board_submitted: { level: number; score: number };
   revived: { level: number; score: number; price: number };
   arrows_bought: { level: number; price: number };
   powerup_collected: { kind: 'shield' | 'ammo' };
