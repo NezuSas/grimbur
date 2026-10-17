@@ -235,7 +235,7 @@ describe('live duels', () => {
     ['an unknown hero', { characterIndex: 6 }],
     ['a made-up time of day', { updatedAt: new Date('2020-01-01') }],
     ['an extra field', { admin: true }],
-    ['a stake above 100', { stake: 101 }],
+    ['a stake above 100000', { stake: 100001 }],
     ['a negative stake', { stake: -1 }],
     ['a link in the name', { name: 'see www.x.com' }],
   ];
