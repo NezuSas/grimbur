@@ -74,3 +74,13 @@ export function newChallenge(depth: number, random: () => number = Math.random):
   const seed = Math.floor(random() * SEED_RANGE);
   return { seed, depth, code: makeChallengeCode(seed, depth) };
 }
+
+/**
+ * The code of the rematch: the next cave at the same difficulty. It is worked out from the old code alone, so every player who presses
+ * "Rematch" lands in the same new room without anybody sending a code.
+ */
+export function rematchCode(code: string): string | null {
+  const parsed = parseChallengeCode(code);
+  if (!parsed) return null;
+  return makeChallengeCode((parsed.seed + 1) % SEED_RANGE, parsed.depth);
+}

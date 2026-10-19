@@ -63,7 +63,7 @@ import { useRevive } from "./game/useRevive";
 import { useDuel } from "./game/useDuel";
 import { duelResultView } from "./game/duelResult";
 import DuelChip from "../ui/components/game/DuelChip";
-import { formatChallengeCode } from "../core/challenge/code";
+import { formatChallengeCode, rematchCode } from "../core/challenge/code";
 import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
@@ -304,6 +304,20 @@ export default function GameScreen({ navigation, route }: Props) {
     // Pop back to the existing Cover instead of stacking a second one on top of this screen.
     navigation.popTo("CoverScreen");
   }, [navigation, recordCurrentRun]);
+
+  // Rematch: the next cave at the same difficulty and stake. The code is worked out from this one, so every player lands in the same room.
+  const handleRematch = useCallback(() => {
+    const next = duelParam ? rematchCode(duelParam.code) : null;
+    if (!duelParam || !next) {
+      handleMainMenu();
+      return;
+    }
+    leaving.current = true;
+    void recordCurrentRun();
+    clearPopups();
+    emitSound("GAME_MUSIC_STOP");
+    navigation.replace("DuelScreen", { code: next, characterIndex, skin: route.params?.skin, stake: duelParam.stake });
+  }, [duelParam, characterIndex, navigation, route.params?.skin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** The game over's "Try now" on a fresh unlock: leave for the screen where it can be used. */
   const handleTryUnlock = useCallback(
@@ -724,7 +738,8 @@ export default function GameScreen({ navigation, route }: Props) {
           onShare: handleShare,
           onUnlock: handleUnlock,
           onForge: () => navigation.navigate("ForgeScreen"),
-          onRetry: duelParam ? handleMainMenu : handleRetry,
+          onRetry: duelParam ? handleRematch : handleRetry,
+          retryLabel: duelParam ? t("duel.rematch") : undefined,
           onMainMenu: handleMainMenu,
         }}
         revive={{ visible: second.visible, price: second.price, embers: second.embers, used: second.used, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}

@@ -13,6 +13,8 @@ import type { TranslationKey } from "../i18n/en";
 import { getRecentChallenges, type RecentChallenge } from "../services/challenges";
 import { formatChallengeCode, parseChallengeCode } from "../core/challenge/code";
 import { withUiScale } from "../ui/layout/scaledWindow";
+import { getDuelHistory } from "../services/duelHistory";
+import { summarize, type DuelRecord } from "../core/duel/history";
 
 type Props = NativeStackScreenProps<RootStackParamList, "FriendsScreen">;
 
@@ -45,9 +47,11 @@ const ModeCard = ({ icon, tint, title, hint, onPress }: { icon: keyof typeof Ion
 const FriendsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const [recent, setRecent] = useState<RecentChallenge[]>([]);
+  const [history, setHistory] = useState<DuelRecord[]>([]);
   useFocusEffect(
     useCallback(() => {
       void getRecentChallenges().then(setRecent);
+      void getDuelHistory().then(setHistory);
     }, []),
   );
 
@@ -65,6 +69,47 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                 <ModeCard icon="extension-puzzle" tint="#4FC3F7" title={t("challenge.open")} hint={t("challenge.openHint")} onPress={() => navigation.navigate("ChallengeScreen")} />
               </View>
             </View>
+
+            <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
+              {t("duel.history").toLocaleUpperCase()}
+            </Text>
+            {history.length === 0 ? (
+              <Text style={styles.empty} maxFontSizeMultiplier={1.3}>
+                {t("duel.historyEmpty")}
+              </Text>
+            ) : (
+              <>
+                {(() => {
+                  const s = summarize(history);
+                  return (
+                    <Text style={styles.summary} maxFontSizeMultiplier={1.2}>
+                      {t("duel.historySummary", { won: s.won, lost: s.lost, tied: s.tied })}  ·  {t("duel.historyNet", { n: `${s.net > 0 ? "+" : ""}${s.net.toLocaleString()}` })}
+                    </Text>
+                  );
+                })()}
+                <View style={styles.list}>
+                  {history.slice(0, 8).map(r => {
+                    const color = r.outcome === "won" ? "#9EE37D" : r.outcome === "lost" ? "#FF8A80" : "#FFD54F";
+                    return (
+                      <View key={r.code} style={styles.row} accessible accessibilityLabel={`${formatChallengeCode(r.code)}. ${t(`duel.outcome.${r.outcome}` as TranslationKey)}. ${r.net}`}>
+                        <View style={[styles.outcome, { borderColor: color }]}>
+                          <Text style={[styles.outcomeText, { color }]} maxFontSizeMultiplier={1.1}>
+                            {t(`duel.outcome.${r.outcome}` as TranslationKey).toLocaleUpperCase()}
+                          </Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.code} numberOfLines={1} maxFontSizeMultiplier={1.2}>{formatChallengeCode(r.code)}</Text>
+                          <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.2}>{r.total > 2 ? t("duel.historyPlace", { n: r.placement, total: r.total }) : new Date(r.at).toLocaleDateString()}</Text>
+                        </View>
+                        <Text style={[styles.bestValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9ee37d" : "#b9b4d4" }]} maxFontSizeMultiplier={1.2}>
+                          {r.stake > 0 ? `🔥 ${r.net > 0 ? "+" : ""}${r.net.toLocaleString()}` : "—"}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </>
+            )}
 
             <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
               {t("challenge.recent").toLocaleUpperCase()}
@@ -124,6 +169,9 @@ const styles = StyleSheet.create({
   cardTitle: { fontWeight: "900", fontSize: 16, letterSpacing: 2 },
   cardHint: { color: "#d7d2ee", fontSize: 13, lineHeight: 18 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2, marginTop: 8 },
+  summary: { color: "#d7d2ee", fontWeight: "800", fontSize: 13 },
+  outcome: { minWidth: 74, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1.5, alignItems: "center" },
+  outcomeText: { fontWeight: "900", fontSize: 11, letterSpacing: 1 },
   empty: { color: "#9f9abb", fontSize: 13.5, lineHeight: 19 },
   list: { gap: 8 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.85)" },
