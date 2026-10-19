@@ -29,7 +29,7 @@ const ModeCard = ({ icon, tint, title, hint, onPress }: { icon: keyof typeof Ion
         <Text style={[styles.cardTitle, { color: tint }]} maxFontSizeMultiplier={1.2}>
           {title.toLocaleUpperCase()}
         </Text>
-        <Text style={styles.cardHint} maxFontSizeMultiplier={1.3}>
+        <Text style={styles.cardHint} numberOfLines={3} maxFontSizeMultiplier={1.3}>
           {hint}
         </Text>
       </View>
@@ -115,10 +115,10 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   content: { padding: 14, alignItems: "center" },
   inner: { width: "100%", maxWidth: 760, gap: 12 },
-  cards: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  cards: { flexDirection: "row", flexWrap: "wrap", gap: 12, alignItems: "stretch" },
   cardSlot: { flexGrow: 1, flexBasis: 280, minWidth: 0 },
-  cardShadow: { shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 10, borderRadius: 22 },
-  card: { flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 22, borderWidth: 2, padding: 16, overflow: "hidden", minHeight: 96 },
+  cardShadow: { flex: 1, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 10, borderRadius: 22 },
+  card: { flex: 1, flexDirection: "row", alignItems: "center", gap: 14, borderRadius: 22, borderWidth: 2, padding: 16, overflow: "hidden", minHeight: 104 },
   lit: { position: "absolute", top: 0, left: 24, right: 24, height: 2, borderRadius: 1, backgroundColor: "rgba(255,255,255,0.22)" },
   medallion: { width: 56, height: 56, borderRadius: 28, borderWidth: 2.5, alignItems: "center", justifyContent: "center" },
   cardTitle: { fontWeight: "900", fontSize: 16, letterSpacing: 2 },
