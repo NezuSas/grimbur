@@ -71,6 +71,7 @@ import { buildShareCard, buildShareMessage } from "./game/shareMessage";
 import ShareCard from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
+import { rememberChallenge } from "../services/challenges";
 import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
@@ -316,6 +317,7 @@ export default function GameScreen({ navigation, route }: Props) {
     void recordCurrentRun();
     clearPopups();
     emitSound("GAME_MUSIC_STOP");
+    void rememberChallenge(next);
     navigation.replace("DuelScreen", { code: next, characterIndex, skin: route.params?.skin, stake: duelParam.stake });
   }, [duelParam, characterIndex, navigation, route.params?.skin]); // eslint-disable-line react-hooks/exhaustive-deps
 

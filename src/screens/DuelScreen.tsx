@@ -12,13 +12,13 @@ import { RootStackParamList } from "../navigation/types";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import characters from "../data/characters";
-import { getLocalStats, peekLocalStats, spendEmbersFor } from "../services/localStats";
+import { creditEmbersFor, getLocalStats, peekLocalStats, spendEmbersFor } from "../services/localStats";
 import { EMPTY_STATS, type LocalStats } from "../core/stats/runStats";
 import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/challenge/code";
 import { COUNTDOWN_SECONDS, DUEL_FEE_PERCENT, HEARTBEAT_MS, MAX_PLAYERS, prizeOf, rivalStatus } from "../core/duel/duel";
 import type { RivalStatus } from "../core/duel/duel";
 import { getPlayerId, getPlayerName, setPlayerName } from "../services/playerProfile";
-import { publishDuelState, watchRoom, type Room } from "../services/duel";
+import { EMPTY_ROOM, publishDuelState, watchRoom, type Room } from "../services/duel";
 import { rememberChallenge } from "../services/challenges";
 import { withUiScale } from "../ui/layout/scaledWindow";
 
@@ -60,8 +60,8 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const [name, setName] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [room, setRoom] = useState<Room>({ me: null, rivals: [], full: false });
-  const [now, setNow] = useState(() => Date.now());
+  const [room, setRoom] = useState<Room>(EMPTY_ROOM);
+  const [wallNow, setWallNow] = useState(() => Date.now());
   const [ready, setReady] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [count, setCount] = useState<number | null>(null);
@@ -79,22 +79,32 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
     else setNameError(t("entry.errBlocked"));
   };
 
-  // Who is here: rivals who are not gone. A rival who already started the cave means the duel is under way.
+  // Who is here: rivals who are not disconnected (by the server's clock, so a phone with a wrong clock sees the same room as the others).
+  const now = room.serverNow ?? wallNow;
   const rivals = room.rivals.map(r => ({ ...r, status: rivalStatus(r, r.updatedAt, now) as RivalStatus }));
   const present = rivals.filter(r => r.status !== "away" && r.status !== "done");
   const underway = present.some(r => r.state === "playing");
-  // The creator chose the stake; everybody else adopts it from the room.
+  // The creator chose the stake; everybody else adopts it from the room and cannot get ready before it is known.
   const adopted = present.reduce((max, r) => Math.max(max, r.stake), 0);
+  const stakeKnown = creatorStake !== undefined || present.length > 0;
   const myStake = creatorStake ?? adopted;
   const pot = prizeOf(myStake, present.length + 1);
   const canPay = stats.embers >= myStake;
+
+  // The latest values for timers and the publisher: the publisher must never overwrite "ready" with an older "lobby".
+  const readyRef = useRef(ready);
+  readyRef.current = ready;
+  const stakeRef = useRef(myStake);
+  stakeRef.current = myStake;
+  const presentRef = useRef(present);
+  presentRef.current = present;
 
   const publish = useCallback(
     // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (state: "lobby" | "ready") => {
       if (!code || name === null || heroIndex === null) return;
       try {
-        await publishDuelState(code, name, { characterIndex: heroIndex, state, level: 1, score: 0, victory: false, time: 0, stake: myStake });
+        await publishDuelState(code, name, { characterIndex: heroIndex, state, level: 1, score: 0, victory: false, time: 0, stake: stakeRef.current });
         setProblem(null);
       } catch (e) {
         console.warn("[duel] could not publish:", e);
@@ -102,15 +112,14 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
       }
     },
     // eslint-disable-next-line react-hooks/preserve-manual-memoization
-    [code, name, heroIndex, myStake, t],
+    [code, name, heroIndex, t],
   );
 
-  // Joining the room: this player appears as "in the lobby" and listens to the others.
+  // Joining the room: this player appears in it and listens to the others; a heartbeat keeps the player "here".
   useEffect(() => {
     if (!inLobby || !code || name === null) return;
     let off: (() => void) | undefined;
     let cancelled = false;
-    void publish("lobby");
     void getPlayerId().then(id => {
       if (cancelled) return;
       off = watchRoom(code, id, setRoom, e => {
@@ -118,15 +127,21 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
         setProblem(t("duel.offline"));
       });
     });
-    const tick = setInterval(() => setNow(Date.now()), 2000);
-    const beat = setInterval(() => void publish(ready ? "ready" : "lobby"), HEARTBEAT_MS);
+    const tick = setInterval(() => setWallNow(Date.now()), 2000);
+    const beat = setInterval(() => void publish(readyRef.current ? "ready" : "lobby"), HEARTBEAT_MS);
     return () => {
       cancelled = true;
       off?.();
       clearInterval(tick);
       clearInterval(beat);
     };
-  }, [inLobby, code, name, publish, ready, t]);
+  }, [inLobby, code, name, publish, t]);
+
+  // What this player is (in the lobby or ready) is published whenever it changes, in order: the latest write is always the true state.
+  useEffect(() => {
+    if (!inLobby || !code || name === null) return;
+    void publish(ready ? "ready" : "lobby");
+  }, [inLobby, code, name, ready, myStake, publish]);
 
   // Everybody who is here is ready (or already playing: they started the countdown a moment before and this phone follows).
   const allReady = ready && room.me?.state === "ready" && present.length >= 1 && present.every(r => r.state === "ready" || r.state === "playing");
@@ -145,13 +160,20 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
       if (started.current || left.current || !challenge) return;
       started.current = true;
       setCount(0);
+      const stake = stakeRef.current;
+      const members = presentRef.current.map(r => r.pid);
       void (async () => {
         // The stake goes into the pot the moment the cave starts.
-        if (myStake > 0 && !(await spendEmbersFor(myStake))) {
+        const paid = stake > 0 ? await spendEmbersFor(stake) : true;
+        if (left.current) {
+          if (paid && stake > 0) void creditEmbersFor(stake); // left during the payment: nothing was played, the stake goes back
+          return;
+        }
+        if (!paid) {
           started.current = false;
           setReady(false);
           setCount(null);
-          setProblem(t("duel.stakeShort", { n: myStake }));
+          setProblem(t("duel.stakeShort", { n: stake.toLocaleString() }));
           return;
         }
         navigation.replace("GameScreen", {
@@ -160,7 +182,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           mode: "expedition",
           ascension: challenge.depth,
           challenge: { code: challenge.code, seed: challenge.seed, depth: challenge.depth },
-          duel: { code: challenge.code, name: name ?? "", stake: myStake },
+          duel: { code: challenge.code, name: name ?? "", stake, members, matchId: String(Date.now()) },
         });
       })();
     }, 1000);
@@ -172,18 +194,16 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
     if (count !== null && count > 0 && !allReady) setCount(null);
   }, [allReady, count]);
 
-  const onReady = async () => {
+  const onReady = () => {
     if (!canPay) {
-      setProblem(t("duel.stakeShort", { n: myStake }));
+      setProblem(t("duel.stakeShort", { n: myStake.toLocaleString() }));
       return;
     }
     setReady(true);
-    await publish("ready");
   };
-  const onCancelReady = async () => {
+  const onCancelReady = () => {
     setReady(false);
     setCount(null);
-    await publish("lobby");
   };
   useEffect(() => {
     left.current = false;
@@ -254,6 +274,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     ) : null}
                     {room.full ? <Text style={styles.error}>{t("duel.full")}</Text> : null}
                     {underway && !ready ? <Text style={styles.error}>{t("duel.underway")}</Text> : null}
+                    {!stakeKnown ? <Text style={styles.hint}>{t("duel.waitingHost")}</Text> : null}
                     {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake.toLocaleString() })}</Text> : null}
                     {problem ? <Text style={styles.error} accessibilityLiveRegion="polite">{problem}</Text> : null}
                     {count !== null ? (
@@ -261,10 +282,10 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     ) : ready ? (
                       <>
                         <Text style={styles.hint}>{t("duel.waitingStart")}</Text>
-                        <PopButton variant="secondary" label={t("duel.notReady")} onPress={() => void onCancelReady()} />
+                        <PopButton variant="secondary" label={t("duel.notReady")} onPress={onCancelReady} />
                       </>
                     ) : (
-                      <PopButton label={t("duel.ready")} glyph="⚔️" onPress={() => void onReady()} disabled={room.full || !canPay} />
+                      <PopButton label={t("duel.ready")} glyph="⚔️" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway} />
                     )}
                   </PopupPanel>
                 </View>

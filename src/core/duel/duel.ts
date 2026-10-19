@@ -23,8 +23,10 @@ export interface DuelPlayer {
   stake: number;
 }
 
-/** A player whose last update is older than this is no longer there (closed the app, lost the connection). */
+/** A player whose last update is older than this (by the server's clock) shows as disconnected: closed the app, lost the connection. */
 export const AWAY_AFTER_MS = 30_000;
+/** A disconnected player this long (a phone in the background pauses its timers) counts as having left: the duel stops waiting for them. */
+export const GONE_AFTER_MS = 120_000;
 /** How often a player in a run repeats their state even if nothing changed, so the other side knows they are still there. */
 export const HEARTBEAT_MS = 10_000;
 /** The least time between two updates caused by score changes. */
@@ -42,6 +44,7 @@ export const DUEL_FEE_PERCENT = 10;
 export const COUNTDOWN_SECONDS = 3;
 
 export const isAway = (updatedAtMs: number, nowMs: number): boolean => nowMs - updatedAtMs > AWAY_AFTER_MS;
+export const isGone = (updatedAtMs: number, nowMs: number): boolean => nowMs - updatedAtMs > GONE_AFTER_MS;
 
 /** What is wrong with a player's document (empty when fine). */
 export function validateDuelPlayer(p: DuelPlayer): string[] {
@@ -97,6 +100,8 @@ export type Standing = {
   /** 1 is the best. Counts the rivals who beat this player as things stand. */
   placement: number;
   total: number;
+  /** Players sharing the first place (this player included) when it is a tie, otherwise 1. */
+  tiedFirst: number;
 };
 
 /**
@@ -109,16 +114,20 @@ export function duelStanding(me: Result, meDone: boolean, rivals: readonly { res
   const total = rivals.length + 1;
   const outcomes = rivals.map(r => duelOutcome(me, r.result));
   const placement = 1 + outcomes.filter(o => o === 'lose').length;
-  const tied = outcomes.some(o => o === 'tie') && placement === 1;
+  const tiedFirst = placement === 1 ? 1 + outcomes.filter(o => o === 'tie').length : 1;
+  const tied = tiedFirst > 1;
   const beatenForGood = rivals.some((r, i) => outcomes[i] === 'lose' && (r.finished || r.result.level > me.level || (r.result.victory && !me.victory)));
   const everyoneDone = meDone && rivals.every(r => r.finished);
-  if (meDone && beatenForGood) return { state: 'lost', decided: true, placement, total };
-  if (everyoneDone) return { state: placement > 1 ? 'lost' : tied ? 'tie' : 'won', decided: true, placement, total };
-  return { state: placement === 1 ? 'leading' : 'trailing', decided: false, placement, total };
+  if (meDone && beatenForGood) return { state: 'lost', decided: true, placement, total, tiedFirst };
+  if (everyoneDone) return { state: placement > 1 ? 'lost' : tied ? 'tie' : 'won', decided: true, placement, total, tiedFirst };
+  return { state: placement === 1 ? 'leading' : 'trailing', decided: false, placement, total, tiedFirst };
 }
 
 /** The embers a winner takes: everybody's stake. Only players who started count. */
 export const potOf = (stake: number, players: number): number => Math.max(0, stake) * Math.max(0, players);
+
+/** What each of the players tied for first takes: the whole pot shared between them (no fee on a tie). */
+export const tieShare = (stake: number, players: number, tiedFirst: number): number => Math.floor(potOf(stake, players) / Math.max(1, tiedFirst));
 
 /** What the winner takes home: the pot minus the game's fee. */
 export const prizeOf = (stake: number, players: number): number => {

@@ -138,10 +138,11 @@ service cloud.firestore {
       allow list: if request.query.limit <= 4;
       allow get: if true;
       allow create: if validDuel(request.resource.data, id);
-      // The floor never goes back during a run, and a finished player stays finished.
+      // The stake cannot be changed once the run has begun (it was paid), and the player stays the same.
       allow update: if validDuel(request.resource.data, id)
         && request.resource.data.code == resource.data.code
-        && request.resource.data.pid == resource.data.pid;
+        && request.resource.data.pid == resource.data.pid
+        && (resource.data.state in ['lobby', 'ready'] || request.resource.data.stake == resource.data.stake);
       allow delete: if false;
     }
 

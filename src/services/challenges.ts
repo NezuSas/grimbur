@@ -44,15 +44,17 @@ export async function submitChallengeScore(code: string, result: ChallengeResult
   const checked = checkName(name);
   if (!checked.ok) throw new Error(`[challenge] rejected name (${checked.reason})`);
   const pid = await getPlayerId();
+  // Inside the limits the server enforces (a rare overshoot is cut instead of the whole result being refused).
+  const level = Math.min(10, Math.max(1, Math.round(result.level)));
   const row = {
     code,
     pid,
     name: checked.name,
-    level: Math.round(result.level),
-    score: Math.round(result.score),
-    coins: Math.round(result.coins),
+    level,
+    score: Math.min(level * 20000, Math.max(0, Math.round(result.score))),
+    coins: Math.min(level * 8, Math.max(0, Math.round(result.coins))),
     characterIndex: result.characterIndex,
-    time: Math.max(1, Math.round(result.time)),
+    time: Math.max((level - 1) * 5 + 1, Math.round(result.time)),
   };
   const ref = doc(db, COLLECTION, `${code}_${pid}`);
   const existing = await withTimeout(getDoc(ref), 'read');

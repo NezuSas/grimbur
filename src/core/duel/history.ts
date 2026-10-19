@@ -17,9 +17,10 @@ export const MAX_HISTORY = 30;
 
 /** The record of a decided duel, or null while it is not decided. `prize` is what the winner took home (0 for the others). */
 export function recordOf(code: string, standing: Standing, stake: number, prize: number, at: number): DuelRecord | null {
+  // `prize` is what this player took home (the winner's prize, a tie's share, or 0).
   if (!standing.decided || standing.state === 'leading' || standing.state === 'trailing') return null;
   const outcome = standing.state;
-  const net = outcome === 'won' ? prize - stake : outcome === 'lost' ? -stake : 0;
+  const net = outcome === 'lost' ? -stake : prize - stake;
   return { code, at, outcome, placement: standing.placement, total: standing.total, stake, net };
 }
 

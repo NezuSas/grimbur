@@ -1,4 +1,4 @@
-import { AWAY_AFTER_MS, DuelPlayer, STAKES, MAX_STAKE, duelOutcome, duelSettled, duelStanding, isAway, potOf, prizeOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
+import { AWAY_AFTER_MS, GONE_AFTER_MS, isGone, tieShare, DuelPlayer, STAKES, MAX_STAKE, duelOutcome, duelSettled, duelStanding, isAway, potOf, prizeOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
 
 const base: DuelPlayer = { code: 'ABCD2345', pid: '7J2K9QXM4HT6RN3B', name: 'Oscar', characterIndex: 1, state: 'playing', level: 4, score: 1500, victory: false, time: 0, stake: 25 };
 
@@ -133,5 +133,26 @@ describe('potOf', () => {
     expect(STAKES[0]).toBe(0);
     expect([...STAKES].sort((a, b) => a - b)).toEqual([...STAKES]);
     expect(Math.max(...STAKES)).toBe(MAX_STAKE);
+  });
+});
+
+describe('ties and leaving', () => {
+  const r = (level: number, score: number, finished: boolean) => ({ result: { level, score, victory: false, time: 0 }, finished });
+  const me = { level: 4, score: 1000, victory: false, time: 0 };
+
+  it('players tied for first share the whole pot, so the losers stakes are not lost', () => {
+    const s = duelStanding(me, true, [r(4, 1000, true), r(2, 10, true)]);
+    expect(s).toMatchObject({ state: 'tie', tiedFirst: 2 });
+    expect(tieShare(100, 3, s.tiedFirst)).toBe(150);
+    expect(tieShare(100, 2, 2)).toBe(100); // two players: everyone gets their stake back
+  });
+
+  it('a lone winner has tiedFirst 1', () => {
+    expect(duelStanding(me, true, [r(2, 10, true)]).tiedFirst).toBe(1);
+  });
+
+  it('a disconnected rival is only gone after a long time', () => {
+    expect(isGone(1_000_000 - AWAY_AFTER_MS - 1, 1_000_000)).toBe(false);
+    expect(isGone(1_000_000 - GONE_AFTER_MS - 1, 1_000_000)).toBe(true);
   });
 });

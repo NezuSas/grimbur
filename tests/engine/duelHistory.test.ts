@@ -1,7 +1,7 @@
 import { addRecord, parseHistory, recordOf, summarize, MAX_HISTORY, type DuelRecord } from '../../src/core/duel/history';
 import { makeChallengeCode, parseChallengeCode, rematchCode } from '../../src/core/challenge/code';
 
-const standing = (state: 'won' | 'lost' | 'tie' | 'leading' | 'trailing', decided = true, placement = 1, total = 2) => ({ state, decided, placement, total });
+const standing = (state: 'won' | 'lost' | 'tie' | 'leading' | 'trailing', decided = true, placement = 1, total = 2) => ({ state, decided, placement, total, tiedFirst: 1 });
 
 describe('recordOf', () => {
   it('records a win with what was gained', () => {
@@ -10,6 +10,8 @@ describe('recordOf', () => {
   it('records a loss as the lost stake and a tie as nothing', () => {
     expect(recordOf('A', standing('lost', true, 2), 100, 0, 5)).toMatchObject({ outcome: 'lost', net: -100, placement: 2 });
     expect(recordOf('A', standing('tie'), 100, 100, 5)).toMatchObject({ outcome: 'tie', net: 0 });
+    // two of three tie for first: each takes half of the whole pot
+    expect(recordOf('A', standing('tie', true, 1, 3), 100, 150, 5)).toMatchObject({ outcome: 'tie', net: 50 });
   });
   it('is nothing while the duel is open', () => {
     expect(recordOf('A', standing('leading', false), 0, 0, 5)).toBeNull();

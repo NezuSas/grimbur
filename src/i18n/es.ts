@@ -1090,6 +1090,7 @@ export const es: Record<TranslationKey, string> = {
   'friends.notPlayed': "Aún sin jugar",
   'challenge.openHint': "La misma cueva para todos, cada uno juega cuando quiere.",
   'duel.players': "Jugadores {n}/{max}",
+  'duel.waitingHost': "Esperando a quien creó el duelo…",
   'duel.underway': "Este duelo ya empezó.",
   'cover.friends': "Amigos",
   'duel.rematch': "Revancha",
