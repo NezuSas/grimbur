@@ -19,7 +19,14 @@ export interface Room {
   rivals: RoomPlayer[];
   /** The room already has its four players and this one is not among them. */
   full: boolean;
+  /**
+   * "Now" by the server's clock: the time of this player's own last write. A rival is disconnected when they have not written for a while
+   * compared with it, so a phone whose own clock is wrong does not see everybody as gone. Null before the first write lands.
+   */
+  serverNow: number | null;
 }
+
+export const EMPTY_ROOM: Room = { me: null, rivals: [], full: false, serverNow: null };
 
 /** Writes this player's state. Throws when the data is not valid or the network fails. */
 export async function publishDuelState(code: string, name: string, patch: { characterIndex: number; state: DuelState; level: number; score: number; victory: boolean; time: number; stake: number }): Promise<void> {
@@ -27,29 +34,59 @@ export async function publishDuelState(code: string, name: string, patch: { char
   const checked = checkName(name);
   if (!checked.ok) throw new Error(`[duel] rejected name (${checked.reason})`);
   const pid = await getPlayerId();
-  const row: DuelPlayer = { code, pid, name: checked.name, ...patch, level: Math.round(patch.level), score: Math.max(0, Math.round(patch.score)), time: Math.round(patch.time) };
+  const level = Math.min(10, Math.max(1, Math.round(patch.level)));
+  // The score is capped to what the floors allow so that a rare overshoot can never make the final "done" fail and look like a disconnect.
+  const row: DuelPlayer = { code, pid, name: checked.name, ...patch, level, score: Math.min(level * 20000, Math.max(0, Math.round(patch.score))), time: Math.round(patch.time) };
   const problems = validateDuelPlayer(row);
   if (problems.length > 0) throw new Error(`[duel] invalid state: ${problems.join(', ')}`);
-  await setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, updatedAt: serverTimestamp() });
+  const write = () => setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, updatedAt: serverTimestamp() });
+  try {
+    await write();
+  } catch (e) {
+    if (patch.state !== 'done') throw e;
+    await write(); // the end of a run is worth one more try: the others are waiting for it
+  }
 }
 
-/** Listens to a room: calls back with this player's document and the rival's whenever either changes. Returns the unsubscribe. */
+const toPlayer = (data: Record<string, unknown>): RoomPlayer => {
+  const updatedAt = data.updatedAt as { toMillis?: () => number } | undefined;
+  return { ...(data as unknown as DuelPlayer), updatedAt: updatedAt?.toMillis ? updatedAt.toMillis() : null };
+};
+
+/**
+ * Listens to a room: calls back with this player's document and the rivals' whenever either changes. Two listeners are used: the room
+ * (the other players) and this player's own document by id, so the player always sees themselves even when the room is crowded with
+ * old documents. Returns the unsubscribe.
+ */
 export function watchRoom(code: string, myId: string, onRoom: (room: Room) => void, onError: (e: unknown) => void): Unsubscribe {
-  const q = query(collection(db, COLLECTION), where('code', '==', code), limit(4));
-  return onSnapshot(
-    q,
+  let me: RoomPlayer | null = null;
+  let others: RoomPlayer[] = [];
+  const emit = () => {
+    const rivals = [...others].sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0)).slice(0, MAX_PLAYERS - 1);
+    onRoom({ me, rivals, full: !me && others.length >= MAX_PLAYERS, serverNow: me?.updatedAt ?? null });
+  };
+  const offRoom = onSnapshot(
+    query(collection(db, COLLECTION), where('code', '==', code), limit(MAX_PLAYERS)),
     snap => {
-      let me: RoomPlayer | null = null;
-      const others: RoomPlayer[] = [];
+      others = [];
       snap.forEach(d => {
-        const data = d.data({ serverTimestamps: 'estimate' }) as Omit<RoomPlayer, 'updatedAt'> & { updatedAt?: { toMillis: () => number } };
-        const player: RoomPlayer = { ...data, updatedAt: data.updatedAt ? data.updatedAt.toMillis() : null };
-        if (player.pid === myId) me = player;
-        else others.push(player);
+        const player = toPlayer(d.data({ serverTimestamps: 'estimate' }));
+        if (player.pid !== myId) others.push(player);
       });
-      others.sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
-      onRoom({ me, rivals: others.slice(0, MAX_PLAYERS - 1), full: !me && others.length >= MAX_PLAYERS });
+      emit();
     },
     onError,
   );
+  const offMe = onSnapshot(
+    doc(db, COLLECTION, `${code}_${myId}`),
+    snap => {
+      me = snap.exists() ? toPlayer(snap.data({ serverTimestamps: 'estimate' })) : null;
+      emit();
+    },
+    onError,
+  );
+  return () => {
+    offRoom();
+    offMe();
+  };
 }

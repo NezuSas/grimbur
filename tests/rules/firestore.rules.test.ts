@@ -245,6 +245,16 @@ describe('live duels', () => {
     await assertFails(setDoc(doc(db(), 'duel_players', `${c}_${owner}`), entry({ pid: owner, ...patch })));
   });
 
+  it('the stake can change in the lobby but not once the run has begun', async () => {
+    const r = doc(db(), 'duel_players', `${code}_G${'0'.repeat(14)}K`);
+    const mine = (patch: Record<string, unknown>) => entry({ pid: `G${'0'.repeat(14)}K`, ...patch });
+    await assertSucceeds(setDoc(r, mine({ stake: 0 })));
+    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'ready' })));
+    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'playing', level: 2, score: 100 })));
+    await assertFails(setDoc(r, mine({ stake: 0, state: 'playing', level: 2, score: 100 })));
+    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'done', level: 3, score: 300, time: 60 })));
+  });
+
   it('a document id that does not match is refused', async () => {
     await assertFails(setDoc(doc(db(), 'duel_players', 'whatever'), entry()));
   });

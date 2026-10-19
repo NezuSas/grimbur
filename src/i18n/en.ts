@@ -1086,6 +1086,7 @@ export const en = {
   'friends.notPlayed': "Not played yet",
   'challenge.openHint': "Same cave for everyone, played whenever each one wants.",
   'duel.players': "Players {n}/{max}",
+  'duel.waitingHost': "Waiting for whoever created the duel to join…",
   'duel.underway': "This duel has already started.",
   'cover.friends': "Friends",
   'duel.rematch': "Rematch",

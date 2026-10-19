@@ -43,9 +43,9 @@ export async function submitDailyScore(result: DailyResult, name: string): Promi
     week,
     pid,
     name: checked.name,
-    level: Math.round(result.level),
-    score: Math.round(result.score),
-    coins: Math.round(result.coins),
+    level: Math.min(10, Math.max(1, Math.round(result.level))),
+    score: Math.max(0, Math.round(result.score)),
+    coins: Math.max(0, Math.round(result.coins)),
     characterIndex: result.characterIndex,
     time: Math.max(1, Math.round(result.time)),
   };
