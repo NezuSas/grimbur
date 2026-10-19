@@ -84,6 +84,8 @@ type Props = {
   /** Opens the Forge (shown when the run earned embers). */
   onForge?: () => void;
   onRetry: () => void;
+  /** A different name for the main button (a duel offers a rematch). */
+  retryLabel?: string;
   onMainMenu: () => void;
 };
 
@@ -126,6 +128,7 @@ const GameOverOverlay = ({
   onShare,
   onForge,
   onRetry,
+  retryLabel,
   onMainMenu,
 }: Props) => {
   const { t, plural } = useT();
@@ -463,11 +466,11 @@ const GameOverOverlay = ({
         onPress={onRetry}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={t('over.retry')}
+        accessibilityLabel={retryLabel ?? t('over.retry')}
       >
         <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
         <Text style={[styles.retryText, victory && { color: '#000' }, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-          {t('over.retry').toLocaleUpperCase()}
+          {(retryLabel ?? t('over.retry')).toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
       )}

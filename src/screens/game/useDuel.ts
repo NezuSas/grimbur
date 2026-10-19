@@ -6,6 +6,9 @@ import type { RivalStatus, Standing } from "../../core/duel/duel";
 import type { GameState } from "../../core/engine/types";
 import { publishDuelState, watchRoom, type Room } from "../../services/duel";
 import { creditEmbersFor } from "../../services/localStats";
+import { haptic, NotificationFeedbackType } from "../../shared/haptics";
+import { recordOf } from "../../core/duel/history";
+import { saveDuelRecord } from "../../services/duelHistory";
 import { getPlayerId } from "../../services/playerProfile";
 
 type Params = {
@@ -138,6 +141,20 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
       )
     : null;
 
+  // A rival who goes down a floor or finishes is felt in the hand (never more than the change itself).
+  const seen = useRef<Record<string, { level: number; done: boolean }>>({});
+  useEffect(() => {
+    if (!code) return;
+    for (const r of rivals) {
+      const key = r.name;
+      const before = seen.current[key];
+      const done = r.status === "done";
+      if (before && r.level > before.level) haptic.impact();
+      if (before && done && !before.done) haptic.notify(NotificationFeedbackType.Warning);
+      seen.current[key] = { level: r.level, done };
+    }
+  }, [code, rivals.map(r => `${r.name}:${r.level}:${r.status}`).join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // The pot goes to the winner once; a tie gives every stake back. A code is paid only once on this phone, however often the screen is opened.
   const standingState = standing?.decided ? standing.state : null;
   const matching = started.filter(r => r.stake === stake).length + 1;
@@ -155,6 +172,14 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
       }
     })();
   }, [code, stake, standingState, matching]);
+
+  // The finished duel goes into the history (once: the same code replaces itself).
+  useEffect(() => {
+    if (!code || !standing || !standing.decided) return;
+    const amount = standing.state === "won" ? prizeOf(stake, matching) : 0;
+    const record = recordOf(code, standing, stake, amount, Date.now());
+    if (record) void saveDuelRecord(record);
+  }, [code, standing?.state, standing?.decided, stake, matching]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { active: !!code, rivals, standing, stake, prize };
 }

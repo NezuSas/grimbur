@@ -53,6 +53,7 @@ type Props = {
     onUnlock: () => void;
     onForge: () => void;
     onRetry: () => void;
+    retryLabel?: string;
     onMainMenu: () => void;
   };
   revive: { visible: boolean; price: number; embers: number; used: number; busy: boolean; onRevive: () => void; onDecline: () => void };
@@ -131,6 +132,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         onUnlock={gameOver.onUnlock}
         onForge={gameOver.onForge}
         onRetry={gameOver.onRetry}
+        retryLabel={gameOver.retryLabel}
         onMainMenu={gameOver.onMainMenu}
       />
 
