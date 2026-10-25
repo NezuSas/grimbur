@@ -13,6 +13,7 @@ import { GAME_CONFIG } from "../config/gameConfig";
 import { analytics } from "../services/analytics";
 import { buyFullGame, getPurchaseProvider, loadProduct, monetizationConfig, restorePurchases, type ProductInfo } from "../services/entitlements";
 import { useEntitlementsStore } from "../state/entitlements/store";
+import { isReal } from "../config/isReal";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
 import { useT } from "../i18n/useT";
@@ -265,19 +266,25 @@ export default function PaywallScreen({ navigation, route }: Props) {
               {owned ? success : buy}
             </View>
 
-            <View style={styles.links} accessibilityLabel={t("a11y.paywallLinks")}>
-              <TouchableOpacity style={styles.link} onPress={() => open(cfg.termsUrl)} accessibilityRole="link" accessibilityLabel={t("paywall.terms")}>
-                <Text style={styles.linkText} maxFontSizeMultiplier={1.2}>
-                  {t("paywall.terms")}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.linkDot}>·</Text>
-              <TouchableOpacity style={styles.link} onPress={() => open(cfg.privacyUrl)} accessibilityRole="link" accessibilityLabel={t("paywall.privacy")}>
-                <Text style={styles.linkText} maxFontSizeMultiplier={1.2}>
-                  {t("paywall.privacy")}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {isReal(cfg.termsUrl) || isReal(cfg.privacyUrl) ? (
+              <View style={styles.links} accessibilityLabel={t("a11y.paywallLinks")}>
+                {isReal(cfg.termsUrl) ? (
+                  <TouchableOpacity style={styles.link} onPress={() => open(cfg.termsUrl)} accessibilityRole="link" accessibilityLabel={t("paywall.terms")}>
+                    <Text style={styles.linkText} maxFontSizeMultiplier={1.2}>
+                      {t("paywall.terms")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+                {isReal(cfg.termsUrl) && isReal(cfg.privacyUrl) ? <Text style={styles.linkDot}>·</Text> : null}
+                {isReal(cfg.privacyUrl) ? (
+                  <TouchableOpacity style={styles.link} onPress={() => open(cfg.privacyUrl)} accessibilityRole="link" accessibilityLabel={t("paywall.privacy")}>
+                    <Text style={styles.linkText} maxFontSizeMultiplier={1.2}>
+                      {t("paywall.privacy")}
+                    </Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
           </View>
         </ScrollView>
       </SafeAreaView>

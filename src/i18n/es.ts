@@ -1080,6 +1080,7 @@ export const es: Record<TranslationKey, string> = {
   'duel.confirmButton': "Sí, arriesgar",
   'duel.stakeHint': "Cada jugador pone las mismas brasas en el bote; el ganador se lo lleva, menos el {fee}% que se queda el juego.",
   'duel.stakeRoom': "Apuesta: {n} brasas cada uno",
+  'duel.stakeLocked': "Las apuestas de brasas necesitan el juego completo.",
   'duel.stakeShort': "Necesitas {n} brasas para jugar este duelo.",
   'friends.tabCreate': "Crear",
   'friends.tabJoin': "Unirme",

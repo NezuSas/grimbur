@@ -33,6 +33,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useT } from "../i18n/useT";
 import { heroText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
+import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { VICTORY_EMBERS_PER_DEPTH, metaEffects } from "../core/stats/forge";
 import { formatChallengeCode } from "../core/challenge/code";
@@ -61,6 +62,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const lastHero = useSettingsStore(s => s.lastHero);
   const setLastHero = useSettingsStore(s => s.setLastHero);
+  const { modeLocked } = useEntitlements();
   const calm = useSettingsStore(s => s.reduceFlash);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   // Until the saved stats arrive, every hero but the first looks locked and the depth and Forge bonuses are unknown.
@@ -170,10 +172,15 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: metaEffects(stats.forge) });
         return;
       }
+      if (modeLocked(mode)) {
+        // Endless behind the unlock: however this screen was reached, a locked mode leads to the paywall, never to a run.
+        navigation.navigate("PaywallScreen", { source: "endless" });
+        return;
+      }
       navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
-    [navigation, mode, challenge, duelCode, tutorialSeen, depth, stats, statsLoaded, setLastHero],
+    [navigation, mode, challenge, duelCode, tutorialSeen, depth, stats, statsLoaded, setLastHero, modeLocked],
   );
 
   // Tapping an owned outfit wears it at once (buying and browsing the rest happen in the collection screen).

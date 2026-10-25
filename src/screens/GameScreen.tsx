@@ -72,6 +72,7 @@ import ShareCard from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
 import { rememberChallenge } from "../services/challenges";
+import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
@@ -84,6 +85,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const { controlPanelWidth, hudHeight, splitAttack } = useGameLayout();
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const reduceFlash = useSettingsStore(s => s.reduceFlash);
+  const { modeLocked } = useEntitlements();
 
   const rawIndex = route.params?.characterIndex ?? 0;
   const characterIndex = Math.min(Math.max(Math.trunc(rawIndex), 0), characters.length - 1);
@@ -334,9 +336,14 @@ export default function GameScreen({ navigation, route }: Props) {
         navigation.popTo("CollectionScreen", { hero: detail.hero, skin: detail.skin as SkinId });
         return;
       }
+      // Endless is part of the paid full game: the card may offer it, but a locked player goes to the paywall, not the mode.
+      if (kind === "endless" && modeLocked("endless")) {
+        navigation.popTo("PaywallScreen", { source: "endless" });
+        return;
+      }
       navigation.popTo("CharactersScreen", { mode: kind === "endless" ? "endless" : "expedition" });
     },
-    [navigation, recordCurrentRun],
+    [navigation, recordCurrentRun, modeLocked],
   );
 
   const relicPicked = useRef(false);
