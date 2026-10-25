@@ -116,18 +116,18 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
 
               <View style={styles.starsContainer} accessible accessibilityLabel={accessibilityStars}>
                 <Animated.View style={{ transform: [{ scale: star1 }] }}>
-                  <Ionicons name="star" size={starSize} color="#FFD700" />
+                  <Ionicons name="star" size={starSize} color="#FFD54F" />
                 </Animated.View>
                 <Animated.View style={{ transform: [{ scale: star2 }] }}>
                   <Ionicons
                     name={starsEarned >= 2 ? "star" : "star-outline"}
                     size={starSize * 1.3}
-                    color={starsEarned >= 2 ? "#FFD700" : "#777"}
+                    color={starsEarned >= 2 ? "#FFD54F" : "#777"}
                     style={{ marginHorizontal: 10 }}
                   />
                 </Animated.View>
                 <Animated.View style={{ transform: [{ scale: star3 }] }}>
-                  <Ionicons name={starsEarned >= 3 ? "star" : "star-outline"} size={starSize} color={starsEarned >= 3 ? "#FFD700" : "#777"} />
+                  <Ionicons name={starsEarned >= 3 ? "star" : "star-outline"} size={starSize} color={starsEarned >= 3 ? "#FFD54F" : "#777"} />
                 </Animated.View>
               </View>
 

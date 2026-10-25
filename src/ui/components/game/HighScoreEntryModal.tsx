@@ -107,7 +107,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
           setError(null);
         }}
         maxLength={20}
-        selectionColor="#FFD700"
+        selectionColor="#FFD54F"
         returnKeyType="done"
         onSubmitEditing={submit}
         editable={!saving}
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   summary: { alignItems: 'center', gap: 4, flex: 1 },
   form: { gap: 8, flex: 1.2, width: '100%' },
   badge: { color: '#fff', fontSize: 18, fontWeight: '900' },
-  title: { color: '#FFD700', fontWeight: '900', fontSize: 17, letterSpacing: 2, textAlign: 'center' },
+  title: { color: '#FFD54F', fontWeight: '900', fontSize: 17, letterSpacing: 2, textAlign: 'center' },
   score: { color: '#fff', fontWeight: '900', fontSize: 22 },
   subtitle: { color: '#b5b5b5', fontSize: 12, letterSpacing: 0.5, textAlign: 'center' },
   input: {

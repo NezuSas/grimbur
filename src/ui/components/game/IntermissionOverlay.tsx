@@ -188,9 +188,9 @@ const IntermissionOverlay = ({
                   accessibilityRole="radio"
                   accessibilityState={{ selected: on }}
                   accessibilityLabel={`${name}. ${rule}`}
-                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD700" : "#4a4560", backgroundColor: on ? "rgba(255,215,0,0.14)" : "#1b1530", shadowColor: "#FFD700", shadowOpacity: on ? 0.5 : 0, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: on ? 8 : 0 }]}
+                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD54F" : "#4a4560", backgroundColor: on ? "rgba(255,215,0,0.14)" : "#1b1530", shadowColor: "#FFD54F", shadowOpacity: on ? 0.5 : 0, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: on ? 8 : 0 }]}
                 >
-                  <Ionicons name={on ? "radio-button-on" : "radio-button-off"} size={18} color={on ? "#FFD700" : "#8d86a8"} />
+                  <Ionicons name={on ? "radio-button-on" : "radio-button-off"} size={18} color={on ? "#FFD54F" : "#8d86a8"} />
                   <View style={styles.doorText}>
                     <Text style={styles.doorName} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                       {name}
