@@ -169,6 +169,21 @@ Usar una cuenta de **tester de licencia** de Play Console (no se cobra) con la p
 - [ ] Android 13+: no aparece aviso de "la app leyó el portapapeles" salvo cuando el usuario pulsa Restaurar.
 - [ ] Reseña: la ventana aparece tras un momento bueno (victoria/récord), solo en la portada, nunca en la primera partida ni con menos de 3 partidas jugadas, con al menos 60 días entre peticiones, y cerrar la ventana no bloquea nada.
 
+## 12b. Amigos: duelos, retos, apuestas y nube (necesita 2 dispositivos con internet)
+
+- [ ] Reto con código: crear en el dispositivo A, escribir el código a mano en B (probar con minúsculas y guion). Jugar en ambos; la cueva es idéntica piso a piso. El resultado de cada uno aparece en la clasificación del código y en "Tus retos" con su mejor puntaje.
+- [ ] Duelo 1v1 sin apuesta: sala, "Estoy listo" en ambos, cuenta atrás casi simultánea, panel del rival se actualiza en partida (color verde/rojo según quién va delante), vibración cuando el rival baja de piso.
+- [ ] Derrota anticipada: morir en el piso 2 mientras el rival ya va por el 4 → la tarjeta dice "Pierdes el duelo" de inmediato, sin esperar a que el rival termine.
+- [ ] Duelo con apuesta (10 o 25): las brasas se cobran al arrancar en ambos; el ganador recibe el bote menos el 10 % (comprobar saldos antes/después); el perdedor no recibe nada; el historial en Amigos muestra el neto correcto.
+- [ ] Empate forzado (ambos mueren en el mismo piso con los mismos puntos es difícil; al menos verificar que un empate 1v1 devuelve la apuesta).
+- [ ] Revancha: al terminar, ambos pulsan "Revancha" → caen en la MISMA sala nueva, con la misma apuesta, sin pasarse código.
+- [ ] Abandono: un jugador cierra la app a mitad del duelo → a los ~30 s el otro lo ve "Desconectado"; a los ~2 min el duelo se da por decidido.
+- [ ] Unirse tarde: con el duelo ya empezado, un tercero con el código no puede pulsar "Estoy listo" (mensaje "Este duelo ya empezó").
+- [ ] Apuesta sin saldo: con menos brasas que la apuesta de la sala, "Estoy listo" está bloqueado con el aviso correspondiente.
+- [ ] Copia en la nube: activarla en A (anotar la clave), jugar una partida, restaurar con la clave en B → brasas, Forja, héroes y logros coinciden. Desactivarla borra la copia (restaurar después falla con "No hay ninguna copia").
+- [ ] Clasificaciones diaria y semanal: jugar el reto diario en ambos dispositivos con nombres distintos; ambos aparecen en "Hoy" y "Esta semana", cada uno con su fila marcada "Tú".
+- [ ] Sin internet: abrir Amigos, un reto y un duelo en avión → mensajes de error razonables, sin cuelgues, y el resto del juego sigue funcionando.
+
 ## 13. Idioma
 
 - [ ] Idioma "Automático" en teléfono ES y EN; cambiar a "English"/"Español" en Ajustes actualiza todas las pantallas sin reiniciar.
