@@ -21,6 +21,7 @@ import { getPlayerId, getPlayerName, setPlayerName } from "../services/playerPro
 import { EMPTY_ROOM, publishDuelState, watchRoom, type Room } from "../services/duel";
 import { rememberChallenge } from "../services/challenges";
 import { withUiScale } from "../ui/layout/scaledWindow";
+import { useEntitlements } from "../state/entitlements/useEntitlements";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DuelScreen">;
 
@@ -41,6 +42,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const inLobby = !!challenge && heroIndex !== null;
 
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
+  const { hasFullGame } = useEntitlements();
   useEffect(() => {
     void getLocalStats().then(setStats).catch(() => {});
   }, []);
@@ -89,6 +91,8 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const stakeKnown = creatorStake !== undefined || present.length > 0;
   const myStake = creatorStake ?? adopted;
   const pot = prizeOf(myStake, present.length + 1);
+  // Without the full game a run ends at the free floors: staking embers on it would be throwing them away.
+  const stakeAllowed = myStake === 0 || hasFullGame;
   const canPay = stats.embers >= myStake;
 
   // The latest values for timers and the publisher: the publisher must never overwrite "ready" with an older "lobby".
@@ -276,6 +280,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     {underway && !ready ? <Text style={styles.error}>{t("duel.underway")}</Text> : null}
                     {!stakeKnown ? <Text style={styles.hint}>{t("duel.waitingHost")}</Text> : null}
                     {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake.toLocaleString() })}</Text> : null}
+                    {!stakeAllowed ? <Text style={styles.error}>{t("duel.stakeLocked")}</Text> : null}
                     {problem ? <Text style={styles.error} accessibilityLiveRegion="polite">{problem}</Text> : null}
                     {count !== null ? (
                       <Text style={styles.count} accessibilityLiveRegion="assertive">{count > 0 ? String(count) : t("duel.go").toLocaleUpperCase()}</Text>
@@ -285,7 +290,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                         <PopButton variant="secondary" label={t("duel.notReady")} onPress={onCancelReady} />
                       </>
                     ) : (
-                      <PopButton label={t("duel.ready")} glyph="⚔️" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway} />
+                      <PopButton label={t("duel.ready")} glyph="⚔️" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway || !stakeAllowed} />
                     )}
                   </PopupPanel>
                 </View>
@@ -299,7 +304,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             )
           ) : (
-            <FriendCreateJoin mode="duel" embers={stats.embers} onCreate={(depth, stake) => void goHero(newChallenge(depth).code, stake)} onJoin={raw => void goHero(raw)} />
+            <FriendCreateJoin mode="duel" embers={hasFullGame ? stats.embers : 0} onCreate={(depth, stake) => void goHero(newChallenge(depth).code, stake)} onJoin={raw => void goHero(raw)} />
           )}
         </ScrollView>
       </SafeAreaView>

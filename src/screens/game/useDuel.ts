@@ -167,7 +167,8 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
 
   // The prize goes out once per match: the winner takes the pot minus the fee, players tied for first share the whole pot.
   const standingState = standing?.decided ? standing.state : null;
-  const players = members.size + 1;
+  // Only stakes that were really paid make the pot: a member who never started their run (closed the app at the countdown) paid nothing.
+  const players = 1 + mine.filter(r => r.state === "playing" || r.state === "done").length;
   const tiedFirst = standing?.tiedFirst ?? 1;
   const amount = standingState === "won" ? prizeOf(stake, players) : standingState === "tie" ? tieShare(stake, players, tiedFirst) : 0;
   useEffect(() => {

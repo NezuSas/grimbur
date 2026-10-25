@@ -1076,6 +1076,7 @@ export const en = {
   'duel.confirmButton': "Yes, risk it",
   'duel.stakeHint': "Each player puts the same embers in the pot; the winner takes it all, minus {fee}% the game keeps.",
   'duel.stakeRoom': "Stake: {n} embers each",
+  'duel.stakeLocked': "Ember stakes need the full game.",
   'duel.stakeShort': "You need {n} embers to play this duel.",
   'friends.tabCreate': "Create",
   'friends.tabJoin': "Join",

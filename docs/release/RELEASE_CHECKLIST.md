@@ -24,7 +24,8 @@ Documentos hermanos en `docs/release/`: `LAUNCH_PLAN.md`, `STORE_LISTING.md`, `P
 - [x] Build de producción = AAB (`eas.json`), canal `production`, `autoIncrement` con `appVersionSource: remote`; `targetSdkVersion` 36 (visto en el manifiesto generado).
 - [x] Reglas de Firestore escritas (`firestore.rules`) y validación en cliente del ranking.
 - [x] Fachada de analítica (`src/services/analytics.ts`) con 17 eventos (6 de ellos del muro de pago); proveedor real aún NO conectado (ver 3.4).
-- [~] En construcción por otro agente: preparación del muro de pago (`GAME_CONFIG.monetization`, `src/core/entitlements/gating.ts`, apagado por defecto), copia de seguridad por portapapeles (`expo-clipboard`) y petición de reseña (`expo-store-review`). Cuando aterricen, actualizar `PRIVACY_POLICY.md`/`DATA_SAFETY.md` si cambia algo (ya están redactados contemplándolos).
+- [x] Muro de pago (`PaywallScreen`, `gating.ts`, apagado por defecto), copia de seguridad por portapapeles y por nube (clave de recuperación), y petición de reseña (`storeReview.ts`): hechos y con pruebas. `PRIVACY_POLICY.md`/`DATA_SAFETY.md` actualizados.
+- [x] Social (2026-10-19): hub Amigos, retos con código, duelos en vivo 2-4 jugadores con apuestas de brasas (bote −10 %), revancha, historial de duelos, clasificaciones diaria/semanal, aviso del desarrollador y aviso de actualización (`config/live`, `config/app`; ver `OPERATIONS.md`).
 - [x] Configuración de tienda en `app.json`/`eas.json` revisada hoy (ver sección 8).
 
 ## Ruta ordenada hasta producción
@@ -62,7 +63,7 @@ Cada paso depende del anterior salvo que se indique "en paralelo". Las fechas re
 | C2 | **Compra única** ("Juego completo", id `wumpus_full_game`, ~3,99 USD): integrar RevenueCat o `react-native-iap`, botón **Restaurar compras** obligatorio, crear el producto en Play Console, activar `GAME_CONFIG.monetization.enabled`. Guía: `MONETIZATION_SETUP.md`. Gratis: tutorial, pisos 1-3 y reto diario; de pago: resto de la expedición, Wumpus y Sin fin. Sin anuncios. | DEV (otro agente) + OWNER (producto en consola) | 2-4 días |
 | C3 | Copia de seguridad por portapapeles y petición de reseña: probar en dispositivo real (`QA_TEST_PLAN.md` secciones 11 y 12). La reseña se pide tras un buen momento (victoria o récord), nunca al arrancar. | DEV | ya en curso |
 | C4 | Reportar/ocultar nombres del ranking (Apple 1.2; en Play es recomendable): como mínimo, correo de contacto visible en la ficha; ideal: botón "Reportar" en una fila. Obligatorio antes de iOS. | DEV | 1 día |
-| C5 | `package.json` dice `1.0.0` y `app.json` `1.1.0`: unificar (el valor que cuenta para la tienda es `app.json` `version`; el versionCode lo gestiona EAS). | DEV | 5 min |
+| C5 | ~~Versiones~~ HECHO: `package.json` y `app.json` unificados en `1.2.0`. | DEV | hecho |
 | C6 | Congelar `GAME_CONFIG.dev.*` en `false` (`unlockAllHeroes`, `localPurchases`) y `monetization.termsUrl/privacyUrl` con URLs reales. Comprobación final antes de cada AAB. | DEV | 10 min |
 
 ### Fase D. Activos de tienda (Día 3 a 9, en paralelo con C)
@@ -135,7 +136,7 @@ Pendiente / decisiones deliberadas:
 ## 10. Bloqueantes vigentes (resumen)
 
 1. Nombre/marca sin decidir (A1) y identificadores permanentes (A2).
-2. Firebase `mario-s-grid` heredado y reglas de Firestore **sin desplegar** (B1, B2).
+2. ~~Firebase~~ HECHO: proyecto propio `nezu-games` con reglas desplegadas y probadas (B1, B2). Pendiente solo re-desplegar tras el último cambio (apuesta bloqueada en juego).
 3. Sin proveedor de analítica real: sin él no hay métricas de las puertas D1/D7 salvo los informes de Play (C1).
 4. Las 8 capturas (`docs/release/store/screenshots/`), el gráfico de funciones y el icono 512 ya están en `docs/release/store/`. Antes de subirlas, vuelve a generarlas si el juego cambió y, si quieres, hazlas también en inglés (ver el README de esa carpeta).
 5. Procedencia del arte sin documentar y dos WAV sospechosos dentro de `assets/` (D3).
