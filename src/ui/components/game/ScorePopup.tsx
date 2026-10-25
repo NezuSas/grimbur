@@ -6,13 +6,13 @@ import { useT } from '../../../i18n/useT';
 export type PopupType = 'coin' | 'kill' | 'trap' | 'shield' | 'ammo' | 'boss' | 'streak';
 
 const POPUP_STYLE: Record<PopupType, { color: string; label: (points: number, shieldText: string) => string }> = {
-  coin:   { color: '#FFD700', label: p => `💎 +${p}` },
+  coin:   { color: '#FFD54F', label: p => `💎 +${p}` },
   kill:   { color: '#FF3B30', label: p => `💀 +${p}` },
   boss:   { color: '#FF1744', label: p => `👹 +${p}` },
   trap:   { color: '#FF9800', label: p => `⚠️ ${p}` },
   shield: { color: '#4FC3F7', label: (_p, shieldText) => `🛡️ ${shieldText}` },
   ammo:   { color: '#FF9800', label: p => `🏹 +${p}` },
-  streak: { color: '#FFD700', label: () => '' },
+  streak: { color: '#FFD54F', label: () => '' },
 };
 
 /** Width of the box a popup centres itself in, around its anchor. */

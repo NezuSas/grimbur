@@ -53,7 +53,7 @@ const CoverButton: React.FC<Props> = memo(
       ? ["#333", "#111"] // Obsidian Stone
       : ["#1a2a3a", "#0a1a2a"]; // Temple Night Blue
 
-    const borderColor = variant === "primary" ? "#FFD700" : "#4fc3f7";
+    const borderColor = variant === "primary" ? "#FFD54F" : "#4fc3f7";
 
     return (
       <View style={styles.wrapper}>
@@ -81,7 +81,7 @@ const CoverButton: React.FC<Props> = memo(
               <Text
                 style={[
                   styles.text,
-                  { fontSize: compact ? 12 : Math.max(14, fontSize(20)), color: variant === "primary" ? "#FFD700" : "#fff" },
+                  { fontSize: compact ? 12 : Math.max(14, fontSize(20)), color: variant === "primary" ? "#FFD54F" : "#fff" },
                   disabled && styles.textDisabled,
                   textStyle,
                 ]}

@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   levelText: {
-    color: "#FFD700",
+    color: "#FFD54F",
     fontWeight: "900",
   },
 });
