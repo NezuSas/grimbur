@@ -16,7 +16,7 @@
 
 # English
 
-**Wumpus Adventures: Privacy Policy**
+**Grimbur: Privacy Policy**
 
 **Effective date:** TODO(owner): date of publication
 **Developer / data controller:** TODO(owner): your full name or company name, Ecuador
@@ -24,7 +24,7 @@
 
 ## 1. What this app is
 
-Wumpus Adventures is a single-player puzzle game for Android (and iOS where available). It has **no accounts**, **no advertising** and does not ask for your real name, email, phone number, contacts, photos, camera, microphone or location. It does not use App Tracking Transparency or an advertising ID.
+Grimbur is a single-player puzzle game for Android (and iOS where available). It has **no accounts**, **no advertising** and does not ask for your real name, email, phone number, contacts, photos, camera, microphone or location. It does not use App Tracking Transparency or an advertising ID.
 
 ## 2. Data we process and why
 
@@ -81,7 +81,7 @@ We will publish changes on this page and update the effective date. If a change 
 
 # Español
 
-**Wumpus Adventures: Política de privacidad**
+**Grimbur: Política de privacidad**
 
 **Fecha de vigencia:** TODO(owner): fecha de publicación
 **Titular / responsable del tratamiento:** TODO(owner): tu nombre completo o razón social, Ecuador
@@ -89,7 +89,7 @@ We will publish changes on this page and update the effective date. If a change 
 
 ## 1. Qué es esta aplicación
 
-Wumpus Adventures es un juego de puzles para un jugador en Android (y iOS cuando esté disponible). **No tiene cuentas**, **no tiene publicidad** y no pide tu nombre real, correo, teléfono, contactos, fotos, cámara, micrófono ni ubicación. No usa la transparencia de seguimiento de Apple ni identificador publicitario.
+Grimbur es un juego de puzles para un jugador en Android (y iOS cuando esté disponible). **No tiene cuentas**, **no tiene publicidad** y no pide tu nombre real, correo, teléfono, contactos, fotos, cámara, micrófono ni ubicación. No usa la transparencia de seguimiento de Apple ni identificador publicitario.
 
 ## 2. Datos que tratamos y para qué
 

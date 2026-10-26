@@ -1,5 +1,9 @@
 # Nombre comercial: candidatos y qué implica el cambio
 
+**DECIDIDO 2026-10-25: el juego y el monstruo se llaman Grimbur** (título de tienda: `Grimbur: Cave of Clues` /
+`Grimbur: cueva de pistas`). Renombre ejecutado en app, textos, ficha y package id (`com.nezu.grimbur`).
+Pendiente del dueño: búsqueda de marca (A1, última fila de este documento).
+
 Estado 2026-10-25. Decisión del dueño (checklist A1). "Wumpus" viene de *Hunt the Wumpus* (1973) y es
 la mascota de Discord: funciona como homenaje, pero no se puede poseer como marca y compite mal en búsquedas.
 
