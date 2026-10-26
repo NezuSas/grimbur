@@ -17,6 +17,7 @@ import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { cancelReminders, remindersSupported, requestReminderPermission, syncReminders } from "../services/reminders";
 import { getLocalStats , resetLocalStats } from "../services/localStats";
+import { getPlayerName, setPlayerName } from "../services/playerProfile";
 import { emitSound } from "../audio/audioEventBus";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
 import { decodeBackup, summarize } from "../core/stats/backup";
@@ -116,6 +117,12 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         setDeleteStep(0); // it did not work: never tell the player their data is gone when it is not
         return;
       }
+      // The cloud copy survives under its key, but this device disconnects from it: otherwise the next
+      // background sync would overwrite the copy with the freshly emptied progress.
+      if (cloud.key) {
+        await disableCloud().catch(() => {});
+        setCloud({ key: null, lastSaved: null });
+      }
       useSettingsStore.getState().setAchievementsSeen(0);
       useSettingsStore.getState().setRemindersEnabled(false);
       void cancelReminders(); // a pending "keep your streak" reminder would refer to progress that no longer exists
@@ -123,6 +130,28 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
   type Notice = { ok: boolean; text: string };
+  // ── Public profile: the name shown on boards and duels ─────────────────────────────────────────────────
+  const [playerName, setPlayerNameState] = React.useState<string | null>(null);
+  const [nameOpen, setNameOpen] = React.useState(false);
+  const [nameText, setNameText] = React.useState("");
+  const [nameNotice, setNameNotice] = React.useState<Notice | null>(null);
+  React.useEffect(() => {
+    void getPlayerName().then(saved => {
+      setPlayerNameState(saved);
+      setNameText(saved ?? "");
+    });
+  }, []);
+  const onSaveName = async () => {
+    const saved = await setPlayerName(nameText.trim());
+    if (saved) {
+      setPlayerNameState(saved);
+      setNameText(saved);
+      setNameOpen(false);
+      setNameNotice({ ok: true, text: t("profile.nameSaved", { name: saved }) });
+    } else {
+      setNameNotice({ ok: false, text: t("profile.nameBad") });
+    }
+  };
   const [backupNotice, setBackupNotice] = React.useState<Notice | null>(null);
   const [restoreOpen, setRestoreOpen] = React.useState(false);
   const [codeText, setCodeText] = React.useState("");
@@ -365,6 +394,43 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const dataPane = (
     <>
+      <SettingCard title={t("profile.title")}>
+        <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#FFD54F">
+          <RoundAction icon={nameOpen ? "chevron-up" : "pencil"} label={t("profile.name")} onPress={() => setNameOpen(open => !open)} />
+        </SettingRow>
+        {nameOpen ? (
+          <View style={styles.restorePanel}>
+            <TextInput
+              value={nameText}
+              onChangeText={text => {
+                setNameText(text);
+                setNameNotice(null);
+              }}
+              placeholder={t("profile.namePlaceholder")}
+              placeholderTextColor="#777"
+              style={styles.nameInput}
+              maxLength={20}
+              autoCapitalize="none"
+              autoCorrect={false}
+              spellCheck={false}
+              accessibilityLabel={t("profile.name")}
+            />
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={[styles.pill, styles.pillGold]} onPress={() => void onSaveName()} accessibilityRole="button">
+                <Text style={styles.pillGoldText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                  {t("profile.save").toLocaleUpperCase()}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : null}
+        {nameNotice ? (
+          <Text style={[styles.notice, nameNotice.ok ? styles.noticeOk : styles.noticeBad]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
+            {nameNotice.text}
+          </Text>
+        ) : null}
+      </SettingCard>
+
       <SettingCard title={t("settings.group.cloud")}>
         <SettingRow label={t("cloud.toggle")} hint={t("cloud.hint")} icon="cloud-outline" tint="#81D4FA">
           <ToggleSwitch value={!!cloud.key} onValueChange={v => void onToggleCloud(v)} accessibilityLabel={t("cloud.toggle")} />
@@ -491,14 +557,22 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         ) : null}
       </SettingCard>
 
-      <SettingCard title={t("settings.group.support")}>
-        <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline" tint="#B0BEC5">
-          <RoundAction icon="share-outline" label={t("settings.audioLog")} onPress={() => Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {})} />
-        </SettingRow>
-      </SettingCard>
+      {/* A debugging tool, not a player setting: only development builds show it. */}
+      {__DEV__ ? (
+        <SettingCard title={t("settings.group.support")}>
+          <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline" tint="#B0BEC5">
+            <RoundAction icon="share-outline" label={t("settings.audioLog")} onPress={() => Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {})} />
+          </SettingRow>
+        </SettingCard>
+      ) : null}
 
       <SettingCard title={t("settings.group.danger")}>
-        <SettingRow label={t("settings.delete")} hint={deleteStep === 2 ? t("settings.deleteDone") : t("settings.deleteHint")} icon="trash-outline" tint="#FF8A80">
+        <SettingRow
+          label={t("settings.delete")}
+          hint={deleteStep === 2 ? t("settings.deleteDone") : deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.deleteHint")}
+          icon="trash-outline"
+          tint="#FF8A80"
+        >
           <RoundAction
             icon={deleteStep === 2 ? "checkmark" : "trash"}
             tone={deleteStep === 1 ? "dangerOn" : "danger"}
@@ -613,6 +687,7 @@ const styles = StyleSheet.create({
   noticeBad: { color: "#FF8A80" },
   restorePanel: { gap: 10, paddingBottom: 12 },
   codeInput: { minHeight: 72, maxHeight: 120, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#fff", padding: 10, fontSize: 13, textAlignVertical: "top" },
+  nameInput: { minHeight: MIN_TOUCH, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#fff", paddingHorizontal: 12, fontSize: 15, fontWeight: "700" },
   buttonRow: { flexDirection: "row", gap: 10 },
   pill: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
   pillGold: { backgroundColor: GOLD },

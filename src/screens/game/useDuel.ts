@@ -43,6 +43,8 @@ export interface DuelView {
   stake: number;
   /** The embers this player took from the pot (the whole prize for a win, their share for a tie), once paid. */
   prize: number;
+  /** The last publish failed: the rivals cannot see this player right now. */
+  offline: boolean;
 }
 
 const paidKey = (code: string, matchId: string) => `grimbur.duel.paid.${code}.${matchId}`;
@@ -56,6 +58,7 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
   const [room, setRoom] = useState<Room>(EMPTY_ROOM);
   const [wallNow, setWallNow] = useState(() => Date.now());
   const [prize, setPrize] = useState(0);
+  const [offline, setOffline] = useState(false);
   const lastSent = useRef({ level: 0, score: -1, at: 0 });
   const finished = useRef(false);
   const alive = useRef(true);
@@ -85,7 +88,14 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
         victory: s.isVictory,
         time: state === "done" ? Math.max(1, Math.round(sessionTimeRef.current)) : 0,
         stake,
-      }).catch(e => console.warn("[duel] could not publish:", e));
+      })
+        .then(() => {
+          if (alive.current) setOffline(false);
+        })
+        .catch(e => {
+          console.warn("[duel] could not publish:", e);
+          if (alive.current) setOffline(true);
+        });
     },
     [code, name, stake, characterIndex, stateRef, sessionTimeRef],
   );
@@ -195,5 +205,5 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
     if (record) void saveDuelRecord(record);
   }, [code, standing?.state, standing?.decided, stake, amount]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { active: !!code, rivals, standing, stake, prize };
+  return { active: !!code, rivals, standing, stake, prize, offline };
 }

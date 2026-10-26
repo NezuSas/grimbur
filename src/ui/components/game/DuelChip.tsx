@@ -17,6 +17,16 @@ type Props = {
 const DuelChip = ({ duel, level, score, top }: Props) => {
   const { t } = useT();
   if (!duel.active) return null;
+  if (duel.offline) {
+    return (
+      <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.offline")} accessibilityLiveRegion="polite">
+        <View style={[styles.chip, { borderColor: "#FF8A80AA" }]}>
+          <Ionicons name="cloud-offline" size={14} color="#FF8A80" />
+          <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("duel.chip.offline")}</Text>
+        </View>
+      </View>
+    );
+  }
   if (duel.rivals.length === 0) {
     return (
       <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.waiting")}>

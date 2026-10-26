@@ -7,6 +7,11 @@ import { getPlayerId } from './playerProfile';
 
 /** Live duel: publishes this player's state and listens to the room (see core/duel/duel.ts and firestore.rules). */
 const COLLECTION = 'duel_players';
+/** A write that has not landed in this long counts as failed: offline, setDoc only queues and never answers. */
+const PUBLISH_TIMEOUT_MS = 8000;
+
+const withTimeout = <T,>(work: Promise<T>): Promise<T> =>
+  Promise.race([work, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('[duel] publish timed out')), PUBLISH_TIMEOUT_MS))]);
 
 export interface RoomPlayer extends DuelPlayer {
   /** When the document was last written by the server (ms), or null while the write is pending. */
@@ -39,7 +44,7 @@ export async function publishDuelState(code: string, name: string, patch: { char
   const row: DuelPlayer = { code, pid, name: checked.name, ...patch, level, score: Math.min(level * 20000, Math.max(0, Math.round(patch.score))), time: Math.round(patch.time) };
   const problems = validateDuelPlayer(row);
   if (problems.length > 0) throw new Error(`[duel] invalid state: ${problems.join(', ')}`);
-  const write = () => setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, updatedAt: serverTimestamp() });
+  const write = () => withTimeout(setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, updatedAt: serverTimestamp() }));
   try {
     await write();
   } catch (e) {

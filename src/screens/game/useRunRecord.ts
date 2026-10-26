@@ -9,6 +9,7 @@ import { queueCloudSync } from "../../services/cloudBackup";
 import { getPlayerName, setPlayerName } from "../../services/playerProfile";
 import { submitDailyScore } from "../../services/dailyScores";
 import { rememberChallenge, submitChallengeScore } from "../../services/challenges";
+import { queuePendingSubmit } from "../../services/pendingSubmits";
 import type { GameState } from "../../core/engine/types";
 import type { GameMode } from "../../core/engine/seed";
 import { dailyRunResult, runResultOf } from "./runResult";
@@ -88,18 +89,28 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
     }
   }, [isDaily, dailyDate, challengeCode, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef]);
 
-  /** Sends the daily or challenge result (best effort: a bad connection only means it is not on the board). */
+  /** Sends the daily or challenge result; a failure queues it to be resent the next time the cover opens. */
   const submitDaily = useCallback(
     async (name: string) => {
       const s = stateRef.current;
       const result = { level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current };
       if (challengeCode) {
-        await submitChallengeScore(challengeCode, result, name);
         void rememberChallenge(challengeCode, result.score);
+        try {
+          await submitChallengeScore(challengeCode, result, name);
+        } catch (e) {
+          await queuePendingSubmit({ kind: "challenge", code: challengeCode, result, name }).catch(() => {});
+          throw e;
+        }
         analytics.track("challenge_submitted", { level: s.level, score: s.score });
         return;
       }
-      await submitDailyScore({ day: dailyDate, ...result }, name);
+      try {
+        await submitDailyScore({ day: dailyDate, ...result }, name);
+      } catch (e) {
+        await queuePendingSubmit({ kind: "daily", result: { day: dailyDate, ...result }, name }).catch(() => {});
+        throw e;
+      }
       analytics.track("daily_board_submitted", { level: s.level, score: s.score });
     },
     [dailyDate, challengeCode, characterIndex, sessionTimeRef, stateRef],
@@ -150,7 +161,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       if (isDaily || challengeCode) {
         const saved = await getPlayerName();
         if (cancelled || !mounted.current) return;
-        if (saved) void submitDaily(saved);
+        if (saved) void submitDaily(saved).catch(() => {}); // already queued to be resent from the cover
         else setShowHighScoreEntry(true);
         return;
       }

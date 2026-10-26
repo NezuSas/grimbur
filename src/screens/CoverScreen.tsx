@@ -19,6 +19,7 @@ import { useSettingsStore } from "../state/settings/store";
 import { collectionBadge } from "../core/skins/collection";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { loadSavedRun, SavedRun } from "../services/savedRun";
+import { flushPendingSubmits } from "../services/pendingSubmits";
 
 import { emitSound } from "../audio/audioEventBus";
 
@@ -54,6 +55,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         .then(loaded => {
           setStats(loaded);
           void syncReminders(loaded); // the evening reminder moves on once the daily is played
+          void flushPendingSubmits(); // results that could not reach the boards try again here
           // Let the cover settle before any rating dialog.
           if (active) timer = setTimeout(() => void maybeRequestReview(loaded), 1500);
         })
