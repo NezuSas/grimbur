@@ -17,6 +17,7 @@ export const es: Record<TranslationKey, string> = {
   'common.gems_other': '{count} gemas',
 
   // ── cover ─────────────────────────────────────────────────────────────
+  'cover.subtitle': 'CUEVA DE PISTAS',
   'cover.tagline': 'Desciende. Deduce. Vence al Grimbur.',
   'cover.embers': 'brasas',
   'cover.playBig': 'Jugar',

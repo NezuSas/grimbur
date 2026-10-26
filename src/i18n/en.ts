@@ -16,6 +16,7 @@ export const en = {
   'common.gems_other': '{count} gems',
 
   // ── cover ─────────────────────────────────────────────────────────────
+  'cover.subtitle': 'CAVE OF CLUES',
   'cover.tagline': 'Descend. Deduce. Slay the Grimbur.',
   'cover.embers': 'embers',
   'cover.playBig': 'Play',
