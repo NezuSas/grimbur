@@ -15,7 +15,7 @@ FONTS = os.path.join(ROOT, 'node_modules', '@expo-google-fonts', 'fredoka')
 
 W, H = 1024, 500
 TITLE = 'GRIMBUR'
-SUBTITLE = 'ADVENTURES'
+SUBTITLE = 'CAVE OF CLUES'
 TAGLINE = 'Descend. Deduce. Slay the Grimbur.'
 GOLD = (255, 213, 79)
 OUTLINE = (20, 12, 40)

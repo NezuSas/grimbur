@@ -14,6 +14,12 @@ Están en el orden recomendado para la ficha: las dos primeras son las que se ve
 | 7 | `07_progress.png` | Mi progreso | Track your progress / Sigue tu progreso |
 | 8 | `08_achievements.png` | Logros | 100+ achievements / Más de 100 logros |
 
-Para la ficha en inglés, vuelve a generarlas con el idioma en inglés: `& .\scripts\screenshots.ps1 -Screens ... -Lang en -Sizes 1280x720 -Scale 1.5`
-(ver `scripts/screenshots.ps1`; los parámetros de cada pantalla están en el historial de este commit y en `docs/release/QA_TEST_PLAN.md`).
+Para la ficha en inglés, vuelve a generarlas con el idioma en inglés: `& .\scripts\screenshots.ps1 -Screens ... -Lang en -Sizes 1280x720 -Scale 1.5`.
 Regenerarlas después de cambiar el aspecto del juego, para que no queden desactualizadas.
+
+Parámetros exactos (preset `veteran`, `-Sizes 1280x720 -Scale 1.5`):
+
+- 01: `-Screens LessonScreen -Params '{"lesson":"deduce","devHideBanner":true,"devBiome":"magma","devEntities":[{"index":4,"type":"boss","hp":3},{"index":9,"type":"enemy"},{"index":20,"type":"enemy"},{"index":16,"type":"stalker"},{"index":13,"type":"sleeper"},{"index":7,"type":"pit"},{"index":11,"type":"coin"},{"index":18,"type":"coin"},{"index":22,"type":"shield"}]}'`
+- 02: `-Screens LessonScreen -Params '{"lesson":"deduce","devHideBanner":true,"devBiome":"crystal","devEntities":[{"index":10,"type":"enemy"},{"index":21,"type":"enemy"},{"index":8,"type":"pit"},{"index":5,"type":"coin"},{"index":17,"type":"coin"},{"index":12,"type":"coin"}]}'`
+- 03: `-Screens CoverScreen` · 04/05: `-Screens CharactersScreen -Params '{"devHero":4}'` (Mira) / `'{"devHero":5}'` (Bram)
+- 06/07/08: `-Screens ForgeScreen,ProgressScreen,AchievementsScreen`
