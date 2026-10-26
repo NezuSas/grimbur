@@ -182,6 +182,34 @@ describe('daily and weekly scores', () => {
   });
 });
 
+describe('crash reports', () => {
+  const report = (patch: Record<string, unknown> = {}) => ({
+    message: 'TypeError: x is not a function',
+    stack: 'at GameScreen...',
+    context: 'fatal',
+    version: '1.2.0',
+    platform: 'android 14',
+    at: Date.now(),
+    receivedAt: serverTimestamp(),
+    ...patch,
+  });
+
+  it('a signed-in app may add one; nobody reads, edits or lists them', async () => {
+    await assertSucceeds(addDoc(collection(authed(UID), 'crashes'), report()));
+    await assertFails(addDoc(collection(db(), 'crashes'), report()));
+    await assertFails(getDocs(collection(authed(UID), 'crashes')));
+  });
+
+  it.each([
+    ['an empty message', { message: '' }],
+    ['a message beyond 4000 characters', { message: 'x'.repeat(4001) }],
+    ['an extra field', { admin: true }],
+    ['a made-up server time', { receivedAt: new Date('2020-01-01') }],
+  ])('rejects %s', async (_label, patch) => {
+    await assertFails(addDoc(collection(authed(UID), 'crashes'), report(patch)));
+  });
+});
+
 describe('the developer notice', () => {
   it('is readable by everyone and writable by nobody', async () => {
     await env.withSecurityRulesDisabled(async ctx => {

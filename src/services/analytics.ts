@@ -97,6 +97,17 @@ export function installGlobalErrorHandler(): void {
   const previous = errorUtils.getGlobalHandler();
   errorUtils.setGlobalHandler((error, isFatal) => {
     analytics.recordError(error, isFatal ? 'fatal' : 'non-fatal');
+    if (isFatal) {
+      // A fatal error kills the app: write it to disk now; the next start sends it (services/crashReports.ts).
+      try {
+        // Required lazily: this module loads before everything else and must not drag Firebase in at import time.
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { stashCrash } = require('./crashReports') as typeof import('./crashReports');
+        stashCrash(error, 'fatal');
+      } catch {
+        // Never throw from the error path.
+      }
+    }
     previous(error, isFatal);
   });
 }
