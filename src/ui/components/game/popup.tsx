@@ -3,6 +3,8 @@ import { ActivityIndicator, Animated, Easing, Pressable, StyleProp, StyleSheet, 
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
+import GlyphIcon from "../GlyphIcon";
+import type { GlyphName } from "../../glyphArt";
 import { MIN_TOUCH } from "../../layout/useGameLayout";
 import { emitSound } from "../../../audio/audioEventBus";
 
@@ -75,13 +77,18 @@ export const PopupTitle = ({ tint, title, icon, glyph, subtitle }: TitleProps) =
 );
 
 type ButtonProps = {
-  label: string;
+  /** Text, or a node when part of the label is an inline image (pass accessibilityLabel then). */
+  label: string | React.ReactElement;
   onPress: () => void;
   variant?: "primary" | "secondary" | "danger";
   disabled?: boolean;
   busy?: boolean;
-  /** A short leading glyph (an emoji). */
+  /** A short leading text glyph. Prefer `icon` or `art`: emoji render differently on every phone. */
   glyph?: string;
+  /** A leading Ionicons icon, drawn in the button's text colour. */
+  icon?: React.ComponentProps<typeof Ionicons>["name"];
+  /** A leading painted glyph (the game's own art), for ideas Ionicons has no symbol for. */
+  art?: GlyphName;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
   /** Paints a primary button in this colour (a hero's colour) instead of gold. */
@@ -105,7 +112,7 @@ export const shade = (hex: string, amount: number): string => {
   return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
 };
 
-export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, accessibilityLabel, style, tint }: ButtonProps) => {
+export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, icon, art, accessibilityLabel, style, tint }: ButtonProps) => {
   const press = useRef(new Animated.Value(0)).current;
   const c = tint ? { fill: [shade(tint, 0.35), tint] as const, edge: shade(tint, -0.5), text: "#14101F" } : BUTTON_COLORS[variant];
   const to = (v: number) => Animated.timing(press, { toValue: v, duration: 90, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
@@ -119,7 +126,7 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
       onPressOut={() => to(0)}
       disabled={disabled || busy}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityLabel={accessibilityLabel ?? (typeof label === "string" ? label : undefined)}
       accessibilityState={{ disabled: !!disabled, busy: !!busy }}
       style={[{ alignSelf: "stretch", opacity: disabled ? 0.5 : 1 }, style]}
     >
@@ -130,8 +137,10 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
             <ActivityIndicator color={c.text} />
           ) : (
             <Text style={[styles.buttonText, { color: c.text }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
+              {icon ? <Ionicons name={icon} size={15} color={c.text} /> : art ? <GlyphIcon name={art} size={16} /> : null}
+              {icon || art ? "  " : ""}
               {glyph ? `${glyph}  ` : ""}
-              {label.toLocaleUpperCase()}
+              {typeof label === "string" ? label.toLocaleUpperCase() : label}
             </Text>
           )}
         </LinearGradient>

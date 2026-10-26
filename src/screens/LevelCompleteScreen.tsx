@@ -159,7 +159,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
                 ))}
               </View>
 
-              <PopButton label={t("complete.next")} glyph="➜" tint={character.arrowColor} onPress={leave} accessibilityLabel={t("complete.next")} />
+              <PopButton label={t("complete.next")} icon="arrow-forward" tint={character.arrowColor} onPress={leave} accessibilityLabel={t("complete.next")} />
             </View>
           </View>
         </ScrollView>

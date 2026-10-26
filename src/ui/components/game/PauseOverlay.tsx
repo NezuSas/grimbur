@@ -39,7 +39,7 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
         <PopupPanel tint={WARN} width={panelWidth}>
           <PopupTitle tint={WARN} icon="warning" title={t('pause.confirm.title')} subtitle={t('pause.confirm.body')} />
           <PopButton variant="danger" label={confirm === 'restart' ? t('pause.confirm.restart') : t('pause.confirm.menu')} onPress={abandon} />
-          <PopButton label={t('pause.confirm.cancel')} glyph="▶" onPress={() => setConfirm(null)} />
+          <PopButton label={t('pause.confirm.cancel')} icon="play" onPress={() => setConfirm(null)} />
         </PopupPanel>
       </OverlayContainer>
     );
@@ -49,13 +49,13 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
     <OverlayContainer>
       <PopupPanel tint={TINT} width={panelWidth}>
         <PopupTitle tint={TINT} icon="pause" title={t('pause.title')} />
-        <PopButton label={t('pause.resume')} glyph="▶" onPress={onResume} />
+        <PopButton label={t('pause.resume')} icon="play" onPress={onResume} />
         <View style={styles.row}>
-          {canRestart && <PopButton variant="secondary" label={t('pause.restart')} glyph="🔄" onPress={() => setConfirm('restart')} style={styles.half} />}
+          {canRestart && <PopButton variant="secondary" label={t('pause.restart')} icon="refresh" onPress={() => setConfirm('restart')} style={styles.half} />}
           <PopButton
             variant="secondary"
             label={t('pause.menu')}
-            glyph="🏠"
+            icon="home"
             onPress={saveOnExit ? onMainMenu : () => setConfirm('menu')}
             style={styles.half}
           />

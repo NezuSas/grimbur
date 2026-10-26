@@ -143,10 +143,10 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
                     {t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}
                   </Text>
-                  <PopButton label={t("challenge.play")} glyph="▶" onPress={play} />
+                  <PopButton label={t("challenge.play")} icon="play" onPress={play} />
                   <View style={styles.pair}>
-                    <PopButton variant="secondary" label={t("challenge.share")} glyph="📤" onPress={() => void share()} style={styles.half} />
-                    <PopButton variant="secondary" label={copied ? t("challenge.copied") : t("challenge.copy")} glyph="📋" onPress={() => void copy()} style={styles.half} />
+                    <PopButton variant="secondary" label={t("challenge.share")} icon="share-social" onPress={() => void share()} style={styles.half} />
+                    <PopButton variant="secondary" label={copied ? t("challenge.copied") : t("challenge.copy")} icon={copied ? "checkmark" : "copy"} onPress={() => void copy()} style={styles.half} />
                   </View>
                 </PopupPanel>
               </View>

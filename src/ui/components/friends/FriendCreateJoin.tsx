@@ -150,7 +150,8 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
             <PopButton
               variant={mode === "duel" && stake >= CONFIRM_STAKE && confirming ? "danger" : "primary"}
               label={mode === "duel" && stake >= CONFIRM_STAKE && confirming ? t("duel.confirmButton") : t(mode === "duel" ? "duel.createButton" : "challenge.createButton")}
-              glyph={mode === "duel" ? "⚔️" : "✨"}
+              art={mode === "duel" ? "swords" : undefined}
+              icon={mode === "duel" ? undefined : "sparkles"}
               onPress={() => {
                 if (mode === "duel" && stake >= CONFIRM_STAKE && !confirming) {
                   setConfirming(true);
@@ -187,7 +188,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                 {error}
               </Text>
             ) : null}
-            <PopButton label={t(mode === "duel" ? "duel.joinButton" : "challenge.joinButton")} glyph="➜" onPress={join} disabled={typed.trim().length === 0} />
+            <PopButton label={t(mode === "duel" ? "duel.joinButton" : "challenge.joinButton")} icon="arrow-forward" onPress={join} disabled={typed.trim().length === 0} />
           </>
         )}
       </PopupPanel>

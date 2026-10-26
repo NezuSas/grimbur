@@ -213,7 +213,7 @@ const IntermissionOverlay = ({
       )}
 
       <View style={{ marginTop: pad + 2, width: Math.min(320, avail) }}>
-        <PopButton label={nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor })} glyph="➜" onPress={onGo} disabled={!armed} />
+        <PopButton label={nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor })} icon="arrow-forward" onPress={onGo} disabled={!armed} />
       </View>
     </OverlayContainer>
   );
