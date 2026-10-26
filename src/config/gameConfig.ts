@@ -40,6 +40,11 @@ export const GAME_CONFIG = {
     email: 'support@example.com',
   },
 
+  store: {
+    /** The Play listing (live once the app is published; the id is fixed by android.package). */
+    url: 'https://play.google.com/store/apps/details?id=com.nezu.grimbur',
+  },
+
   monetization: {
     enabled: false,
     freeFloors: 3,

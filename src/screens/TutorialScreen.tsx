@@ -54,6 +54,8 @@ export default function TutorialScreen({ navigation, route }: Props) {
   const [stepIndex, setStepIndex] = useState(0);
   const [isAttacking, setIsAttacking] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
+  // Flags work here exactly as in the real game: the mark step teaches them on the deduced vortex tile.
+  const [flags, setFlags] = useState<number[]>([]);
   const attackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const step = TUTORIAL_STEPS[stepIndex];
@@ -86,10 +88,18 @@ export default function TutorialScreen({ navigation, route }: Props) {
     }
   }, [state]);
 
-  // Advance whenever the game state satisfies the current step.
+  // Advance whenever the game state (or a planted flag) satisfies the current step.
   useEffect(() => {
-    setStepIndex(current => advanceTutorial(current, state));
-  }, [state]);
+    setStepIndex(current => advanceTutorial(current, state, flags));
+  }, [state, flags]);
+
+  // Long-press marks a suspect tile, as in the real game (visited tiles hold no secret to mark).
+  const visitedRef = useRef(state.visited);
+  visitedRef.current = state.visited;
+  const toggleFlag = useCallback((index: number) => {
+    if (visitedRef.current.includes(index)) return;
+    setFlags(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]));
+  }, []);
 
   // Dying (walking into the guardian) restarts the lesson from the beginning.
   useEffect(() => {
@@ -108,6 +118,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
         perks: NO_PERKS,
       });
       setStepIndex(0);
+      setFlags([]);
       setShowRetry(false);
       emitSound("GAME_MUSIC_START");
     }, 1400);
@@ -164,6 +175,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
   }, [stepIndex, navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 
   const highlight = step.highlight;
+  const flagSet = React.useMemo(() => new Set(flags), [flags]);
 
   return (
     <ImageBackground
@@ -254,9 +266,12 @@ export default function TutorialScreen({ navigation, route }: Props) {
           playerIndex={state.playerIndex}
           facingDir={state.facingDir}
           characterIndex={characterIndex}
+          skin={route.params?.skin}
           isAttacking={isAttacking}
           shot={shot}
           highlight={highlight}
+          flags={flagSet}
+          onTileLongPress={toggleFlag}
         />
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
           <Controls onMove={move} onAttack={attack} arrows={state.attack} />

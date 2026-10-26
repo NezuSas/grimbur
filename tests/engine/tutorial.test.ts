@@ -5,7 +5,11 @@ import {
   TUTORIAL_BOARD,
   TUTORIAL_CLUE_TILE,
   TUTORIAL_GUARDIAN_INDEX,
+  TUTORIAL_SAFE_CLUE_TILE,
+  TUTORIAL_SHIELD_TILE,
   TUTORIAL_STEPS,
+  TUTORIAL_VORTEX_CLUE_TILE,
+  TUTORIAL_VORTEX_INDEX,
   advanceTutorial,
 } from '../../src/core/tutorial/tutorial';
 import { createState } from '../helpers/state';
@@ -21,6 +25,7 @@ const start = (): GameState =>
 
 const play = (state: GameState, ...actions: GameAction[]) => actions.reduce(gameReducer, state);
 const right: GameAction = { type: 'MOVE', direction: 'RIGHT' };
+const left: GameAction = { type: 'MOVE', direction: 'LEFT' };
 const down: GameAction = { type: 'MOVE', direction: 'DOWN' };
 const shoot: GameAction = { type: 'ATTACK' };
 
@@ -32,21 +37,32 @@ describe('tutorial board', () => {
     expect(TUTORIAL_GUARDIAN_INDEX).toBe(TUTORIAL_CLUE_TILE + 1);
   });
 
+  it('teaches a real deduction: no clue at the scout tile, one vortex clue next to it', () => {
+    const state = start();
+    const scout = getNearbyHazards(TUTORIAL_SAFE_CLUE_TILE, state.rows, state.cols, state.entityMap);
+    expect(scout.pitCount).toBe(0);
+    expect(scout.enemyCount).toBe(0);
+    const compare = getNearbyHazards(TUTORIAL_VORTEX_CLUE_TILE, state.rows, state.cols, state.entityMap);
+    expect(compare.pitCount).toBe(1);
+    // The shield rules out the only other candidate tile, so the vortex is deducible.
+    expect(state.entityMap[TUTORIAL_SHIELD_TILE]?.type).toBe('shield');
+    expect(state.entityMap[TUTORIAL_VORTEX_INDEX]?.type).toBe('pit');
+  });
+
   it('starts on the first step', () => {
     expect(advanceTutorial(0, start())).toBe(0);
   });
 });
 
 describe('tutorial walkthrough with the real reducer', () => {
-  it('follows the intended path: gem -> clue -> shoot -> last gem -> done', () => {
+  it('follows the intended path: gem -> clue -> shoot -> scout -> compare -> shield -> mark -> last gem -> done', () => {
     let state = start();
     let step = 0;
-    const ids: string[] = [TUTORIAL_STEPS[step].id];
+    let flags: number[] = [];
 
     const act = (...actions: GameAction[]) => {
       state = play(state, ...actions);
-      step = advanceTutorial(step, state);
-      ids.push(TUTORIAL_STEPS[step].id);
+      step = advanceTutorial(step, state, flags);
     };
 
     act(right, right); // collects the first gem
@@ -57,9 +73,25 @@ describe('tutorial walkthrough with the real reducer', () => {
     expect(state.isGameOver).toBe(false);
 
     act(shoot); // kills the guardian
+    expect(TUTORIAL_STEPS[step].id).toBe('scout');
+
+    act(down); // the tile with no clue at all
+    expect(state.playerIndex).toBe(TUTORIAL_SAFE_CLUE_TILE);
+    expect(TUTORIAL_STEPS[step].id).toBe('compare');
+
+    act(left); // the tile whose clue shows one vortex
+    expect(state.playerIndex).toBe(TUTORIAL_VORTEX_CLUE_TILE);
+    expect(TUTORIAL_STEPS[step].id).toBe('shield');
+
+    act(left); // takes the shield, ruling that tile out
+    expect(state.shield).toBe(true);
+    expect(TUTORIAL_STEPS[step].id).toBe('mark');
+
+    flags = [TUTORIAL_VORTEX_INDEX]; // the long-press the screen wires up
+    step = advanceTutorial(step, state, flags);
     expect(TUTORIAL_STEPS[step].id).toBe('finish');
 
-    act(down, down); // (1,3) then (2,3): the last gem
+    act(right, right, down); // around the vortex to the last gem
     expect(state.isLevelUp).toBe(true);
     expect(TUTORIAL_STEPS[step].id).toBe('done');
   });
@@ -78,6 +110,13 @@ describe('tutorial walkthrough with the real reducer', () => {
     expect(state.isGameOver).toBe(true); // stepping onto the guardian is lethal, the screen restarts the tutorial
   });
 
+  it('stepping into the tutorial vortex teleports instead of killing', () => {
+    // From the spawn: down, down puts the hero at 12, one step left of the vortex at 14... walk right into it.
+    let state = play(start(), down, down, right, right);
+    expect(state.isGameOver).toBe(false);
+    expect(state.wasTeleported || state.playerIndex !== TUTORIAL_VORTEX_INDEX).toBe(true);
+  });
+
   it('arrows are effectively unlimited', () => {
     let state = start();
     for (let i = 0; i < 20; i++) state = gameReducer(state, shoot);
@@ -86,6 +125,6 @@ describe('tutorial walkthrough with the real reducer', () => {
 
   it('every step has a translation key and the last step never completes by itself', () => {
     expect(TUTORIAL_STEPS.every(s => s.textKey.startsWith('tutorial.'))).toBe(true);
-    expect(TUTORIAL_STEPS[TUTORIAL_STEPS.length - 1].isDone(start())).toBe(false);
+    expect(TUTORIAL_STEPS[TUTORIAL_STEPS.length - 1].isDone(start(), [])).toBe(false);
   });
 });

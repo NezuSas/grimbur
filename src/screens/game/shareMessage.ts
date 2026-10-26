@@ -38,7 +38,7 @@ const resultOf = (run: Run, endless: boolean, t: Texts["t"]) => (endless ? t("sh
 /** The text a player shares after a run: the daily challenge has its own format (date, floors reached, streak). */
 export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): string {
   if (opts.isDaily) {
-    return buildDailyShareText({
+    const text = buildDailyShareText({
       dateKey: opts.dailyDate,
       level: run.level,
       floors: GAME_CONFIG.expedition.floors,
@@ -48,12 +48,14 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
       streakText: opts.streak ? plural("over.streak" as never, opts.streak) : "",
       footer: t("share.daily.footer"),
     });
+    return `${text}\n${GAME_CONFIG.store.url}`;
   }
   const depth = depthLabel(opts.ascension, t);
   const lines = [t("share.title", { hero: opts.heroName, depth: depth ? ` · ${depth}` : "" })];
   if (!opts.endless) lines.push(dailyPips(run.level, GAME_CONFIG.expedition.floors, run.isVictory));
   lines.push(t("share.line", { result: resultOf(run, !!opts.endless, t), score: run.score.toLocaleString(), gems: plural("common.gems" as never, run.totalCoins), time: formatTime(run.time) }));
   lines.push(opts.challengeCode ? t("share.challenge", { code: formatChallengeCode(opts.challengeCode) }) : t("share.invite"));
+  lines.push(GAME_CONFIG.store.url);
   return lines.join("\n");
 }
 
