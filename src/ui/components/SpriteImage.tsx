@@ -7,7 +7,8 @@ import { Animated, Image, ImageProps } from 'react-native';
  *    a flicker when a sprite is swapped (shooting, uncovering a tile);
  *  - `resizeMethod="none"`: the file is decoded once at full size and cached under one key, so the invisible
  *    warm-up at start-up (`ImageWarmup`) really covers every size the sprite is later drawn at.
- * Our sprites are at most 512 px, so keeping them undecimated costs very little memory.
+ * A full-size decode is NOT free (a 512 px sprite holds ~1 MB of RGBA): what keeps memory in check is that
+ * `preloadImages.ts` only warms the art actually on screen in the first minutes, never the outfit catalogue.
  */
 const SpriteImage = React.forwardRef<Image, ImageProps>((props, ref) => (
   <Image fadeDuration={0} resizeMethod="none" {...props} ref={ref} />

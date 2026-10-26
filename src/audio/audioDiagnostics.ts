@@ -11,7 +11,8 @@ export function audioLog(tag: string, message: string): void {
   const line = `+${String(Date.now() - startedAt).padStart(6, ' ')}ms ${tag.padEnd(8)} ${message}`;
   entries.push(line);
   if (entries.length > MAX_ENTRIES) entries.shift();
-  console.log(`[AudioDiag] ${line}`);
+  // Production keeps the in-memory log but stays out of logcat (guarded so node test runs, with no __DEV__, also stay quiet).
+  if (typeof __DEV__ !== 'undefined' && __DEV__) console.log(`[AudioDiag] ${line}`);
 }
 
 /** Time from "play" to the player reporting that it is playing, per sound (the log's way to measure delay). */

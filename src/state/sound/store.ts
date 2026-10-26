@@ -384,12 +384,12 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       audioLog('init', 'start');
 
       const files: [string, any][] = [
-        ["cover", require("../../assets/music/cover.wav")],
-        ["selection", require("../../assets/music/selection.wav")],
-        ["gameplay", require("../../assets/music/gameplay.wav")],
+        ["cover", require("../../assets/music/cover.ogg")],
+        ["selection", require("../../assets/music/selection.ogg")],
+        ["gameplay", require("../../assets/music/gameplay.ogg")],
         ["death", require("../../assets/sfx/death.wav")],
         ["coin", require("../../assets/sfx/coin.wav")],
-        ["victory", require("../../assets/music/victory.wav")],
+        ["victory", require("../../assets/music/victory.ogg")],
         ["move", require("../../assets/sfx/move.wav")],
         ["attack", require("../../assets/sfx/attack.wav")],
         ["monster", require("../../assets/sfx/monster.wav")],
