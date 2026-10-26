@@ -292,7 +292,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                         <PopButton variant="secondary" label={t("duel.notReady")} onPress={onCancelReady} />
                       </>
                     ) : (
-                      <PopButton label={t("duel.ready")} glyph="⚔️" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway || !stakeAllowed} />
+                      <PopButton label={t("duel.ready")} art="swords" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway || !stakeAllowed} />
                     )}
                   </PopupPanel>
                 </View>

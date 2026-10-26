@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, useWindowDimensions } from "react-native";
 import Text from "../Text";
+import EmberIcon from "../EmberIcon";
 import OverlayContainer from "./OverlayContainer";
 import { PopButton, PopLink, PopupPanel, PopupTitle } from "./popup";
 import { useT } from "../../../i18n/useT";
@@ -30,7 +31,19 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, onRevive, onDecline
         <Text style={styles.body} maxFontSizeMultiplier={1.3}>
           {t("revive.body")}
         </Text>
-        <PopButton label={`${t("revive.cta")}  ·  ${price === 0 ? t("revive.free").toLocaleUpperCase() : `🔥 ${price}`}`} glyph="❤️" busy={busy} onPress={onRevive} accessibilityLabel={`${t("revive.cta")}: ${price}`} />
+        <PopButton
+          label={
+            price === 0 ? (
+              `${t("revive.cta")}  ·  ${t("revive.free")}`
+            ) : (
+              <>{`${t("revive.cta").toLocaleUpperCase()}  ·  `}<EmberIcon size={14} /> {price}</>
+            )
+          }
+          icon="heart"
+          busy={busy}
+          onPress={onRevive}
+          accessibilityLabel={`${t("revive.cta")}: ${price}`}
+        />
         <Text style={styles.meta} maxFontSizeMultiplier={1.2}>
           {t("revive.balance", { n: embers.toLocaleString() })}
           {used > 0 ? `  ·  ${t("revive.used", { n: used })}` : ""}
