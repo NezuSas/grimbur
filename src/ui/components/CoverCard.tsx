@@ -9,6 +9,7 @@ import EmberParticles from "./EmberParticles";
 import { useSettingsStore } from "../../state/settings/store";
 import StreakBadge from "./StreakBadge";
 import SpriteImage from "./SpriteImage";
+import { BOSS_FRAMES } from "./BossSprite";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import { haptic } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
@@ -145,6 +146,20 @@ const CoverCard: React.FC<Props> = ({
   const calm = useSettingsStore(st => st.reduceFlash);
   // Tapping the locked endless mode says how to open it instead of starting something else.
   const [lockedHint, setLockedHint] = useState(false);
+  // The Grimbur half-closes its three eyes every few seconds: alive, not a poster.
+  const [blink, setBlink] = useState(false);
+  useEffect(() => {
+    if (calm) return;
+    let hold: ReturnType<typeof setTimeout> | undefined;
+    const id = setInterval(() => {
+      setBlink(true);
+      hold = setTimeout(() => setBlink(false), 900);
+    }, 4600);
+    return () => {
+      clearInterval(id);
+      if (hold) clearTimeout(hold);
+    };
+  }, [calm]);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
@@ -194,7 +209,7 @@ const CoverCard: React.FC<Props> = ({
         GRIMBUR
       </Text>
       <Text style={[styles.titleSub, { fontSize: titleSize * 0.4, letterSpacing: titleSize * 0.14 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
-        ADVENTURES
+        {t("cover.subtitle")}
       </Text>
       <Text style={styles.tagline} maxFontSizeMultiplier={1.2}>
         {t("cover.tagline")}
@@ -209,7 +224,7 @@ const CoverCard: React.FC<Props> = ({
           <View style={[styles.medallionGlow, { width: artSize * 1.05, height: artSize * 1.05, borderRadius: artSize * 0.525 }]} />
           <Breathing calm={calm}>
             <SpriteImage
-              source={require("../../assets/sprites/enemies/Grimbur_Boss.png")}
+              source={blink ? BOSS_FRAMES.breathe : BOSS_FRAMES.idle}
               style={{ width: artSize, height: artSize }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

@@ -7,6 +7,7 @@ import type { BiomeId } from "../../core/engine/biomes";
 import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
+import BossSprite from "./BossSprite";
 
 export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
@@ -222,10 +223,10 @@ const GridCell = memo(({
             ]}
             pointerEvents="none"
           />
-          <SpriteImage
+          <BossSprite
             style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
-            source={ASSETS.boss}
-            resizeMode="contain"
+            hp={entity.hp ?? 0}
+            charged={charged}
           />
           <View style={styles.bossHp} pointerEvents="none">
             <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
