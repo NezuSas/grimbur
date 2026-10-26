@@ -19,6 +19,7 @@ import StackNavigator from "./src/navigation/StackNavigator";
 import { getPreloadImages } from "./src/ui/preloadImages";
 import ImageWarmup from "./src/ui/components/ImageWarmup";
 import { prefetchLeaderboardThreshold } from "./src/services/highscores";
+import { ensureSignedIn } from "./src/lib/auth";
 import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
@@ -128,6 +129,7 @@ export default function App() {
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
         void prefetchLeaderboardThreshold(); // best effort, never blocks the splash
+        void ensureSignedIn().catch(e => console.warn("[App] anonymous sign-in failed:", e)); // boards and duels need it; they retry on use
       } catch (e) {
         console.warn("[App] Critical preparation error:", e);
         setAssetsDownloaded(true); // still run the warm-up (it has its own timeout) and start the app

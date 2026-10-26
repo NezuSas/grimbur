@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId: "1:181765743782:web:ab49653147e5fd2c6e8067",
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+export const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 // Live duels listen to the other player's document: on a phone the connection may need long polling, which is detected automatically.
 export const db = (() => {
   try {

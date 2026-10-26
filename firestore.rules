@@ -7,6 +7,11 @@ service cloud.firestore {
 
     function isInt(v) { return v is int; }
 
+    // Every write comes from a signed-in (anonymous) player, and a row's `pid` is its writer's auth uid:
+    // nobody can create or edit another player's row, however well-formed the data.
+    function isOwner(p) { return request.auth != null && request.auth.uid == p; }
+    function validPid(p) { return p is string && p.matches('^[A-Za-z0-9]{10,64}$'); }
+
     function validScore(d) {
       return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
         && d.keys().hasAll(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
@@ -32,7 +37,7 @@ service cloud.firestore {
     match /highscores/{scoreId} {
       // At most 20 rows per query: the app reads the top 20.
       allow read: if request.query.limit <= 20;
-      allow create: if validScore(request.resource.data);
+      allow create: if request.auth != null && validScore(request.resource.data);
       allow update, delete: if false;
     }
 
@@ -69,7 +74,7 @@ service cloud.firestore {
         && d.keys().hasAll(['day', 'week', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
         && d.day is string && d.day.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$') && recentDay(d.day)
         && d.week is string && d.week.matches('^20[0-9]{2}-W(0[1-9]|[1-4][0-9]|5[0-3])$')
-        && d.pid is string && validKey(d.pid)
+        && validPid(d.pid)
         && id == d.day + '_' + d.pid
         && isInt(d.level) && d.level >= 1 && d.level <= 10
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
@@ -83,8 +88,8 @@ service cloud.firestore {
     match /daily_scores/{id} {
       allow list: if request.query.limit <= 20;
       allow get: if true;
-      allow create: if validDaily(request.resource.data, id);
-      allow update: if validDaily(request.resource.data, id) && request.resource.data.score > resource.data.score;
+      allow create: if validDaily(request.resource.data, id) && isOwner(request.resource.data.pid);
+      allow update: if validDaily(request.resource.data, id) && isOwner(resource.data.pid) && request.resource.data.score > resource.data.score;
       allow delete: if false;
     }
 
@@ -94,7 +99,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
         && d.keys().hasAll(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
-        && d.pid is string && validKey(d.pid)
+        && validPid(d.pid)
         && id == d.code + '_' + d.pid
         && isInt(d.level) && d.level >= 1 && d.level <= 10
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
@@ -108,8 +113,8 @@ service cloud.firestore {
     match /challenge_scores/{id} {
       allow list: if request.query.limit <= 20;
       allow get: if true;
-      allow create: if validChallenge(request.resource.data, id);
-      allow update: if validChallenge(request.resource.data, id) && request.resource.data.score > resource.data.score;
+      allow create: if validChallenge(request.resource.data, id) && isOwner(request.resource.data.pid);
+      allow update: if validChallenge(request.resource.data, id) && isOwner(resource.data.pid) && request.resource.data.score > resource.data.score;
       allow delete: if false;
     }
 
@@ -119,7 +124,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
         && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
-        && d.pid is string && validKey(d.pid)
+        && validPid(d.pid)
         && id == d.code + '_' + d.pid
         && d.state in ['lobby', 'ready', 'playing', 'done']
         && isInt(d.level) && d.level >= 1 && d.level <= 10
@@ -137,9 +142,10 @@ service cloud.firestore {
       // Up to 4 rows of a room are listed (two players and room for a stray one).
       allow list: if request.query.limit <= 4;
       allow get: if true;
-      allow create: if validDuel(request.resource.data, id);
+      allow create: if validDuel(request.resource.data, id) && isOwner(request.resource.data.pid);
       // The stake cannot be changed once the run has begun (it was paid), and the player stays the same.
       allow update: if validDuel(request.resource.data, id)
+        && isOwner(resource.data.pid)
         && request.resource.data.code == resource.data.code
         && request.resource.data.pid == resource.data.pid
         && (resource.data.state in ['lobby', 'ready'] || request.resource.data.stake == resource.data.stake);

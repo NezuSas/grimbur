@@ -7,8 +7,8 @@
 /** `2026-10-17` (a local calendar day, as the daily challenge keys it). */
 export const DAY_PATTERN = /^20\d\d-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 export const WEEK_PATTERN = /^20\d\d-W(0[1-9]|[1-4]\d|5[0-3])$/;
-/** A player id: 16 characters of the recovery-key alphabet (see core/cloud/cloudKey.ts). */
-export const PLAYER_ID_PATTERN = /^[0-9A-HJKMNP-TV-Z]{16}$/;
+/** A player id: the anonymous Firebase auth uid (firestore.rules binds every write to it). */
+export const PLAYER_ID_PATTERN = /^[A-Za-z0-9]{10,64}$/;
 /** The daily challenge is a ten-floor expedition. */
 export const DAILY_MAX_LEVEL = 10;
 

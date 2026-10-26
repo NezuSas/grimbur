@@ -1,5 +1,6 @@
 // src/services/highscores.ts
 import { db } from "../lib/firebase";
+import { ensureSignedIn } from "../lib/auth";
 import { checkName, validateSubmission } from "../core/leaderboard/validation";
 import { saveTop10Cache, loadTop10Cache } from "./highscoresCache";
 import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
@@ -104,6 +105,7 @@ export async function prefetchLeaderboardThreshold(): Promise<void> {
 
 export async function addHighscore(row: HighscoreRow): Promise<void> {
   cachedThreshold = null; // the board is about to change
+  await ensureSignedIn(); // the rules only accept writes from a signed-in (anonymous) player
 
   // Guard: time is at least 1 second (avoids 00:00 entries) and always an integer.
   const safeTime = Number.isFinite(row.time) ? Math.max(Math.round(row.time), 1) : 1;
