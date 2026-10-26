@@ -12,6 +12,7 @@ import SpriteImage from "./SpriteImage";
 import { BOSS_FRAMES } from "./BossSprite";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import { haptic } from "../../shared/haptics";
+import { emitSound } from "../../audio/audioEventBus";
 import { useT } from "../../i18n/useT";
 import GoalLine from "./GoalLine";
 import type { Goal } from "../../core/stats/goals";
@@ -92,6 +93,7 @@ const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: k
   <Pressable
     onPress={() => {
       haptic.impact();
+      emitSound("UI_TAP");
       onPress();
     }}
     style={({ pressed }) => [styles.dockItem, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}

@@ -43,7 +43,7 @@ function loudest250(samples: Float64Array, rate: number): number {
 
 const wholeRms = (samples: Float64Array): number => db(Math.sqrt(samples.reduce((n, s) => n + s * s, 0) / samples.length));
 
-const SFX_FILES = ['attack', 'coin', 'death', 'monster', 'move', 'relic', 'roar', 'vortex'];
+const SFX_FILES = ['attack', 'coin', 'death', 'ember', 'forge', 'monster', 'move', 'relic', 'roar', 'ui', 'vortex'];
 const MUSIC_FILES = ['cover', 'gameplay', 'selection', 'victory'];
 
 describe('audio files are normalised', () => {

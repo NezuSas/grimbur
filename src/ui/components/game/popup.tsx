@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
 import { MIN_TOUCH } from "../../layout/useGameLayout";
+import { emitSound } from "../../../audio/audioEventBus";
 
 /**
  * The look every pop-up card shares: a deep gradient panel with a coloured rim and glow, a lit top edge and corner studs; a
@@ -110,7 +111,10 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
   const to = (v: number) => Animated.timing(press, { toValue: v, duration: 90, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        emitSound("UI_TAP");
+        onPress();
+      }}
       onPressIn={() => to(1)}
       onPressOut={() => to(0)}
       disabled={disabled || busy}

@@ -1,5 +1,5 @@
 import React, { memo, useRef, useEffect, useMemo, useState } from "react";
-import { StyleSheet, View, Animated, ImageSourcePropType } from "react-native";
+import { StyleSheet, View, Animated, Easing, ImageSourcePropType } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { BIOME_ART } from "../biomeArt";
@@ -29,9 +29,91 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
   RIGHT: "chevron-forward",
 };
 
+/** The vortex turns slowly forever (and swells with the shared pulse): a whirlpool, not a sticker. */
+const VortexSprite = memo(({ size, calm, pulse }: { size: number; calm: boolean; pulse: Animated.Value }) => {
+  const spin = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (calm) {
+      spin.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 7000, easing: Easing.linear, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [calm, spin]);
+  return (
+    <AnimatedSprite
+      style={{
+        width: size,
+        height: size,
+        position: "absolute",
+        transform: [
+          { rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "-360deg"] }) },
+          { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.97, 1.05] }) },
+        ],
+      }}
+      source={ASSETS.pit}
+      resizeMode="contain"
+    />
+  );
+});
+VortexSprite.displayName = "VortexSprite";
+
+/** A gem bobs with the shared pulse and glints every few seconds (each one on its own beat). */
+const GemSprite = memo(({ tileSize, calm, pulse }: { tileSize: number; calm: boolean; pulse: Animated.Value }) => {
+  const sparkle = useRef(new Animated.Value(0)).current;
+  const beat = useRef(600 + Math.random() * 2600).current;
+  useEffect(() => {
+    if (calm) {
+      sparkle.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(beat),
+        Animated.timing(sparkle, { toValue: 1, duration: 240, useNativeDriver: true }),
+        Animated.timing(sparkle, { toValue: 0, duration: 420, useNativeDriver: true }),
+        Animated.delay(1600),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [calm, sparkle, beat]);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        width: tileSize * 0.5,
+        height: tileSize * 0.5,
+        alignSelf: "center",
+        top: tileSize * 0.25,
+        zIndex: 2,
+        transform: [{ translateY: pulse.interpolate({ inputRange: [0, 1], outputRange: [0, -tileSize * 0.045] }) }],
+      }}
+    >
+      <SpriteImage source={ASSETS.coin} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
+      <Animated.View
+        style={{
+          position: "absolute",
+          top: "6%",
+          right: "10%",
+          width: tileSize * 0.11,
+          height: tileSize * 0.11,
+          borderRadius: tileSize * 0.055,
+          backgroundColor: "#FFFFFF",
+          opacity: sparkle,
+          transform: [{ scale: sparkle.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1.4] }) }],
+        }}
+      />
+    </Animated.View>
+  );
+});
+GemSprite.displayName = "GemSprite";
+
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome, calm
 }: {
   index: number;
   tileSize: number;
@@ -66,6 +148,8 @@ const GridCell = memo(({
   flagPing: number;
   /** The cave type of the floor: it decides which pair of tiles is drawn. */
   biome: BiomeId;
+  /** Reduced motion: the vortex does not spin and the gems do not glint. */
+  calm: boolean;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   const [isVisited, setShown] = useState(visitedProp);
@@ -200,10 +284,13 @@ const GridCell = memo(({
         />
       )}
 
-      {entity && (entity.type === 'pit' || entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
+      {entity?.type === 'pit' && (isVisited || isPlayerHere || killer) && (
+        <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
+      )}
+      {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
         <SpriteImage
           style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
-          source={entity.type === 'pit' ? ASSETS.pit : entity.type === 'stalker' ? ASSETS.stalker : entity.type === 'sleeper' ? ASSETS.sleeper : ASSETS.enemy}
+          source={entity.type === 'stalker' ? ASSETS.stalker : entity.type === 'sleeper' ? ASSETS.sleeper : ASSETS.enemy}
           resizeMode="contain"
         />
       )}
@@ -269,20 +356,7 @@ const GridCell = memo(({
       )}
 
       {/* Render Entity (Gem) overlaid on background */}
-      {entity?.type === 'coin' && (
-        <SpriteImage 
-          source={ASSETS.coin} 
-          style={{ 
-            position: 'absolute', 
-            width: tileSize * 0.5, 
-            height: tileSize * 0.5,
-            zIndex: 2,
-            alignSelf: 'center',
-            top: tileSize * 0.25
-          }} 
-          resizeMode="contain"
-        />
-      )}
+      {entity?.type === 'coin' && <GemSprite tileSize={tileSize} calm={calm} pulse={pulse} />}
 
       {/* Power-ups (always visible, like gems). Traps stay hidden on purpose. */}
       {entity?.type === 'shield' && (

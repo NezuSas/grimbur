@@ -3,6 +3,7 @@ import { Animated, Pressable, StyleSheet, View } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { haptic } from "../../shared/haptics";
+import { emitSound } from "../../audio/audioEventBus";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 
 type Props = {
@@ -32,7 +33,10 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
   return (
     <Animated.View style={{ transform: [{ scale }], flex: featured ? undefined : 1 }}>
       <Pressable
-        onPress={onPress}
+        onPress={() => {
+          emitSound("UI_TAP");
+          onPress();
+        }}
         onPressIn={() => {
           haptic.impact();
           Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();

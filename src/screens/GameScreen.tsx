@@ -31,6 +31,7 @@ import CoachHint from "../ui/components/game/CoachHint";
 import ScorePopup from "../ui/components/game/ScorePopup";
 import Toast from "../ui/components/game/Toast";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
+import { haptic, ImpactFeedbackStyle } from "../shared/haptics";
 import { RelicId, relicCount } from "../core/engine/relics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
@@ -523,10 +524,19 @@ export default function GameScreen({ navigation, route }: Props) {
 
   useProximityAudio(state);
 
-  // The Grimbur lair announces itself.
+  // The Grimbur lair announces itself: a roar, a heavy thump in the hand and a dark red veil that lifts.
+  const lairVeil = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (isLairFloor(state.mode, state.level) && state.turn === 0) {
       emitSound("BOSS_ROAR");
+      haptic.impact(ImpactFeedbackStyle.Heavy);
+      if (!reduceFlash) {
+        lairVeil.setValue(0);
+        Animated.sequence([
+          Animated.timing(lairVeil, { toValue: 0.55, duration: 320, useNativeDriver: true }),
+          Animated.timing(lairVeil, { toValue: 0, duration: 950, useNativeDriver: true }),
+        ]).start();
+      }
     }
   }, [state.level]);
 
@@ -744,6 +754,9 @@ export default function GameScreen({ navigation, route }: Props) {
       ))}
 
       <ScreenFlashes combat={combatFlash} death={deathFlash} hit={hitFlash} vortex={vortexFlash} calm={reduceFlash} />
+
+      {/* The lair's dark red veil (see the roar effect above). */}
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "#2B0008", opacity: lairVeil, zIndex: 30 }]} />
 
       {toast && (
         <Toast text={toast.text} toastKey={toast.key} top={insets.top + hudHeight + 8} onDone={() => setToast(null)} />

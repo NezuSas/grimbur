@@ -100,7 +100,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
           analytics.track("forge_purchase", { upgrade: id, level: levelOf(next, id), cost });
           setStats(next);
           setBurst({ id, run: Date.now() });
-          emitSound("RELIC_PICKED");
+          emitSound("FORGE_HAMMER");
           haptic.notify(NotificationFeedbackType.Success);
           const name = forgeText(t, id, "name");
           if (result.achievements.length > 0) {

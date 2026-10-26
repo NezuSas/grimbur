@@ -35,4 +35,7 @@ export type SoundEvent =
   | 'VORTEX_TELEPORT'    // Player was teleported by a vortex
   | 'SHIELD_BREAK'       // A shield (or feather) soaked a deadly touch
   | 'BOSS_HIT'           // An arrow hurt the Grimbur
-  | 'CHARGE_WARN';      // A hunter started winding up a strike
+  | 'CHARGE_WARN'       // A hunter started winding up a strike
+  | 'UI_TAP'             // A menu or popup button was pressed
+  | 'FORGE_HAMMER'       // A Forge upgrade (or outfit) was bought
+  | 'EMBER_GAIN';       // Embers were claimed (missions, achievements, duel prize)
