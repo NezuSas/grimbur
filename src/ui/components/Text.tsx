@@ -3,7 +3,7 @@ import { StyleSheet, Text as RNText, TextProps } from 'react-native';
 import { familyForWeight } from '../fonts';
 
 /** Drop-in replacement for react-native's Text that uses the game's typeface and weight files. */
-const Text = React.forwardRef<RNText, TextProps>(({ style, ...rest }, ref) => {
+const Text = React.forwardRef<React.ComponentRef<typeof RNText>, TextProps>(({ style, ...rest }, ref) => {
   const flat = StyleSheet.flatten(style) ?? {};
   const resolved = flat.fontFamily
     ? flat

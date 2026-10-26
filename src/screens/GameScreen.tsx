@@ -411,7 +411,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // The picture that is shared is drawn off-screen only while it is being captured.
   const [shareCard, setShareCard] = useState<ShareCardData | null>(null);
-  const shareCardRef = useRef<View>(null);
+  const shareCardRef = useRef<React.ComponentRef<typeof View>>(null);
   const sharing = useRef(false);
   const handleShare = useCallback(async () => {
     if (sharing.current) return; // a second tap while the picture is being made

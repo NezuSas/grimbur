@@ -40,7 +40,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const submitting = useRef(false);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const fade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

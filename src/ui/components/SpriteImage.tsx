@@ -10,7 +10,7 @@ import { Animated, Image, ImageProps } from 'react-native';
  * A full-size decode is NOT free (a 512 px sprite holds ~1 MB of RGBA): what keeps memory in check is that
  * `preloadImages.ts` only warms the art actually on screen in the first minutes, never the outfit catalogue.
  */
-const SpriteImage = React.forwardRef<Image, ImageProps>((props, ref) => (
+const SpriteImage = React.forwardRef<React.ComponentRef<typeof Image>, ImageProps>((props, ref) => (
   <Image fadeDuration={0} resizeMethod="none" {...props} ref={ref} />
 ));
 SpriteImage.displayName = 'SpriteImage';

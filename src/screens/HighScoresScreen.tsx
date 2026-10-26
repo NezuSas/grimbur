@@ -293,7 +293,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
       ListHeaderComponent={
-        twoPanes && !offlineNotice && board === "global" ? null : (
+        twoPanes && !offlineNotice && board === "global" ? undefined : (
           <View style={{ marginBottom: 10, gap: 10 }}>
             {twoPanes ? null : record}
             {board !== "global" ? (
@@ -314,7 +314,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
               {t("scores.hidden", { count: hidden.length })} · {t("scores.hidden.show")}
             </Text>
           </TouchableOpacity>
-        ) : null
+        ) : undefined
       }
     />
   );
