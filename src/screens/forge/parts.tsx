@@ -39,7 +39,7 @@ const useRollTo = (target: number, calm: boolean): number => {
       anim.removeListener(id);
       anim.stopAnimation();
     };
-  }, [target, calm]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [target, calm]);
   return shown;
 };
 
