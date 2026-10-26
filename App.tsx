@@ -1,5 +1,5 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { NavigationContainer, DarkTheme, type LinkingOptions } from "@react-navigation/native";
 import type { RootStackParamList } from "./src/navigation/types";
 import { AppState, View } from "react-native";
@@ -61,9 +61,11 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [assetsDownloaded, setAssetsDownloaded] = useState(false);
-  const warmImages = useMemo(() => getPreloadImages(), []);
+  // Decided once the saved progress is read: only each hero's equipped outfit is preloaded (see preloadImages.ts).
+  const [warmImages, setWarmImages] = useState<ReturnType<typeof getPreloadImages> | null>(null);
   // What the loading bar shows. Only ever grows, so a slow part never makes the bar step back.
-  const [parts, setParts] = useState<StartupParts>({ ...EMPTY_STARTUP, download: { done: 0, total: warmImages.length }, decode: { done: 0, total: warmImages.length } });
+  // The image totals start at 1 (not 0) so the bar does not count them as finished before they are known.
+  const [parts, setParts] = useState<StartupParts>({ ...EMPTY_STARTUP, download: { done: 0, total: 1 }, decode: { done: 0, total: 1 } });
   const [bar, setBar] = useState(0);
   const patch = useCallback((next: Partial<StartupParts>) => setParts(prev => ({ ...prev, ...next })), []);
   useEffect(() => setBar(prev => Math.max(prev, startupProgress(parts))), [parts]);
@@ -108,23 +110,32 @@ export default function App() {
           patch({ basics: true });
         })();
         // The saved progress goes into memory now, so the cover opens already knowing who is playing (no flash of the
-        // "first time" cover) and the hero, Forge and collection screens draw real data on their first frame.
-        const stats = getLocalStats().then(() => patch({ stats: true })).catch(() => patch({ stats: true }));
-        let downloaded = 0;
-        const images = Promise.allSettled(
-          warmImages.map(image =>
-            Asset.fromModule(image as number)
-              .downloadAsync()
-              .catch(err => console.warn("[App] Failed to pre-load asset:", err))
-              .finally(() => {
-                downloaded += 1;
-                if (downloaded % 4 === 0 || downloaded === warmImages.length) patch({ download: { done: downloaded, total: warmImages.length } });
-              }),
-          ),
-        );
+        // "first time" cover) and the hero, Forge and collection screens draw real data on their first frame. The
+        // pictures wait for it: which outfits to preload depends on what each hero wears.
+        const images = getLocalStats()
+          .catch(() => null)
+          .then(loaded => {
+            patch({ stats: true });
+            const warm = getPreloadImages(loaded);
+            setWarmImages(warm);
+            patch({ download: { done: 0, total: warm.length }, decode: { done: 0, total: warm.length } });
+            let downloaded = 0;
+            return Promise.allSettled(
+              warm.map(image =>
+                Asset.fromModule(image as number)
+                  .downloadAsync()
+                  .catch(err => console.warn("[App] Failed to pre-load asset:", err))
+                  .finally(() => {
+                    downloaded += 1;
+                    if (downloaded % 4 === 0 || downloaded === warm.length) patch({ download: { done: downloaded, total: warm.length } });
+                  }),
+              ),
+            );
+          });
         // One part that never answers (a download with no network, a player that never loads) must not hold the loading
         // screen forever: after this long the app starts with whatever is ready.
-        await Promise.race([Promise.all([audio, basics, stats, images]), new Promise<void>(resolve => setTimeout(resolve, STARTUP_WATCHDOG_MS))]);
+        await Promise.race([Promise.all([audio, basics, images]), new Promise<void>(resolve => setTimeout(resolve, STARTUP_WATCHDOG_MS))]);
+        setWarmImages(prev => prev ?? getPreloadImages(null)); // the watchdog may win the race before the stats decide the list
         setAssetsDownloaded(true); // ImageWarmup then decodes the illustrations off-screen
 
         // 4. Pre-fetch Leaderboard threshold for instant Game Over checks
@@ -153,7 +164,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, backgroundColor: "#0E0B1F" }} onLayout={hideNativeSplash}>
         <LoadingScreen progress={bar} />
-        {assetsDownloaded && (
+        {assetsDownloaded && warmImages && (
           <ImageWarmup
             images={warmImages}
             timeoutMs={WARMUP_TIMEOUT_MS}

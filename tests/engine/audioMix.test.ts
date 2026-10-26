@@ -3,6 +3,7 @@ import * as path from 'path';
 import { MIX, MIX_KEYS, MUSIC_ASSET_DB, SFX_ASSET_DB, effectiveDb, gainFor, mixVolume } from '../../src/core/audio/mix';
 
 const ASSETS = path.join(__dirname, '..', '..', 'src', 'assets');
+const MASTERS = path.join(__dirname, '..', '..', 'assets-src');
 
 /** Reads a 16-bit mono PCM WAV into floats in -1..1. */
 function readWav(file: string): { samples: Float64Array; rate: number } {
@@ -52,9 +53,14 @@ describe('audio files are normalised', () => {
     expect(db(Math.max(...Array.from(samples, Math.abs)))).toBeLessThanOrEqual(-0.9); // never clips
   });
 
+  // The app ships OGG (see scripts/convertMusic.py); loudness is checked on the WAV masters they come from.
   it.each(MUSIC_FILES)('music track %s sits at the standard music loudness', name => {
-    const { samples } = readWav(path.join(ASSETS, 'music', `${name}.wav`));
+    const { samples } = readWav(path.join(MASTERS, 'music', `${name}.wav`));
     expect(Math.abs(wholeRms(samples) - MUSIC_ASSET_DB)).toBeLessThan(0.6);
+  });
+
+  it.each(MUSIC_FILES)('music track %s ships as OGG next to its master', name => {
+    expect(fs.existsSync(path.join(ASSETS, 'music', `${name}.ogg`))).toBe(true);
   });
 
   it('effects start and end at silence, so none clicks', () => {
