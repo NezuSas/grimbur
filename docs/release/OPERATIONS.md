@@ -45,11 +45,21 @@ Las reglas viven en `firestore.rules` y los índices en `firestore.indexes.json`
 
 ```
 npx firebase-tools login --reauth        # si la sesión caducó
-npm run test:rules                       # 60+ pruebas contra el emulador (necesita Java 17+)
+npm run test:rules                       # 70+ pruebas contra el emulador (necesita Java 17+)
 npx firebase-tools deploy --only firestore --project nezu-games
 ```
 
 Nunca despliegues reglas sin pasar `npm run test:rules` antes.
+
+**IMPORTANTE (una sola vez, ANTES del próximo despliegue de reglas):** las reglas actuales exigen que cada
+escritura venga de un jugador con sesión anónima de Firebase (así nadie puede tocar la fila de otro jugador).
+Para que funcione hay que activar el proveedor:
+
+1. Consola Firebase → *Authentication* → *Sign-in method* → habilitar **Anonymous**.
+2. Solo entonces desplegar las reglas (`deploy --only firestore`).
+
+Si se despliegan las reglas sin activar Anonymous, nadie podrá publicar resultados ni jugar duelos
+(las lecturas de rankings seguirían funcionando). La app inicia la sesión anónima sola; el jugador no ve nada.
 
 ## 5. Vigilar uso y cuota (plan gratuito)
 

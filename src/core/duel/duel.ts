@@ -50,7 +50,7 @@ export const isGone = (updatedAtMs: number, nowMs: number): boolean => nowMs - u
 export function validateDuelPlayer(p: DuelPlayer): string[] {
   const problems: string[] = [];
   if (!/^[0-9A-HJKMNP-TV-Z]{8}$/.test(p.code)) problems.push('code');
-  if (!/^[0-9A-HJKMNP-TV-Z]{16}$/.test(p.pid)) problems.push('player');
+  if (!/^[A-Za-z0-9]{10,64}$/.test(p.pid)) problems.push('player');
   if (p.name.length < 1 || p.name.length > 20) problems.push('name');
   if (!Number.isInteger(p.characterIndex) || p.characterIndex < 0 || p.characterIndex > 5) problems.push('hero');
   if (!DUEL_STATES.includes(p.state)) problems.push('state');

@@ -1,37 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getRandomBytes } from 'expo-crypto';
-import { keyFromBytes } from '../core/cloud/cloudKey';
-import { PLAYER_ID_PATTERN } from '../core/leaderboard/daily';
 import { checkName } from '../core/leaderboard/validation';
+import { ensureSignedIn } from '../lib/auth';
 
 /**
- * Who the player is on the daily and weekly boards: a random id made on first use (it only keeps one result per day per phone; it is
- * not an account) and the name they chose. Both stay on the device.
+ * Who the player is on the boards and in duels: the anonymous Firebase uid (firestore.rules binds every write
+ * to it, so nobody can touch another player's row) and the name they chose. It is not an account the player
+ * manages; it needs nothing from them.
  */
-const ID_STORAGE = 'grimbur.player.id.v1';
 const NAME_STORAGE = 'grimbur.player.name.v1';
 
-let cachedId: string | null = null;
-
+/** The player's id for boards and duels. Rejects when the anonymous sign-in cannot complete (offline). */
 export async function getPlayerId(): Promise<string> {
-  if (cachedId) return cachedId;
-  try {
-    const stored = await AsyncStorage.getItem(ID_STORAGE);
-    if (stored && PLAYER_ID_PATTERN.test(stored)) {
-      cachedId = stored;
-      return stored;
-    }
-  } catch {
-    // fall through: a fresh id is made below
-  }
-  const id = keyFromBytes(getRandomBytes(10));
-  cachedId = id;
-  try {
-    await AsyncStorage.setItem(ID_STORAGE, id);
-  } catch (e) {
-    console.warn('[player] could not remember the id:', e);
-  }
-  return id;
+  return ensureSignedIn();
 }
 
 /** The saved name, or null when the player has not chosen one (or the saved one is no longer allowed). */
