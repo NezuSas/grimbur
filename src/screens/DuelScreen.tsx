@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../ui/components/Text";
+import EmberIcon from "../ui/components/EmberIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
@@ -272,7 +273,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.hint}>{t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}</Text>
                     {myStake > 0 ? (
                       <View style={styles.stakeBox}>
-                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}>🔥 {t("duel.stakeRoom", { n: myStake.toLocaleString() })}</Text>
+                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}><EmberIcon size={13} /> {t("duel.stakeRoom", { n: myStake.toLocaleString() })}</Text>
                         <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? `  ·  🏆 ${pot.toLocaleString()}` : ""}</Text>
                       </View>
                     ) : null}

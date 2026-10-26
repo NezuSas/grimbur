@@ -1,6 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import characters from '../data/characters';
 import { RELIC_IMAGES } from './relicImages';
+import { FORGE_ICONS } from './forgeArt';
 import { skinArt } from '../data/skinArt';
 import { equippedSkin } from '../core/skins/ownership';
 import type { LocalStats } from '../core/stats/runStats';
@@ -41,6 +42,9 @@ export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePr
     require('../assets/sprites/items/Icon_Gem.png'),
     require('../assets/sprites/items/Icon_Shield.png'),
     require('../assets/sprites/items/Icon_Arrows.png'),
+    require('../assets/sprites/items/Icon_Ember.png'),
+    require('../assets/sprites/items/Icon_EmberPile.png'),
+    ...Object.values(FORGE_ICONS).filter((source): source is NonNullable<typeof source> => source != null),
     ...Object.values(RELIC_IMAGES).filter((source): source is NonNullable<typeof source> => source != null),
     ...heroes,
     ...outfits,

@@ -41,6 +41,7 @@ import { dailyKey } from "../core/engine/seed";
 import { haptic } from "../shared/haptics";
 import type { TranslationKey } from "../i18n/en";
 import SpriteImage from "../ui/components/SpriteImage";
+import EmberIcon from "../ui/components/EmberIcon";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { equippedSkin, ownedSkins } from "../core/skins/ownership";
 
@@ -338,7 +339,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                     <View style={styles.depthLabel} accessible accessibilityLabel={`${t("heroes.depth")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
                       <Text style={styles.depthText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                        🔥 {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
+                        <EmberIcon size={12} /> {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                       </Text>
                     </View>
                     <TouchableOpacity

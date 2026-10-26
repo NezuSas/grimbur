@@ -1,6 +1,7 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "./Text";
+import EmberIcon from "./EmberIcon";
 import { useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
 import { AttackButton } from "./DirectionPad";
@@ -48,7 +49,7 @@ const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsL
             ) : (
               <Text style={styles.refillText} numberOfLines={2} maxFontSizeMultiplier={1.1}>
                 {t("refill.chip", { n: refill.arrows })}
-                {"\n"}🔥 {refill.price}
+                {"\n"}<EmberIcon size={12} /> {refill.price}
               </Text>
             )}
           </TouchableOpacity>

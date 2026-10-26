@@ -12,6 +12,7 @@ import { RootStackParamList } from "../navigation/types";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
+import EmberIcon from "../ui/components/EmberIcon";
 import characters from "../data/characters";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { SKINS, SKINS_BY_HERO } from "../core/skins/skins";
@@ -191,7 +192,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
           onBack={() => navigation.goBack()}
           right={
             <View style={styles.balance} accessible accessibilityLabel={plural("forge.balance", stats.embers)}>
-              <Text style={styles.balanceFlame}>🔥</Text>
+              <EmberIcon size={18} />
               <Text style={styles.balanceValue}>{stats.embers}</Text>
             </View>
           }
@@ -301,7 +302,8 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               {!owned ? (
                 <View style={styles.lockInfo} accessible>
                   <Text style={styles.lockTitle} maxFontSizeMultiplier={1.2}>
-                    {`🔥 ${stats.embers} / ${state.price}`}
+                    <EmberIcon size={13} />
+                    {` ${stats.embers} / ${state.price}`}
                   </Text>
                   <View style={styles.lockTrack}>
                     <View style={[styles.lockFill, { width: `${Math.min(100, Math.round((stats.embers / Math.max(1, state.price)) * 100))}%`, backgroundColor: accent }]} />

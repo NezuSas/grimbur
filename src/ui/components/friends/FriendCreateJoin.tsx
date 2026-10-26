@@ -3,6 +3,7 @@ import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
+import EmberIcon from "../EmberIcon";
 import SpriteImage from "../SpriteImage";
 import { PopButton, PopupPanel } from "../game/popup";
 import { Segmented } from "../settings/SettingsParts";
@@ -94,7 +95,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                 <Ionicons name="remove" size={22} color="#fff" />
               </TouchableOpacity>
               <Text style={styles.depthLabel} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                🔥 {depthName(depth).toLocaleUpperCase()}
+                <EmberIcon size={12} /> {depthName(depth).toLocaleUpperCase()}
               </Text>
               <TouchableOpacity style={[styles.stepper, depth >= MAX_ASCENSION && styles.off]} onPress={() => setDepth(d => Math.min(MAX_ASCENSION, d + 1))} disabled={depth >= MAX_ASCENSION} accessibilityRole="button" accessibilityLabel={t("a11y.depthRaise")}>
                 <Ionicons name="add" size={22} color="#fff" />
@@ -127,7 +128,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                         accessibilityLabel={n === 0 ? t("duel.stakeNone") : n.toLocaleString()}
                       >
                         <Text style={[styles.chipText, on && { color: "#fff" }]} maxFontSizeMultiplier={1.2}>
-                          {n === 0 ? t("duel.stakeNone") : `🔥 ${n.toLocaleString()}`}
+                          {n === 0 ? t("duel.stakeNone") : <><EmberIcon size={11} /> {n.toLocaleString()}</>}
                         </Text>
                       </TouchableOpacity>
                     );

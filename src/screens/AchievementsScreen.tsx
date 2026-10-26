@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
+import EmberIcon from "../ui/components/EmberIcon";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -175,7 +176,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                     </Text>
                     <View style={[styles.reward, !unlockedOn && styles.rewardOpen]}>
                       <Text style={styles.rewardText} maxFontSizeMultiplier={1.1}>
-                        🔥 {unlockedOn ? "✓" : `+${ACHIEVEMENT_REWARD[item.tier]}`}
+                        <EmberIcon size={11} /> {unlockedOn ? "✓" : `+${ACHIEVEMENT_REWARD[item.tier]}`}
                       </Text>
                     </View>
                     <View style={[styles.tier, { borderColor: TIER_COLOR[item.tier] + "99" }]}>

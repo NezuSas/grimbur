@@ -18,6 +18,7 @@ TARGETS = [
     os.path.join(SPRITES, 'backgrounds'),
     os.path.join(SPRITES, 'enemies'),
     os.path.join(SPRITES, 'relics'),
+    os.path.join(SPRITES, 'forge'),
     os.path.join(SPRITES, 'tools'),
     os.path.join(SPRITES, 'items'),
     os.path.join(SPRITES, 'tiles'),
