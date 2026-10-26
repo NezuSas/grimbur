@@ -22,6 +22,7 @@ TARGETS = [
     os.path.join(SPRITES, 'tools'),
     os.path.join(SPRITES, 'items'),
     os.path.join(SPRITES, 'tiles'),
+    os.path.join(SPRITES, 'ui'),
 ]
 # Below this size the palette rewrite is not worth a quality risk.
 MIN_BYTES = 40 * 1024

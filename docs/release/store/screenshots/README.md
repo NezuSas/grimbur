@@ -14,8 +14,8 @@ Están en el orden recomendado para la ficha: las dos primeras son las que se ve
 | 7 | `07_progress.png` | Mi progreso | Track your progress / Sigue tu progreso |
 | 8 | `08_achievements.png` | Logros | 100+ achievements / Más de 100 logros |
 
-Para la ficha en inglés, vuelve a generarlas con el idioma en inglés: `& .\scripts\screenshots.ps1 -Screens ... -Lang en -Sizes 1280x720 -Scale 1.5`.
-Regenerarlas después de cambiar el aspecto del juego, para que no queden desactualizadas.
+La ficha en inglés está en `en/` con los mismos ocho nombres, generada con las mismas recetas y `-Lang en`.
+Regenerar ambos juegos después de cambiar el aspecto del juego, para que no queden desactualizados.
 
 Parámetros exactos (preset `veteran`, `-Sizes 1280x720 -Scale 1.5`):
 

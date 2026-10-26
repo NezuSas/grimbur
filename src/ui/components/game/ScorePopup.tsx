@@ -1,18 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet } from "react-native";
 import Text from "../Text";
+import GlyphIcon from "../GlyphIcon";
+import type { GlyphName } from "../../glyphArt";
 import { useT } from '../../../i18n/useT';
 
 export type PopupType = 'coin' | 'kill' | 'trap' | 'shield' | 'ammo' | 'boss' | 'streak';
 
-const POPUP_STYLE: Record<PopupType, { color: string; label: (points: number, shieldText: string) => string }> = {
-  coin:   { color: '#FFD54F', label: p => `💎 +${p}` },
-  kill:   { color: '#FF3B30', label: p => `💀 +${p}` },
-  boss:   { color: '#FF1744', label: p => `👹 +${p}` },
-  trap:   { color: '#FF9800', label: p => `⚠️ ${p}` },
-  shield: { color: '#4FC3F7', label: (_p, shieldText) => `🛡️ ${shieldText}` },
-  ammo:   { color: '#FF9800', label: p => `🏹 +${p}` },
-  streak: { color: '#FFD54F', label: () => '' },
+const POPUP_STYLE: Record<PopupType, { color: string; glyph: GlyphName | null; label: (points: number, shieldText: string) => string }> = {
+  coin:   { color: '#FFD54F', glyph: 'gem',     label: p => `+${p}` },
+  kill:   { color: '#FF3B30', glyph: 'skull',   label: p => `+${p}` },
+  boss:   { color: '#FF1744', glyph: 'monster', label: p => `+${p}` },
+  trap:   { color: '#FF9800', glyph: 'trap',    label: p => `${p}` },
+  shield: { color: '#4FC3F7', glyph: 'shield',  label: (_p, shieldText) => shieldText },
+  ammo:   { color: '#FF9800', glyph: 'arrows',  label: p => `+${p}` },
+  streak: { color: '#FFD54F', glyph: null,      label: () => '' },
 };
 
 /** Width of the box a popup centres itself in, around its anchor. */
@@ -40,7 +42,7 @@ const ScorePopup = ({ points, type = 'kill', x, y, slot = 0, sub, subColor, popS
   const opacity    = useRef(new Animated.Value(1)).current;
   const scale      = useRef(new Animated.Value(0.6)).current;
   const { t } = useT();
-  const { color, label } = POPUP_STYLE[type];
+  const { color, glyph, label } = POPUP_STYLE[type];
   const text = label(points, t('popup.shield'));
 
   useEffect(() => {
@@ -74,7 +76,7 @@ const ScorePopup = ({ points, type = 'kill', x, y, slot = 0, sub, subColor, popS
       <Animated.View style={[styles.pill, { borderColor: color }]}>
         {text !== '' && (
           <Text style={[styles.text, { color }]} maxFontSizeMultiplier={1.2}>
-            {text}
+            {glyph && <GlyphIcon name={glyph} size={24} />}{glyph ? ' ' : ''}{text}
           </Text>
         )}
         {!!sub && (

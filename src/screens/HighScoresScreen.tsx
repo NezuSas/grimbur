@@ -21,6 +21,7 @@ import { RootStackParamList } from "../navigation/types";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats, peekLocalStats } from "../services/localStats";
@@ -206,7 +207,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             {mineRow ? `  ·  ${t("scores.you")}` : ""}
           </Text>
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {t("scores.floorShort", { n: row.level })}  ·  💎 {Number(row.coins) || 0}  ·  {time}
+            {t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}
           </Text>
         </View>
         <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
