@@ -325,7 +325,8 @@ const styles = StyleSheet.create({
   },
   cardAffordable: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.1)" },
   cardMaxed: { borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.07)" },
-  cardTop: { flexDirection: "row", gap: 12, alignItems: "center" },
+  // flex: 1 so a short description grows to match its row's tallest card and every buy button sits on the same line.
+  cardTop: { flexDirection: "row", gap: 12, alignItems: "center", flex: 1 },
   badge: {
     alignItems: "center",
     justifyContent: "center",
