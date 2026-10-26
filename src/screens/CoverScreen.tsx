@@ -18,6 +18,7 @@ import { UPGRADES, canAfford } from "../core/stats/forge";
 import { useSettingsStore } from "../state/settings/store";
 import { collectionBadge } from "../core/skins/collection";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
+import { loadSavedRun, SavedRun } from "../services/savedRun";
 
 import { emitSound } from "../audio/audioEventBus";
 
@@ -26,6 +27,21 @@ type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 const CoverScreen: React.FC<Props> = ({ navigation }) => {
   const storySeen = useSettingsStore(s => s.storySeen);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
+  // An expedition left half-way (or cut short by Android) can be continued from here.
+  const [savedRun, setSavedRun] = useState<SavedRun | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      loadSavedRun()
+        .then(run => {
+          if (active) setSavedRun(run);
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -78,6 +94,18 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         resizeMode="cover"
       >
         <CoverCard
+          savedRun={savedRun ? { floor: savedRun.state.level, endless: savedRun.state.mode === "endless" } : null}
+          onPressResume={() => {
+            if (!savedRun) return;
+            navigation.navigate("GameScreen", {
+              characterIndex: savedRun.characterIndex,
+              skin: savedRun.skin,
+              mode: savedRun.state.mode,
+              ascension: savedRun.ascension,
+              meta: savedRun.meta,
+              resume: true,
+            });
+          }}
           onPressPlay={() => (stats.gamesPlayed === 0 && !storySeen ? navigation.navigate("StoryScreen") : navigation.navigate("CharactersScreen", { mode: "expedition" }))}
           onPressDaily={() => navigation.navigate("CharactersScreen", { mode: "daily" })}
           onPressEndless={() =>

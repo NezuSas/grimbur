@@ -6,6 +6,8 @@ export interface SessionClock {
   get(): number;
   tick(): void;
   reset(): void;
+  /** Continues a saved run from its recorded time. */
+  set(value: number): void;
   subscribe(listener: (seconds: number) => void): () => void;
 }
 
@@ -21,6 +23,10 @@ export function createSessionClock(): SessionClock {
     },
     reset() {
       seconds = 0;
+      emit();
+    },
+    set(value) {
+      seconds = Math.max(0, Math.trunc(value));
       emit();
     },
     subscribe(listener) {

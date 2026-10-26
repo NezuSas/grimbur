@@ -72,6 +72,7 @@ import ShareCard from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
 import { rememberChallenge } from "../services/challenges";
+import { canSaveState, clearSavedRun, loadSavedRun, restoredState, saveRun } from "../services/savedRun";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
 
@@ -101,7 +102,9 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, restore, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
+  // Expeditions and endless runs can be left and continued later; the daily is tied to its date, challenges and duels are live.
+  const resumable = !challenge && !duelParam && !isDaily;
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
   const [intermission, setIntermission] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
@@ -230,16 +233,54 @@ export default function GameScreen({ navigation, route }: Props) {
     });
   }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta]);
 
-  // Start the run on mount; save whatever was played when the screen goes away.
+  /** Writes the run to disk so "Continuar" (or Android killing the process) does not cost it. */
+  const saveCurrentRun = useCallback(() => {
+    if (!resumable || !canSaveState(stateRef.current)) return false;
+    void saveRun({ characterIndex, skin, ascension, meta: route.params?.meta, time: clock.get(), state: stateRef.current });
+    return true;
+  }, [resumable, characterIndex, skin, ascension, clock, route.params?.meta]);
+
+  /** Leaving mid-floor keeps the run for "Continuar"; otherwise whatever was played is recorded now. */
+  const leaveRun = useCallback(() => {
+    if (!saveCurrentRun()) void recordCurrentRun();
+  }, [saveCurrentRun, recordCurrentRun]);
+
+  // Start (or continue) the run on mount; keep or record it when the screen goes away.
   useEffect(() => {
     mounted.current = true;
-    startRun();
-    analytics.track("game_start", { mode, character: characterIndex });
+    const begin = async () => {
+      if (resumable && route.params?.resume) {
+        const saved = await loadSavedRun();
+        if (saved && mounted.current) {
+          deathFlash.setValue(0);
+          resetStreak();
+          setRunNumber(n => n + 1);
+          clock.set(saved.time);
+          isResetting.current = true; // the jump from the empty board to the saved one is not progress to celebrate
+          restore(restoredState(saved, selectedCharacter));
+          setTimeout(() => {
+            isResetting.current = false;
+          }, 100);
+          analytics.track("game_resume", { mode, floor: saved.state.level });
+          return;
+        }
+        if (!mounted.current) return;
+      }
+      if (resumable) void clearSavedRun(); // a fresh run replaces any stale save
+      startRun();
+      analytics.track("game_start", { mode, character: characterIndex });
+    };
+    void begin();
     return () => {
       mounted.current = false;
-      void recordCurrentRun();
+      leaveRun();
     };
   }, []);
+
+  // The finished run can no longer be continued.
+  useEffect(() => {
+    if (runEnded && resumable) void clearSavedRun();
+  }, [runEnded, resumable]);
 
   // Music, hardware Back and AppState only act while this screen is focused.
   useFocusEffect(
@@ -260,7 +301,11 @@ export default function GameScreen({ navigation, route }: Props) {
       });
 
       const appSub = AppState.addEventListener("change", next => {
-        if (next !== "active" && canPauseRef.current) setPaused(true);
+        if (next !== "active") {
+          if (canPauseRef.current) setPaused(true);
+          // Android may kill the process while backgrounded: the run must already be on disk.
+          saveCurrentRun();
+        }
       });
 
       return () => {
@@ -270,7 +315,7 @@ export default function GameScreen({ navigation, route }: Props) {
         emitSound("STOP_GUARDIAN_NEAR");
         emitSound("STOP_VORTEX_NEAR");
       };
-    }, []),
+    }, [saveCurrentRun]),
   );
 
   // ── Floor bookkeeping (real counts for the level-complete card) ───────────
@@ -283,6 +328,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const handleRetry = useCallback(() => {
     void recordCurrentRun(); // an abandoned run still counts for unlocks
+    if (resumable) void clearSavedRun(); // a restart throws the old run away for good
     rearm();
     isResetting.current = true;
     emitSound("GAME_MUSIC_START"); // Game Over / victory stopped the loop and the focus did not change
@@ -295,18 +341,18 @@ export default function GameScreen({ navigation, route }: Props) {
     setTimeout(() => {
       isResetting.current = false;
     }, 100);
-  }, [startRun, recordCurrentRun, resetTimer]);
+  }, [startRun, recordCurrentRun, resetTimer, resumable]);
 
   const handleMainMenu = useCallback(() => {
     leaving.current = true;
-    void recordCurrentRun();
+    leaveRun(); // mid-floor the run is kept for "Continuar"; otherwise it is recorded
     setPaused(false);
     clearPopups();
     setShowGameOver(false);
     emitSound("GAME_MUSIC_STOP");
     // Pop back to the existing Cover instead of stacking a second one on top of this screen.
     navigation.popTo("CoverScreen");
-  }, [navigation, recordCurrentRun]);
+  }, [navigation, leaveRun]);
 
   // Rematch: the next cave at the same difficulty and stake. The code is worked out from this one, so every player lands in the same room.
   const handleRematch = useCallback(() => {
@@ -732,7 +778,7 @@ export default function GameScreen({ navigation, route }: Props) {
         bootCover={bootCover}
         shop={{ visible: intermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
         onPickRelic={handlePickRelic}
-        pause={{ visible: paused, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
+        pause={{ visible: paused, saveOnExit: resumable, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{
           visible: showGameOver,
           result: runResult,

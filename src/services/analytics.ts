@@ -12,6 +12,8 @@ type Params = Record<string, string | number | boolean>;
 /** Every event the game reports, with the parameters it must carry. */
 export interface AnalyticsEvents {
   game_start: { mode: 'expedition' | 'daily' | 'endless'; character: number };
+  /** A saved expedition was continued from the cover. */
+  game_resume: { mode: 'expedition' | 'daily' | 'endless'; floor: number };
   level_complete: { level: number; score: number; time: number };
   game_over: { level: number; score: number; time: number; cause: string };
   challenge_submitted: { level: number; score: number };

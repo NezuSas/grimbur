@@ -754,6 +754,9 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       };
     }
 
+    case 'RESTORE':
+      return action.state;
+
     default:
       return state;
   }

@@ -149,6 +149,8 @@ export type GameAction =
       /** Relics the run begins with (Forge: Phoenix Feather). */
       startRelics?: RelicId[];
     }
+  /** Replaces the whole state with a run loaded from disk (continue a saved expedition). */
+  | { type: 'RESTORE'; state: GameState }
   | {
       type: 'LEVEL_UP';
       payload: {
@@ -168,6 +170,8 @@ export interface GameEngineInterface {
   move: (direction: Direction) => void;
   attack: (direction?: Direction) => void;
   reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects }) => void;
+  /** Continues a saved run: the given state becomes the current one, with no side-effects fired. */
+  restore: (state: GameState) => void;
   levelUp: (omen?: OmenId | null) => void;
   buy: (item: ShopItem) => void;
   useAltar: () => void;

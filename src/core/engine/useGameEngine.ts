@@ -172,6 +172,13 @@ export function useGameEngine(): GameEngineInterface {
     });
   }, [pureDispatch]);
 
+  const restore = useCallback((saved: typeof initialState) => {
+    // The saved state becomes both "previous" and "current", so the side-effect pass sees no change and
+    // fires no haptics or events for progress that happened before the app was closed.
+    prevStateRef.current = saved;
+    pureDispatch({ type: 'RESTORE', state: saved });
+  }, [pureDispatch]);
+
   const levelUp = useCallback((chosenOmen?: OmenId | null) => {
     const nextLevel = stateRef.current.level + 1;
     // The omen is the one picked at the fork; without a choice (daily, first fork-less floors) the seeded one applies.
@@ -220,6 +227,7 @@ export function useGameEngine(): GameEngineInterface {
     move,
     attack,
     reset,
+    restore,
     levelUp,
     pickRelic,
     buy,

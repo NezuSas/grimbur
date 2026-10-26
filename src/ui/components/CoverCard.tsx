@@ -18,6 +18,9 @@ import type { Goal } from "../../core/stats/goals";
 import { formatCountdown } from "../../core/stats/countdown";
 
 type Props = {
+  /** An expedition saved half-way: its floor, and whether it is an endless run. */
+  savedRun: { floor: number; endless: boolean } | null;
+  onPressResume: () => void;
   onPressPlay: () => void;
   onPressDaily: () => void;
   onPressEndless: () => void;
@@ -109,6 +112,8 @@ const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: k
  * and the menu on the right; narrow ones stack everything in a column.
  */
 const CoverCard: React.FC<Props> = ({
+  savedRun,
+  onPressResume,
   onPressPlay,
   onPressDaily,
   onPressEndless,
@@ -245,12 +250,23 @@ const CoverCard: React.FC<Props> = ({
           </Text>
         </View>
       </View>
+      {savedRun && (
+        <ModeCard
+          ui={ui}
+          compactCard={short}
+          icon="play"
+          tint="#F2C14E"
+          title={savedRun.endless ? t("cover.resume.endless") : t("cover.resume")}
+          subtitle={t("cover.resume.floor", { floor: savedRun.floor })}
+          onPress={onPressResume}
+        />
+      )}
       <PlayButton
         ui={ui}
         calm={calm}
         compact={short}
         title={t("cover.playBig")}
-        subtitle={firstRun ? t("cover.firstRun") : t("cover.mode.expedition.sub")}
+        subtitle={firstRun ? t("cover.firstRun") : savedRun ? t("cover.newRunNote") : t("cover.mode.expedition.sub")}
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
