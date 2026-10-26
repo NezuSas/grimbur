@@ -1,10 +1,12 @@
-"""Cuts the AI-generated Grimbur sheet (4 poses on white) into the four boss frames the game animates.
+"""Cuts an AI-generated character sheet (poses side by side on white) into the frames the game animates.
 
 Unlike processSprites.py, every frame shares ONE scale and a common bottom baseline, so swapping
 frames never makes the monster jump or change size.
 
-Usage: python scripts/sliceBossSheet.py <sheet.png>
-Writes src/assets/sprites/enemies/Grimbur_Boss[_Breathe|_Attack|_Hurt].png (512px each).
+Usage:
+  python scripts/sliceBossSheet.py <sheet.png>                      # the Grimbur's 4 frames (default)
+  python scripts/sliceBossSheet.py <sheet.png> Name.png,Name_B.png  # any sheet: one name per pose, left to right
+Writes the frames into src/assets/sprites/enemies/ (512px each).
 """
 import os
 import sys
@@ -42,9 +44,9 @@ def white_background_to_alpha(im: Image.Image) -> Image.Image:
     return Image.fromarray(out, 'RGBA')
 
 
-def split_poses(alpha: np.ndarray) -> list[tuple[int, int, int, int]]:
+def split_poses(alpha: np.ndarray, count: int) -> list[tuple[int, int, int, int]]:
     """Connected components of the alpha mask: poses whose raised claws overlap in columns still separate.
-    Returns the 4 largest blobs' boxes (x0, y0, x1, y1), left to right."""
+    Returns the `count` largest blobs' boxes (x0, y0, x1, y1), left to right."""
     mask = alpha > 24
     labels = np.zeros(mask.shape, dtype=np.int32)
     boxes = []
@@ -71,15 +73,15 @@ def split_poses(alpha: np.ndarray) -> list[tuple[int, int, int, int]]:
                     stack.append((ny, nx_))
         boxes.append((n, (x0, y0, x1 + 1, y1 + 1), nxt))
         nxt += 1
-    boxes = [(b, lab) for _, b, lab in sorted(boxes, reverse=True)[:4]]  # the 4 big blobs; specks drop out
+    boxes = [(b, lab) for _, b, lab in sorted(boxes, reverse=True)[:count]]  # the big blobs; specks drop out
     return labels, sorted(boxes, key=lambda b: b[0][0])
 
 
-def main(sheet_path: str) -> None:
+def main(sheet_path: str, names: list[str]) -> None:
     im = white_background_to_alpha(Image.open(sheet_path))
     alpha = np.asarray(im.getchannel('A'))
-    labels, boxes = split_poses(alpha)
-    while len(boxes) < 4:
+    labels, boxes = split_poses(alpha, len(names))
+    while len(boxes) < len(names):
         # Two poses touching (fur tip to fur tip) come out as one wide blob: cut it at its thinnest column.
         (x0, y0, x1, y1), lab = max(boxes, key=lambda b: b[0][2] - b[0][0])
         boxes.remove(((x0, y0, x1, y1), lab))
@@ -88,7 +90,7 @@ def main(sheet_path: str) -> None:
         cut = x0 + lo + int(np.argmin(fill[lo:hi]))
         boxes += [((x0, y0, cut, y1), lab), ((cut, y0, x1, y1), lab)]
         boxes.sort(key=lambda b: b[0][0])
-    assert len(boxes) == 4, f'expected 4 poses, found {len(boxes)}: {boxes}'
+    assert len(boxes) == len(names), f'expected {len(names)} poses, found {len(boxes)}: {boxes}'
     frames = []
     for (x0, y0, x1, y1), lab in boxes:
         f = im.crop((x0, y0, x1, y1))
@@ -99,7 +101,7 @@ def main(sheet_path: str) -> None:
         frames.append(f.crop(f.getchannel('A').getbbox()))  # tight box per pose
     inner = int(SIZE * (1 - 2 * PADDING))
     scale = inner / max(max(f.size) for f in frames)  # ONE scale for the whole set
-    for name, f in zip(NAMES, frames):
+    for name, f in zip(names, frames):
         f = f.resize((max(1, round(f.width * scale)), max(1, round(f.height * scale))), Image.LANCZOS)
         canvas = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
         bottom = SIZE - int(SIZE * PADDING)  # feet share one baseline across frames
@@ -110,4 +112,4 @@ def main(sheet_path: str) -> None:
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2].split(',') if len(sys.argv) > 2 else NAMES)
