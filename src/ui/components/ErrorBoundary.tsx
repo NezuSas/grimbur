@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { analytics } from '../../services/analytics';
+import { sendStashedCrash, stashCrash } from '../../services/crashReports';
 import { translateNow } from '../../i18n/useT';
 
 type Props = { children: React.ReactNode };
@@ -19,6 +20,8 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     analytics.recordError(error, info.componentStack ?? 'render');
+    // The app survives a render error, but the developer must still hear about it.
+    void stashCrash(error, 'render').then(() => sendStashedCrash());
   }
 
   // A new key remounts everything below, so a screen that failed starts again from its first route

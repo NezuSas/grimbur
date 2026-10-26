@@ -1,6 +1,6 @@
 # Formularios de privacidad de las tiendas (respuestas listas)
 
-Verificado contra el código el 2026-10-14. Describe la app **tal como está hoy en el repo** y marca con `[SI ...]` las filas que cambian según lo que actives en la versión que subas.
+Verificado contra el código el 2026-10-25. Describe la app **tal como está hoy en el repo** y marca con `[SI ...]` las filas que cambian según lo que actives en la versión que subas.
 Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVACY_POLICY.md`, lista final). Debe coincidir en todo con la política publicada.
 
 `TODO(owner)`: marcar en cada fila condicional cuál es tu caso real antes de enviar el formulario a Google.
@@ -9,7 +9,9 @@ Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVAC
 
 | Componente | Qué hace | Datos |
 | --- | --- | --- |
-| `src/services/highscores.ts` + `firestore.rules` | Lee el top 20 (al iniciar la app y al abrir el ranking) y escribe una entrada si la partida entra en el top 10 y el jugador la guarda | Documento con 6 campos: `name`, `score`, `level`, `coins`, `characterIndex`, `time`. Sin fecha, sin ID de usuario, sin autenticación |
+| `src/lib/auth.ts` | Inicia una **sesión anónima de Firebase** al arrancar: el uid anónimo es la identidad del jugador en rankings y duelos (las reglas atan cada escritura a él, nadie puede tocar la fila de otro). No hay cuenta, correo ni contraseña; el uid se crea solo y vive en el dispositivo | Identificador anónimo de instancia de la app (uid de Firebase Auth) |
+| `src/services/highscores.ts` + `firestore.rules` | Lee el top 20 (al iniciar la app y al abrir el ranking) y escribe una entrada si la partida entra en el top 10 y el jugador la guarda | Documento con 6 campos: `name`, `score`, `level`, `coins`, `characterIndex`, `time`. Sin fecha; escribir exige la sesión anónima |
+| `src/services/crashReports.ts` + `firestore.rules` | Si la app sufre un error fatal de JS, guarda el error en el dispositivo y lo envía al siguiente arranque a la colección `crashes` (solo crear; solo la consola lo lee) | Mensaje y pila del error (máx. 4000 caracteres), versión de la app, plataforma y hora. Sin ID de dispositivo ni datos del jugador |
 | `src/services/cloudBackup.ts` + `firestore.rules` | (Opcional, desactivado por defecto) guarda el progreso como código de respaldo tras cada partida y al salir de la app, solo si el jugador activó la copia en la nube; lo lee al restaurar con la clave | Documento `backups/{clave}` con 2 campos: `code` (progreso y ajustes) y `updatedAt`. La clave es aleatoria (16 caracteres, 80 bits), sin cuenta, sin correo ni ID de dispositivo. Se borra al desactivar la opción |
 | `src/services/dailyScores.ts` + `firestore.rules` | Al terminar un reto diario envía el resultado (nombre, puntuación, piso, gemas, héroe, tiempo, día, semana, id aleatorio del teléfono); lee los mejores 20 del día y de la semana | Documento `daily_scores/{día}_{id}` con 9 campos. Sin cuenta, sin correo. El id es aleatorio y solo evita duplicados por día |
 | `src/services/challenges.ts` + `firestore.rules` | Al terminar un reto con amigos envía el resultado (nombre, puntuación, piso, gemas, héroe, tiempo, código, id aleatorio); lee los mejores 20 de un código | Documento `challenge_scores/{código}_{id}` con 8 campos. Sin cuenta ni correo |
@@ -47,8 +49,8 @@ Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVAC
 | Información personal | Correo, dirección, teléfono, ID político/religión, otros | No | - | - | - |
 | Actividad en la app | **Otro contenido generado por el usuario / Otras acciones en la app** (puntuación, piso, gemas, héroe, tiempo) | Sí (solo al guardar en el ranking) | No | Sí | Funcionalidad de la app |
 | Actividad en la app | Interacciones de la app (eventos de uso) | **No hoy.** `[SI Firebase Analytics]` Sí; finalidad: Analítica; no compartido, procesado por Firebase como encargado | - | No | - |
-| Información y rendimiento de la app | **Registros de fallos / Diagnósticos** | **No hoy.** `[SI Crashlytics]` Sí; finalidad: Analítica; datos procesados en nombre del desarrollador | - | No | - |
-| Dispositivo u otros ID | ID de dispositivo | **No hoy.** `[SI Firebase Analytics/Crashlytics]` Sí (identificador de instancia de la app); `[SI RevenueCat]` Sí (ID de usuario anónimo de RevenueCat); finalidad: Analítica / Funcionalidad | No (procesador) | No | - |
+| Información y rendimiento de la app | **Registros de fallos / Diagnósticos** | **Sí** (reporte propio en Firestore: mensaje y pila del error, versión, plataforma; sin ID de dispositivo). `[SI Crashlytics]` además procesado por Firebase | No | No | Analítica (estabilidad) |
+| Dispositivo u otros ID | ID de dispositivo u otros ID | **Sí**: uid anónimo de Firebase Auth (identificador de instancia de la app, ata cada fila de ranking/duelo a su autor). `[SI RevenueCat]` además ID anónimo de RevenueCat | No (procesador) | No | Funcionalidad de la app (anti-vandalismo) |
 | Historial de compras | Historial de compras | **No hoy.** `[SI compra única]` Sí: Google Play Billing; no lo recibes como dato personal. Si usas RevenueCat declara "Historial de compras" recopilado, finalidad: Funcionalidad | No | No | Funcionalidad de la app |
 | Ubicación | Aproximada / precisa | No (la IP la ve el servidor pero no se usa para ubicar) | - | - | - |
 | Mensajes, fotos, vídeos, audio, archivos, calendario, contactos | Todos | No | - | - | - |
