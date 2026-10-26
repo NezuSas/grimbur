@@ -13,6 +13,7 @@ import { BOSS_FRAMES } from "./BossSprite";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import { haptic } from "../../shared/haptics";
 import { emitSound } from "../../audio/audioEventBus";
+import EmberIcon from "./EmberIcon";
 import { useT } from "../../i18n/useT";
 import GoalLine from "./GoalLine";
 import type { Goal } from "../../core/stats/goals";
@@ -249,7 +250,7 @@ const CoverCard: React.FC<Props> = ({
     <View style={[styles.menu, { width: menuWidth, gap: short ? 6 : 8 }]}>
       <View style={[styles.chips, chipClear > 0 && { marginRight: chipClear }]}>
         <View style={styles.chip} accessible accessibilityLabel={`${embers} ${t("cover.embers")}`}>
-          <Text style={styles.chipFlame}>🔥</Text>
+          <EmberIcon size={18} />
           <Text style={styles.chipText} maxFontSizeMultiplier={1.15}>
             {embers}
           </Text>

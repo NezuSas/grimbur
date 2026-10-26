@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
+import EmberIcon from "../EmberIcon";
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Character } from '../../../data/characters';
@@ -279,7 +280,7 @@ const GameOverOverlay = ({
       )}
       {depth > 0 && (
         <Text style={styles.depth} maxFontSizeMultiplier={1.2}>
-          🔥 {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
+          <EmberIcon size={12} /> {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
         </Text>
       )}
       {duelResult ? (
@@ -292,7 +293,7 @@ const GameOverOverlay = ({
           </Text>
           {duelResult.prize ? (
             <Text style={[styles.duelLine, { color: duelResult.color }]} maxFontSizeMultiplier={1.2}>
-              🔥 {duelResult.prize}
+              <EmberIcon size={13} /> {duelResult.prize}
             </Text>
           ) : null}
         </View>
@@ -380,7 +381,7 @@ const GameOverOverlay = ({
             accessibilityState={breakdown ? { expanded: showBreakdown } : undefined}
             accessibilityLabel={`${plural('over.embers', embers)}${breakdown ? `. ${breakdown}` : ''}`}
           >
-            <Text style={styles.embersText} maxFontSizeMultiplier={1.2}>🔥 {plural('over.embers', embers).toLocaleUpperCase()}</Text>
+            <Text style={styles.embersText} maxFontSizeMultiplier={1.2}><EmberIcon size={14} /> {plural('over.embers', embers).toLocaleUpperCase()}</Text>
             {breakdown ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#FFAB40" /> : null}
           </TouchableOpacity>
         ) : null}

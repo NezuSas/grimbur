@@ -13,6 +13,7 @@ import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { claimMissionReward, getMissions, peekLocalStats } from "../services/localStats";
 import { emitSound } from "../audio/audioEventBus";
+import EmberIcon from "../ui/components/EmberIcon";
 import { DAILY_BONUS, MissionDef, MissionProgress, bonusReady, isComplete, missionDef, syncMissions } from "../core/stats/missions";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { RANK_THRESHOLDS, rankOf } from "../core/stats/rank";
@@ -108,7 +109,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
             accessibilityLabel={`${t("missions.claim")}: +${def.reward}`}
           >
             <Text style={[styles.rewardText, done && { color: "#1a1200" }]} maxFontSizeMultiplier={1.2}>
-              🔥 +{def.reward}
+              <EmberIcon size={13} /> +{def.reward}
             </Text>
             {done ? (
               <Text style={styles.claimText} maxFontSizeMultiplier={1.2}>
@@ -215,7 +216,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                   accessibilityLabel={`${t("missions.claim")}: +${DAILY_BONUS}`}
                 >
                   <Text style={[styles.rewardText, bonusReady(m) && { color: "#1a1200" }]} maxFontSizeMultiplier={1.2}>
-                    🔥 +{DAILY_BONUS}
+                    <EmberIcon size={13} /> +{DAILY_BONUS}
                   </Text>
                   {bonusReady(m) ? (
                     <Text style={styles.claimText} maxFontSizeMultiplier={1.2}>

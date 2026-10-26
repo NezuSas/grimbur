@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../ui/components/Text";
+import EmberIcon from "../ui/components/EmberIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { RootStackParamList } from "../navigation/types";
 import { useT } from "../i18n/useT";
@@ -102,7 +103,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.2}>{r.total > 2 ? t("duel.historyPlace", { n: r.placement, total: r.total }) : new Date(r.at).toLocaleDateString()}</Text>
                         </View>
                         <Text style={[styles.bestValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9ee37d" : "#b9b4d4" }]} maxFontSizeMultiplier={1.2}>
-                          {r.stake > 0 ? `🔥 ${r.net > 0 ? "+" : ""}${r.net.toLocaleString()}` : "—"}
+                          {r.stake > 0 ? <><EmberIcon size={11} /> {`${r.net > 0 ? "+" : ""}${r.net.toLocaleString()}`}</> : "—"}
                         </Text>
                       </View>
                     );
@@ -130,7 +131,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           {formatChallengeCode(c.code)}
                         </Text>
                         <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                          🔥 {depth}
+                          <EmberIcon size={11} /> {depth}
                         </Text>
                       </View>
                       <View style={styles.best}>

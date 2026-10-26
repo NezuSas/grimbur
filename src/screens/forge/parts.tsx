@@ -5,7 +5,9 @@ import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../../core/stats/forge";
 import { RELIC_IMAGES } from "../../ui/relicImages";
+import { FORGE_ICONS } from "../../ui/forgeArt";
 import SpriteImage from "../../ui/components/SpriteImage";
+import EmberIcon from "../../ui/components/EmberIcon";
 import { LocalStats } from "../../core/stats/runStats";
 import { useT } from "../../i18n/useT";
 import { forgeText } from "../../i18n/keys";
@@ -31,7 +33,7 @@ export const Balance: React.FC<{ value: number; label: string }> = ({ value, lab
 
   return (
     <Animated.View style={[styles.balance, { transform: [{ scale: pop }] }]} accessible accessibilityLiveRegion="polite" accessibilityLabel={label}>
-      <Text style={styles.balanceFlame}>🔥</Text>
+      <EmberIcon size={20} />
       <Text style={styles.balanceValue} maxFontSizeMultiplier={1.2}>
         {value}
       </Text>
@@ -71,16 +73,19 @@ export const Burst: React.FC<{ run: number }> = ({ run }) => {
   );
 };
 
-/** The upgrade's picture: a relic's artwork or its emoji. */
-export const Badge: React.FC<{ info: UpgradeInfo; size: number; maxed: boolean }> = ({ info, size, maxed }) => (
-  <View style={[styles.badge, { width: size, height: size, borderRadius: size / 2 }, maxed && styles.badgeMaxed]}>
-    {info.relic && RELIC_IMAGES[info.relic] ? (
-      <SpriteImage source={RELIC_IMAGES[info.relic]!} style={{ width: size * 0.7, height: size * 0.7 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-    ) : (
-      <Text style={{ fontSize: size * 0.5 }}>{info.icon}</Text>
-    )}
-  </View>
-);
+/** The upgrade's picture: a relic's artwork, its own painted icon, or (as a last resort) its emoji. */
+export const Badge: React.FC<{ info: UpgradeInfo; size: number; maxed: boolean }> = ({ info, size, maxed }) => {
+  const art = (info.relic && RELIC_IMAGES[info.relic]) || FORGE_ICONS[info.id];
+  return (
+    <View style={[styles.badge, { width: size, height: size, borderRadius: size / 2 }, maxed && styles.badgeMaxed]}>
+      {art ? (
+        <SpriteImage source={art} style={{ width: size * 0.72, height: size * 0.72 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      ) : (
+        <Text style={{ fontSize: size * 0.5 }}>{info.icon}</Text>
+      )}
+    </View>
+  );
+};
 
 /** Pips with the next one pulsing, so "there is more to get" is visible without reading. */
 export const Pips: React.FC<{ level: number; max: number; label: string }> = ({ level, max, label }) => (
@@ -134,8 +139,9 @@ export const BuyButton: React.FC<BuyProps> = ({ info, stats, busy, onBuy, big })
         accessibilityLabel={`${name}. ${t("forge.buy", { cost })}`}
       >
         <Animated.View pointerEvents="none" style={[styles.ctaGlow, { opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.35] }) }]} />
+        <EmberIcon size={big ? 20 : 17} />
         <Text style={[styles.ctaBuyText, big && { fontSize: 18 }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-          🔥 {cost}   {t("forge.buyShort").toLocaleUpperCase()}
+          {cost}   {t("forge.buyShort").toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
     );
@@ -144,8 +150,9 @@ export const BuyButton: React.FC<BuyProps> = ({ info, stats, busy, onBuy, big })
   return (
     <View style={[styles.cta, styles.ctaLocked, big && styles.ctaBig]} accessible accessibilityLabel={t("forge.needs", { cost })}>
       <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
+      <EmberIcon size={15} style={{ opacity: 0.85 }} />
       <Text style={styles.ctaLockedText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-        🔥 {stats.embers} / {cost}
+        {stats.embers} / {cost}
       </Text>
     </View>
   );
