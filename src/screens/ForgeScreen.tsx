@@ -33,7 +33,8 @@ import { useT } from "../i18n/useT";
 import { achievementText, forgeText } from "../i18n/keys";
 import { rewardFor, splitNames } from "../core/stats/achievements";
 import ScreenHeader from "../ui/components/ScreenHeader";
-import { EMBER, GOLD, Balance, Burst, Badge, Pips, UpgradeCard, BuyButton } from "./forge/parts";
+import { useSettingsStore } from "../state/settings/store";
+import { EMBER, GOLD, Balance, Burst, Badge, Pips, Rise, UpgradeCard, BuyButton } from "./forge/parts";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ForgeScreen">;
 
@@ -123,7 +124,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const cardWidth = Math.min(usable, 1100);
-  const columns = cardWidth >= 900 ? 3 : cardWidth >= 560 ? 2 : 1;
+  const columns = cardWidth >= 840 ? 3 : cardWidth >= 540 ? 2 : 1;
   const wide = cardWidth >= 720;
 
   const featured = useMemo(() => recommendedUpgrade(stats), [stats]);
@@ -151,6 +152,24 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   const featuredCost = featured ? nextCost(stats, featured.id) : null;
   const featuredReady = featured ? canAfford(stats, featured.id) : false;
 
+  // The one card the player can act on breathes softly, so the eye lands there without an arrow.
+  const calm = useSettingsStore(s => s.reduceFlash);
+  const breathe = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!featuredReady || calm) {
+      breathe.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breathe, { toValue: 1, duration: 1100, useNativeDriver: true }),
+        Animated.timing(breathe, { toValue: 0, duration: 1100, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [featuredReady, calm, breathe]);
+
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
@@ -163,7 +182,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
         <ScrollView
           style={{ alignSelf: "center", width: cardWidth }}
-          contentContainerStyle={{ padding: 8, paddingBottom: 40 + insets.bottom, gap: 12 }}
+          contentContainerStyle={{ padding: 8, paddingBottom: 40 + insets.bottom, gap: 10 }}
           showsVerticalScrollIndicator={false}
         >
           {error ? (
@@ -174,15 +193,22 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
           {/* Featured: the one thing to do right now */}
           {loaded && (featured || stats.embers >= 0) && (
-            <View style={[styles.topRow, !wide && { flexDirection: "column" }]}>
-              <View style={[styles.featured, featuredReady && styles.featuredReady, wide && { flex: 3 }]}>
+            <Rise style={[styles.topRow, !wide && { flexDirection: "column" }]}>
+              <Animated.View
+                style={[
+                  styles.featured,
+                  featuredReady && styles.featuredReady,
+                  wide && { flex: 3 },
+                  { transform: [{ scale: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.015] }) }] },
+                ]}
+              >
                 {featured ? (
                   <>
                     <Text style={[styles.featuredKicker, featuredReady && { color: EMBER }]} maxFontSizeMultiplier={1.2}>
                       {(featuredReady ? t("forge.featured.buy") : t("forge.featured.goal")).toLocaleUpperCase()}
                     </Text>
                     <View style={styles.featuredBody}>
-                      <Badge info={featured} size={wide ? 84 : 68} maxed={false} />
+                      <Badge info={featured} size={wide ? 72 : 60} maxed={false} strike={burst && burst.id === featured.id ? burst.run : 0} />
                       <View style={{ flex: 1, gap: 3 }}>
                         <Text style={styles.featuredName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                           {forgeText(t, featured.id, "name")}
@@ -206,7 +232,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                     {t("forge.allBought")}
                   </Text>
                 )}
-              </View>
+              </Animated.View>
 
               <View style={[styles.gear, wide && { flex: 2 }]}>
                 <Text style={styles.gearTitle} maxFontSizeMultiplier={1.2}>
@@ -230,10 +256,11 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                   {t("forge.owned", { owned, total: UPGRADES.length })}
                 </Text>
               </View>
-            </View>
+            </Rise>
           )}
 
           {/* How it works: open the first time, one line afterwards */}
+          <Rise delay={60}>
           <Pressable onPress={() => setHowOpen(o => !o)} style={styles.how} accessibilityRole="button" accessibilityState={{ expanded: howOpen }} accessibilityLabel={t("forge.how.title")}>
             <View style={styles.howHead}>
               <Ionicons name="information-circle" size={18} color={EMBER} />
@@ -259,9 +286,11 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             )}
           </Pressable>
+          </Rise>
 
           {/* Filters */}
-          <View style={styles.filters} accessibilityRole="tablist">
+          <Rise delay={110} style={styles.filters}>
+          <View style={styles.filtersInner} accessibilityRole="tablist">
             {FILTERS.map(f => {
               const on = filter === f;
               const count = readyIn(f);
@@ -295,14 +324,15 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
             )}
           </View>
+          </Rise>
 
           {rows.map((row, r) => (
-            <View key={r} style={styles.sectionRow}>
+            <Rise key={r} delay={Math.min(160 + r * 70, 440)} style={styles.sectionRow}>
               {row.map(item => (
                 <UpgradeCard key={item.id} info={item} stats={stats} columns={columns} busy={busy} burst={burst && burst.id === item.id ? burst.run : 0} onBuy={buy} />
               ))}
               {row.length < columns && Array.from({ length: columns - row.length }, (_, k) => <View key={`pad${k}`} style={{ flex: 1 }} />)}
-            </View>
+            </Rise>
           ))}
 
           <Text style={styles.footer} maxFontSizeMultiplier={1.2}>
@@ -328,20 +358,20 @@ const styles = StyleSheet.create({
   error: { color: "#FF5252", fontWeight: "800", textAlign: "center" },
   footer: { color: "#8f8aa8", fontSize: 12, textAlign: "center", marginTop: 6 },
 
-  topRow: { flexDirection: "row", gap: 12 },
+  topRow: { flexDirection: "row", gap: 10 },
   featured: {
     borderRadius: 20,
     borderWidth: 2,
     borderColor: "rgba(255,171,64,0.35)",
     backgroundColor: "rgba(30,20,50,0.92)",
-    padding: 14,
-    gap: 10,
+    padding: 12,
+    gap: 8,
     overflow: "hidden",
   },
   featuredReady: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.12)", shadowColor: EMBER, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
   featuredKicker: { color: "#c9c3e6", fontWeight: "900", letterSpacing: 2, fontSize: 11 },
-  featuredBody: { flexDirection: "row", gap: 14, alignItems: "center" },
-  featuredName: { color: "#fff", fontWeight: "900", fontSize: 22 },
+  featuredBody: { flexDirection: "row", gap: 12, alignItems: "center" },
+  featuredName: { color: "#fff", fontWeight: "900", fontSize: 20 },
   featuredAll: { color: GOLD, fontWeight: "900", fontSize: 16, textAlign: "center", paddingVertical: 16 },
   missing: { color: "#a8a2c4", fontSize: 12, textAlign: "center" },
 
@@ -350,8 +380,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.14)",
     backgroundColor: "rgba(20,15,40,0.88)",
-    padding: 14,
-    gap: 6,
+    padding: 12,
+    gap: 5,
   },
   gearTitle: { color: EMBER, fontWeight: "900", letterSpacing: 2, fontSize: 11 },
   gearRow: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -366,7 +396,8 @@ const styles = StyleSheet.create({
   howItem: { flex: 1, flexDirection: "row", gap: 8, alignItems: "flex-start" },
   howText: { flex: 1, color: "#e4defa", fontSize: 12.5 },
 
-  filters: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
+  filters: { alignSelf: "stretch" },
+  filtersInner: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -385,8 +416,8 @@ const styles = StyleSheet.create({
   chipBadgeText: { color: "#fff", fontSize: 11, fontWeight: "900" },
   readyNote: { color: EMBER, fontWeight: "800", fontSize: 12, marginLeft: 4, flexShrink: 1 },
 
-  sectionRow: { flexDirection: "row", gap: 10 },
-  desc: { color: "#cfc9e8", fontSize: 13 },
+  sectionRow: { flexDirection: "row", gap: 8 },
+  desc: { color: "#cfc9e8", fontSize: 12.5, lineHeight: 17 },
   toast: {
     position: "absolute",
     alignSelf: "center",

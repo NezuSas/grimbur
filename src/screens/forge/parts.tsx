@@ -1,6 +1,6 @@
 import { MIN_TOUCH } from "../../ui/layout/useGameLayout";
-import React, { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from "react-native";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../../core/stats/forge";
@@ -16,85 +16,188 @@ import { useSettingsStore } from "../../state/settings/store";
 export const EMBER = "#FFAB40";
 export const GOLD = "#FFD54F";
 
-/** The ember balance, with a small pop each time it changes (earning or spending feels like something). */
+/** Rolls a shown number towards its target instead of jumping, so spending and earning read as movement. */
+const useRollTo = (target: number, calm: boolean): number => {
+  const [shown, setShown] = useState(target);
+  const shownRef = useRef(target);
+  useEffect(() => {
+    if (calm || shownRef.current === target) {
+      shownRef.current = target;
+      setShown(target);
+      return;
+    }
+    const anim = new Animated.Value(shownRef.current);
+    const id = anim.addListener(({ value }) => {
+      shownRef.current = Math.round(value);
+      setShown(shownRef.current);
+    });
+    Animated.timing(anim, { toValue: target, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
+      shownRef.current = target;
+      setShown(target);
+    });
+    return () => {
+      anim.removeListener(id);
+      anim.stopAnimation();
+    };
+  }, [target, calm]); // eslint-disable-line react-hooks/exhaustive-deps
+  return shown;
+};
+
+/** The ember balance: the number rolls to its new value and the chip pops, so paying feels like paying. */
 export const Balance: React.FC<{ value: number; label: string }> = ({ value, label }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
   const pop = useRef(new Animated.Value(1)).current;
   const first = useRef(true);
+  const shown = useRollTo(value, calm);
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
+    if (calm) return;
     Animated.sequence([
       Animated.timing(pop, { toValue: 1.25, duration: 120, useNativeDriver: true }),
       Animated.spring(pop, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
-  }, [value, pop]);
+  }, [value, pop, calm]);
 
   return (
     <Animated.View style={[styles.balance, { transform: [{ scale: pop }] }]} accessible accessibilityLiveRegion="polite" accessibilityLabel={label}>
       <EmberIcon size={20} />
       <Text style={styles.balanceValue} maxFontSizeMultiplier={1.2}>
-        {value}
+        {shown}
       </Text>
     </Animated.View>
   );
 };
 
-/** A short burst of sparks from a card that was just bought. */
-export const SPARKS = Array.from({ length: 10 }, (_, i) => ({ angle: (i / 10) * Math.PI * 2, dist: 34 + (i % 3) * 14 }));
+/** A block that rises and fades in after `delay` ms, so the screen builds itself instead of appearing (instant when calm). */
+export const Rise: React.FC<{ delay?: number; style?: StyleProp<ViewStyle>; children: React.ReactNode }> = ({ delay = 0, style, children }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
+  const v = useRef(new Animated.Value(calm ? 1 : 0)).current;
+  useEffect(() => {
+    if (calm) {
+      v.setValue(1);
+      return;
+    }
+    Animated.timing(v, { toValue: 1, duration: 320, delay, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [calm, delay, v]);
+  return (
+    <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }, style]}>
+      {children}
+    </Animated.View>
+  );
+};
+
+/** Painted embers thrown from a card that was just bought (nothing when calm: the toast and the balance already answer). */
+export const SPARKS = Array.from({ length: 9 }, (_, i) => ({ angle: (i / 9) * Math.PI * 2 + 0.4, dist: 38 + (i % 3) * 16, size: 10 + (i % 3) * 3 }));
+const EMBER_SPRITE = require("../../assets/sprites/items/Icon_Ember.png");
 export const Burst: React.FC<{ run: number }> = ({ run }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
   const t = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!run) return;
+    if (!run || calm) return;
     t.setValue(0);
-    Animated.timing(t, { toValue: 1, duration: 650, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
-  }, [run, t]);
-  if (!run) return null;
+    Animated.timing(t, { toValue: 1, duration: 700, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [run, calm, t]);
+  if (!run || calm) return null;
   return (
     <View style={styles.burst} pointerEvents="none">
       {SPARKS.map((s, i) => (
         <Animated.View
           key={i}
-          style={[
-            styles.spark,
-            {
-              opacity: t.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 1, 0] }),
-              transform: [
-                { translateX: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(s.angle) * s.dist] }) },
-                { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(s.angle) * s.dist - 10] }) },
-                { scale: t.interpolate({ inputRange: [0, 1], outputRange: [1.2, 0.2] }) },
-              ],
-            },
-          ]}
-        />
+          style={{
+            position: "absolute",
+            opacity: t.interpolate({ inputRange: [0, 0.12, 1], outputRange: [0, 1, 0] }),
+            transform: [
+              { translateX: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(s.angle) * s.dist] }) },
+              // Embers fly out and up a little, like sparks off an anvil.
+              { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(s.angle) * s.dist - 16] }) },
+              { rotate: t.interpolate({ inputRange: [0, 1], outputRange: ["0deg", `${(i % 2 ? 1 : -1) * 90}deg`] }) },
+              { scale: t.interpolate({ inputRange: [0, 1], outputRange: [1.1, 0.4] }) },
+            ],
+          }}
+        >
+          <SpriteImage source={EMBER_SPRITE} style={{ width: s.size, height: s.size }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        </Animated.View>
       ))}
     </View>
   );
 };
 
-/** The upgrade's picture: a relic's artwork, its own painted icon, or (as a last resort) its emoji. */
-export const Badge: React.FC<{ info: UpgradeInfo; size: number; maxed: boolean }> = ({ info, size, maxed }) => {
+/**
+ * The upgrade's picture: a relic's artwork, its own painted icon, or (as a last resort) its emoji.
+ * `strike` (a purchase timestamp) lands the hammer: a quick squash, a wobbling rebound and an impact ring.
+ */
+export const Badge: React.FC<{ info: UpgradeInfo; size: number; maxed: boolean; strike?: number }> = ({ info, size, maxed, strike = 0 }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
   const art = (info.relic && RELIC_IMAGES[info.relic]) || FORGE_ICONS[info.id];
+  const hit = useRef(new Animated.Value(2)).current; // 0→1 squash, 1→2 rebound; resting at 2 (scale 1)
+  const ring = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!strike || calm) return;
+    hit.setValue(0);
+    ring.setValue(0);
+    Animated.sequence([
+      Animated.timing(hit, { toValue: 1, duration: 70, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+      Animated.spring(hit, { toValue: 2, friction: 3.2, tension: 160, useNativeDriver: true }),
+    ]).start();
+    Animated.timing(ring, { toValue: 1, duration: 420, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [strike, calm, hit, ring]);
+  const scale = hit.interpolate({ inputRange: [0, 1, 1.4, 2], outputRange: [1, 0.82, 1.14, 1] });
+  const rotate = hit.interpolate({ inputRange: [0, 1, 1.5, 2], outputRange: ["0deg", "-7deg", "4deg", "0deg"] });
   return (
-    <View style={[styles.badge, { width: size, height: size, borderRadius: size / 2 }, maxed && styles.badgeMaxed]}>
+    <Animated.View style={[styles.badge, { width: size, height: size, borderRadius: size / 2, transform: [{ scale }, { rotate }] }, maxed && styles.badgeMaxed]}>
       {art ? (
         <SpriteImage source={art} style={{ width: size * 0.72, height: size * 0.72 }} resizeMode="contain" accessibilityIgnoresInvertColors />
       ) : (
         <Text style={{ fontSize: size * 0.5 }}>{info.icon}</Text>
       )}
-    </View>
+      {strike && !calm ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.ring,
+            {
+              width: size,
+              height: size,
+              borderRadius: size / 2,
+              opacity: ring.interpolate({ inputRange: [0, 0.08, 1], outputRange: [0, 0.9, 0] }),
+              transform: [{ scale: ring.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1.7] }) }],
+            },
+          ]}
+        />
+      ) : null}
+    </Animated.View>
   );
 };
 
-/** Pips with the next one pulsing, so "there is more to get" is visible without reading. */
-export const Pips: React.FC<{ level: number; max: number; label: string }> = ({ level, max, label }) => (
-  <View style={styles.pips} accessible accessibilityLabel={label}>
-    {Array.from({ length: max }, (_, i) => (
-      <View key={i} style={[styles.pip, i < level && styles.pipOn, i === level && styles.pipNext]} />
-    ))}
-  </View>
-);
+/** Pips with the next one pulsing; a pip that just lit up pops in, so "level up" is visible without reading. */
+export const Pips: React.FC<{ level: number; max: number; label: string }> = ({ level, max, label }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
+  const prev = useRef(level);
+  const pop = useRef(new Animated.Value(1)).current;
+  const [lit, setLit] = useState(-1);
+  useEffect(() => {
+    if (level > prev.current && !calm) {
+      setLit(level - 1);
+      pop.setValue(0);
+      Animated.spring(pop, { toValue: 1, friction: 3.5, tension: 140, useNativeDriver: true }).start();
+    }
+    prev.current = level;
+  }, [level, calm, pop]);
+  return (
+    <View style={styles.pips} accessible accessibilityLabel={label}>
+      {Array.from({ length: max }, (_, i) =>
+        i === lit ? (
+          <Animated.View key={i} style={[styles.pip, styles.pipOn, { transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.2, 1] }) }] }]} />
+        ) : (
+          <View key={i} style={[styles.pip, i < level && styles.pipOn, i === level && styles.pipNext]} />
+        ),
+      )}
+    </View>
+  );
+};
 
 export type BuyProps = { info: UpgradeInfo; stats: LocalStats; busy: boolean; onBuy: (id: UpgradeId) => void; big?: boolean };
 
@@ -180,7 +283,7 @@ export const UpgradeCard = React.memo(({ info, stats, columns, busy, burst, onBu
   return (
     <Animated.View style={[styles.card, { flex: 1 }, affordable && styles.cardAffordable, maxed && styles.cardMaxed, { transform: [{ scale }] }]}>
       <View style={styles.cardTop}>
-        <Badge info={info} size={58} maxed={maxed} />
+        <Badge info={info} size={54} maxed={maxed} strike={burst} />
         <View style={styles.cardText}>
           <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {forgeText(t, info.id, "name")}
@@ -216,8 +319,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.12)",
     backgroundColor: "rgba(20, 15, 40, 0.88)",
-    padding: 12,
-    gap: 10,
+    padding: 10,
+    gap: 8,
     overflow: "hidden",
   },
   cardAffordable: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.1)" },
@@ -232,15 +335,15 @@ const styles = StyleSheet.create({
   },
   badgeMaxed: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.16)" },
   cardText: { flex: 1, gap: 3 },
-  name: { color: "#fff", fontWeight: "900", fontSize: 17 },
-  desc: { color: "#cfc9e8", fontSize: 13 },
-  pips: { flexDirection: "row", gap: 6, marginTop: 3 },
-  pip: { width: 22, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.16)" },
+  name: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  desc: { color: "#cfc9e8", fontSize: 12.5, lineHeight: 17 },
+  pips: { flexDirection: "row", gap: 5, marginTop: 3 },
+  pip: { width: 20, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.16)" },
   pipOn: { backgroundColor: EMBER },
   pipNext: { borderWidth: 1.5, borderColor: "rgba(255,171,64,0.8)", backgroundColor: "transparent" },
 
   cta: { minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, overflow: "hidden" },
-  ctaBig: { minHeight: 54, borderRadius: 18 },
+  ctaBig: { minHeight: 50, borderRadius: 16 },
   ctaBuy: { backgroundColor: EMBER, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   ctaGlow: { ...StyleSheet.absoluteFill, backgroundColor: "#fff" },
   ctaBuyText: { color: "#1a0f00", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
@@ -251,6 +354,5 @@ const styles = StyleSheet.create({
   ctaMaxedText: { color: GOLD, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
 
   burst: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
-  spark: { position: "absolute", width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD, shadowColor: EMBER, shadowOpacity: 1, shadowRadius: 6 },
-
+  ring: { position: "absolute", borderWidth: 3, borderColor: "#FFF3D6" },
 });
