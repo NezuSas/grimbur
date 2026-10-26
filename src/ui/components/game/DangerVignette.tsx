@@ -3,7 +3,7 @@ import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 type Props = {
-  /** A guardian (or the Wumpus) touches the hero's tile. */
+  /** A guardian (or the Grimbur) touches the hero's tile. */
   roar: boolean;
   /** A vortex touches the hero's tile. */
   vortex: boolean;

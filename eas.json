@@ -19,7 +19,7 @@
         "buildType": "apk"
       },
       "env": {
-        "WUMPUS_ARCHS": "arm"
+        "GRIMBUR_ARCHS": "arm"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "WUMPUS_ARCHS": "arm"
+        "GRIMBUR_ARCHS": "arm"
       }
     },
     "preview-emulator": {
@@ -39,7 +39,7 @@
         "buildType": "apk"
       },
       "env": {
-        "WUMPUS_ARCHS": "all"
+        "GRIMBUR_ARCHS": "all"
       }
     }
   },

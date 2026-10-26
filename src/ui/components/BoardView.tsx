@@ -51,7 +51,7 @@ type Props = {
   dying?: boolean;
   /** The tile that killed the hero (ringed in red). */
   killerTile?: number | null;
-  /** Bumped when something heavy lands (a hit on the Wumpus): the board shakes once. */
+  /** Bumped when something heavy lands (a hit on the Grimbur): the board shakes once. */
   shakeKey?: number;
   /** A refused step onto a flag: the flag on this tile blinks and shakes. `n` changes for every refusal. */
   flagPing?: { index: number; n: number } | null;
@@ -231,7 +231,7 @@ const BoardView: React.FC<Props> = memo(
       ]).start();
     }, [dying, killerTile, calm]);
 
-    // A heavy hit (the Wumpus took an arrow): a short, firm shake.
+    // A heavy hit (the Grimbur took an arrow): a short, firm shake.
     const lastShakeKey = useRef(shakeKey);
     useEffect(() => {
       if (shakeKey === lastShakeKey.current) return;

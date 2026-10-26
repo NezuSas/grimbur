@@ -30,7 +30,7 @@ type Props = {
   gemPop?: number;
   /** Reduced motion. */
   calm?: boolean;
-  /** Hearts the Wumpus has left; when set (lair floor) it replaces the gem counter. */
+  /** Hearts the Grimbur has left; when set (lair floor) it replaces the gem counter. */
   bossHearts?: number;
   /** When provided, a pause button is shown next to the timer. */
   onPause?: () => void;
@@ -175,7 +175,7 @@ const ScoreBar: React.FC<Props> = memo(
         <View style={compact ? styles.rightCompact : styles.rightGroup}>
           {bossHearts !== undefined ? (
             <ScoreCounter
-              icon={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
+              icon={require("../../assets/sprites/enemies/Grimbur_Boss.png")}
               value={`${bossHearts}`}
               label={t("hud.bossHearts").toLocaleUpperCase()}
               iconDim={statIconSize}

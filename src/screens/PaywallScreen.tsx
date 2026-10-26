@@ -124,7 +124,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
 
   const features: { icon: keyof typeof Ionicons.glyphMap; tint: string; text: string }[] = [
     { icon: "layers", tint: "#4FC3F7", text: t("paywall.feat.floors", { from: cfg.freeFloors + 1, to: GAME_CONFIG.expedition.floors }) },
-    { icon: "skull", tint: "#FF7043", text: t("paywall.feat.wumpus") },
+    { icon: "skull", tint: "#FF7043", text: t("paywall.feat.grimbur") },
     { icon: "infinite", tint: "#B39DDB", text: t("paywall.feat.endless") },
     { icon: "heart", tint: "#F06292", text: t("paywall.feat.support") },
   ];
@@ -134,7 +134,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
       <View style={styles.pitchHead}>
         {!short && (
           <View style={styles.medallion}>
-            <SpriteImage source={require("../assets/sprites/enemies/Wumpus_Boss.png")} style={{ width: 62, height: 62 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+            <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.png")} style={{ width: 62, height: 62 }} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
         )}
         <View style={{ flex: 1, gap: 2 }}>

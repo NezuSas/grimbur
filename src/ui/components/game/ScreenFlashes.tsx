@@ -3,7 +3,7 @@ import { Animated, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 type Props = {
-  /** White flash on a kill or a hit on the Wumpus. */
+  /** White flash on a kill or a hit on the Grimbur. */
   combat: Animated.Value;
   /** Red edges when the hero dies (0..0.34). */
   death: Animated.Value;

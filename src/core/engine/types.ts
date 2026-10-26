@@ -13,7 +13,7 @@ export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' |
 /** Entities that kill the player on contact. */
 export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper'];
 
-/** Guardians an arrow, a volley or a bomb can destroy (the Wumpus is handled apart). */
+/** Guardians an arrow, a volley or a bomb can destroy (the Grimbur is handled apart). */
 export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleeper'];
 
 /** Monsters that walk toward the player (they wind up before striking). */
@@ -27,9 +27,9 @@ export interface GameEntity {
   type: EntityType;
   /** Remaining hit points (the boss only). */
   hp?: number;
-  /** The Wumpus' wind-up: it can only strike on the action after it arrives next to the player. */
+  /** The Grimbur' wind-up: it can only strike on the action after it arrives next to the player. */
   charge?: number;
-  /** Stalkers the Wumpus has called so far (the boss only). */
+  /** Stalkers the Grimbur has called so far (the boss only). */
   calls?: number;
 }
 
@@ -77,7 +77,7 @@ export interface GameState {
   pendingDraft: RelicId[] | null;
   /** Player moves made on the current floor (drives the boss). */
   turn: number;
-  /** True once the Wumpus is dead and the expedition is won. */
+  /** True once the Grimbur is dead and the expedition is won. */
   isVictory: boolean;
   /** Set for one move when the player stepped on a trap or collected a power-up. */
   lastPickup: PickupKind | null;

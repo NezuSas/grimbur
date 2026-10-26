@@ -1,4 +1,4 @@
-"""Builds the store/app icons from assets/emblem.png (transparent Wumpus-head emblem).
+"""Builds the store/app icons from assets/emblem.png (transparent Grimbur-head emblem).
 
   assets/icon.png           1024 square, opaque: indigo radial gradient + emblem
   assets/adaptive-icon.png  1024, transparent, emblem inside the central 62% (Android crops the rest)

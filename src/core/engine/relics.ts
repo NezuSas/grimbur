@@ -100,7 +100,7 @@ export const RELICS: Record<RelicId, RelicInfo> = {
   frost: {
     id: 'frost',
     name: 'Frost Charm',
-    description: 'The Wumpus and the stalkers act more slowly.',
+    description: 'The Grimbur and the stalkers act more slowly.',
     icon: '❄️',
     max: 1,
   },

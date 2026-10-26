@@ -19,8 +19,8 @@ export type AchievementId =
   | 'gem_hoard' | 'collector' | 'gem_dragon' | 'pocket_change' | 'high_roller' | 'big_game' | 'legendary_haul'
   // Builds
   | 'relic_trio' | 'relic_hoarder' | 'relic_master' | 'smith' | 'master_smith' | 'ember_collector' | 'ember_baron'
-  // The Wumpus
-  | 'wumpus_slayer' | 'veteran_slayer' | 'wumpus_bane' | 'speedrunner' | 'lightning'
+  // The Grimbur
+  | 'grimbur_slayer' | 'veteran_slayer' | 'grimbur_bane' | 'speedrunner' | 'lightning'
   // Difficulty
   | 'tempered' | 'ascended' | 'abyssal'
   // Habits
@@ -181,10 +181,10 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('ember_collector', '🌋', 'medium', 'embers', 500, s => s.lifetimeEmbers),
   counted('ember_baron', '☄️', 'hard', 'embers', 3000, s => s.lifetimeEmbers),
 
-  // ── The Wumpus ──────────────────────────────────────────────────────────
-  counted('wumpus_slayer', '🗡️', 'hard', 'wins', 1, s => s.victories),
+  // ── The Grimbur ──────────────────────────────────────────────────────────
+  counted('grimbur_slayer', '🗡️', 'hard', 'wins', 1, s => s.victories),
   counted('veteran_slayer', '🛡️', 'hard', 'wins', 5, s => s.victories),
-  counted('wumpus_bane', '🏆', 'legend', 'wins', 15, s => s.victories),
+  counted('grimbur_bane', '🏆', 'legend', 'wins', 15, s => s.victories),
   {
     id: 'speedrunner',
     icon: '⚡',

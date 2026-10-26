@@ -2,7 +2,7 @@ import type { LocalStats } from './runStats';
 import { newlyUnlockedHeroes } from './heroUnlocks';
 
 /**
- * The endless descent opens with the first victory, or earlier for players who keep dying before the Wumpus:
+ * The endless descent opens with the first victory, or earlier for players who keep dying before the Grimbur:
  * reaching floor 5 or playing 8 runs is enough. (A perfect bot only reaches the boss ~40% of the time.)
  */
 export const ENDLESS_FLOOR = 5;

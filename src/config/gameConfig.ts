@@ -32,7 +32,7 @@ export const GAME_CONFIG = {
   /**
    * One-time unlock of the full game (see docs/release/MONETIZATION_SETUP.md). OFF: everything is open, as always.
    * Free: tutorial, expedition floors 1..freeFloors and the daily challenge. Paid: the rest of the expedition,
-   * the Wumpus and the endless descent. Never ads, never loot boxes, never ranking power.
+   * the Grimbur and the endless descent. Never ads, never loot boxes, never ranking power.
    */
   /** Where players send reports and questions (the report button on the ranking opens a mail to it). */
   support: {
@@ -53,24 +53,24 @@ export const GAME_CONFIG = {
   },
 
   expedition: {
-    /** Floors in a run; the last one is the Wumpus lair. */
+    /** Floors in a run; the last one is the Grimbur lair. */
     floors: 10,
   },
 
   boss: {
     hp: 3,
-    /** The Wumpus steps toward the player after every Nth player move. */
+    /** The Grimbur steps toward the player after every Nth player move. */
     moveEvery: 2,
     hitScore: 150,
     killScore: 2000,
     /** Minimum Manhattan distance from the spawn when it is placed. */
     minSpawnDistance: 6,
-    /** Fury: with one heart left the Wumpus steps after every Nth player action (instead of `moveEvery`). */
+    /** Fury: with one heart left the Grimbur steps after every Nth player action (instead of `moveEvery`). */
     furyMoveEvery: 1,
     /** Most guardians / vortexes a lair floor keeps: the floor is a fight, not a minefield plus a boss. */
     lairGuardians: 8,
     lairPits: 7,
-    /** A wounded Wumpus may call a stalker next to itself: chance per hit, and the most calls per fight. */
+    /** A wounded Grimbur may call a stalker next to itself: chance per hit, and the most calls per fight. */
     callChance: 0.5,
     maxCalls: 2,
   },

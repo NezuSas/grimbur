@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DuelRecord, addRecord, parseHistory } from '../core/duel/history';
 
-const STORAGE = 'wumpus.duel.history.v1';
+const STORAGE = 'grimbur.duel.history.v1';
 
 export async function getDuelHistory(): Promise<DuelRecord[]> {
   try {

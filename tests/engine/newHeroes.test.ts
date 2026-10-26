@@ -96,7 +96,7 @@ describe('Flare', () => {
 describe('Blast', () => {
   const base = () => createState({ perks: BRAM, entities: [coin(100), enemy(1), pit(15), trap(16), boss(31, 3), enemy(4)] });
 
-  it('destroys guardians and vortexes in the 3x3 for free, never the Wumpus, and starts the cooldown', () => {
+  it('destroys guardians and vortexes in the 3x3 for free, never the Grimbur, and starts the cooldown', () => {
     const s0 = { ...base(), playerIndex: 16 };
     const s1 = gameReducer(s0, use);
     expect(s1.entityMap[1]).toBeUndefined();

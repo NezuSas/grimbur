@@ -1,6 +1,6 @@
-# WumpusAdventures — Architecture Documentation
+# Grimbur — Architecture Documentation
 
-This document describes the high-level architecture and data flow of **WumpusAdventures**.
+This document describes the high-level architecture and data flow of **Grimbur**.
 
 ## 1. System Layers
 

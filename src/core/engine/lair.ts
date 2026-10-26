@@ -2,15 +2,15 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import type { GameMode } from './seed';
 
 /**
- * Whether a floor is a Wumpus lair. Expeditions and the daily end with the lair on floor 10; the endless
- * descent meets the Wumpus again every tenth floor, each time with one more heart.
+ * Whether a floor is a Grimbur lair. Expeditions and the daily end with the lair on floor 10; the endless
+ * descent meets the Grimbur again every tenth floor, each time with one more heart.
  */
 export function isLairFloor(mode: GameMode, level: number): boolean {
   const floors = GAME_CONFIG.expedition.floors;
   return mode === 'endless' ? level >= floors && level % floors === 0 : level === floors;
 }
 
-/** Extra hearts the Wumpus has on this lair floor (only the endless descent adds any). */
+/** Extra hearts the Grimbur has on this lair floor (only the endless descent adds any). */
 export function lairHeartBonus(mode: GameMode, level: number): number {
   if (mode !== 'endless') return 0;
   return Math.max(0, Math.floor(level / GAME_CONFIG.expedition.floors) - 1);

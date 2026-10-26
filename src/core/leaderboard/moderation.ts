@@ -33,7 +33,7 @@ export interface ReportEntry {
 
 /** A ready-to-open `mailto:` link that reports one ranking entry. */
 export function buildReportMailto(email: string, entry: ReportEntry): string {
-  const subject = 'Wumpus Adventures: report a ranking entry';
+  const subject = 'Grimbur Adventures: report a ranking entry';
   const body = `Entry id: ${entry.id}\nName: ${entry.name}\nScore: ${entry.score}\nFloor: ${entry.level}\n\nWhy I am reporting it:\n`;
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }

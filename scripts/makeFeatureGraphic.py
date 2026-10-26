@@ -14,9 +14,9 @@ STORE = os.path.join(ROOT, 'docs', 'release', 'store')
 FONTS = os.path.join(ROOT, 'node_modules', '@expo-google-fonts', 'fredoka')
 
 W, H = 1024, 500
-TITLE = 'WUMPUS'
+TITLE = 'GRIMBUR'
 SUBTITLE = 'ADVENTURES'
-TAGLINE = 'Descend. Deduce. Slay the Wumpus.'
+TAGLINE = 'Descend. Deduce. Slay the Grimbur.'
 GOLD = (255, 213, 79)
 OUTLINE = (20, 12, 40)
 

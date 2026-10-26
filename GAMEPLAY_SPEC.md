@@ -1,6 +1,6 @@
-# WumpusAdventures — Gameplay Specification
+# Grimbur — Gameplay Specification
 
-This document defines the rules, mechanics, and systems of **WumpusAdventures**.
+This document defines the rules, mechanics, and systems of **Grimbur**.
 
 ## 1. World Structure
 - **Play Area**: A grid whose size grows with the level (from 5×8 up to 8×13, see `core/difficulty/difficulty.ts`; boards stop growing at floor 10, the endless descent gets harder through density and hunters instead).
@@ -74,17 +74,17 @@ Final scores are calculated based on efficiency and risk-taking.
 ## 8. Pause
 A pause button sits next to the timer. Android's Back button pauses (and resumes) instead of abandoning the run, and sending the app to the background pauses automatically. The timer stops while paused.
 
-## 9. The Expedition and the Wumpus
+## 9. The Expedition and the Grimbur
 A standard run (and the Daily Challenge) is an **expedition of 10 floors**. Floors 1-9 follow the rules above (levels are
-called floors). **Floor 10 is the Wumpus lair**:
+called floors). **Floor 10 is the Grimbur lair**:
 
-- No gems. Killing the Wumpus clears the floor and wins the expedition (victory screen, +2,000 points).
-- The Wumpus has 3 hearts; each arrow removes one (+150 points per hit).
+- No gems. Killing the Grimbur clears the floor and wins the expedition (victory screen, +2,000 points).
+- The Grimbur has 3 hearts; each arrow removes one (+150 points per hit).
 - It hunts: after every 2nd player action (a move **or a shot**) it steps one tile toward the player, only onto empty tiles.
 - **Fury**: with its last heart it acts after **every** action. Each hit that does not kill it may call a stalker next to it (50%, at most 2 per fight).
 - The lair is a fight, not a minefield: it keeps at most 8 guardians and 7 vortexes, and at most one stalker (the lair boards are not checked for deduction, so they are kept light).
-- It needs a **wind-up**: when it reaches you it glows on its next action, and only on the action after that can it strike (about four player actions from arrival to strike), which leaves a bare hero three shots at an adjacent Wumpus. If you move away it loses the charge and has to close in again.
-- Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Wumpus survives. **A hit that was just absorbed stuns every hunter for that action**, so one move never costs both a shield and a second strike.
+- It needs a **wind-up**: when it reaches you it glows on its next action, and only on the action after that can it strike (about four player actions from arrival to strike), which leaves a bare hero three shots at an adjacent Grimbur. If you move away it loses the charge and has to close in again.
+- Touching it (or being struck by it) is fatal; a shield absorbs one touch and, if the player walked into it, throws the player back. The Grimbur survives. **A hit that was just absorbed stuns every hunter for that action**, so one move never costs both a shield and a second strike.
 - It counts as a guardian in the proximity clues, so the roar warns you as it closes in.
 
 ## 10. Heroes
@@ -104,14 +104,14 @@ After every cleared floor the game offers **3 different relics** and waits for t
 | :--- | :--- | :--- |
 | Bottomless Quiver | +2 arrows now, +1 arrow at the start of every floor | 3 |
 | Lucky Coin | Gems +25% points, and each gem has a 20% chance per stack to give one more shop gem (decided by the seed) | 3 |
-| Wayfarer Boots (id `iron_boots`) | Walking costs no points, and stepping on an already explored tile does not advance the hunters' clocks (turn counter and Wumpus / stalker actions); no effect in the lair | 1 |
+| Wayfarer Boots (id `iron_boots`) | Walking costs no points, and stepping on an already explored tile does not advance the hunters' clocks (turn counter and Grimbur / stalker actions); no effect in the lair | 1 |
 | Old Lantern | Each floor starts with the area around the spawn explored | 1 |
 | Phoenix Feather | Survives one deadly touch, then is consumed (a shield is spent first) | 1 |
 | Hunter's Mark | Kill combos can climb one step higher; every guardian killed by an arrow or volley drops 1 shop gem | 2 |
 | Long Bow | Arrows fly one tile farther | 1 |
 | Bulwark | Start every floor with a shield | 1 |
 | Dragon Hoard | Clearing a floor pays +50% and gives 1 shop gem per stack | 2 |
-| Frost Charm | The Wumpus **and the stalkers** act one action later | 1 |
+| Frost Charm | The Grimbur **and the stalkers** act one action later | 1 |
 | Trap Sense | Traps are disarmed without penalty | 1 |
 
 Drafts never offer a relic the hero cannot use: no Bulwark for Borin (Stoneskin) and no Trap Sense for Vael (Trapfinder) and no Old Lantern for Mira (Lightbearer). The four cursed relics are listed in section 25.
@@ -136,7 +136,7 @@ After winning an expedition the next **depth** unlocks (1 to 5). On the hero scr
 | :--- | :--- |
 | 1 | One arrow fewer on every floor (never below 1) |
 | 2 | A stalker always appears from floor 5 |
-| 3 | The Wumpus has one more heart |
+| 3 | The Grimbur has one more heart |
 | 4 | Traps hurt twice as much and every floor from 3 has one more |
 | 5 | Relic drafts offer only 2 choices |
 
@@ -174,7 +174,7 @@ Floors are generated until a careful player can collect every gem using only the
 - **Swipe to move** (Settings, off by default): a swipe of at least 28 dp (or 60% of a tile) moves one step, acting on release. Short drags and diagonal smears do nothing.
 - **Danger flags**: holding a finger on an unexplored tile marks it as dangerous. A marked tile cannot be stepped on (the pad warns with a vibration) until the mark is removed. Marks are cosmetic memory aids and are cleared on each floor.
 - **Aimed shots**: pressing and dragging from the attack button toward a side turns the hero that way and fires without moving or paying a step; a plain tap still fires where the hero faces. While the button is held the board outlines the tiles the arrow would cross, and the button shows the chosen arrow. The button also prints the arrows left.
-- **The lair**: the banner states the goal ("Slay the Wumpus", how many hearts it has and that it hunts you) and fades as soon as the player moves; the gem counter becomes the Wumpus' hearts; the relic draft before it says the lair is next.
+- **The lair**: the banner states the goal ("Slay the Grimbur", how many hearts it has and that it hunts you) and fades as soon as the player moves; the gem counter becomes the Grimbur' hearts; the relic draft before it says the lair is next.
 - **Relics** collected so far sit in a tray (above the attack button on wide screens, above the pad on narrow ones) with a count for duplicates.
 - **Facing**: the hero is mirrored when it faces left, leans away (up) or toward (down) the viewer, and the tile in front of it carries a faint chevron: that is where a plain shot goes. There is no arrow over the hero's head.
 - **Start of a run**: an opaque "preparing the cave" cover stays up until the first board's tiles have been drawn (or 2.5 s), then fades out; the floor banner starts after it.
@@ -191,21 +191,21 @@ All menu screens share one header (`ui/components/ScreenHeader.tsx`: back button
 - **How to play**: a four-step picture strip, the replay-tutorial button, then collapsible sections (mission and controls open, the rest folded).
 
 ## 21. Modes, difficulty and long-term goals
-- **Expedition**: 10 floors and the Wumpus; your Forge upgrades and chosen difficulty apply; it earns embers and unlocks heroes and difficulties.
+- **Expedition**: 10 floors and the Grimbur; your Forge upgrades and chosen difficulty apply; it earns embers and unlocks heroes and difficulties.
 - **Daily challenge**: the same cave for everyone, today only; no upgrades, always *Normal*; keeps a streak (a flame with the number of days on the cover; it pulses until today's run is done and shows a check afterwards).
-- **Endless descent**: unlocked by the first victory. No last floor: the Wumpus returns every 10 floors with one more heart each time (killing it opens the next floor, it is not a victory), and from floor 11 each floor adds guardians (up to +3), vortexes (up to +2) and a stalker every five floors (up to +3, five stalkers at most per floor). Boards stay at 8x13, so hazard density climbs from about 23% to about 28% by floor 30 (`endlessPressure` in `core/engine/lair.ts`). It keeps its own record (deepest floor) and never touches the expedition's best score, floor or victories, and it does not submit to the leaderboard.
+- **Endless descent**: unlocked by the first victory. No last floor: the Grimbur returns every 10 floors with one more heart each time (killing it opens the next floor, it is not a victory), and from floor 11 each floor adds guardians (up to +3), vortexes (up to +2) and a stalker every five floors (up to +3, five stalkers at most per floor). Boards stay at 8x13, so hazard density climbs from about 23% to about 28% by floor 30 (`endlessPressure` in `core/engine/lair.ts`). It keeps its own record (deepest floor) and never touches the expedition's best score, floor or victories, and it does not submit to the leaderboard.
 - **Difficulty** (formerly "depth"): Normal, Veteran, Nightmare, Inferno, Abyssal, Legendary. Each one keeps the earlier penalties (section 15) and the next opens by winning at the current one.
-- **Achievements**: 104, in four tiers (easy, medium, hard, legendary) across getting started, depth, treasure, builds, the Wumpus, difficulty, habits and the endless descent. Cumulative ones show a progress bar; the next goal sorts to the top.
+- **Achievements**: 104, in four tiers (easy, medium, hard, legendary) across getting started, depth, treasure, builds, the Grimbur, difficulty, habits and the endless descent. Cumulative ones show a progress bar; the next goal sorts to the top.
 - **Heroes** have names and titles: Vael the Pathfinder, Sera the Crimson Archer, Borin the Moss Warden, Auric the Gilded Delver, Mira the Lantern Keeper, Bram the Blaster.
 - **Typeface**: Fredoka (OFL), one file per weight, applied through `ui/components/Text.tsx`. The version number is not shown to players.
 
 ## 22. The cover, the Forge and the achievement loop
-- **Cover**: no panel around everything. The title stands on the cave (with the Wumpus below it on roomy screens); the three game modes are separate cards; Forge, Ranking, Achievements and How to play are a dock of round icons. Wide landscape windows put the title on the left and the menu on the right; narrow or portrait windows stack them, and the two small mode cards become full-width rows when the menu is under 480 dp.
+- **Cover**: no panel around everything. The title stands on the cave (with the Grimbur below it on roomy screens); the three game modes are separate cards; Forge, Ranking, Achievements and How to play are a dock of round icons. Wide landscape windows put the title on the left and the menu on the right; narrow or portrait windows stack them, and the two small mode cards become full-width rows when the menu is under 480 dp.
 - **Forge**: 18 upgrades in three groups. *Power* (Whetstone, Ward, Explorer's pride, Scribe, Eagle eye), *Economy* (Coin purse, Fortune) and *Start with a relic* (Miner's lamp, Trapper's eye, Silent boots, Frost heart, Lucky coin, Phoenix start, Long bow, Hunter's mark, Dragon's greed, Bottomless quiver, Bulwark). Relics bought here act from the first move of every expedition (never in the daily). Prices run from 40 to 600 embers.
 - **Achievements**: 104, each paying embers when unlocked (easy 10, medium 25, hard 60, legendary 150: 6,630 in total) so that chasing them feeds the Forge. The screen shows the overall bar, the embers still waiting, the three goals closest to done, filters (all, to do, done) and a reward chip on every card. New counters: victories per hero, daily challenges played and won, lifetime embers. Trophy achievements (10, 25, 50, 75, 100 unlocked) are awarded in the same pass as the ones that complete them.
 
 ## 23. Cover hierarchy
-One thing to do first: a large golden PLAY button (the expedition) with the best score under it. Below it, smaller, the daily challenge (with the streak flame) and the endless descent; then the dock of round icons (Forge, Ranking, Achievements, How to play); an ember chip with the purse and the settings cog sit in the corner. A red dot marks the Forge when something is affordable and Achievements when new ones were unlocked since the screen was last opened. The Wumpus breathes on a lit medallion and a few embers float behind the menu (both off with *reduce flashes*). No popups, ads, rating or sign-in prompts before the first run.
+One thing to do first: a large golden PLAY button (the expedition) with the best score under it. Below it, smaller, the daily challenge (with the streak flame) and the endless descent; then the dock of round icons (Forge, Ranking, Achievements, How to play); an ember chip with the purse and the settings cog sit in the corner. A red dot marks the Forge when something is affordable and Achievements when new ones were unlocked since the screen was last opened. The Grimbur breathes on a lit medallion and a few embers float behind the menu (both off with *reduce flashes*). No popups, ads, rating or sign-in prompts before the first run.
 
 ## 24. More value
 - **Pad feedback**: pressing a direction lights the whole quadrant under the thumb (gold wash from the centre to the rim), not only a circle around the arrow. A thumb covers the arrow it presses, so the lit wedge is what confirms which direction was read.
@@ -218,9 +218,9 @@ One thing to do first: a large golden PLAY button (the expedition) with the best
 ## 25. Decisions between floors, abilities and new dangers
 - **Gems are a purse.** Every gem collected adds 1 gem to the run's purse (2 with the Greedy Idol). It is kept for the whole run and spent only between floors.
 - **Between floors** (an overlay after the floor-complete card, `IntermissionOverlay`): the shop sells +2 arrows for the next floor (3 gems), a shield (5, only when you have none), a detector (4) and a bomb (6); the bag holds at most 3 of each item. An **altar** trades the shield for a second relic pick right after the first. A **fork** offers two doors, each an omen or a plain cave (two different ones, picked deterministically from the run seed and floor); the chosen omen is the floor's omen. There is no fork on the first floor, before the lair, or in the daily challenge (which keeps its seeded omens); the shop and altar are available everywhere. The "go" button arms after 0.35 s so a leftover tap cannot skip the screen.
-- **Hero abilities** (button above the pad, ready at the start of every floor, each use takes one action so hunters move and sleepers nearby wake; cooldown 12 actions, except Brace, Magnet and Flare: 18, and Blast: 24): Vael *Scout* reveals a safe unexplored tile beside the explored area that the player could not already deduce (the one with most unexplored neighbours; only when nothing is hidden does it show a known one); Sera *Volley* is a free shot along her facing line that kills up to two guardians within five tiles (a Wumpus in the line takes one heart and stops it); Borin *Brace* raises a shield; Auric *Magnet* collects the nearest gem anywhere (and can clear the floor); Mira *Flare* explores every non-hazard tile within two steps of her (hazards stay hidden, their clues show); Bram *Blast* is a free bomb (guardians and vortexes in the 3x3 around him, never the Wumpus, then the hunters act).
+- **Hero abilities** (button above the pad, ready at the start of every floor, each use takes one action so hunters move and sleepers nearby wake; cooldown 12 actions, except Brace, Magnet and Flare: 18, and Blast: 24): Vael *Scout* reveals a safe unexplored tile beside the explored area that the player could not already deduce (the one with most unexplored neighbours; only when nothing is hidden does it show a known one); Sera *Volley* is a free shot along her facing line that kills up to two guardians within five tiles (a Grimbur in the line takes one heart and stops it); Borin *Brace* raises a shield; Auric *Magnet* collects the nearest gem anywhere (and can clear the floor); Mira *Flare* explores every non-hazard tile within two steps of her (hazards stay hidden, their clues show); Bram *Blast* is a free bomb (guardians and vortexes in the 3x3 around him, never the Grimbur, then the hunters act).
 - **Mira and Bram**: Mira's *Lightbearer* lights the area around the start of every floor (the Old Lantern's area; a hazard tile is never lit, and the Lantern relic is not offered to her); Bram's *Tinkerer* puts 1 detector and 1 bomb in the bag at the start of every run, also on the daily. Mira unlocks after 5 daily challenges, Bram after earning 500 embers in total.
-- **One-use items**: the *detector* flags every hostile tile within two steps (the flags work like the player's own: stepping onto one is refused) and costs no action; the *bomb* destroys guardians and vortexes in the 3x3 around the hero (never the Wumpus) and costs an action. Items come only from the shop (nothing is found on the board yet).
+- **One-use items**: the *detector* flags every hostile tile within two steps (the flags work like the player's own: stepping onto one is refused) and costs no action; the *bomb* destroys guardians and vortexes in the 3x3 around the hero (never the Grimbur) and costs an action. Items come only from the shop (nothing is found on the board yet).
 - **Undo**: once per floor the last step can be taken back (button appears after a step). Shots, abilities and items clear it; a death, a cleared floor or the next floor do too.
 - **Cursed relics** (4, a run carries at most one): *Blood Pact* (+50% gem points, one arrow fewer per floor, never below one), *Hasty Boots* (new tile pays triple, hunters act one action sooner), *Greedy Idol* (gems give double for the shop, two more vortexes on every new floor), *Glass Bow* (arrows fly two tiles farther, half the arrows each floor, never below one; shop arrows are not halved). From floor 3 a draft has a 40% chance of replacing its last offer with one; they show a red frame and a "Cursed" tag. They have no artwork yet and show an emoji.
 - **Sleeping guardian**: from floor 6 one guardian per floor sleeps. It is lethal and counts in the clue numbers and the fairness check like a normal guardian, can be shot, and wakes into a stalker when the hero ends any action (step, shot, bomb, ability, a hit absorbed by a shield) within two tiles.

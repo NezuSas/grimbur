@@ -10,8 +10,8 @@ import { createBackupCode } from './backup';
  * player's recovery key (see firestore.rules). Everything here is best effort: nothing throws and a bad connection only means that
  * the copy is saved the next time.
  */
-const KEY_STORAGE = 'wumpus.cloud.key.v1';
-const LAST_STORAGE = 'wumpus.cloud.last.v1';
+const KEY_STORAGE = 'grimbur.cloud.key.v1';
+const LAST_STORAGE = 'grimbur.cloud.last.v1';
 const NETWORK_TIMEOUT_MS = 10_000;
 const QUEUE_DELAY_MS = 4_000;
 

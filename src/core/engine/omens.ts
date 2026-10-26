@@ -46,7 +46,7 @@ const TABLE: readonly [OmenId, number][] = [
   ['arsenal', 0.15],
 ];
 
-/** The omen of a floor, or null. Never on the first floor or on the Wumpus' lair. */
+/** The omen of a floor, or null. Never on the first floor or on the Grimbur' lair. */
 export function omenFor(runSeed: number, level: number, mode: GameMode = 'expedition'): OmenId | null {
   if (level < 2 || isLairFloor(mode, level)) return null;
   if (mode !== 'endless' && level > GAME_CONFIG.expedition.floors) return null;

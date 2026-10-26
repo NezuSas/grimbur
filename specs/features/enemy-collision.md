@@ -1,7 +1,7 @@
 # Feature: Enemy Collision
 
 ## Description
-Detects when the player enters the same cell as an enemy (Wumpus/Goomba). This event results in immediate failure and triggers the Game Over sequence.
+Detects when the player enters the same cell as an enemy (Grimbur/Goomba). This event results in immediate failure and triggers the Game Over sequence.
 
 ## Inputs
 - **Player Index**: The current `playerIndex`.

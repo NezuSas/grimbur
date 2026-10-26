@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CachedBoard, CachedRow, parseBoard, serializeBoard } from '../core/leaderboard/cache';
 
-const CACHE_KEY = 'wumpus.top10.v1';
+const CACHE_KEY = 'grimbur.top10.v1';
 
 /** Remembers the list that just loaded. Never throws: a full disk must not break the leaderboard. */
 export async function saveTop10Cache(rows: readonly CachedRow[], at: number = Date.now()): Promise<void> {

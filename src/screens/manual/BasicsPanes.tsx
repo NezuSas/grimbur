@@ -19,7 +19,7 @@ export const MissionPane = ({ kit }: { kit: Kit }) => {
       {fact("manual.mission.goal", "#ff5252", image(IMG.gem, "#4fc3f7"))}
       {fact("manual.mission.currency", "#ffab40", icon("flame", "#ffab40"))}
       {fact("manual.mission.survival", "#ef5350", icon("skull", "#ef5350"))}
-      {fact("manual.mission.wumpus", "#ff5252", image(IMG.boss, "#ba68c8"))}
+      {fact("manual.mission.grimbur", "#ff5252", image(IMG.boss, "#ba68c8"))}
       {fact("manual.mission.relics", "#ffd700", <Art tint="#ffd700"><RelicIcon id="lantern" size={44} /></Art>)}
       {fact("manual.mission.heroes", "#f48fb1", image(characters[0].scoreImage, "#f48fb1"))}
     </>

@@ -1,8 +1,8 @@
-# Wumpus Adventures
+# Grimbur Adventures
 
 Mobile deduction roguelite built with React Native, Expo (SDK 57) and TypeScript (strict), played in landscape.
 Descend 10 fogged floors: clue numbers on explored tiles say how many guardians and vortexes touch them, gems are always
-visible, and every board is solvable by deduction alone. Pick a relic after each floor, slay the Wumpus on floor 10, push
+visible, and every board is solvable by deduction alone. Pick a relic after each floor, slay the Grimbur on floor 10, push
 deeper with five depths, spend embers in the Forge, and share the daily challenge. English and Spanish.
 Design: [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) and [GAMEPLAY_SPEC.md](GAMEPLAY_SPEC.md).
 

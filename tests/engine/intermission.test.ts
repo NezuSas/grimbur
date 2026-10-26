@@ -163,7 +163,7 @@ describe('hero abilities', () => {
     expect(s1.score).toBeGreaterThan(s0.score);
   });
 
-  it('a volley only takes one heart off the Wumpus and stops there', () => {
+  it('a volley only takes one heart off the Grimbur and stops there', () => {
     const s0 = createState({ perks: perksWith('volley'), entities: [boss(3, 3), enemy(4)], coins: 0 });
     const s1 = gameReducer(s0, { type: 'USE_ABILITY' });
     expect(s1.entityMap[3].hp).toBe(2);
@@ -181,7 +181,7 @@ describe('one-use items', () => {
     expect(gameReducer(s1, { type: 'USE_ITEM', item: 'detector' })).toBe(s1); // none left
   });
 
-  it('the bomb clears guardians and vortexes around the hero but not the Wumpus', () => {
+  it('the bomb clears guardians and vortexes around the hero but not the Grimbur', () => {
     const s0 = { ...createState({ entities: [enemy(1), pit(15), pit(2), boss(16, 3), coin(100)], coins: 0 }), items: { detector: 0, bomb: 1 } };
     const s1 = gameReducer(s0, { type: 'USE_ITEM', item: 'bomb' });
     expect(s1.entityMap[1]).toBeUndefined();

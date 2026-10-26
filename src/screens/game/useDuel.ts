@@ -20,7 +20,7 @@ type Params = {
   duel: { code: string; name: string; stake: number; members: string[]; matchId: string } | null;
   stateRef: MutableRefObject<GameState>;
   characterIndex: number;
-  /** The run is over (the hero died or the Wumpus fell). */
+  /** The run is over (the hero died or the Grimbur fell). */
   runEnded: boolean;
   sessionTimeRef: { readonly current: number };
 };
@@ -45,7 +45,7 @@ export interface DuelView {
   prize: number;
 }
 
-const paidKey = (code: string, matchId: string) => `wumpus.duel.paid.${code}.${matchId}`;
+const paidKey = (code: string, matchId: string) => `grimbur.duel.paid.${code}.${matchId}`;
 
 /**
  * The live duel during a run: it publishes this player's floor and score (when they change, never more often than every few seconds,

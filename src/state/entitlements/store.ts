@@ -15,7 +15,7 @@ export const useEntitlementsStore = create<EntitlementsState>()(
       setFullUnlocked: (unlocked) => set({ fullUnlocked: unlocked }),
     }),
     {
-      name: 'wumpus-adventures-entitlements',
+      name: 'grimbur-adventures-entitlements',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

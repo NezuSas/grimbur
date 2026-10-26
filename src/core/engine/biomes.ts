@@ -6,7 +6,7 @@ import type { GameMode } from './seed';
  *  - cave:    the plain caves (floors 1-3), no rule.
  *  - crystal: crystal veins (4-6): one more shield lies on every floor.
  *  - magma:   magma tunnels (7-9): one more vortex, but one more arrow lies on the floor.
- *  - lair:    the Wumpus' lair keeps its own look.
+ *  - lair:    the Grimbur' lair keeps its own look.
  * The endless descent keeps cycling through them. Floors take their biome from the floor number alone.
  */
 export type BiomeId = 'cave' | 'crystal' | 'magma' | 'lair';

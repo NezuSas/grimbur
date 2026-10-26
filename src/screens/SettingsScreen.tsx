@@ -523,7 +523,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     <>
       <View style={styles.aboutHero}>
         <Text style={styles.aboutName} maxFontSizeMultiplier={1.2}>
-          WUMPUS
+          GRIMBUR
         </Text>
         <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
           ADVENTURES

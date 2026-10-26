@@ -1,4 +1,4 @@
-# Wumpus Adventures: Expo Setup & Run Guide 🚀
+# Grimbur Adventures: Expo Setup & Run Guide 🚀
 
 This project is built using **Expo**, a framework for universal React applications. Follow these steps to set up and run the game on your local machine, Android, and iOS.
 

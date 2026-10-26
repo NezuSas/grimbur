@@ -133,7 +133,7 @@ describe('relic effects', () => {
     expect(survived.relics).toEqual(['phoenix']);
   });
 
-  it('Phoenix also saves you from the Wumpus', () => {
+  it('Phoenix also saves you from the Grimbur', () => {
     const state = { ...createState({ entities: [boss(1)], coins: 0 }), relics: ['phoenix'] as RelicId[] };
     const bounced = gameReducer(state, move('RIGHT'));
     expect(bounced.isGameOver).toBe(false);
@@ -166,7 +166,7 @@ describe('relic effects', () => {
     expect(rich - plain).toBe(Math.round(GAME_CONFIG.scoring.levelClear * 0.5));
   });
 
-  it('Frost Charm slows the Wumpus down', () => {
+  it('Frost Charm slows the Grimbur down', () => {
     const run = (relics: RelicId[]) => {
       let state = { ...createState({ entities: [boss(60)], coins: 0 }), relics };
       const start = state.entities[0].index;

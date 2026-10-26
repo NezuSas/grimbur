@@ -220,7 +220,7 @@ function playRun(run: number): void {
       } else if (roll < 0.28) {
         action = { type: 'MOVE', direction: DIRS[Math.floor(r() * 4)] }; // may walk into anything
       } else {
-        // The path-finder: gems first, then shields and arrows, then any explorable tile; shoot the Wumpus when aligned
+        // The path-finder: gems first, then shields and arrows, then any explorable tile; shoot the Grimbur when aligned
         const coin = (i: number) => state.entityMap[i]?.type === 'coin';
         const loot = (i: number) => ['shield', 'ammo'].includes(state.entityMap[i]?.type ?? '');
         const fresh = (i: number) => !state.visited.includes(i) && !state.entityMap[i];

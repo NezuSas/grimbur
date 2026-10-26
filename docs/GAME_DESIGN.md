@@ -6,7 +6,7 @@ from LATAM users is low; retention is what decides everything).
 
 ## The pitch
 
-*Descend 10 floors of a fogged cave, read the clues, grab the gems, survive the guardians, and slay the Wumpus.*
+*Descend 10 floors of a fogged cave, read the clues, grab the gems, survive the guardians, and slay the Grimbur.*
 Every run is different, every day has a shared challenge, and every run unlocks something.
 
 ## Core loop (one floor, 1-3 minutes)
@@ -14,7 +14,7 @@ Every run is different, every day has a shared challenge, and every run unlocks 
 1. Read the board: revealed tiles show how many guardians / vortexes touch them.
 2. Decide: step into the unknown, shoot, or use a vortex gamble.
 3. Collect all gems -> floor cleared -> **choose 1 of 3 relics** (week 2) -> next floor.
-4. Floor 10: the Wumpus. Kill it to win the expedition.
+4. Floor 10: the Grimbur. Kill it to win the expedition.
 
 Death ends the run; the run still pays out meta currency / unlocks (week 3).
 
@@ -22,7 +22,7 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 
 | Lever | What we build | Week |
 | --- | --- | --- |
-| A goal and an ending | 10-floor expedition, Wumpus boss, victory screen | 1 |
+| A goal and an ending | 10-floor expedition, Grimbur boss, victory screen | 1 |
 | Distinct heroes | 6 heroes with a perk each, unlocked by playing | 1-2 |
 | Build variety | Relics: pick 1 of 3 after each floor, stack across the run | 2 |
 | "One more run" | Short floors, fast restart, run summary, near-miss feedback | 2-3 |
@@ -45,13 +45,13 @@ Death ends the run; the run still pays out meta currency / unlocks (week 3).
 Unlocks (implemented): Cyan free; Archer after reaching floor 4; Warden after reaching floor 7; Delver after winning an expedition.
 To test every hero, set `GAME_CONFIG.dev.unlockAllHeroes = true` in `src/config/gameConfig.ts` (never ship it on).
 
-## The Wumpus (floor 10)
+## The Grimbur (floor 10)
 
-- 3 HP, one arrow = 1 damage. No gems on this floor: killing the Wumpus clears the floor and wins.
+- 3 HP, one arrow = 1 damage. No gems on this floor: killing the Grimbur clears the floor and wins.
 - It hunts: after every 2nd player move it steps one tile toward the player (only onto empty tiles).
 - Fury: on its last heart it moves after every action; a hit that does not kill it may call a stalker (50%, max 2 per fight).
 - The lair keeps at most 8 guardians and 7 vortexes (it is a fight, not a minefield).
-- Touching it is lethal; a shield absorbs one touch and bounces the player back (the Wumpus survives).
+- Touching it is lethal; a shield absorbs one touch and bounces the player back (the Grimbur survives).
 - Counts as a guardian for the proximity clues, so the roar gets louder as it closes in.
 
 ## Monetisation (decided by evidence, see research)
@@ -61,7 +61,7 @@ mode. No forced ads. Optional rewarded revive can be tested after launch.
 
 ## Four-week plan
 
-- **Week 1 - the spine** (DONE): expedition + Wumpus boss + victory, hero perks, floor counter UI, generated audio, daily challenge, pause, analytics facade, leaderboard security.
+- **Week 1 - the spine** (DONE): expedition + Grimbur boss + victory, hero perks, floor counter UI, generated audio, daily challenge, pause, analytics facade, leaderboard security.
 - **Week 2 - variety**: relic draft (DONE), hero unlocks and locked hero select (DONE), new hazard (roaming stalker), bot-driven
   balance simulation, real art from `ART_BRIEF.md`.
 - **Week 3 - feel and onboarding**: juice pass, tutorial, ES/PT, accessibility, replace unlicensed audio/art, analytics SDK.

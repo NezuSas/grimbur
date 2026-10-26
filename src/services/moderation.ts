@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { parseHidden, serializeHidden, withHidden } from '../core/leaderboard/moderation';
 
-const KEY = 'wumpus.hidden.v1';
+const KEY = 'grimbur.hidden.v1';
 
 /** Ids of the ranking entries this player hid. Never throws. */
 export async function loadHidden(): Promise<string[]> {

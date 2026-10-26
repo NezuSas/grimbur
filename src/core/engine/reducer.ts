@@ -21,7 +21,7 @@ const snapshotOf = (state: GameState): UndoSnapshot => {
 
 /**
  * Finishes an action that is not a step (ability, bomb): it takes a turn, clears the floor when the last gem or the
- * Wumpus is gone and otherwise lets the hunters act. `patch` carries what the action changed.
+ * Grimbur is gone and otherwise lets the hunters act. `patch` carries what the action changed.
  */
 const settle = (state: GameState, world: World, patch: Partial<GameState>): GameState => {
   const { rows, cols } = state;
@@ -126,7 +126,7 @@ export const initialState: GameState = {
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
 /**
- * Wumpus Adventures — Pure Reducer
+ * Grimbur Adventures — Pure Reducer
  * No side-effects (logs, events, replays) allowed here.
  */
 /** How many tiles an arrow flies: the hero's reach plus the bows (the Glass Bow trades safety for two more tiles). */
@@ -162,9 +162,9 @@ export const altarIsFree = (state: Pick<GameState, 'perks' | 'relics'>): boolean
 export const MAX_LAIR_RESCUES = 2;
 
 /**
- * The Wumpus can only be slain with arrows. A hero with none left, with none lying on the floor, cannot win the fight: the
- * run would only wait for the Wumpus to catch up. So when that happens on the lair floor, a few bundles turn up on free tiles
- * (enough for the Wumpus' remaining hearts), up to MAX_LAIR_RESCUES times. It only ever happens at zero arrows, so it never
+ * The Grimbur can only be slain with arrows. A hero with none left, with none lying on the floor, cannot win the fight: the
+ * run would only wait for the Grimbur to catch up. So when that happens on the lair floor, a few bundles turn up on free tiles
+ * (enough for the Grimbur' remaining hearts), up to MAX_LAIR_RESCUES times. It only ever happens at zero arrows, so it never
  * makes shots free: a hero that still holds an arrow, or has one to pick up, is left alone.
  */
 export function ensureWinnable(state: GameState): GameState {
@@ -267,7 +267,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
         case 'boss':
           if (absorbHit()) {
-            // Throws the player back; the Wumpus survives. No movement, so no step cost or bonus.
+            // Throws the player back; the Grimbur survives. No movement, so no step cost or bonus.
             nextIndex = state.playerIndex;
             newVisited = [...state.visited];
             newScore = state.score;
@@ -421,7 +421,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           if (state.coins === 0) {
             newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(state.relics, 'greed')));
             newIsLevelUp = true;
-            // The endless descent has no final lair: slaying the Wumpus just opens the next floor.
+            // The endless descent has no final lair: slaying the Grimbur just opens the next floor.
             newIsVictory = state.mode !== 'endless';
           }
         }
@@ -439,7 +439,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         newEnemyCombo = 0;
       }
 
-      // Shooting is a turn: the hunting Wumpus keeps closing in while you aim.
+      // Shooting is a turn: the hunting Grimbur keeps closing in while you aim.
       let newShield = state.shield;
       let newRelics = state.relics;
       let newIsGameOver = false;
@@ -592,7 +592,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         return { ...state, items, marked: Array.from(new Set([...state.marked, ...found])) };
       }
 
-      // Bomb: destroys every guardian and vortex in the 3x3 around the player (not the Wumpus), then the hunters act.
+      // Bomb: destroys every guardian and vortex in the 3x3 around the player (not the Grimbur), then the hunters act.
       const world = blastWorld({ entities: state.entities, entityMap: state.entityMap }, state.playerIndex, state.cols);
       return settle(state, world, { items, marked: state.marked.filter(i => world.entityMap[i]) });
     }
@@ -676,7 +676,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         });
       }
 
-      // volley: along the facing line, up to two guardians within reach; a Wumpus in the line takes one heart and stops it.
+      // volley: along the facing line, up to two guardians within reach; a Grimbur in the line takes one heart and stops it.
       let score = state.score;
       let combo = state.enemyCombo;
       let hits = 0;

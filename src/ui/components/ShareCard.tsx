@@ -12,7 +12,7 @@ export const SHARE_CARD_HEIGHT = 630;
 export type ShareCardData = {
   character: Character;
   heroName: string;
-  /** "SLEW THE WUMPUS", "REACHED FLOOR 7"... already translated. */
+  /** "SLEW THE GRIMBUR", "REACHED FLOOR 7"... already translated. */
   headline: string;
   score: number;
   /** Floor reached and the floors of an expedition (the pips); `floors` is 0 for the endless descent (no pips). */
@@ -58,7 +58,7 @@ const ShareCard = ({ character, heroName, headline, score, level, floors, victor
       </View>
 
       <View style={styles.right}>
-        <Text style={styles.brand}>WUMPUS ADVENTURES</Text>
+        <Text style={styles.brand}>GRIMBUR ADVENTURES</Text>
         {daily ? <Text style={[styles.daily, { color: accent }]}>{daily}</Text> : null}
         <Text style={[styles.headline, victory && { color: GOLD }]} numberOfLines={2} adjustsFontSizeToFit>
           {headline.toLocaleUpperCase()}

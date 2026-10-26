@@ -67,7 +67,7 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 
 | File | Prompt | Notes |
 | --- | --- | --- |
-| `sprites/enemies/Wumpus_Boss.png` | ART_PROMPTS 1.1 | boss |
+| `sprites/enemies/Grimbur_Boss.png` | ART_PROMPTS 1.1 | boss |
 | `sprites/enemies/Guardian_Enemy.png` | ART_PROMPTS 1.2 | replaces the earlier guardian |
 | `sprites/tiles/Danger_Vortex.png` | ART_PROMPTS 1.3 | replaces the earlier vortex |
 | `sprites/items/Icon_Gem.png` | ART_PROMPTS 1.4 | had a faint corner mark, removed |
@@ -83,7 +83,7 @@ faint watermark pixels). **TODO (owner):** save a screenshot of the plan's terms
 
 ### App icons, splash and cover (same tool, same date)
 
-`assets/emblem.png` (Wumpus head + gem) and `sprites/backgrounds/Cover_Background.png` were generated with ChatGPT's image tool on
+`assets/emblem.png` (Grimbur head + gem) and `sprites/backgrounds/Cover_Background.png` were generated with ChatGPT's image tool on
 2026-10-13 (prompts in `docs/ART_PROMPTS.md` and the chat). `assets/icon.png`, `adaptive-icon.png`, `splash.png` and
 `favicon.png` are built from the emblem by `scripts/buildAppIcons.py`; this replaces the earlier icons whose source was unknown.
 

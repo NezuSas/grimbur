@@ -19,7 +19,7 @@ import { recordAction } from '../replay/replay';
 import { bossHearts, countGuardians } from './entityCounts';
 
 /**
- * Wumpus Adventures — Game Engine Hook
+ * Grimbur Adventures — Game Engine Hook
  * Orchestrates level generation (Side Effects) and dispatches to the pure Reducer.
  * Handles side-effects (events, analytics, haptics) after state changes.
  */
@@ -100,12 +100,12 @@ export function useGameEngine(): GameEngineInterface {
     }
 
     // Secondary non-haptic effects
-    // An arrow that hurt the Wumpus (hearts went down) is a hit, not a miss.
-    const hitTheWumpus = bossHearts(state) < bossHearts(prevState);
+    // An arrow that hurt the Grimbur (hearts went down) is a hit, not a miss.
+    const hitTheGrimbur = bossHearts(state) < bossHearts(prevState);
     if (
       state.attack < prevState.attack &&
       guardiansNow === guardiansBefore &&
-      !hitTheWumpus &&
+      !hitTheGrimbur &&
       state.entities.length === prevState.entities.length &&
       state.playerIndex === prevState.playerIndex
     ) {
@@ -139,7 +139,7 @@ export function useGameEngine(): GameEngineInterface {
     attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
   }, [pureDispatch]);
 
-  /** The final floor of an expedition (and of a daily) is the Wumpus' lair. */
+  /** The final floor of an expedition (and of a daily) is the Grimbur' lair. */
   const isBossFloor = isLairFloor;
 
   const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects } = {}) => {

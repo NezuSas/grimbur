@@ -12,7 +12,7 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
   stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
   sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
-  boss:     require("../../assets/sprites/enemies/Wumpus_Boss.png"),
+  boss:     require("../../assets/sprites/enemies/Grimbur_Boss.png"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
   shield:   require("../../assets/sprites/items/Icon_Shield.png"),
   ammo:     require("../../assets/sprites/items/Icon_Arrows.png"),
@@ -38,7 +38,7 @@ const GridCell = memo(({
   isVisited: boolean;
   isPlayerHere: boolean;
   entity?: GameEntity;
-  /** Guardians (and the Wumpus) touching this tile; only set on explored tiles. */
+  /** Guardians (and the Grimbur) touching this tile; only set on explored tiles. */
   enemyCount: number;
   /** Vortexes touching this tile; only set on explored tiles. */
   pitCount: number;
@@ -210,7 +210,7 @@ const GridCell = memo(({
         <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
       )}
 
-      {/* The Wumpus: shown on explored tiles, with its remaining hearts */}
+      {/* The Grimbur: shown on explored tiles, with its remaining hearts */}
       {entity?.type === 'boss' && (isVisited || isPlayerHere) && (
         <>
           <Animated.View

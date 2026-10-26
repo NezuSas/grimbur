@@ -1,7 +1,7 @@
 # AI Project Context
 
 ## Project Name
-WumpusAdventures
+Grimbur
 
 ## Project Type
 Mobile game built with React Native and Expo.

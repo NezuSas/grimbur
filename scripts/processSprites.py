@@ -12,7 +12,7 @@ SPR = os.path.join(ROOT, 'src', 'assets', 'sprites')
 
 # path relative to src/assets/sprites -> output size in px (square)
 JOBS = {
-    'enemies/Wumpus_Boss.png': 512,
+    'enemies/Grimbur_Boss.png': 512,
     'enemies/Guardian_Enemy.png': 384,
     'tiles/Danger_Vortex.png': 384,
     'tiles/Trap_Sprung.png': 384,

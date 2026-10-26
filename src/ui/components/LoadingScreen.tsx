@@ -48,7 +48,7 @@ const LoadingScreen = ({ progress, label }: Props) => {
       </Animated.View>
       <Animated.View style={[styles.below, { top: below, opacity: fade }]}>
         <Text style={[styles.title, { fontSize: title }]} allowFontScaling={false}>
-          WUMPUS ADVENTURES
+          GRIMBUR ADVENTURES
         </Text>
         {progress !== undefined ? (
           <View style={styles.progressBox} accessible accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}>

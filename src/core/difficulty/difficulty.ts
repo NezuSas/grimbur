@@ -5,7 +5,7 @@ export const MAX_ROWS = 8;
 export const MAX_COLS = 13;
 
 /**
- * Centralized Difficulty scaling for Wumpus Adventures.
+ * Centralized Difficulty scaling for Grimbur Adventures.
  * Based on the refined "Density over Magnitude" progression model.
  */
 export function getDifficulty(level: number) {
