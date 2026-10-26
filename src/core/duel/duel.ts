@@ -15,7 +15,7 @@ export interface DuelPlayer {
   /** Floor reached (1 to 10) and score so far. */
   level: number;
   score: number;
-  /** The run was won (the Wumpus fell). Only meaningful once `done`. */
+  /** The run was won (the Grimbur fell). Only meaningful once `done`. */
   victory: boolean;
   /** Seconds played, set when the player is done (0 before). */
   time: number;
@@ -65,7 +65,7 @@ export function validateDuelPlayer(p: DuelPlayer): string[] {
 export type DuelOutcome = 'win' | 'lose' | 'tie';
 
 /**
- * Who got further. Slaying the Wumpus beats everything, then the deeper floor, then the higher score, then the faster run.
+ * Who got further. Slaying the Grimbur beats everything, then the deeper floor, then the higher score, then the faster run.
  * `me` and `rival` are their results (a rival still playing counts with what they have so far).
  */
 export function duelOutcome(me: Pick<DuelPlayer, 'victory' | 'level' | 'score' | 'time'>, rival: Pick<DuelPlayer, 'victory' | 'level' | 'score' | 'time'>): DuelOutcome {
@@ -107,7 +107,7 @@ export type Standing = {
 /**
  * How a duel stands for a player against any number of rivals, winner takes all. `rivals` carry their result so far and whether they
  * are finished (done, or gone: a rival who stopped updating counts as finished where they stopped). A rival whose floor is already
- * above the player's, or who slew the Wumpus first, has beaten the player for good (a floor never goes back), so a player who is
+ * above the player's, or who slew the Grimbur first, has beaten the player for good (a floor never goes back), so a player who is
  * finished does not have to wait for the others to learn they lost.
  */
 export function duelStanding(me: Result, meDone: boolean, rivals: readonly { result: Result; finished: boolean }[]): Standing {

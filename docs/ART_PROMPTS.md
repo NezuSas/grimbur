@@ -21,7 +21,7 @@ su ruta y su nombre exacto. Respeta los nombres tal cual (mayúsculas incluidas)
 9. Antes de reemplazar, **no borres los originales**: yo los respaldo en `src/assets/_old/` cuando me avises.
 
 Reglas: sin texto en las imágenes (salvo la gráfica de la tienda), sin sombras pintadas, sin marcas de agua, sin nombres de
-artistas ni personajes existentes. Nada parecido a la mascota Wumpus de Discord, a Mario ni a Pokémon.
+artistas ni personajes existentes. Nada parecido a la mascota Grimbur de Discord, a Mario ni a Pokémon.
 
 ## Paleta (si ChatGPT la respeta, tu juego se verá unificado)
 
@@ -42,7 +42,7 @@ resulte de tus imágenes.
 ## Prompt maestro (pégalo primero y al inicio de cada sesión nueva)
 
 ```
-You are my art generator for a mobile game called Wumpus Adventures: a dark-fantasy cave puzzle roguelite viewed top-down
+You are my art generator for a mobile game called Grimbur Adventures: a dark-fantasy cave puzzle roguelite viewed top-down
 in landscape on phones. Use ONE consistent style for every image I request from now on:
 
 STYLE: chunky 2D hand-painted game illustration, bold dark outline (3 px at 512 px), soft top-left lighting, rich saturated
@@ -62,10 +62,10 @@ Reply "ready" and wait for my first request.
 
 Todos: 1024x1024, fondo transparente. Prepend mental: "Same style as the master prompt."
 
-### 1.1 El Wumpus (jefe final)
-- **Guardar como:** `src/assets/sprites/enemies/Wumpus_Boss.png`
+### 1.1 El Grimbur (jefe final)
+- **Guardar como:** `src/assets/sprites/enemies/Grimbur_Boss.png`
 ```
-A hulking cave beast boss called the Wumpus: huge shaggy dark-violet fur, three glowing red eyes in a row, wide mouth with
+A hulking cave beast boss called the Grimbur: huge shaggy dark-violet fur, three glowing red eyes in a row, wide mouth with
 big fangs, long curved claws, small horns, intimidating but slightly goofy, front view, fills the frame. Dark-fantasy mobile
 game boss sprite, transparent background, centered, no text, no shadow.
 ```
@@ -74,7 +74,7 @@ game boss sprite, transparent background, centered, no text, no shadow.
 - **Guardar como:** `src/assets/sprites/enemies/Guardian_Enemy.png`
 ```
 A small cave guardian monster, round stone-and-moss body, two angry glowing orange eyes, little tusks, short stubby arms,
-menacing but cute, front view. Must look clearly different from the huge Wumpus boss. Transparent background, centered.
+menacing but cute, front view. Must look clearly different from the huge Grimbur boss. Transparent background, centered.
 ```
 
 ### 1.3 Vórtice

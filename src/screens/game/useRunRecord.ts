@@ -17,7 +17,7 @@ import type { RunResult } from "./types";
 
 type Params = {
   stateRef: MutableRefObject<GameState>;
-  /** The run is over (the hero died or the Wumpus fell). */
+  /** The run is over (the hero died or the Grimbur fell). */
   runEnded: boolean;
   characterIndex: number;
   ascension: number;

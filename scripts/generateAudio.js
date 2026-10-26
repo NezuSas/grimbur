@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Procedural chiptune audio for Wumpus Adventures.
+ * Procedural chiptune audio for Grimbur Adventures.
  *
  * Every sound effect and music loop is synthesised from scratch by this script
  * (no samples, no third-party material), so the audio is original and carries
@@ -198,7 +198,7 @@ const SFX = {
     return b;
   },
 
-  // The Wumpus roars when it appears / closes in.
+  // The Grimbur roars when it appears / closes in.
   roar() {
     const b = newBuffer(0.9);
     addNote(b, 0, 0.85, { wave: 'saw', freq: 90, endFreq: 48, vol: 0.45, decay: 0.5, release: 0.2, vibrato: [14, 0.8] });

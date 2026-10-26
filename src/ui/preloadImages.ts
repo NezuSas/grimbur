@@ -23,7 +23,7 @@ export function getPreloadImages(): ImageSourcePropType[] {
     require('../assets/sprites/enemies/Guardian_Enemy.png'),
     require('../assets/sprites/enemies/Stalker_Enemy.png'),
     require('../assets/sprites/enemies/Sleeper_Enemy.png'),
-    require('../assets/sprites/enemies/Wumpus_Boss.png'),
+    require('../assets/sprites/enemies/Grimbur_Boss.png'),
     require('../assets/sprites/items/Icon_Gem.png'),
     require('../assets/sprites/items/Icon_Shield.png'),
     require('../assets/sprites/items/Icon_Arrows.png'),

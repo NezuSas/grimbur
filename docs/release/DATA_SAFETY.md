@@ -16,7 +16,7 @@ Rehacer el formulario cuando cambie cualquier SDK, dato o modalidad (ver `PRIVAC
 | `src/services/duel.ts` + `firestore.rules` | Durante un duelo en vivo publica nombre, héroe, piso, puntuación y estado cada pocos segundos y lee el documento del rival | Documento `duel_players/{código}_{id}` con 10 campos (incluye `updatedAt` del servidor). Sin cuenta ni correo |
 | (misma fila) apuesta | El duelo puede llevar una apuesta de brasas del juego (0 a 100 000) publicada como un número en el documento del jugador; las brasas viven en el teléfono, no hay dinero real | Campo `stake` del documento `duel_players` |
 | `src/services/liveNews.ts` + `firestore.rules` | Lee al abrir la app un aviso público (`config/live`) | Solo lectura; no envía datos del jugador |
-| `src/services/localStats.ts`, `src/state/settings/store.ts` | Guardan progreso y ajustes en AsyncStorage (claves `wumpus.stats.v1` y `wumpus-adventures-settings`) | Solo en el dispositivo |
+| `src/services/localStats.ts`, `src/state/settings/store.ts` | Guardan progreso y ajustes en AsyncStorage (claves `grimbur.stats.v1` y `grimbur-adventures-settings`) | Solo en el dispositivo |
 | `src/services/analytics.ts` | Fachada con 17 eventos; proveedor por defecto = consola (solo en desarrollo) | Nada sale del dispositivo hoy |
 | `expo-updates` (canal `production`) | Comprueba actualizaciones OTA de Expo | IP, versión de app/runtime, plataforma |
 | Compartir (`Share.share`) | Texto del resultado / registro de audio | Lo envía el usuario a la app que elija |

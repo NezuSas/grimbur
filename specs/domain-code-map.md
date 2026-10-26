@@ -1,6 +1,6 @@
-# WumpusAdventures Domain-Code Mapping
+# Grimbur Domain-Code Mapping
 
-This document maps the entities defined in the [Domain Model](domain.md) to their physical implementation in the WumpusAdventures codebase.
+This document maps the entities defined in the [Domain Model](domain.md) to their physical implementation in the Grimbur codebase.
 
 ## Entity Mapping
 

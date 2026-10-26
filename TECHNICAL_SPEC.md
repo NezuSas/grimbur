@@ -1,6 +1,6 @@
-# WumpusAdventures — Technical Specification
+# Grimbur — Technical Specification
 
-This document details the technical implementation, algorithms, and architectural decisions of **WumpusAdventures**.
+This document details the technical implementation, algorithms, and architectural decisions of **Grimbur**.
 
 ## 1. State Management Strategy
 

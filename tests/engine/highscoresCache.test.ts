@@ -77,7 +77,7 @@ describe('top 10 cache (storage)', () => {
     failWrites = true;
     jest.spyOn(console, 'warn').mockImplementation(() => {});
     await expect(saveTop10Cache(rows(3), NOW)).resolves.toBeUndefined();
-    store.set('wumpus.top10.v1', '{{{');
+    store.set('grimbur.top10.v1', '{{{');
     expect(await loadTop10Cache(NOW)).toBeNull();
   });
 });

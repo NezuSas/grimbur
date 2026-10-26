@@ -9,7 +9,7 @@ export type Goal =
   | { kind: 'hero'; hero: number; metric: 'floor' | 'victory' | 'daily' | 'embers'; current: number; target: number; remaining: number; progress: number }
   | { kind: 'achievement'; id: AchievementId; current: number; target: number; progress: number };
 
-/** Floors in an expedition: the progress towards "slay the Wumpus" is measured against it. */
+/** Floors in an expedition: the progress towards "slay the Grimbur" is measured against it. */
 const EXPEDITION_FLOORS = 10;
 
 /** The open achievements closest to done (partial progress only), best first. */
@@ -83,7 +83,7 @@ export function heroGoal(stats: LocalStats): Extract<Goal, { kind: 'hero' }> | n
             current: 0,
             target: 1,
             remaining: 1,
-            // A victory is all or nothing: the floors reached tell how near the Wumpus is.
+            // A victory is all or nothing: the floors reached tell how near the Grimbur is.
             progress: Math.min(0.99, stats.bestLevel / EXPEDITION_FLOORS),
           };
     if (!best || goal.progress > best.progress) best = goal;

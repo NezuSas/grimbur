@@ -376,12 +376,12 @@ describe('F: the daily share text', () => {
       level: 3,
       floors: 10,
       victory: false,
-      title: n => `Wumpus Adventures Daily #${n}`,
+      title: n => `Grimbur Adventures Daily #${n}`,
       scoreText: '1,234 pts',
       streakText: '3-day streak',
       footer: 'Same cave for everyone.',
     });
-    expect(text).toBe('Wumpus Adventures Daily #14\n🟩🟩🟥⬛⬛⬛⬛⬛⬛⬛\n1,234 pts · 🔥 3-day streak\nSame cave for everyone.');
+    expect(text).toBe('Grimbur Adventures Daily #14\n🟩🟩🟥⬛⬛⬛⬛⬛⬛⬛\n1,234 pts · 🔥 3-day streak\nSame cave for everyone.');
   });
 
   it('omits the streak and footer when there are none', () => {

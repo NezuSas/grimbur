@@ -1,4 +1,4 @@
-# WumpusAdventures Refactoring Plan
+# Grimbur Refactoring Plan
 
 This document provides a step-by-step plan to migrate game logic from `GameScreen.tsx` to the `GameEngine` architecture specified in [game-engine-design.md](game-engine-design.md).
 

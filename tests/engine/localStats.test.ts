@@ -86,7 +86,7 @@ describe('syncAchievements', () => {
   it('unlocks (and pays) the achievements the stored numbers already satisfy, once', async () => {
     const { syncAchievements } = require('../../src/services/localStats');
     // Numbers that reached several goals without a run evaluating them (an achievement added later, a restored backup).
-    store.set('wumpus.stats.v1', JSON.stringify({ gamesPlayed: 12, totalGems: 300, lifetimeEmbers: 1200, embers: 50, bestLevel: 5 }));
+    store.set('grimbur.stats.v1', JSON.stringify({ gamesPlayed: 12, totalGems: 300, lifetimeEmbers: 1200, embers: 50, bestLevel: 5 }));
     const first = await syncAchievements();
     expect(first.achievements).toEqual(expect.arrayContaining(['embers_100', 'embers_1000', 'gems_250', 'ten_runs']));
     expect(first.stats.achievements.embers_1000).toBeDefined();

@@ -62,7 +62,7 @@ Si el uso se acerca al límite: considerar subir `MIN_PUBLISH_MS` en `src/core/d
 Cuando no haya cuota de EAS (se reinicia el día 1 de cada mes):
 
 ```
-set WUMPUS_ARCHS=arm
+set GRIMBUR_ARCHS=arm
 npx expo prebuild --platform android --clean --no-install   # solo si cambió app.json o algún paquete nativo
 cd android && set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot" && gradlew assembleRelease
 ```

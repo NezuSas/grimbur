@@ -3,7 +3,7 @@ import { Direction, GameState, HUNTER_TYPES } from '../core/engine/types';
 import { travelPath } from '../core/engine/travel';
 
 const STEP_MS = 110;
-/** A roaming guardian or the Wumpus this close (in tiles) stops the walk. */
+/** A roaming guardian or the Grimbur this close (in tiles) stops the walk. */
 const HUNTER_ALERT_DISTANCE = 3;
 
 const DELTA: Record<Direction, (cols: number) => number> = {

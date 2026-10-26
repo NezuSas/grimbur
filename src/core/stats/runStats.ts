@@ -17,7 +17,7 @@ export interface LocalStats {
   bestScore: number;
   bestLevel: number;
   gamesPlayed: number;
-  /** Expeditions won (the Wumpus slain). */
+  /** Expeditions won (the Grimbur slain). */
   victories: number;
   /** Gems collected over all runs. */
   totalGems: number;
@@ -98,7 +98,7 @@ export interface RunPayout {
 export interface RunResult {
   score: number;
   level: number;
-  /** True when the run ended by slaying the Wumpus. */
+  /** True when the run ended by slaying the Grimbur. */
   victory?: boolean;
   /** Gems collected in the run. */
   gems?: number;

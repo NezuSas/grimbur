@@ -477,7 +477,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   useProximityAudio(state);
 
-  // The Wumpus lair announces itself.
+  // The Grimbur lair announces itself.
   useEffect(() => {
     if (isLairFloor(state.mode, state.level) && state.turn === 0) {
       emitSound("BOSS_ROAR");

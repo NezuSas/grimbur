@@ -1,12 +1,12 @@
-# WumpusAdventures — Project Overview
+# Grimbur — Project Overview
 
-Welcome to **WumpusAdventures**, a modern mobile adaptation of the classic "Hunt the Wumpus" strategy game. This project is built with **React Native** and **Expo**, emphasizing a clean, layered architecture and Spec-Driven Development (SDD) principles.
+Welcome to **Grimbur**, a modern mobile adaptation of the classic "Hunt the Wumpus" strategy game. This project is built with **React Native** and **Expo**, emphasizing a clean, layered architecture and Spec-Driven Development (SDD) principles.
 
 ## 1. Game Concept
 Players navigate a 15x8 grid-based cave system. The goal is to collect all coins in a level while avoiding lethal hazards:
 - **Enemies**: Move through the cave; collision results in Game Over unless shielded.
 - **Pits**: Stationary lethal traps; collision results in Game Over.
-- **Wumpus/Monster**: A localized hazard that can be heard when nearby.
+- **Grimbur/Monster**: A localized hazard that can be heard when nearby.
 
 Players can **Move** (spending points) and **Attack** (using limited arrows) to eliminate enemies.
 

@@ -5,7 +5,7 @@ import { LiveNews, parseLiveNews } from '../core/news/liveNews';
 import { AppConfig, parseAppConfig } from '../core/news/appUpdate';
 
 /** Reads the developer's notice (see core/news/liveNews.ts). Best effort: any problem means "no notice". */
-const DISMISSED_STORAGE = 'wumpus.news.dismissed.v1';
+const DISMISSED_STORAGE = 'grimbur.news.dismissed.v1';
 const TIMEOUT_MS = 6000;
 const MAX_REMEMBERED = 20;
 

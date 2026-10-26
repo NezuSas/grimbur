@@ -64,7 +64,7 @@ type Props = {
   onPressSettings: () => void;
 };
 
-/** The Wumpus breathes: a slow, small swell so the cover is alive without being noisy. */
+/** The Grimbur breathes: a slow, small swell so the cover is alive without being noisy. */
 const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolean }) => {
   const swell = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -191,7 +191,7 @@ const CoverCard: React.FC<Props> = ({
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
       <Text style={[styles.titleMain, { fontSize: titleSize, letterSpacing: titleSize * 0.08 }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
-        WUMPUS
+        GRIMBUR
       </Text>
       <Text style={[styles.titleSub, { fontSize: titleSize * 0.4, letterSpacing: titleSize * 0.14 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
         ADVENTURES
@@ -209,7 +209,7 @@ const CoverCard: React.FC<Props> = ({
           <View style={[styles.medallionGlow, { width: artSize * 1.05, height: artSize * 1.05, borderRadius: artSize * 0.525 }]} />
           <Breathing calm={calm}>
             <SpriteImage
-              source={require("../../assets/sprites/enemies/Wumpus_Boss.png")}
+              source={require("../../assets/sprites/enemies/Grimbur_Boss.png")}
               style={{ width: artSize, height: artSize }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

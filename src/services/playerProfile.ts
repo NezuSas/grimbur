@@ -8,8 +8,8 @@ import { checkName } from '../core/leaderboard/validation';
  * Who the player is on the daily and weekly boards: a random id made on first use (it only keeps one result per day per phone; it is
  * not an account) and the name they chose. Both stay on the device.
  */
-const ID_STORAGE = 'wumpus.player.id.v1';
-const NAME_STORAGE = 'wumpus.player.name.v1';
+const ID_STORAGE = 'grimbur.player.id.v1';
+const NAME_STORAGE = 'grimbur.player.name.v1';
 
 let cachedId: string | null = null;
 

@@ -9,7 +9,7 @@ const lair = (over: Partial<GameState> = {}): GameState => ({
 });
 
 describe('the lair never leaves a fight that cannot be won', () => {
-  it('sends arrows when the hero has none, none lie on the floor and the Wumpus is alive', () => {
+  it('sends arrows when the hero has none, none lie on the floor and the Grimbur is alive', () => {
     const s = ensureWinnable(lair());
     const bundles = s.entities.filter(e => e.type === 'ammo');
     expect(bundles.length).toBe(2); // 3 hearts at 2 arrows a bundle
@@ -38,7 +38,7 @@ describe('the lair never leaves a fight that cannot be won', () => {
     expect(ensureWinnable(s).entities.some(e => e.type === 'ammo')).toBe(false);
   });
 
-  it('only exists where there is a Wumpus', () => {
+  it('only exists where there is a Grimbur', () => {
     const plain = createState({ entities: [{ index: 100, type: 'coin' }], attack: 0 });
     expect(ensureWinnable(plain)).toBe(plain);
   });

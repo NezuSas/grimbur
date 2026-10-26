@@ -132,7 +132,7 @@ Evita repetir una palabra más de 3-4 veces en la descripción larga y no metas 
 | --- | --- |
 | Core | deduction game, roguelike, dungeon crawler, cave, treasure, gems |
 | Genre | minesweeper roguelike, logic puzzle, turn-based strategy, puzzle roguelite |
-| Brand / nostalgia | hunt the wumpus, wumpus, retro logic game |
+| Brand / nostalgia | hunt the wumpus, grimbur, retro logic game |
 | Use | offline game, quick sessions, no ads, single player, daily challenge |
 | Differentiators | heroes, relics, final boss, endless descent, daily streak |
 

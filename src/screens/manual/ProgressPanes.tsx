@@ -13,7 +13,7 @@ import { asKey, IMG, S } from "./kit";
 import type { Kit } from "./kit";
 import { manualStyles as styles } from "./styles";
 
-const TIPS = ["vortex", "shield", "ammo", "route", "wumpus", "flags", "known", "turn", "shop", "forge"];
+const TIPS = ["vortex", "shield", "ammo", "route", "grimbur", "flags", "known", "turn", "shop", "forge"];
 
 export const WorldsPane = ({ kit }: { kit: Kit }) => {
   const { t, heading, fact, icon, image } = kit;

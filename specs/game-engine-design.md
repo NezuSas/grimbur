@@ -1,4 +1,4 @@
-# WumpusAdventures Game Engine Design
+# Grimbur Game Engine Design
 
 This document outlines the architecture for the `GameEngine`, designed to extract and centralize the gameplay logic from `GameScreen.tsx`.
 

@@ -33,7 +33,7 @@ export type FeedbackEvent =
   | { kind: 'coin'; tile: number }
   /** A guardian died to an arrow or a bomb. `combo` is the combo after the kill (0 for a bomb). */
   | { kind: 'kill'; combo: number; tile: number }
-  /** The Wumpus lost hearts; `dead` when it has none left. */
+  /** The Grimbur lost hearts; `dead` when it has none left. */
   | { kind: 'bossHit'; dead: boolean; hearts: number; tile: number }
   /** An arrow was fired and hit nothing. */
   | { kind: 'miss' }
@@ -109,7 +109,7 @@ export function goneGuardianTile(prev: FeedbackState, next: FeedbackState): numb
   return gone.length > 0 ? gone[0] : next.playerIndex;
 }
 
-/** Hunters (Wumpus, stalkers) currently winding up a strike. */
+/** Hunters (Grimbur, stalkers) currently winding up a strike. */
 export const chargedHunters = (s: Pick<FeedbackState, 'entities'>): number =>
   s.entities.filter(e => HUNTER_TYPES.includes(e.type) && (e.charge ?? 0) >= 1).length;
 

@@ -1,4 +1,4 @@
-/** `expedition` and `daily` are 10-floor runs ending with the Wumpus; `endless` (later) has no boss. */
+/** `expedition` and `daily` are 10-floor runs ending with the Grimbur; `endless` (later) has no boss. */
 export type GameMode = 'expedition' | 'daily' | 'endless';
 
 /**

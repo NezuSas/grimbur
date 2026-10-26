@@ -10,7 +10,7 @@ export interface GatingConfig {
 
 /**
  * Pure rules for the one-time "full game" unlock. Free forever: the tutorial, the daily challenge and expedition
- * floors 1..freeFloors. The full game opens the rest of the expedition (and with it the Wumpus) and the endless descent.
+ * floors 1..freeFloors. The full game opens the rest of the expedition (and with it the Grimbur) and the endless descent.
  */
 export function isModeLocked(mode: GameMode, unlocked: boolean, cfg: GatingConfig): boolean {
   if (!cfg.enabled || unlocked) return false;

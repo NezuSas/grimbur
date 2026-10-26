@@ -21,7 +21,7 @@
 
 /**
  * Defines the structure required for any new engine feature within
- * the Wumpus Adventures GameEngine.
+ * the Grimbur Adventures GameEngine.
  */
 export interface EngineFeatureTemplate {
   /** Unique camelCase identifier for the mechanic (e.g. "traps"). */

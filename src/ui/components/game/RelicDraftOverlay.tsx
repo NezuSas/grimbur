@@ -15,7 +15,7 @@ type Props = {
   offer: RelicId[] | null;
   /** The floor the player is about to enter. */
   floor: number;
-  /** True when that floor is the Wumpus' lair. */
+  /** True when that floor is the Grimbur' lair. */
   lairNext?: boolean;
   onPick: (id: RelicId) => void;
 };

@@ -166,7 +166,7 @@ describe('services', () => {
 
   it('buys and equips through storage', async () => {
     await recordRun({ score: 80000, level: 10, victory: true, heroIndex: 0, day: '2026-01-01', ascension: 0 });
-    store.set('wumpus.stats.v1', JSON.stringify({ ...(await getLocalStats()), embers: 400 }));
+    store.set('grimbur.stats.v1', JSON.stringify({ ...(await getLocalStats()), embers: 400 }));
     expect(await equipSkinFor(0, 'ember')).toBeNull();
     const bought = await buySkinFor(0, 'ember');
     expect(bought?.embers).toBe(100);

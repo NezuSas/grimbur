@@ -10,7 +10,7 @@ const manhattan = (a: number, b: number, cols: number) =>
 const bossOf = (s: ReturnType<typeof createState>) => s.entities.find(e => e.type === 'boss');
 
 describe('boss floor generation', () => {
-  it.each([1, 2, 3, 4, 5, 6, 7, 8])('seed %i: one Wumpus, far from the spawn, no gems', (seed) => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8])('seed %i: one Grimbur, far from the spawn, no gems', (seed) => {
     const board = generateBoard(GAME_CONFIG.expedition.floors, seed * 977, { boss: true });
     const bosses = board.entities.filter(e => e.type === 'boss');
 
@@ -26,7 +26,7 @@ describe('boss floor generation', () => {
   });
 });
 
-describe('fighting the Wumpus', () => {
+describe('fighting the Grimbur', () => {
   it('takes hp damage per arrow and dies on the last hit, winning the expedition', () => {
     let state = createState({ entities: [boss(1)], coins: 0, attack: 5 });
     state = { ...state, score: 100 };
@@ -47,7 +47,7 @@ describe('fighting the Wumpus', () => {
     expect(state.score).toBeGreaterThanOrEqual(before + GAME_CONFIG.boss.killScore);
   });
 
-  it('does not clear the floor by moving while the Wumpus lives, even with no gems', () => {
+  it('does not clear the floor by moving while the Grimbur lives, even with no gems', () => {
     const state = createState({ entities: [boss(60)], coins: 0 });
     const next = gameReducer(state, move('RIGHT'));
 
@@ -68,7 +68,7 @@ describe('fighting the Wumpus', () => {
   });
 });
 
-describe('the Wumpus hunts', () => {
+describe('the Grimbur hunts', () => {
   it('steps one tile closer after every second player move only', () => {
     let state = createState({ entities: [boss(60)], coins: 0 }); // row 4, col 0
     const start = bossOf(state)!.index;
@@ -83,7 +83,7 @@ describe('the Wumpus hunts', () => {
   });
 
   it('kills a player it reaches, unless a shield absorbs the touch', () => {
-    // A charged Wumpus is next to the spawn; the player steps away and back (2 moves => the boss acts).
+    // A charged Grimbur is next to the spawn; the player steps away and back (2 moves => the boss acts).
     let state = createState({ entities: [{ ...boss(1), charge: 1 }], coins: 0 });
     state = gameReducer(state, move('DOWN'));
     expect(state.isGameOver).toBe(false);
@@ -125,7 +125,7 @@ describe('the Wumpus hunts', () => {
   });
 });
 
-describe('the Wumpus next to ordinary guardians', () => {
+describe('the Grimbur next to ordinary guardians', () => {
   it('arrows still kill ordinary guardians', () => {
     const state = createState({ entities: [enemy(1), boss(100)], coins: 0, attack: 3 });
     const next = gameReducer(state, { type: 'ATTACK' });
@@ -135,7 +135,7 @@ describe('the Wumpus next to ordinary guardians', () => {
 });
 
 describe('the endless descent', () => {
-  it('meets the Wumpus again every tenth floor, with one more heart each time', async () => {
+  it('meets the Grimbur again every tenth floor, with one more heart each time', async () => {
     const { isLairFloor, lairHeartBonus } = await import('../../src/core/engine/lair');
     expect([10, 20, 30].every(l => isLairFloor('endless', l))).toBe(true);
     expect([1, 9, 11, 19].some(l => isLairFloor('endless', l))).toBe(false);
@@ -146,7 +146,7 @@ describe('the endless descent', () => {
     expect(lairHeartBonus('expedition', 20)).toBe(0);
   });
 
-  it('slaying the Wumpus opens the next floor instead of ending the run', () => {
+  it('slaying the Grimbur opens the next floor instead of ending the run', () => {
     let state = createState({ entities: [boss(1, 1)], coins: 0, attack: 3 });
     state = { ...state, mode: 'endless', level: 10 };
     state = gameReducer(state, { type: 'ATTACK' });

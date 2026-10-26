@@ -20,7 +20,7 @@ export const GAME_ROW_PADDING = 12;
 export const MIN_WIDTH_FOR_SPLIT_ATTACK = 720;
 
 /**
- * Wumpus Adventures — Game Camera Layout Hook
+ * Grimbur Adventures — Game Camera Layout Hook
  * Provides responsive dimensions for the landscape game screen. Everything the game
  * screen needs (HUD, control panel, board) derives from the live window size and the
  * safe-area insets, so rotation, split-screen and display-size changes just work.

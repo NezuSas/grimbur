@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Dark, horror-leaning audio for Wumpus Adventures, synthesised from scratch (no samples, no third-party material).
+Dark, horror-leaning audio for Grimbur Adventures, synthesised from scratch (no samples, no third-party material).
 
 Replaces the chiptune set made by scripts/generateAudio.js (kept for reference). Deterministic: same output every run.
 

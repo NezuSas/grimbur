@@ -20,7 +20,7 @@ import { rankUp } from '../core/stats/rank';
 import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';
 
-const STORAGE_KEY = 'wumpus.stats.v1';
+const STORAGE_KEY = 'grimbur.stats.v1';
 
 /** The last stats read or written, kept in memory so a screen can draw its first frame with real data. */
 let latest: LocalStats | null = null;

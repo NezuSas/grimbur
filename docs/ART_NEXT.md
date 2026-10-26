@@ -1,6 +1,6 @@
 # Arte que falta: segundo paquete para ChatGPT
 
-El primer paquete (`ART_PROMPTS.md`) ya está hecho y integrado: héroes, el Wumpus, el guardián, el vórtice, gemas, reliquias,
+El primer paquete (`ART_PROMPTS.md`) ya está hecho y integrado: héroes, el Grimbur, el guardián, el vórtice, gemas, reliquias,
 casillas y el fondo de portada. Este documento es lo que el juego necesita **ahora**, por orden de impacto, con prompts listos.
 Todo se pide en el **mismo chat y la misma línea gráfica** (ver "Cómo mantener el estilo").
 
@@ -33,7 +33,7 @@ Reglas: nada parecido a Mario, Pokémon, la mascota de Discord ni personajes exi
 Hoy los **acechadores** (los que caminan hacia ti) y los **durmientes** usan el mismo dibujo que el guardián normal, con solo un
 aura de color. Es difícil saber qué te amenaza. Con dibujo propio, el jugador aprende los enemigos de un vistazo.
 
-Adjunta como referencia: `src/assets/sprites/enemies/Guardian_Enemy.png` y `src/assets/sprites/enemies/Wumpus_Boss.png`.
+Adjunta como referencia: `src/assets/sprites/enemies/Guardian_Enemy.png` y `src/assets/sprites/enemies/Grimbur_Boss.png`.
 Todos 1024x1024, transparente, vista frontal, centrado.
 
 ### 1.1 Acechador (el que camina)
@@ -42,7 +42,7 @@ Todos 1024x1024, transparente, vista frontal, centrado.
 A lean, fast cave stalker monster that hunts the player: low hunched predator body made of dark purple shadow and cracked
 obsidian plates, long thin limbs with claws, a narrow head with two glowing magenta slit eyes, a faint wisp of purple mist
 trailing from its back. Clearly more agile and more sinister than the round mossy stone guardian, and smaller than the huge
-Wumpus boss. Same art style, bold dark outline and lighting as the attached images. Transparent background, centered,
+Grimbur boss. Same art style, bold dark outline and lighting as the attached images. Transparent background, centered,
 no text, no shadow.
 ```
 
@@ -60,7 +60,7 @@ attached image. Transparent background, centered.
 
 ## Prioridad 2: una cueva distinta por bioma (9 imágenes)
 
-El juego cambia de cueva cada 3 pisos (cristales, magma, la guarida del Wumpus) pero hoy solo cambia un **tinte** de color sobre
+El juego cambia de cueva cada 3 pisos (cristales, magma, la guarida del Grimbur) pero hoy solo cambia un **tinte** de color sobre
 la misma imagen. Con arte propio cada tramo del juego se siente como un lugar nuevo.
 
 Adjunta: `src/assets/sprites/backgrounds/Cover_Background.png` y `src/assets/sprites/tiles/Tile_Hidden.png` +
@@ -75,7 +75,7 @@ despejado (ahí va el tablero). Sin texto.
 - `src/assets/sprites/backgrounds/Bg_Magma.png` — *Same composition and style, but a volcanic magma tunnel: dark basalt walls
   with glowing orange-red lava cracks and rivers, ember sparks floating, warm red-orange light, torches burning bigger, dark
   clear center.*
-- `src/assets/sprites/backgrounds/Bg_Lair.png` — *Same composition and style, but the Wumpus' lair: a huge dark chamber with
+- `src/assets/sprites/backgrounds/Bg_Lair.png` — *Same composition and style, but the Grimbur' lair: a huge dark chamber with
   bones, giant claw marks on the walls, a pile of old treasure and gems at the sides, faint red glow, ominous, dark clear
   center.*
 
@@ -200,11 +200,11 @@ Adjunta `relics/lantern.png` como referencia de estilo. 512x512, transparente, *
 
 | Guardar como | Tamaño | Qué es |
 | --- | --- | --- |
-| `store/feature-graphic.png` | 1024x500 | Banner de Google Play: el título "WUMPUS ADVENTURES" (aquí SÍ se permite texto), los cuatro héroes y el Wumpus detrás, cueva oscura con gemas. Composición horizontal, el texto a la izquierda |
-| `assets/logo.png` | 1024x512, transparente | El título "WUMPUS ADVENTURES" como logotipo ilustrado: letras gruesas doradas con contorno oscuro y una gema cian, estilo del juego |
-| `assets/icon.png` (opcional, si no te gusta el actual) | 1024x1024 | Icono de la app: los ojos rojos del Wumpus asomando de la oscuridad con una gema cian al frente. Alto contraste, que se lea a 48 px |
+| `store/feature-graphic.png` | 1024x500 | Banner de Google Play: el título "GRIMBUR ADVENTURES" (aquí SÍ se permite texto), los cuatro héroes y el Grimbur detrás, cueva oscura con gemas. Composición horizontal, el texto a la izquierda |
+| `assets/logo.png` | 1024x512, transparente | El título "GRIMBUR ADVENTURES" como logotipo ilustrado: letras gruesas doradas con contorno oscuro y una gema cian, estilo del juego |
+| `assets/icon.png` (opcional, si no te gusta el actual) | 1024x1024 | Icono de la app: los ojos rojos del Grimbur asomando de la oscuridad con una gema cian al frente. Alto contraste, que se lea a 48 px |
 
-Adjunta: `src/assets/sprites/enemies/Wumpus_Boss.png`, `Hero_Cyan.png` y `Icon_Gem.png`.
+Adjunta: `src/assets/sprites/enemies/Grimbur_Boss.png`, `Hero_Cyan.png` y `Icon_Gem.png`.
 
 ---
 

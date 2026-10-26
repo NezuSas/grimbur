@@ -29,7 +29,7 @@ describe('regressions found by the bug hunt', () => {
     });
   });
 
-  describe('bumping into the Wumpus with a shield', () => {
+  describe('bumping into the Grimbur with a shield', () => {
     it('gives no exploration bonus and costs no step', () => {
       const state = { ...createState({ entities: [boss(1)], coins: 0 }), shield: true, score: 500 };
       const next = gameReducer(state, move('RIGHT'));
@@ -57,7 +57,7 @@ describe('regressions found by the bug hunt', () => {
   });
 
   describe('shooting is a turn on the boss floor', () => {
-    it('lets the Wumpus close in while the player shoots at nothing', () => {
+    it('lets the Grimbur close in while the player shoots at nothing', () => {
       let state = createState({ entities: [boss(60)], coins: 0, attack: 9 });
       const start = state.entities[0].index;
       state = gameReducer(state, { type: 'ATTACK' });
@@ -66,8 +66,8 @@ describe('regressions found by the bug hunt', () => {
       expect(state.entities[0].index).not.toBe(start); // turn 2: steps
     });
 
-    it('kills a player the Wumpus reaches, a shield absorbs it, and the kill ends the fight first', () => {
-      // A charged Wumpus directly below the spawn is about to strike on its next action.
+    it('kills a player the Grimbur reaches, a shield absorbs it, and the kill ends the fight first', () => {
+      // A charged Grimbur directly below the spawn is about to strike on its next action.
       const adjacent = createState({ entities: [{ ...boss(15), charge: 1 }], coins: 0, attack: 9 });
       const facingRight = { ...adjacent, facingDir: 'RIGHT' as const, turn: 1 };
       const dead = gameReducer(facingRight, { type: 'ATTACK' });
@@ -90,11 +90,11 @@ describe('regressions found by the bug hunt', () => {
     });
   });
 
-  describe('the Wumpus winds up before it strikes', () => {
-    it('gives a bare hero three shots at an adjacent Wumpus before it can hit', () => {
+  describe('the Grimbur winds up before it strikes', () => {
+    it('gives a bare hero three shots at an adjacent Grimbur before it can hit', () => {
       let state = createState({ entities: [boss(1)], coins: 0, attack: 9 });
       state = gameReducer(state, { type: 'ATTACK' }); // turn 1, hp 2
-      state = gameReducer(state, { type: 'ATTACK' }); // turn 2: the Wumpus winds up, hp 1
+      state = gameReducer(state, { type: 'ATTACK' }); // turn 2: the Grimbur winds up, hp 1
       expect(state.isGameOver).toBe(false);
       expect(state.entities[0].charge).toBe(1);
       state = gameReducer(state, { type: 'ATTACK' }); // hp 0
@@ -120,7 +120,7 @@ describe('regressions found by the bug hunt', () => {
   });
 
   describe('boss floor generation', () => {
-    it('always leaves a way to reach the Wumpus without crossing a vortex', () => {
+    it('always leaves a way to reach the Grimbur without crossing a vortex', () => {
       const cols = 13;
       for (let seed = 1; seed <= 600; seed++) {
         const board = generateBoard(GAME_CONFIG.expedition.floors, seed * 31, { boss: true });
@@ -157,7 +157,7 @@ describe('regressions found by the bug hunt', () => {
   });
 
   describe('relic and shield bookkeeping stays consistent on the boss floor', () => {
-    it('spends a shield before a feather when the Wumpus reaches the player', () => {
+    it('spends a shield before a feather when the Grimbur reaches the player', () => {
       const relics: RelicId[] = ['phoenix'];
       const state = { ...createState({ entities: [{ ...boss(15), charge: 1 }, shieldItem(100)], coins: 0, attack: 9 }), relics, shield: true, turn: 1 };
       const next = gameReducer(state, { type: 'ATTACK' });
@@ -170,9 +170,9 @@ describe('regressions found by the bug hunt', () => {
 describe('one move never costs two protections or a cleared floor', () => {
   const stalker = (index: number, charge = 0) => ({ index, type: 'stalker' as const, charge });
 
-  it('a shield that soaks the Wumpus does not also leave the player open to its strike', () => {
+  it('a shield that soaks the Grimbur does not also leave the player open to its strike', () => {
     let state = createState({ entities: [{ index: 1, type: 'boss', hp: 3, charge: 1 }, coin(100)], coins: 1 });
-    state = { ...state, shield: true, turn: 1 }; // the Wumpus is due on the next action
+    state = { ...state, shield: true, turn: 1 }; // the Grimbur is due on the next action
     const next = gameReducer(state, { type: 'MOVE', direction: 'RIGHT' });
     expect(next.isGameOver).toBe(false);
     expect(next.shield).toBe(false);

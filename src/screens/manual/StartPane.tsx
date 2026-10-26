@@ -13,7 +13,7 @@ const QUICK_STEPS: { image?: ImageSourcePropType; icon?: React.ComponentProps<ty
   { image: require("../../assets/sprites/tiles/Tile_Hidden.png") },
   { icon: "volume-high", tint: "#ffcc80" },
   { image: require("../../assets/sprites/items/Icon_Gem.png") },
-  { image: require("../../assets/sprites/enemies/Wumpus_Boss.png") },
+  { image: require("../../assets/sprites/enemies/Grimbur_Boss.png") },
 ];
 
 export const StartPane = ({ kit }: { kit: Kit }) => {

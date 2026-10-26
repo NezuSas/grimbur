@@ -124,7 +124,7 @@ En medio de una partida (piso con al menos 3 casillas exploradas), por cada caso
 - [ ] Cierre brusco **durante** una partida: al reabrir no hay crash; el progreso anterior sigue; no se paga dos veces un bono.
 - [ ] **Ajustes > Borrar mis datos**: pide confirmación ("Toca de nuevo para confirmar"), borra progreso, brasas y logros; mensaje "Tus datos se borraron"; el ranking global conserva la entrada (es lo esperado y lo dice la política).
 - [ ] **Desinstalar y reinstalar**: probar con la copia de seguridad automática de Android activa y desactivada. Con ella activa, el progreso puede volver tras reinstalar (esperado, descrito en la política); con ella desactivada, empieza de cero con tutorial.
-- [ ] **Actualizar sobre una versión anterior** (instala v1.0 y luego v1.1 encima): el progreso se conserva y no hay crash por formato antiguo de datos (`wumpus.stats.v1`).
+- [ ] **Actualizar sobre una versión anterior** (instala v1.0 y luego v1.1 encima): el progreso se conserva y no hay crash por formato antiguo de datos (`grimbur.stats.v1`).
 - [ ] **Almacenamiento casi lleno**: la app abre y avisa o falla sin crash; las compras de la Forja informan "No se pudo guardar la compra" si no se puede escribir.
 - [ ] Datos corruptos (solo con ayuda): borrar a mano el valor de la clave devuelve a valores por defecto, sin crash.
 

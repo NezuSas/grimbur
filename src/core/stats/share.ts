@@ -12,10 +12,10 @@ export function dailyNumber(dateKey: string): number {
 export const PIP_CLEARED = '🟩';
 export const PIP_DEATH = '🟥';
 export const PIP_UNREACHED = '⬛';
-export const PIP_WUMPUS = '👑';
+export const PIP_GRIMBUR = '👑';
 
 /**
- * One pip per floor: green for each floor cleared, red for the floor the hero died on, a crown when the Wumpus
+ * One pip per floor: green for each floor cleared, red for the floor the hero died on, a crown when the Grimbur
  * (the last floor) was slain, black for the floors never reached.
  */
 export function dailyPips(level: number, floors: number, victory: boolean): string {
@@ -23,7 +23,7 @@ export function dailyPips(level: number, floors: number, victory: boolean): stri
   const reached = Math.min(total, Math.max(1, Math.trunc(level) || 1));
   const pips: string[] = [];
   for (let floor = 1; floor <= total; floor++) {
-    if (victory) pips.push(floor === total ? PIP_WUMPUS : PIP_CLEARED);
+    if (victory) pips.push(floor === total ? PIP_GRIMBUR : PIP_CLEARED);
     else if (floor < reached) pips.push(PIP_CLEARED);
     else if (floor === reached) pips.push(PIP_DEATH);
     else pips.push(PIP_UNREACHED);

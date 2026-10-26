@@ -59,7 +59,7 @@ describe('Engine stress', () => {
   });
 });
 
-describe('Engine stress: Wumpus lair', () => {
+describe('Engine stress: Grimbur lair', () => {
   it('random play keeps invariants while the boss hunts', () => {
     for (let sim = 0; sim < 60; sim++) {
       const rand = lcg(7000 + sim);

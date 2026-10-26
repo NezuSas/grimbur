@@ -1,7 +1,7 @@
 /**
  * @file soundEvents.ts
  *
- * Canonical list of gameplay audio events for the WumpusAdventures
+ * Canonical list of gameplay audio events for the Grimbur
  * Audio Event Bus. Components and screens should emit these events
  * instead of calling sound APIs directly.
  *
@@ -17,7 +17,7 @@ export type SoundEvent =
   | 'POWERUP'            // Player picks up a shield or extra arrows
   | 'TRAP_TRIGGERED'    // Player steps on a hidden trap
   | 'RELIC_PICKED'      // Player takes a relic after clearing a floor
-  | 'BOSS_ROAR'         // The Wumpus lair begins
+  | 'BOSS_ROAR'         // The Grimbur lair begins
   | 'LEVEL_UP'          // All coins collected — level progression starts
   | 'LEVEL_RESUME'      // Level Up modal closes — in-game music resumes
   | 'GAME_OVER'         // Player collides with enemy or pit
@@ -34,5 +34,5 @@ export type SoundEvent =
   | 'STOP_VORTEX_NEAR'   // Player left vortex proximity (stop loop)
   | 'VORTEX_TELEPORT'    // Player was teleported by a vortex
   | 'SHIELD_BREAK'       // A shield (or feather) soaked a deadly touch
-  | 'BOSS_HIT'           // An arrow hurt the Wumpus
+  | 'BOSS_HIT'           // An arrow hurt the Grimbur
   | 'CHARGE_WARN';      // A hunter started winding up a strike

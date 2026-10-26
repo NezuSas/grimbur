@@ -29,9 +29,9 @@ describe('achievements', () => {
     expect(depth(10)).toContain('edge_of_lair');
   });
 
-  it('awards the Wumpus slayer and the speedrunner only for victories (speed only when fast)', () => {
+  it('awards the Grimbur slayer and the speedrunner only for victories (speed only when fast)', () => {
     const slow = unlockedBy({ score: 100, level: 10, victory: true, time: SPEEDRUN_SECONDS + 1 });
-    expect(slow).toContain('wumpus_slayer');
+    expect(slow).toContain('grimbur_slayer');
     expect(slow).not.toContain('speedrunner');
 
     const fast = unlockedBy({ score: 100, level: 10, victory: true, time: SPEEDRUN_SECONDS - 1 });

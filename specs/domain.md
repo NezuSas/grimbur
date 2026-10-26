@@ -1,4 +1,4 @@
-# WumpusAdventures Domain Model
+# Grimbur Domain Model
 
 ## Core Entities
 
@@ -37,7 +37,7 @@
     - Interacts with **Coins** (Collection).
 
 ### 4. Enemy
-- **Description**: A mobile hazard (modeled after the classic Wumpus/Goomba).
+- **Description**: A mobile hazard (modeled after the classic Grimbur/Goomba).
 - **Properties**:
     - `position`: Assigned cell index.
     - `isAlive`: Boolean state (Enemies can be killed).

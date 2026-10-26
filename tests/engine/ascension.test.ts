@@ -43,7 +43,7 @@ describe('generation at depth', () => {
     }
   });
 
-  it('depth 3 gives the Wumpus an extra heart', () => {
+  it('depth 3 gives the Grimbur an extra heart', () => {
     const floors = GAME_CONFIG.expedition.floors;
     expect(generateBoard(floors, 5, { boss: true }).entities.find(e => e.type === 'boss')!.hp).toBe(GAME_CONFIG.boss.hp);
     expect(generateBoard(floors, 5, { boss: true, ascension: 3 }).entities.find(e => e.type === 'boss')!.hp).toBe(GAME_CONFIG.boss.hp + 1);

@@ -42,17 +42,17 @@ export function getSafeZoneIndices(
 }
 
 /**
- * Procedural Board Generator for Wumpus Adventures.
+ * Procedural Board Generator for Grimbur Adventures.
  * Refined for Semantic Entities and Explicit Safe Zones.
  */
 export interface GenerateOptions {
-  /** Lair floor: places the Wumpus and no gems. */
+  /** Lair floor: places the Grimbur and no gems. */
   boss?: boolean;
-  /** Depth of the run; harder depths add stalkers, traps and a tougher Wumpus. */
+  /** Depth of the run; harder depths add stalkers, traps and a tougher Grimbur. */
   ascension?: number;
   /** The floor's omen (see omens.ts). */
   omen?: OmenId | null;
-  /** Extra hearts for the Wumpus (the endless descent grows it). */
+  /** Extra hearts for the Grimbur (the endless descent grows it). */
   bossHeartBonus?: number;
   /** Past the designed floors the endless descent adds more guardians and vortexes. */
   endless?: boolean;
@@ -102,7 +102,7 @@ export function generateBoard(
     enemyBudget += enemyExtra;
     pitBudget += Math.min(mods.pitBonus, extra - enemyExtra);
   }
-  // The lair is a fight with the Wumpus, not a minefield with a Wumpus in it.
+  // The lair is a fight with the Grimbur, not a minefield with a Grimbur in it.
   if (withBoss) {
     enemyBudget = Math.min(enemyBudget, GAME_CONFIG.boss.lairGuardians);
     pitBudget = Math.min(pitBudget, GAME_CONFIG.boss.lairPits);
@@ -142,7 +142,7 @@ export function generateBoard(
       }
     };
 
-    // 0. The Wumpus lair: the boss sits far from the spawn.
+    // 0. The Grimbur lair: the boss sits far from the spawn.
     if (withBoss) {
       const free: number[] = [];
       const far: number[] = [];
@@ -189,7 +189,7 @@ export function generateBoard(
     const coinIndices = entities.filter(e => e.type === 'coin').map(e => e.index);
     const lethalIndices = entities.filter(e => e.type === 'pit' || e.type === 'enemy' || e.type === 'stalker' || e.type === 'sleeper').map(e => e.index);
     const gemsReachable = validateSolvability(spawnIndex, coinIndices, lethalIndices, diff.rows, diff.cols);
-    // On the lair floor the Wumpus must be reachable too (guardians in the way can be shot, vortexes cannot).
+    // On the lair floor the Grimbur must be reachable too (guardians in the way can be shot, vortexes cannot).
     const bossEntity = entities.find(e => e.type === 'boss');
     const bossReachable =
       !bossEntity ||

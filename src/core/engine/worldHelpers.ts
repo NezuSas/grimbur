@@ -1,4 +1,4 @@
-// The pure helpers the reducer builds on: the world (entities by index), the hunters' turn, the Wumpus, pickups and teleports.
+// The pure helpers the reducer builds on: the world (entities by index), the hunters' turn, the Grimbur, pickups and teleports.
 import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
@@ -65,7 +65,7 @@ export const draftContext = (state: Pick<GameState, 'perks'>) => ({
   startLit: state.perks.startLit,
 });
 
-/** The bomb's blast: removes every guardian and vortex in the 3x3 around `center` (never the Wumpus). */
+/** The bomb's blast: removes every guardian and vortex in the 3x3 around `center` (never the Grimbur). */
 export const blastWorld = (world: World, center: number, cols: number): World => {
   const pr = Math.floor(center / cols);
   const pc = center % cols;
@@ -148,7 +148,7 @@ export const pickTeleportDestination = (
 };
 
 /**
- * One action of a hunter (the Wumpus or a stalker): it steps toward the player; when already
+ * One action of a hunter (the Grimbur or a stalker): it steps toward the player; when already
  * adjacent it first winds up (`charge`) and only strikes on its following action.
  */
 export const hunterAct = (
@@ -185,7 +185,7 @@ export const huntersAct = (
   cols: number,
   turn: number,
   slowdown: number,
-  /** Stalkers (not the Wumpus) act this many actions sooner on the deepest depths. */
+  /** Stalkers (not the Grimbur) act this many actions sooner on the deepest depths. */
   haste = 0,
 ): { world: World; hits: EntityType[] } => {
   const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp }));
@@ -193,7 +193,7 @@ export const huntersAct = (
   let current = world;
 
   for (const hunter of hunters) {
-    // A Wumpus down to its last heart is furious: it acts after every action (Frost Charm still slows it).
+    // A Grimbur down to its last heart is furious: it acts after every action (Frost Charm still slows it).
     const base = hunter.type === 'boss'
       ? (hunter.hp === 1 ? GAME_CONFIG.boss.furyMoveEvery : GAME_CONFIG.boss.moveEvery)
       : GAME_CONFIG.stalker.moveEvery - haste;
@@ -207,7 +207,7 @@ export const huntersAct = (
 };
 
 /**
- * Decides the Wumpus' move: one step toward the player along the longer axis
+ * Decides the Grimbur' move: one step toward the player along the longer axis
  * (then the shorter one), onto an empty tile. Reaching the player is an attack.
  */
 export const bossStep = (
@@ -272,7 +272,7 @@ export const gemYield = (
 /** Chance per Lucky Coin that a gem also gives one more shop gem. */
 export const LUCKY_COIN_CHANCE = 0.2;
 
-/** One heart off the Wumpus. A wounded (still living) Wumpus may call a stalker beside itself, at most `maxCalls` per fight. */
+/** One heart off the Grimbur. A wounded (still living) Grimbur may call a stalker beside itself, at most `maxCalls` per fight. */
 export const hurtBoss = (
   world: World,
   bossIndex: number,

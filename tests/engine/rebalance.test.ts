@@ -165,7 +165,7 @@ describe('relics with a purpose', () => {
       expect(s.score).toBe(100 + 2 * GAME_CONFIG.scoring.newTile);
     });
 
-    it('does nothing in the Wumpus lair', () => {
+    it('does nothing in the Grimbur lair', () => {
       const s = walk(['iron_boots'], 6, [boss(110)]);
       expect(s.turn).toBe(6);
     });
@@ -331,7 +331,7 @@ describe('the first close call arrives around floor 4', () => {
   });
 });
 
-describe('the Wumpus lair is a fight, not a minefield', () => {
+describe('the Grimbur lair is a fight, not a minefield', () => {
   it('keeps the guardians and vortexes of the lair low', () => {
     for (let seed = 1; seed <= 40; seed++) {
       const board = generateBoard(GAME_CONFIG.expedition.floors, seed * 53, { boss: true });
@@ -348,19 +348,19 @@ describe('the Wumpus lair is a fight, not a minefield', () => {
 
   const bossIdx = (s: GameState) => s.entities.find(e => e.type === 'boss')!.index;
 
-  it('with one heart left the Wumpus acts after every action (fury)', () => {
+  it('with one heart left the Grimbur acts after every action (fury)', () => {
     const calm = gameReducer(createState({ entities: [boss(60, 2)], coins: 0 }), move('RIGHT'));
     expect(bossIdx(calm)).toBe(60); // hp 2 waits for its second action
     const furious = gameReducer(createState({ entities: [boss(60, 1)], coins: 0 }), move('RIGHT'));
     expect(bossIdx(furious)).not.toBe(60);
   });
 
-  it('the Frost Charm still slows a furious Wumpus', () => {
+  it('the Frost Charm still slows a furious Grimbur', () => {
     const s = withRelics(createState({ entities: [boss(60, 1)], coins: 0 }), 'frost');
     expect(bossIdx(gameReducer(s, move('RIGHT')))).toBe(60);
   });
 
-  it('a wounded Wumpus sometimes calls a stalker beside itself, at most twice per fight', () => {
+  it('a wounded Grimbur sometimes calls a stalker beside itself, at most twice per fight', () => {
     let called = 0;
     const runs = 120;
     for (let seed = 1; seed <= runs; seed++) {
@@ -369,7 +369,7 @@ describe('the Wumpus lair is a fight, not a minefield', () => {
       if (count(s.entities, 'stalker') > 0) {
         called++;
         const st = s.entities.find(e => e.type === 'stalker')!;
-        expect([2, 16]).toContain(st.index); // beside the Wumpus, not on the player
+        expect([2, 16]).toContain(st.index); // beside the Grimbur, not on the player
         for (const e of s.entities) expect(s.entityMap[e.index]).toBe(e);
       }
       s = gameReducer(s, { type: 'ATTACK' });

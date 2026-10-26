@@ -14,9 +14,9 @@ import { setMonetizationOverride } from "../services/entitlements";
  * It never runs in a production bundle or on a device.
  */
 
-const STATS_KEY = "wumpus.stats.v1";
-const SETTINGS_KEY = "wumpus-adventures-settings";
-const ENTITLEMENTS_KEY = "wumpus-adventures-entitlements";
+const STATS_KEY = "grimbur.stats.v1";
+const SETTINGS_KEY = "grimbur-adventures-settings";
+const ENTITLEMENTS_KEY = "grimbur-adventures-entitlements";
 
 const today = dailyKey();
 
@@ -56,7 +56,7 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     dailyRuns: 9,
     dailyWins: 4,
     skins: { owned: ["0:ember", "0:royal", "1:frost"], equipped: { "0": "royal", "1": "frost" } },
-    achievements: { first_blood: "2026-09-02", explorer: "2026-09-03", hoarder: "2026-09-10", wumpus_slayer: "2026-09-18" },
+    achievements: { first_blood: "2026-09-02", explorer: "2026-09-03", hoarder: "2026-09-10", grimbur_slayer: "2026-09-18" },
     history: Array.from({ length: 14 }, (_, i) => ({
       day: `2026-10-${String(i + 1).padStart(2, "0")}`,
       score: 1200 + ((i * 937) % 9000),

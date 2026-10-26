@@ -49,7 +49,7 @@ export const useSettingsStore = create<SettingsState>()(
       markHintSeen: (id) => set(s => (s.hintsSeen.includes(id) ? s : { hintsSeen: [...s.hintsSeen, id] })),
     }),
     {
-      name: 'wumpus-adventures-settings',
+      name: 'grimbur-adventures-settings',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

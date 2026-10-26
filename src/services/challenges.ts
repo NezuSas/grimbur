@@ -9,7 +9,7 @@ import { getPlayerId } from './playerProfile';
 /** The boards of friend challenges (see core/challenge/code.ts and firestore.rules) and the codes this phone has played. */
 const REQUEST_TIMEOUT_MS = 8000;
 const COLLECTION = 'challenge_scores';
-const RECENT_STORAGE = 'wumpus.challenges.recent.v1';
+const RECENT_STORAGE = 'grimbur.challenges.recent.v1';
 const MAX_RECENT = 20;
 
 export interface ChallengeRow {

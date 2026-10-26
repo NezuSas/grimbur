@@ -33,7 +33,7 @@ describe('duelOutcome', () => {
     expect(duelOutcome(p(4, 1500), p(4, 2000))).toBe('lose');
   });
 
-  it('slaying the Wumpus beats everything; two victories are decided by time', () => {
+  it('slaying the Grimbur beats everything; two victories are decided by time', () => {
     expect(duelOutcome(p(10, 100, true), p(10, 99999, false))).toBe('win');
     expect(duelOutcome(p(10, 5000, true, 600), p(10, 5000, true, 700))).toBe('win');
     expect(duelOutcome(p(10, 5000, true, 800), p(10, 5000, true, 700))).toBe('lose');
@@ -86,7 +86,7 @@ describe('duelStanding (any number of rivals, winner takes all)', () => {
     expect(s).toMatchObject({ state: 'lost', decided: true });
   });
 
-  it('a rival who slew the Wumpus has beaten me for good too', () => {
+  it('a rival who slew the Grimbur has beaten me for good too', () => {
     expect(duelStanding(me(10, 5000), true, [r(10, 100, false, true)]).state).toBe('lost');
   });
 

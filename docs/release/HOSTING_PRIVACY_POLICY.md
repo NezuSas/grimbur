@@ -10,7 +10,7 @@ Tiempo: ~20 minutos. Necesitas una cuenta de GitHub (ya tienes `NezuSas`).
 1. **Resolver los `TODO(owner)`** de `docs/release/PRIVACY_POLICY.md` (fecha, nombre del titular, correo, región de Firestore, filas condicionales de diagnóstico/compra/copia de seguridad/reseña).
    Comprobación: `grep -n "TODO(owner)" docs/release/PRIVACY_POLICY.md` solo debe devolver el recuadro inicial, que no se publica (paso 3).
 
-2. **Crear el repositorio público**: GitHub > New repository > nombre `wumpus-legal` (o el nombre final del juego) > **Public** > con README. No añadas más archivos que los de abajo.
+2. **Crear el repositorio público**: GitHub > New repository > nombre `grimbur-legal` (o el nombre final del juego) > **Public** > con README. No añadas más archivos que los de abajo.
 
 3. **Crear la página** `privacy/index.md` en el repo con el contenido público. Desde la raíz del repo del juego, en PowerShell:
 
@@ -20,15 +20,15 @@ Tiempo: ~20 minutos. Necesitas una cuenta de GitHub (ya tienes `NezuSas`).
    $body = ($src -split "(?m)^---\s*$", 2)[1]
    $body = ($body -split "(?m)^## Lista de actualización", 2)[0]
    $front = "---`ntitle: Privacy Policy`nlang: en`n---`n"
-   New-Item -ItemType Directory -Force ..\wumpus-legal\privacy | Out-Null
-   Set-Content ..\wumpus-legal\privacy\index.md ($front + $body) -Encoding UTF8
+   New-Item -ItemType Directory -Force ..\grimbur-legal\privacy | Out-Null
+   Set-Content ..\grimbur-legal\privacy\index.md ($front + $body) -Encoding UTF8
    ```
 
    Opcional pero recomendable: crear también `index.md` en la raíz del repo con una línea y un enlace a `privacy/`, y un fichero vacío `.nojekyll` si prefieres HTML puro.
    Revisa el resultado: NO debe contener ninguna `TODO(owner)` ni el recuadro "Para el titular".
 
 4. **Activar Pages**: en el repo > Settings > Pages > Build and deployment > Source: *Deploy from a branch* > Branch: `main` / carpeta `/ (root)` > Save.
-   Espera 1-2 minutos. La URL será: `https://nezusas.github.io/wumpus-legal/privacy/` (usuario en minúsculas; cámbiala si el repo se llama distinto).
+   Espera 1-2 minutos. La URL será: `https://nezusas.github.io/grimbur-legal/privacy/` (usuario en minúsculas; cámbiala si el repo se llama distinto).
 
 5. **Verificar** en una ventana privada del navegador y desde el móvil con datos móviles: carga sin iniciar sesión, se ven las dos secciones (English y Español) y los enlaces. Si ves un 404, revisa que el archivo se llame exactamente `privacy/index.md` y que Pages esté en `main`.
 
@@ -36,7 +36,7 @@ Tiempo: ~20 minutos. Necesitas una cuenta de GitHub (ya tienes `NezuSas`).
    - Play Console > Contenido de la app > Política de privacidad.
    - Play Console > Seguridad de los datos (campo de política y de solicitud de eliminación de datos).
    - `STORE_LISTING.md` (texto "Privacy: <TODO(owner): privacy policy URL>").
-   - `src/config/gameConfig.ts` `monetization.privacyUrl` (hoy `https://example.com/wumpus/privacy`; lo cambia DEV). Si añades términos, `termsUrl`.
+   - `src/config/gameConfig.ts` `monetization.privacyUrl` (hoy `https://example.com/grimbur/privacy`; lo cambia DEV). Si añades términos, `termsUrl`.
    - App Store Connect (si publicas en iOS) > Información de la app > URL de la política.
 
 7. **Actualizaciones**: edita `privacy/index.md` en GitHub, guarda; Pages redespliega solo. Cambia siempre la "Fecha de vigencia". Si cambia algo que afecta a los datos, también el formulario de Play/Apple (`DATA_SAFETY.md`).
