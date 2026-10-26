@@ -12,6 +12,7 @@ import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { claimMissionReward, getMissions, peekLocalStats } from "../services/localStats";
+import { emitSound } from "../audio/audioEventBus";
 import { DAILY_BONUS, MissionDef, MissionProgress, bonusReady, isComplete, missionDef, syncMissions } from "../core/stats/missions";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { RANK_THRESHOLDS, rankOf } from "../core/stats/rank";
@@ -57,6 +58,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
     const next = await claimMissionReward(id);
     if (next) {
       haptic.impact();
+      emitSound("EMBER_GAIN");
       setStats(next);
     }
   };

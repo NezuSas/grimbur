@@ -5,6 +5,7 @@ import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelStanding, isGone, prizeOf, rivalStatu
 import type { RivalStatus, Standing } from "../../core/duel/duel";
 import type { GameState } from "../../core/engine/types";
 import { EMPTY_ROOM, publishDuelState, watchRoom, type Room } from "../../services/duel";
+import { emitSound } from "../../audio/audioEventBus";
 import { creditEmbersFor } from "../../services/localStats";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { recordOf } from "../../core/duel/history";
@@ -190,7 +191,10 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
         const credited = await creditEmbersFor(amount);
         if (!credited) throw new Error("not credited");
         await AsyncStorage.setItem(paidKey(code, matchId), "1"); // marked only once the embers are in
-        if (alive.current) setPrize(amount);
+        if (alive.current) {
+          setPrize(amount);
+          emitSound("EMBER_GAIN"); // the pot lands in the purse
+        }
       } catch (e) {
         console.warn("[duel] could not pay the prize:", e);
         paying.current = false; // the next render tries again

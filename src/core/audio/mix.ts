@@ -39,10 +39,13 @@ export const MIX = {
   kill: { kind: 'sfx', db: -16 },
   coin: { kind: 'sfx', db: -16 },
   powerup: { kind: 'sfx', db: -16 },
+  forgeHammer: { kind: 'sfx', db: -16 },
+  emberGain: { kind: 'sfx', db: -15 },
   trap: { kind: 'sfx', db: -18 },
   // Constant, light feedback
   charge: { kind: 'sfx', db: -19 },
   step: { kind: 'sfx', db: -20 },
+  uiTap: { kind: 'sfx', db: -21 },
   killTail: { kind: 'sfx', db: -22 },
   miss: { kind: 'sfx', db: -22 },
   shieldThud: { kind: 'sfx', db: -20 },

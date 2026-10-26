@@ -14,6 +14,51 @@ import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
 
+/** Three specks of dust that drift up from the tile the hero just left, then vanish. */
+const DustPuff = memo(({ x, y, tileSize, onDone }: { x: number; y: number; tileSize: number; onDone: () => void }) => {
+  const progress = useRef(new Animated.Value(0)).current;
+  const specks = useRef(
+    [0, 1, 2].map(i => ({
+      ox: 0.28 + 0.18 * i + (Math.random() - 0.5) * 0.08,
+      dx: (Math.random() - 0.5) * 0.4,
+      dy: -0.12 - Math.random() * 0.18,
+      size: tileSize * (0.07 + Math.random() * 0.05),
+    })),
+  ).current;
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  useEffect(() => {
+    Animated.timing(progress, { toValue: 1, duration: 430, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(({ finished }) => {
+      if (finished) onDoneRef.current();
+    });
+  }, [progress]);
+  return (
+    <View pointerEvents="none" style={{ position: "absolute", left: x, top: y, width: tileSize, height: tileSize, zIndex: 3 }}>
+      {specks.map((s, i) => (
+        <Animated.View
+          key={i}
+          style={{
+            position: "absolute",
+            left: tileSize * s.ox,
+            bottom: tileSize * 0.16,
+            width: s.size,
+            height: s.size,
+            borderRadius: s.size / 2,
+            backgroundColor: "rgba(216,196,168,0.55)",
+            opacity: progress.interpolate({ inputRange: [0, 0.15, 1], outputRange: [0, 0.85, 0] }),
+            transform: [
+              { translateX: progress.interpolate({ inputRange: [0, 1], outputRange: [0, s.dx * tileSize] }) },
+              { translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [0, s.dy * tileSize] }) },
+              { scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.5] }) },
+            ],
+          }}
+        />
+      ))}
+    </View>
+  );
+});
+DustPuff.displayName = "DustPuff";
+
 type Props = {
   level: number;
   rows: number;
@@ -75,17 +120,19 @@ const BoardView: React.FC<Props> = memo(
     const shakeAnim  = useRef(new Animated.Value(0)).current;
     const shakeGuard = useRef<number | undefined>(guardianCount);
 
-    // One breathing value for every clue badge and wind-up aura (a loop per cell used to cost one timer each).
+    // One breathing value for every clue badge, wind-up aura, bobbing gem and swelling vortex
+    // (a loop per cell used to cost one timer each).
     const pulse = useRef(new Animated.Value(0)).current;
     const needsPulse = useMemo(() => {
+      for (const key in entityMap) {
+        const e = entityMap[key];
+        if (e.type === 'coin' || e.type === 'pit') return true; // gems bob, vortexes swell
+        if ((e.type === 'boss' || e.type === 'stalker') && (e.charge ?? 0) >= 1) return true;
+      }
       for (const i of visited) {
         if (entityMap[i] !== undefined) continue;
         const near = getNearbyHazards(i, rows, cols, entityMap);
         if (near.enemy || near.pit) return true;
-      }
-      for (const key in entityMap) {
-        const e = entityMap[key];
-        if ((e.type === 'boss' || e.type === 'stalker') && (e.charge ?? 0) >= 1) return true;
       }
       return false;
     }, [visited, entityMap, rows, cols]);
@@ -124,14 +171,27 @@ const BoardView: React.FC<Props> = memo(
       return () => loop.stop();
     }, [calm, heroBreath]);
 
+    // Little dust puffs where the hero just stepped off: cheap, native-driven, gone in half a second.
+    const [dusts, setDusts] = useState<{ id: number; x: number; y: number }[]>([]);
+    const dustId = useRef(0);
+    const removeDust = useCallback((id: number) => setDusts(prev => prev.filter(d => d.id !== id)), []);
+
     // A new floor or a restart puts the hero on its start tile: it appears there instead of sliding in from the old spot.
     const lastFloor = useRef({ level, seen: visited.length });
+    const prevCell = useRef({ row: rowIndex, col: colIndex });
     useEffect(() => {
       const prev = lastFloor.current;
       lastFloor.current = { level, seen: visited.length };
+      const from = prevCell.current;
+      prevCell.current = { row: rowIndex, col: colIndex };
       if (level !== prev.level || visited.length < prev.seen) {
         playerPos.setValue({ x: colIndex * tileSize, y: rowIndex * tileSize });
+        setDusts([]);
         return;
+      }
+      if (!calm && (from.row !== rowIndex || from.col !== colIndex)) {
+        const id = ++dustId.current;
+        setDusts(current => [...current.slice(-5), { id, x: from.col * tileSize, y: from.row * tileSize }]);
       }
       Animated.parallel([
         Animated.timing(playerPos, {
@@ -334,11 +394,16 @@ const BoardView: React.FC<Props> = memo(
                   killer={killerTile === i}
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
+                  calm={!!calm}
                   revealDelay={burst ? Math.min(900, 70 * (Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );
             })}
           </View>
+
+          {dusts.map(d => (
+            <DustPuff key={d.id} x={d.x} y={d.y} tileSize={tileSize} onDone={() => removeDust(d.id)} />
+          ))}
 
           {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
             <BoardTouchLayer

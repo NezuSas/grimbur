@@ -26,6 +26,9 @@ export interface SoundState {
   vortex:     LegacySoundHandle | null;
   relic:      LegacySoundHandle | null;
   roar:       LegacySoundHandle | null;
+  ui:         LegacySoundHandle | null;
+  forge:      LegacySoundHandle | null;
+  ember:      LegacySoundHandle | null;
 }
 
 export interface SoundStore {

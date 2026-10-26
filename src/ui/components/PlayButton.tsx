@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import { haptic } from "../../shared/haptics";
+import { emitSound } from "../../audio/audioEventBus";
 
 type Props = {
   title: string;
@@ -43,7 +44,10 @@ const PlayButton: React.FC<Props> = memo(({ title, subtitle, footnote, onPress, 
     <View style={styles.wrap}>
       <Animated.View style={{ transform: [{ scale: press }] }}>
         <Pressable
-          onPress={onPress}
+          onPress={() => {
+            emitSound("UI_TAP");
+            onPress();
+          }}
           onPressIn={() => {
             haptic.impact();
             Animated.spring(press, { toValue: 0.97, useNativeDriver: true }).start();

@@ -334,6 +334,9 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     vortex:     null,
     relic:      null,
     roar:       null,
+    ui:         null,
+    forge:      null,
+    ember:      null,
   },
   ready: false,
 
@@ -396,6 +399,9 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["vortex", require("../../assets/sfx/vortex.wav")],
         ["relic", require("../../assets/sfx/relic.wav")],
         ["roar", require("../../assets/sfx/roar.wav")],
+        ["ui", require("../../assets/sfx/ui.wav")],
+        ["forge", require("../../assets/sfx/forge.wav")],
+        ["ember", require("../../assets/sfx/ember.wav")],
       ];
       soundsTotal = files.length;
       const handles = files.map(([name, source]) => register(source, name));
@@ -406,7 +412,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
       // it is needed.
       const CRITICAL = ['move', 'coin', 'attack', 'cover'];
-      const LATER = ['gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'roar', 'victory'];
+      const LATER = ['ui', 'gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'roar', 'victory', 'forge', 'ember'];
       await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
       audioLog('init', 'ready (first sounds loaded, the rest follows)');

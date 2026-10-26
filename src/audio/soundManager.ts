@@ -161,6 +161,9 @@ export function useSoundManager(): void {
       case 'BOSS_HIT':       playSfx(sounds.attack, mixVolume('bossHit'), 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
       case 'SHIELD_BREAK':   playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); break;
       case 'CHARGE_WARN':    playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); break;
+      case 'UI_TAP':         playSfx(sounds.ui, mixVolume('uiTap')); break;
+      case 'FORGE_HAMMER':   playSfx(sounds.forge, mixVolume('forgeHammer')); break;
+      case 'EMBER_GAIN':     playSfx(sounds.ember, mixVolume('emberGain')); break;
 
       case 'LEVEL_UP':
         stopAllBackgroundMusic("level_up");
