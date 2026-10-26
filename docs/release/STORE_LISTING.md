@@ -4,7 +4,7 @@ Todo lo que dice este texto se ha contrastado con el código (versión 1.2.0 del
 
 Límites de Google Play: título 30, descripción corta 80, descripción completa 4000, "novedades" 500. App Store: nombre 30, subtítulo 30, texto promocional 170, palabras clave 100.
 
-**Nombre pendiente (ver `RELEASE_CHECKLIST.md` A1).** Los textos usan "Wumpus Adventures" como nombre de trabajo. Si cambia, sustituir `Wumpus Adventures` en este archivo.
+**Nombre decidido: Grimbur** (2026-10-25; investigación en `NAME_CANDIDATES.md`). El monstruo también se llama el Grimbur. Falta la búsqueda de marca del dueño (A1).
 `TODO(owner)`: nombre final, correo de contacto, URL de política de privacidad, URL del sitio web (opcional).
 
 **Suposición de monetización.** Los textos describen el modelo previsto: gratis hasta el piso 3 + reto diario, y una **compra única** para el resto (`GAME_CONFIG.monetization`, hoy `enabled: false`).
@@ -14,21 +14,21 @@ Si lanzas el juego completamente gratis, borra las líneas marcadas con `[COMPRA
 
 ## English (en-US)
 
-**Title (<=30):** `Wumpus Adventures: Deduction` (28)
-Alternatives: `Wumpus Adventures` (17) / `Wumpus Cave: Deduce & Slay` (25, if the name changes).
+**Title (<=30):** `Grimbur: Cave of Clues` (22)
+Alternatives: `Grimbur` (7) / `Grimbur: Deduction Roguelite` (28).
 
-**Short description (<=80):** `Read the clues, dodge the guardians, grab the gems and slay the Wumpus.` (71)
+**Short description (<=80):** `Read the clues, dodge the guardians, grab the gems and slay the Grimbur.` (72)
 
 **Full description (<=4000):**
 
 ```text
 Every step could be your last.
 
-Wumpus Adventures is a bite-sized deduction roguelite. Explore a fogged cave, read the icons and numbers on the tiles you reveal, grab every gem and escape the guardians and vortexes hiding in the dark. Every floor can be solved by deduction alone: think like a detective, then commit.
+Grimbur is a bite-sized deduction roguelite. Explore a fogged cave, read the icons and numbers on the tiles you reveal, grab every gem and escape the guardians and vortexes hiding in the dark. Every floor can be solved by deduction alone: think like a detective, then commit.
 
 HOW IT PLAYS
 - Clues, not luck: each tile you reveal shows how many guardians and vortexes touch it. Gems are always visible, dangers never are.
-- Ten floors, one Wumpus: descend through ten floors of growing danger to the Wumpus lair. It hunts you, so aim true.
+- Ten floors, one Grimbur: descend through ten floors of growing danger to the Grimbur lair. It hunts you, so aim true.
 - Draft relics: after each floor pick 1 of 3 relics. They stack for the whole expedition. Beware the cursed ones: powerful, but they take something back.
 - Six heroes, six styles, each with a passive perk and a rechargeable ability. Unlock them by playing and dress them in more than 30 outfits.
 - Shop, altar and doors: spend the gems you collect between floors on arrows, a shield, a detector or a bomb, trade a shield for a second relic, and choose between two doors, each with its own twist.
@@ -39,7 +39,7 @@ COME BACK EVERY DAY
 - Daily challenge: one cave per day, the same for every player. Keep your streak, climb the daily and weekly leaderboards and share your result as a picture.
 - The Forge: every run earns embers, win or lose. Spend them on permanent upgrades that stay forever (they do not apply to the daily challenge, which stays fair for everyone).
 - Six depths: win an expedition to unlock a harder one. Each stacks a new penalty on top of the last.
-- Endless descent: no last floor, and a stronger Wumpus every ten floors. [COMPRA]
+- Endless descent: no last floor, and a stronger Grimbur every ten floors. [COMPRA]
 - Missions and ranks: three daily and two weekly missions, and a 12-rank ladder that grows with every ember you ever earn.
 - Second chance: spend embers to come back right before the fatal move, or buy arrows mid-floor. Each costs more than the last; never in the daily.
 - More than 100 achievements, a progress screen with your win rate and trend, and global, daily and weekly leaderboards.
@@ -57,7 +57,7 @@ MADE FOR QUICK SESSIONS
 - No ads. No accounts. No energy timers. Online features (leaderboards, duels) need internet; the rest of the game does not.
 
 FREE TO START, ONE PURCHASE TO FINISH [COMPRA]
-The tutorial, floors 1 to 3 and the daily challenge are free forever. A single one-time purchase unlocks the full expedition (floors 4 to 10 and the Wumpus) and the endless descent. No subscriptions, no loot boxes, no purchases that give a ranking advantage. Restore your purchase any time from the paywall.
+The tutorial, floors 1 to 3 and the daily challenge are free forever. A single one-time purchase unlocks the full expedition (floors 4 to 10 and the Grimbur) and the endless descent. No subscriptions, no loot boxes, no purchases that give a ranking advantage. Restore your purchase any time from the paywall.
 
 Privacy: your progress stays on your device, with an optional cloud copy protected by a private key. If you save a score to a leaderboard or play a duel or challenge, only the name you type, your score, floor, gems, hero and time are sent. Read the policy: <TODO(owner): privacy policy URL>
 Contact: <TODO(owner): support email>
@@ -66,32 +66,32 @@ Contact: <TODO(owner): support email>
 **What's new (first release, <=500):**
 
 ```text
-First release. 10 floors and the Wumpus, six heroes with outfits, relics, the Forge, a daily challenge, live duels and code challenges with friends, ember stakes, optional cloud save, endless descent, six difficulty depths and 100+ achievements. Available in English and Spanish. Feedback is welcome at <TODO(owner): support email>.
+First release. 10 floors and the Grimbur, six heroes with outfits, relics, the Forge, a daily challenge, live duels and code challenges with friends, ember stakes, optional cloud save, endless descent, six difficulty depths and 100+ achievements. Available in English and Spanish. Feedback is welcome at <TODO(owner): support email>.
 ```
 
-**Promo text (App Store, <=170):** `Deduce where the dangers hide, draft relics, slay the Wumpus and race your friends in live duels. A new cave every day. No ads.` (134)
+**Promo text (App Store, <=170):** `Deduce where the dangers hide, draft relics, slay the Grimbur and race your friends in live duels. A new cave every day. No ads.` (135)
 
 **Subtitle (App Store, <=30):** `Deduce. Descend. Survive.` (25)
 
-**App Store keywords (<=100):** `roguelike,puzzle,deduction,minesweeper,dungeon,wumpus,logic,strategy,offline,daily,duel,versus` (94)
+**App Store keywords (<=100):** `roguelike,puzzle,deduction,minesweeper,dungeon,monster,logic,strategy,offline,daily,duel,versus` (95)
 
 ## Español (es-419 principal; es-ES reutiliza el mismo texto)
 
-**Título (<=30):** `Wumpus Adventures: Deducción` (28)
-Alternativas: `Wumpus Adventures` (17).
+**Título (<=30):** `Grimbur: cueva de pistas` (24)
+Alternativas: `Grimbur` (7).
 
-**Descripción corta (<=80):** `Lee las pistas, esquiva guardianes, recoge gemas y vence al Wumpus.` (67)
+**Descripción corta (<=80):** `Lee las pistas, esquiva guardianes, recoge gemas y vence al Grimbur.` (68)
 
 **Descripción completa (<=4000):**
 
 ```text
 Cada paso puede ser el último.
 
-Wumpus Adventures es un roguelite de deducción para partidas cortas. Explora una cueva entre la niebla, lee las pistas de cada casilla, recoge las gemas y esquiva los peligros ocultos. Cada piso se resuelve solo con deducción: piensa como detective y luego arriesga.
+Grimbur es un roguelite de deducción para partidas cortas. Explora una cueva entre la niebla, lee las pistas de cada casilla, recoge las gemas y esquiva los peligros ocultos. Cada piso se resuelve solo con deducción: piensa como detective y luego arriesga.
 
 CÓMO SE JUEGA
 - Pistas, no suerte: cada casilla revelada te dice cuántos guardianes y vórtices la rodean. Las gemas siempre se ven; los peligros, nunca.
-- Diez pisos, un Wumpus: desciende por diez pisos cada vez más peligrosos hasta la guarida del Wumpus. Te persigue, así que apunta bien.
+- Diez pisos, un Grimbur: desciende por diez pisos cada vez más peligrosos hasta la guarida del Grimbur. Te persigue, así que apunta bien.
 - Elige reliquias: tras cada piso escoges 1 de 3. Se acumulan durante toda la expedición. Cuidado con las malditas: muy poderosas, pero te quitan algo.
 - Seis héroes, seis estilos, cada uno con su poder pasivo y una habilidad que se recarga al jugar. Se desbloquean jugando y se visten con más de 30 trajes.
 - Tienda, altar y puertas: entre pisos gasta tus gemas, cambia un escudo por otra reliquia y elige entre dos puertas distintas.
@@ -102,7 +102,7 @@ VUELVE CADA DÍA
 - Reto diario: una cueva por día, igual para todos. Mantén tu racha, sube en las clasificaciones diaria y semanal y comparte tu resultado como imagen.
 - La Forja: cada partida da brasas, ganes o pierdas. Gástalas en mejoras permanentes (no cuentan en el reto diario, que es justo para todos).
 - Seis niveles de dificultad: gana una expedición para desbloquear una más difícil. Cada una suma una penalización nueva a la anterior.
-- Descenso sin fin: sin último piso, y un Wumpus más fuerte cada diez pisos. [COMPRA]
+- Descenso sin fin: sin último piso, y un Grimbur más fuerte cada diez pisos. [COMPRA]
 - Misiones y rangos: tres misiones diarias y dos semanales, y una escalera de 12 rangos que crece con cada brasa que ganas.
 - Segunda oportunidad: gasta brasas para volver justo antes del movimiento fatal, o compra flechas a mitad de piso. Cada vez cuesta más; nunca en el reto diario.
 - Más de 100 logros, una pantalla de progreso con tu porcentaje de victorias y tendencia, y clasificaciones global, diaria y semanal.
@@ -120,7 +120,7 @@ PARA PARTIDAS RÁPIDAS
 - Sin anuncios. Sin cuentas. Sin energía. Las funciones en línea (clasificaciones, duelos) necesitan internet; el resto del juego, no.
 
 GRATIS PARA EMPEZAR, UNA COMPRA PARA TERMINAR [COMPRA]
-El tutorial, los pisos 1 a 3 y el reto diario son gratis para siempre. Una sola compra desbloquea la expedición completa (pisos 4 a 10 y el Wumpus) y el descenso sin fin. Sin suscripciones, sin cajas de botín, sin ventajas de pago en la clasificación. Restaura tu compra cuando quieras.
+El tutorial, los pisos 1 a 3 y el reto diario son gratis para siempre. Una sola compra desbloquea la expedición completa (pisos 4 a 10 y el Grimbur) y el descenso sin fin. Sin suscripciones, sin cajas de botín, sin ventajas de pago en la clasificación. Restaura tu compra cuando quieras.
 
 Privacidad: tu progreso se queda en tu dispositivo, con una copia opcional en la nube protegida por una clave privada. Si guardas una puntuación en una clasificación o juegas un duelo o reto, solo se envía el nombre que escribes, tu puntuación, piso, gemas, héroe y tiempo. Política: <TODO(owner): URL de la política de privacidad>
 Contacto: <TODO(owner): correo de soporte>
@@ -129,14 +129,14 @@ Contacto: <TODO(owner): correo de soporte>
 **Novedades (primera versión, <=500):**
 
 ```text
-Primera versión. 10 pisos y el Wumpus, seis héroes con trajes, reliquias, la Forja, reto diario, duelos en vivo y retos con código entre amigos, apuestas de brasas, copia opcional en la nube, descenso sin fin, seis niveles de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
+Primera versión. 10 pisos y el Grimbur, seis héroes con trajes, reliquias, la Forja, reto diario, duelos en vivo y retos con código entre amigos, apuestas de brasas, copia opcional en la nube, descenso sin fin, seis niveles de dificultad y más de 100 logros. En español e inglés. Tus comentarios son bienvenidos en <TODO(owner): correo de soporte>.
 ```
 
-**Texto promocional (App Store, <=170):** `Deduce dónde se esconden los peligros, elige reliquias, vence al Wumpus y reta a tus amigos en duelos en vivo. Una cueva nueva cada día. Sin anuncios.` (151)
+**Texto promocional (App Store, <=170):** `Deduce dónde se esconden los peligros, elige reliquias, vence al Grimbur y reta a tus amigos en duelos en vivo. Una cueva nueva cada día. Sin anuncios.` (152)
 
 **Subtítulo (App Store, <=30):** `Deduce. Desciende. Sobrevive.` (29)
 
-**Palabras clave (App Store, <=100):** `roguelike,puzzle,deduccion,buscaminas,mazmorra,wumpus,logica,estrategia,sin conexion,diario,duelo` (97)
+**Palabras clave (App Store, <=100):** `roguelike,puzzle,deduccion,buscaminas,mazmorra,monstruo,logica,estrategia,sin conexion,diario,duelo` (99)
 
 ---
 
@@ -147,7 +147,7 @@ Primera versión. 10 pisos y el Wumpus, seis héroes con trajes, reliquias, la F
 | Tipo | Juego |
 | Categoría Play | **Puzles** (alternativa: Estrategia). Es lo que busca quien juega buscaminas/lógica; "Rol" mezcla con RPG de combate |
 | Etiquetas (hasta 5, elige las que ofrezca la consola) | Puzles, Estrategia, Un jugador, Roguelike/Mazmorras (si existe), Lógica |
-| Precio | Gratis con compras integradas `[COMPRA]` (producto `wumpus_full_game`, precio objetivo 3,99 USD, ajustado por país con la tabla de Play) |
+| Precio | Gratis con compras integradas `[COMPRA]` (producto `grimbur_full_game`, precio objetivo 3,99 USD, ajustado por país con la tabla de Play) |
 | Anuncios | **No contiene anuncios** |
 | Idiomas de la ficha | Inglés (predeterminado) y español (Latinoamérica); duplicar a español (España) si quieres |
 | Correo de contacto | `TODO(owner)` |
@@ -188,10 +188,10 @@ Texto superpuesto: una línea, fuente gruesa, borde oscuro, fuera del 8 % del ma
 | 2 | Momento de deducción: marca de peligro (bandera) en una casilla sospechosa junto a dos pistas iguales (GameScreen, tras pulsación larga) | Every floor solvable by deduction | Cada piso se resuelve deduciendo |
 | 3 | Elección de reliquia: 3 cartas con una maldita (marco rojo) (overlay tras limpiar el piso 3) | Draft a relic after every floor | Elige una reliquia en cada piso |
 | 4 | Selección de héroe con el héroe grande, sus trajes y el modo en Expedición (CharactersScreen) | Six heroes, six ways to play | Seis héroes, seis estilos |
-| 5 | Piso 10, lucha contra el Wumpus con sus corazones visibles en el HUD y la aguja de wind-up (GameScreen) | Slay the Wumpus | Vence al Wumpus |
+| 5 | Piso 10, lucha contra el Grimbur con sus corazones visibles en el HUD y la aguja de wind-up (GameScreen) | Slay the Grimbur | Vence al Grimbur |
 | 6 | La Forja con mejoras compradas y brasas (ForgeScreen, preset con progreso) | Forge permanent upgrades | Forja mejoras permanentes |
 | 7 | Portada con el reto diario y la racha (CoverScreen, racha de 5+) | A new cave every day | Una cueva nueva cada día |
-| 8 | Pantalla de victoria con lluvia de gemas y resultado (GameScreen tras vencer al Wumpus) | Share your victory | Comparte tu victoria |
+| 8 | Pantalla de victoria con lluvia de gemas y resultado (GameScreen tras vencer al Grimbur) | Share your victory | Comparte tu victoria |
 
 Opcionales, en este orden de prioridad si hay espacio: pantalla de progreso (ProgressScreen) con calendario y gráfico, logros (AchievementsScreen), tienda entre pisos.
 Para la ficha de iOS, reutilizar las escenas con las medidas de `ASSETS_CHECKLIST.md` (iPhone e iPad apaisados).
@@ -199,7 +199,7 @@ Para la ficha de iOS, reutilizar las escenas con las medidas de `ASSETS_CHECKLIS
 ## Gráfico de funciones (Play): briefing
 
 - **Tamaño**: 1024x500 px, PNG o JPEG de 24 bits, sin transparencia, máx. 15 MB.
-- **Contenido**: imagen principal del emblema del juego (`assets/emblem.png` recortado, cabeza del Wumpus en tonos violeta oscuro) a la izquierda o centro; título del juego en tipografía gruesa (Fredoka, la del juego); lema de una línea ("Descend. Deduce. Slay the Wumpus." / "Desciende. Deduce. Vence al Wumpus."); fondo de cueva oscura con 3-4 gemas brillantes y una niebla.
+- **Contenido**: imagen principal del emblema del juego (`assets/emblem.png` recortado, cabeza del Grimbur en tonos violeta oscuro) a la izquierda o centro; título del juego en tipografía gruesa (Fredoka, la del juego); lema de una línea ("Descend. Deduce. Slay the Grimbur." / "Desciende. Deduce. Vence al Grimbur."); fondo de cueva oscura con 3-4 gemas brillantes y una niebla.
 - **Paleta**: `#0E0B1F` (fondo), `#140F2A`, `#1E173F` (acentos), gemas cian/dorado.
 - **Reglas**: texto en el centro-izquierda (Google recorta bordes y superpone un botón de vídeo si hay vídeo en el centro); sin capturas del juego en miniatura, sin precio, sin texto "gratis" ni "descarga"; sin elementos parecidos a la mascota de Discord (cuerpo redondo azul con orejas) para evitar confusión de marca.
 - **Dos variantes**: EN y ES (un solo gráfico por idioma de ficha).

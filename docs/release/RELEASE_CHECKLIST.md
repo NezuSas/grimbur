@@ -9,8 +9,8 @@ Documentos hermanos en `docs/release/`: `LAUNCH_PLAN.md`, `STORE_LISTING.md`, `P
 
 ## 0. Qué ya está hecho en el repo
 
-- [x] Juego completo: expedición de 10 pisos con Wumpus final, reliquias (elige 1 de 3), 6 héroes (Vael, Sera, Borin, Auric, Mira, Bram) con poder, habilidad y trajes coleccionables, acechadores, durmientes, presagios, cuevas por bioma, tienda entre pisos, puertas, altar, reliquias malditas.
-- [x] Modos: Expedición, Reto diario (misma cueva para todos, racha), Descenso sin fin (se desbloquea al vencer al Wumpus).
+- [x] Juego completo: expedición de 10 pisos con Grimbur final, reliquias (elige 1 de 3), 6 héroes (Vael, Sera, Borin, Auric, Mira, Bram) con poder, habilidad y trajes coleccionables, acechadores, durmientes, presagios, cuevas por bioma, tienda entre pisos, puertas, altar, reliquias malditas.
+- [x] Modos: Expedición, Reto diario (misma cueva para todos, racha), Descenso sin fin (se desbloquea al vencer al Grimbur).
 - [x] Seis profundidades de dificultad (Normal a Legendaria) que se desbloquean ganando; las altas (4 y 5) están pensadas para exigir mejoras de la Forja (más guardianes, vórtices y acechadores, menos flechas).
 - [x] La Forja: mejoras permanentes con brasas (21 mejoras, incluidas Alforja, Manos rápidas y Segundo aliento; no se aplican al reto diario).
 - [x] Segunda oportunidad (revivir con brasas, sin límite fijo, precio creciente por uso, piso y profundidad) y flechas por brasas a mitad de partida; ninguna de las dos en el reto diario. Es moneda del juego, no dinero real.
@@ -36,8 +36,8 @@ Cada paso depende del anterior salvo que se indique "en paralelo". Las fechas re
 
 | # | Tarea | Resp. | Duración |
 | --- | --- | --- | --- |
-| A1 | Decidir el **nombre final**. "Wumpus" es la mascota de Discord (riesgo moderado-bajo, sin verificar; `docs/market-research-notes/wumpus_ip_risks.md`). Búsqueda de conocimiento previo en USPTO, EUIPO TMview, WIPO Brand DB, SENADI y en Google Play/App Store. Un nombre con "Wumpus" pero sin parecerse a Discord (color, mascota) es defendible; si dudas, cambia el título y deja "Wumpus" en subtítulo/palabras clave. | OWNER | 1-2 días |
-| A2 | Si cambias el nombre: actualizar `app.json` `name` (el `slug` y los identificadores NO se deben cambiar después de publicar; decídelo ahora) y los textos de `STORE_LISTING.md` (`[NAME]`). Los identificadores actuales son `com.cuencaoscar.wumpusadventures` (Android e iOS): **son permanentes una vez subidos a Play**; confirma que te gustan ahora. | OWNER decide, DEV aplica | 1 h |
+| A1 | **Nombre decidido: Grimbur** (2026-10-25, cero colisiones en internet; evidencia en `NAME_CANDIDATES.md`; app, textos, ficha y package id `com.nezu.grimbur` ya renombrados). Falta del dueño: confirmar en USPTO, EUIPO TMview, WIPO Brand DB, SENADI y Google Play/App Store antes de publicar. | OWNER | 1 h |
+| A2 | ~~Renombre~~ HECHO (2026-10-25): `app.json` `name` = Grimbur, identificadores `com.nezu.grimbur` (Android e iOS; aún se pueden cambiar hasta la primera subida a Play), textos e i18n renombrados. El `slug` de EAS se queda (interno). | DEV | hecho |
 | A3 | Crear cuenta de **Google Play Console** (25 USD, verificación de identidad; Ecuador está soportado para registro y comerciante). Cuenta personal = prueba cerrada obligatoria (12 testers x 14 días). | OWNER | 1-3 días (verificación) |
 | A4 | Crear el **perfil de pagos / comerciante** en Play Console (necesario para vender el desbloqueo y cobrar). Cuenta bancaria en USD a tu nombre o el de la SAS; Play paga por transferencia, mínimo 100 USD. | OWNER | 1 día + validación |
 | A5 | Cuenta de **Expo/EAS** ya existe (`projectId` en `app.json`). Verificar `eas whoami` y que haya cuota de builds. | OWNER | 15 min |
@@ -60,7 +60,7 @@ Cada paso depende del anterior salvo que se indique "en paralelo". Las fechas re
 | # | Tarea | Resp. | Duración |
 | --- | --- | --- | --- |
 | C1 | **Analítica real**: implementar `AnalyticsProvider` (Firebase Analytics + Crashlytics vía `@react-native-firebase`, requiere build nativo) y llamar `setAnalyticsProvider` al arrancar. Añadir los eventos que faltan para el embudo (`tutorial_complete`, `tutorial_skip`, `app_open`, `lesson_complete`, `forge_purchase`; lista exacta en `LAUNCH_PLAN.md`). Si tu cuenta es nueva, ten presente que los informes de retención de Play Console funcionan sin SDK. Actualizar `DATA_SAFETY.md` y la política al conectar un SDK. | DEV | 1-2 días |
-| C2 | **Compra única** ("Juego completo", id `wumpus_full_game`, ~3,99 USD): integrar RevenueCat o `react-native-iap`, botón **Restaurar compras** obligatorio, crear el producto en Play Console, activar `GAME_CONFIG.monetization.enabled`. Guía: `MONETIZATION_SETUP.md`. Gratis: tutorial, pisos 1-3 y reto diario; de pago: resto de la expedición, Wumpus y Sin fin. Sin anuncios. | DEV (otro agente) + OWNER (producto en consola) | 2-4 días |
+| C2 | **Compra única** ("Juego completo", id `grimbur_full_game`, ~3,99 USD): integrar RevenueCat o `react-native-iap`, botón **Restaurar compras** obligatorio, crear el producto en Play Console, activar `GAME_CONFIG.monetization.enabled`. Guía: `MONETIZATION_SETUP.md`. Gratis: tutorial, pisos 1-3 y reto diario; de pago: resto de la expedición, Grimbur y Sin fin. Sin anuncios. | DEV (otro agente) + OWNER (producto en consola) | 2-4 días |
 | C3 | Copia de seguridad por portapapeles y petición de reseña: probar en dispositivo real (`QA_TEST_PLAN.md` secciones 11 y 12). La reseña se pide tras un buen momento (victoria o récord), nunca al arrancar. | DEV | ya en curso |
 | C4 | Reportar/ocultar nombres del ranking (Apple 1.2; en Play es recomendable): como mínimo, correo de contacto visible en la ficha; ideal: botón "Reportar" en una fila. Obligatorio antes de iOS. | DEV | 1 día |
 | C5 | ~~Versiones~~ HECHO: `package.json` y `app.json` unificados en `1.2.0`. | DEV | hecho |
@@ -135,7 +135,7 @@ Pendiente / decisiones deliberadas:
 
 ## 10. Bloqueantes vigentes (resumen)
 
-1. Nombre/marca sin decidir (A1) y identificadores permanentes (A2).
+1. Nombre decidido: **Grimbur** (identificadores ya renombrados, A2 hecho); falta solo la búsqueda de marca del dueño (A1).
 2. ~~Firebase~~ HECHO: proyecto propio `nezu-games` con reglas desplegadas y probadas (B1, B2). Pendiente solo re-desplegar tras el último cambio (apuesta bloqueada en juego).
 3. Sin proveedor de analítica real: sin él no hay métricas de las puertas D1/D7 salvo los informes de Play (C1).
 4. Las 8 capturas (`docs/release/store/screenshots/`), el gráfico de funciones y el icono 512 ya están en `docs/release/store/`. Antes de subirlas, vuelve a generarlas si el juego cambió y, si quieres, hazlas también en inglés (ver el README de esa carpeta).

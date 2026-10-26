@@ -60,9 +60,9 @@ Hacer con la app recién instalada (sin datos). Alternativa: Ajustes > Borrar mi
 - [ ] Deshacer (una vez por piso), detector y bomba (comprados en la tienda) funcionan y se agotan.
 - [ ] Reliquias: tras cada piso aparece la elección de 3 (o 2 en profundidad 5); una maldita lleva marco rojo y solo se puede llevar una.
 - [ ] Tienda entre pisos, altar y elección de puerta aparecen y se pueden saltar.
-- [ ] Pisos 4-6 (cristal) y 7-9 (magma) muestran su banner; el piso 10 es la guarida del Wumpus con corazones en el HUD y sin gemas.
-- [ ] Morir por guardián, acechador, durmiente, vórtice (teletransporta, no mata) y Wumpus: el mensaje de derrota y el consejo corresponden a la causa.
-- [ ] Vencer al Wumpus: pantalla de victoria con lluvia de gemas, desbloqueos, brasas y botón compartir.
+- [ ] Pisos 4-6 (cristal) y 7-9 (magma) muestran su banner; el piso 10 es la guarida del Grimbur con corazones en el HUD y sin gemas.
+- [ ] Morir por guardián, acechador, durmiente, vórtice (teletransporta, no mata) y Grimbur: el mensaje de derrota y el consejo corresponden a la causa.
+- [ ] Vencer al Grimbur: pantalla de victoria con lluvia de gemas, desbloqueos, brasas y botón compartir.
 
 **Reto diario**
 
@@ -152,7 +152,7 @@ Usar una cuenta de **tester de licencia** de Play Console (no se cobra) con la p
 
 - [ ] Sin compra: pisos 1-3 y reto diario libres; al limpiar el piso 3 aparece el muro antes del piso 4; Sin fin muestra bloqueo y precio.
 - [ ] El precio mostrado viene de la tienda (en moneda local); sin conexión muestra el precio de reserva sin romper nada.
-- [ ] Comprar: el juego se desbloquea al instante (pisos 4-10, Wumpus, Sin fin) y no vuelve a aparecer el muro.
+- [ ] Comprar: el juego se desbloquea al instante (pisos 4-10, Grimbur, Sin fin) y no vuelve a aparecer el muro.
 - [ ] Cancelar la compra: vuelve al juego sin bloqueo, sin crash.
 - [ ] **Restaurar compras**: tras reinstalar o en otro dispositivo con la misma cuenta, el botón devuelve el desbloqueo.
 - [ ] Compra pendiente/sin conexión: mensaje claro, sin desbloquear en falso.

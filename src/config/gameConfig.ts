@@ -44,12 +44,12 @@ export const GAME_CONFIG = {
     enabled: false,
     freeFloors: 3,
     /** Product id of the one-time in-app product in Play Console. */
-    productId: 'wumpus_full_game',
+    productId: 'grimbur_full_game',
     /** Shown until the store answers (or when it cannot). */
     fallbackPrice: '$3.99',
     // Placeholders: replace with the hosted pages before enabling.
-    termsUrl: 'https://example.com/wumpus/terms',
-    privacyUrl: 'https://example.com/wumpus/privacy',
+    termsUrl: 'https://example.com/grimbur/terms',
+    privacyUrl: 'https://example.com/grimbur/privacy',
   },
 
   expedition: {

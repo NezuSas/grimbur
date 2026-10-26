@@ -11,7 +11,7 @@ Decisión ya tomada (ver `docs/GAME_DESIGN.md`, sección Monetisation, y `docs/m
 | Tutorial | sí | |
 | Expedición pisos 1 a 3 | sí | |
 | Reto diario | sí | |
-| Expedición pisos 4 a 10 y el Wumpus | | sí |
+| Expedición pisos 4 a 10 y el Grimbur | | sí |
 | Modo Endless (descenso sin fin) | | sí |
 | Forja, logros, ranking, héroes desbloqueables | sí (se ganan jugando) | |
 
@@ -19,7 +19,7 @@ Reglas: sin anuncios forzados, sin cajas de botín, nada que se compre da ventaj
 
 ## 2. Cómo está construido (para saber qué tocar)
 
-- `src/config/gameConfig.ts` → `monetization`: `enabled`, `freeFloors` (3), `productId` (`wumpus_full_game`), `fallbackPrice`, `termsUrl`, `privacyUrl`.
+- `src/config/gameConfig.ts` → `monetization`: `enabled`, `freeFloors` (3), `productId` (`grimbur_full_game`), `fallbackPrice`, `termsUrl`, `privacyUrl`.
 - `src/core/entitlements/gating.ts`: reglas puras (`isFloorLocked`, `isModeLocked`, `shouldGateDescent`), con tests en `tests/engine/entitlements.test.ts`.
 - `src/services/entitlements.ts`: la **fachada** de compras (como `analytics.ts`). El juego nunca habla con un SDK de tienda; habla con un `PurchaseProvider`. Hoy hay dos: `NullProvider` (sin tienda: la pantalla dice "aún no disponible") y `LocalTestProvider` (solo `__DEV__`, concede el desbloqueo tras un segundo).
 - `src/state/entitlements/store.ts`: guarda `fullUnlocked` en el dispositivo (AsyncStorage).
@@ -52,11 +52,11 @@ Requisitos previos (ya en `RELEASE_CHECKLIST.md`): cuenta de desarrollador (25 U
 1. **Sube un build con la librería de facturación** a una pista de pruebas (interna o cerrada). Play Console solo deja crear productos cuando existe un APK/AAB con el permiso `com.android.vending.BILLING`. (Al instalar `react-native-purchases` o `react-native-iap` se añade solo.)
 2. Play Console → tu app → **Monetizar con Play → Productos → Productos únicos** (*One-time products*).
 3. **Crear producto**:
-   - ID del producto: `wumpus_full_game` (debe ser exactamente `GAME_CONFIG.monetization.productId`; **no se puede cambiar después**).
-   - Nombre: "Juego completo" / Descripción: "Pisos 4 a 10, el Wumpus y el modo Endless. Pago único, sin anuncios."
+   - ID del producto: `grimbur_full_game` (debe ser exactamente `GAME_CONFIG.monetization.productId`; **no se puede cambiar después**).
+   - Nombre: "Juego completo" / Descripción: "Pisos 4 a 10, el Grimbur y el modo Endless. Pago único, sin anuncios."
 4. **Opción de compra** (purchase option): tipo "Comprar" (compra única, **no consumible**: el jugador la conserva para siempre). Precio base: US$3,99 (o 2,99). Google convierte al resto de países; revisa los precios regionales (LatAm suele convenir bajarlos a mano).
 5. **Activar** el producto.
-6. Si usas **RevenueCat**: crea cuenta y proyecto, conecta Google Play (cuenta de servicio con permisos de finanzas/pedidos; la guía de RevenueCat lo explica), importa el producto, crea el **Entitlement** `full_game`, un **Offering** `default` con un paquete "lifetime" apuntando a `wumpus_full_game`, y copia la **API key pública de Android** (`goog_...`).
+6. Si usas **RevenueCat**: crea cuenta y proyecto, conecta Google Play (cuenta de servicio con permisos de finanzas/pedidos; la guía de RevenueCat lo explica), importa el producto, crea el **Entitlement** `full_game`, un **Offering** `default` con un paquete "lifetime" apuntando a `grimbur_full_game`, y copia la **API key pública de Android** (`goog_...`).
 
 ## 5. `PurchaseProvider` listo para pegar (RevenueCat)
 
@@ -129,7 +129,7 @@ if (Platform.OS === 'android') setPurchaseProvider(new RevenueCatProvider());
 
 ### Variante Play Billing directo (`react-native-iap`), esquema
 
-Misma interfaz: `init` → `initConnection()` + `getAvailablePurchases()` (¿está `wumpus_full_game`?); `getProduct` → `fetchProducts({ skus: [productId], type: 'in-app' })` y `displayPrice`; `purchase` → `requestPurchase(...)` y, al recibir la compra en `purchaseUpdatedListener`, **`finishTransaction({ purchase, isConsumable: false })`** (esto hace el *acknowledge*; sin él Google reembolsa en 3 días); `restore` → `getAvailablePurchases()`. Los nombres exactos cambian entre versiones: sigue la documentación de la versión que instales.
+Misma interfaz: `init` → `initConnection()` + `getAvailablePurchases()` (¿está `grimbur_full_game`?); `getProduct` → `fetchProducts({ skus: [productId], type: 'in-app' })` y `displayPrice`; `purchase` → `requestPurchase(...)` y, al recibir la compra en `purchaseUpdatedListener`, **`finishTransaction({ purchase, isConsumable: false })`** (esto hace el *acknowledge*; sin él Google reembolsa en 3 días); `restore` → `getAvailablePurchases()`. Los nombres exactos cambian entre versiones: sigue la documentación de la versión que instales.
 
 ## 6. Probar sin gastar dinero
 
@@ -172,7 +172,7 @@ Con un SDK de compras cambian los datos que se tratan. Antes de publicar:
 
 ## 10. Lista previa al cobro
 
-- [ ] Producto `wumpus_full_game` creado y **activo** en Play Console; precio y países revisados.
+- [ ] Producto `grimbur_full_game` creado y **activo** en Play Console; precio y países revisados.
 - [ ] Perfil de pagos y datos fiscales completos (contador consultado: RUC, IVA, W-8BEN).
 - [ ] Proveedor real pegado; `setPurchaseProvider(...)` llamado antes de `initEntitlements()`.
 - [ ] Probado con licencia de pruebas: compra, cancelación, sin conexión, reinstalar + restaurar, reembolso.

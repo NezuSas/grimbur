@@ -33,7 +33,7 @@ describe('gating rules', () => {
   it('ships switched off, with the decided free part', () => {
     expect(GAME_CONFIG.monetization.enabled).toBe(false);
     expect(GAME_CONFIG.monetization.freeFloors).toBe(3);
-    expect(GAME_CONFIG.monetization.productId).toBe('wumpus_full_game');
+    expect(GAME_CONFIG.monetization.productId).toBe('grimbur_full_game');
   });
 
   it('opens everything when monetisation is off', () => {

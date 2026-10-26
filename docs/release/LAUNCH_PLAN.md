@@ -18,7 +18,7 @@ Los errores JS no capturados también pasan por `analytics.recordError` (`instal
 | `game_start` | `mode` (`expedition`/`daily`/`endless`), `character` (0-3) | Al montar la pantalla de juego, una vez por partida o reinicio (`GameScreen.tsx`) |
 | `level_complete` | `level`, `score`, `time` (s de la sesión) | Al limpiar un piso (`GameScreen.tsx`) |
 | `game_over` | `level`, `score`, `time`, `cause` | Derrota. La causa es la de `deathCause` o `unknown` (`GameScreen.tsx`) |
-| `expedition_won` | `score`, `time`, `character`, `mode` | Victoria (en lugar de `game_over`); también en el reto diario si se vence al Wumpus |
+| `expedition_won` | `score`, `time`, `character`, `mode` | Victoria (en lugar de `game_over`); también en el reto diario si se vence al Grimbur |
 | `relic_picked` | `relic` (id), `floor` | Al elegir una reliquia |
 | `high_score_submitted` | `level`, `score` | Tras guardar con éxito una puntuación en el ranking global |
 | `daily_shared` / `run_shared` | `score` | Al abrir la hoja de compartir del reto diario / de una partida (se registra aunque el usuario cancele) |
@@ -122,7 +122,7 @@ Evita repetir una palabra más de 3-4 veces en la descripción larga y no metas 
 | --- | --- |
 | Núcleo | juego de deducción, roguelike, mazmorras, cueva, tesoro, gemas |
 | Género | buscaminas roguelike, puzzle de lógica, juego de estrategia por turnos, juego de pistas |
-| Marca / nostalgia | cazar al Wumpus, hunt the wumpus, Wumpus, juego retro de lógica |
+| Marca | Grimbur, grimbur juego, grimbur game, juego retro de lógica |
 | Uso | juego sin conexión, partidas rápidas, juego sin anuncios, un jugador, reto diario |
 | Diferenciadores | héroes, reliquias, jefe final, descenso infinito, racha diaria |
 
@@ -150,7 +150,7 @@ Principio: 3 horas por semana, constantes, sin presupuesto. El juego es muy "mos
 1. "¿Puedes deducir dónde está el vórtice?" (gancho: mostrar dos casillas con pistas, pausa, resolver y marcar con pulsación larga).
 2. "Mi mejor reliquia de hoy" (elección 1 de 3, resultado en el siguiente piso).
 3. "Casi lo logro": última gema, por poco, muerte.
-4. Derrota por culpa del Wumpus y victoria final con la lluvia de gemas (la victoria tiene ese efecto).
+4. Derrota por culpa del Grimbur y victoria final con la lluvia de gemas (la victoria tiene ese efecto).
 5. Reto diario: "el mismo mapa para todos, ¿cuánto sacas?" con la puntuación del día y enlace en el perfil.
 6. Detrás de cámaras: cómo se generaron el audio y los tableros "resolubles por deducción" (gusta en comunidades de desarrollo).
 7. Formato semanal fijo "Pista del día": mismo plantilla de texto en pantalla.
