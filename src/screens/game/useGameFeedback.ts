@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, View, useWindowDimensions } from "react-native";
-import type { MutableRefObject } from "react";
+import type { ComponentRef, MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
 import { recordLatency } from "../../audio/audioDiagnostics";
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../../shared/haptics";
@@ -44,7 +44,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
   const hitFlash = useRef(new Animated.Value(0)).current;
   const prevFeedback = useRef(state);
   const boardOrigin = useRef<{ x: number; y: number } | null>(null);
-  const boardBox = useRef<View>(null);
+  const boardBox = useRef<ComponentRef<typeof View>>(null);
   /** Set while a retry restarts the run: the jump from the old board to the new one must not play any feedback. */
   const isResetting = useRef(false);
 

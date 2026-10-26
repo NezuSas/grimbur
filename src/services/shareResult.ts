@@ -1,5 +1,5 @@
 import { Share } from "react-native";
-import type { RefObject } from "react";
+import type { ComponentRef, RefObject } from "react";
 import type { View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
@@ -8,7 +8,7 @@ import * as Sharing from "expo-sharing";
  * Shares a result as a picture (the card drawn in `card`); when the picture cannot be made or the system cannot share files, the
  * text goes instead, so sharing never ends in nothing. Resolves with what was shared.
  */
-export async function shareResult(card: RefObject<View | null>, message: string, dialogTitle: string): Promise<"image" | "text" | "none"> {
+export async function shareResult(card: RefObject<ComponentRef<typeof View> | null>, message: string, dialogTitle: string): Promise<"image" | "text" | "none"> {
   try {
     if (card.current && (await Sharing.isAvailableAsync())) {
       const uri = await captureRef(card, { format: "png", quality: 1, result: "tmpfile", width: 1200, height: 630 });
