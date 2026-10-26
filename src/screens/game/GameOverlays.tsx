@@ -34,7 +34,7 @@ type Props = {
     onGo: () => void;
   };
   onPickRelic: (id: RelicId) => void;
-  pause: { visible: boolean; saveOnExit: boolean; onResume: () => void; onRestart: () => void; onMainMenu: () => void };
+  pause: { visible: boolean; saveOnExit: boolean; canRestart: boolean; onResume: () => void; onRestart: () => void; onMainMenu: () => void };
   gameOver: {
     visible: boolean;
     result: RunResult | null;
@@ -89,7 +89,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
 
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} />
 
-      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} />
+      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} />
 
       <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} onRevive={revive.onRevive} onDecline={revive.onDecline} />
 

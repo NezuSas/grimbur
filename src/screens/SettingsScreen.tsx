@@ -125,6 +125,9 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       }
       useSettingsStore.getState().setAchievementsSeen(0);
       useSettingsStore.getState().setRemindersEnabled(false);
+      // With everything erased the player starts over: the story and the tutorial are offered again.
+      useSettingsStore.getState().setTutorialSeen(false);
+      useSettingsStore.getState().setStorySeen(false);
       void cancelReminders(); // a pending "keep your streak" reminder would refer to progress that no longer exists
       setDeleteStep(2);
     }
@@ -600,7 +603,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           GRIMBUR
         </Text>
         <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
-          ADVENTURES
+          {t("cover.subtitle")}
         </Text>
         <Text style={styles.aboutTag} maxFontSizeMultiplier={1.3}>
           {t("cover.tagline")}

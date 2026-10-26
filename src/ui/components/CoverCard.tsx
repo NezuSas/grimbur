@@ -50,6 +50,8 @@ type Props = {
   bestFloor: number;
   /** Nothing played yet: the play button says what to expect. */
   firstRun: boolean;
+  /** Pressing Play really opens the tutorial (never done nor skipped): only then is it promised. */
+  tutorialPending: boolean;
   /** Something affordable in the Forge: a dot on its icon. */
   forgeBadge: boolean;
   /** Achievements unlocked since the screen was last opened: a dot on its icon. */
@@ -132,6 +134,7 @@ const CoverCard: React.FC<Props> = ({
   bestScore,
   bestFloor,
   firstRun,
+  tutorialPending,
   forgeBadge,
   achievementsBadge,
   collectionBadge,
@@ -266,7 +269,7 @@ const CoverCard: React.FC<Props> = ({
         calm={calm}
         compact={short}
         title={t("cover.playBig")}
-        subtitle={firstRun ? t("cover.firstRun") : savedRun ? t("cover.newRunNote") : t("cover.mode.expedition.sub")}
+        subtitle={firstRun && tutorialPending ? t("cover.firstRun") : savedRun ? t("cover.newRunNote") : t("cover.mode.expedition.sub")}
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />

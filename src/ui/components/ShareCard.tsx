@@ -58,7 +58,7 @@ const ShareCard = ({ character, heroName, headline, score, level, floors, victor
       </View>
 
       <View style={styles.right}>
-        <Text style={styles.brand}>GRIMBUR ADVENTURES</Text>
+        <Text style={styles.brand}>GRIMBUR</Text>
         {daily ? <Text style={[styles.daily, { color: accent }]}>{daily}</Text> : null}
         <Text style={[styles.headline, victory && { color: GOLD }]} numberOfLines={2} adjustsFontSizeToFit>
           {headline.toLocaleUpperCase()}

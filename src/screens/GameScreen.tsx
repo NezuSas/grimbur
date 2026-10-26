@@ -778,7 +778,7 @@ export default function GameScreen({ navigation, route }: Props) {
         bootCover={bootCover}
         shop={{ visible: intermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
         onPickRelic={handlePickRelic}
-        pause={{ visible: paused, saveOnExit: resumable, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
+        pause={{ visible: paused, saveOnExit: resumable, canRestart: !duelParam, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{
           visible: showGameOver,
           result: runResult,
