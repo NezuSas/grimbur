@@ -7,6 +7,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Text from "../Text";
+import GlyphIcon from "../GlyphIcon";
 
 import { formatTime } from '../../../shared/utils/formatTime';
 import { checkName } from '../../../core/leaderboard/validation';
@@ -80,7 +81,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   const summary = (
     <View style={styles.summary}>
       <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
-        🏆 {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
+        <GlyphIcon name="trophy" size={13} /> {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
       </Text>
       <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
         {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}

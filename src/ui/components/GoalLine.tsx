@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import Text from "./Text";
+import GlyphIcon from "./GlyphIcon";
 import { useT } from "../../i18n/useT";
 import { achievementText, forgeText, heroText } from "../../i18n/keys";
 import type { Goal } from "../../core/stats/goals";
@@ -43,11 +44,11 @@ const GoalLine: React.FC<Props> = ({ goal, highlight = false, small = false, sca
       text = t("goal.achievement", { name: achievementText(t, goal.id, "name"), current: goal.current, target: goal.target });
   }
   const color = highlight ? "#9ee37d" : "#FFD9A8";
-  const icon = goal.kind === "forge" ? "🔨" : goal.kind === "hero" ? "🔓" : "🏆";
+  const icon = goal.kind === "forge" ? "hammer" : goal.kind === "hero" ? "padlock" : ("trophy" as const);
   return (
     <View style={[styles.wrap, align === "center" && { alignItems: "center" }]} accessible accessibilityLabel={text}>
       <Text style={[styles.text, small && styles.small, { color, fontSize: (small ? 12 : 13) * scale }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-        {icon} {text}
+        <GlyphIcon name={icon} size={(small ? 11 : 12) * scale} /> {text}
       </Text>
       <View style={[styles.track, highlight && { backgroundColor: "rgba(158,227,125,0.25)" }]}>
         <View style={[styles.fill, { width: `${Math.round(Math.max(0, Math.min(1, goal.progress)) * 100)}%`, backgroundColor: highlight ? "#9ee37d" : "#FFAB40" }]} />

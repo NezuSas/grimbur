@@ -6,6 +6,7 @@ import * as Clipboard from "expo-clipboard";
 import Text from "../ui/components/Text";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
 import { PopButton, PopupPanel } from "../ui/components/game/popup";
 import { RootStackParamList } from "../navigation/types";
@@ -114,7 +115,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
             {mine ? `  ·  ${t("scores.you")}` : ""}
           </Text>
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {t("scores.floorShort", { n: row.level })}  ·  💎 {row.coins}  ·  {formatTime(row.time)}
+            {t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {row.coins}  ·  {formatTime(row.time)}
           </Text>
         </View>
         <Text style={styles.score} numberOfLines={1} adjustsFontSizeToFit>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
 import EmberIcon from "../EmberIcon";
+import GlyphIcon from "../GlyphIcon";
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Character } from '../../../data/characters';
@@ -286,7 +287,7 @@ const GameOverOverlay = ({
       {duelResult ? (
         <View style={styles.duelBox} accessible accessibilityLabel={`${duelResult.headline}. ${duelResult.line}`}>
           <Text style={[styles.duelHeadline, { color: duelResult.color }]} maxFontSizeMultiplier={1.2}>
-            ⚔️ {duelResult.headline.toLocaleUpperCase()}
+            <GlyphIcon name="swords" size={16} /> {duelResult.headline.toLocaleUpperCase()}
           </Text>
           <Text style={styles.duelLine} maxFontSizeMultiplier={1.2}>
             {duelResult.line}
@@ -300,13 +301,13 @@ const GameOverOverlay = ({
       ) : null}
       {challengeLabel ? (
         <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
-          🧩 {t('challenge.label', { code: challengeLabel }).toLocaleUpperCase()}
+          <GlyphIcon name="puzzle" size={13} /> {t('challenge.label', { code: challengeLabel }).toLocaleUpperCase()}
         </Text>
       ) : null}
       {dailyLabel && (
         <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
-          📅 {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
-          {streak ? `  ·  🔥 ${plural('over.streak', streak)}` : ''}
+          <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
+          {streak ? <>{'  ·  '}<EmberIcon size={13} /> {plural('over.streak', streak)}</> : ''}
         </Text>
       )}
     </View>
@@ -339,7 +340,7 @@ const GameOverOverlay = ({
         <CountedScore score={score} active={visible} calm={calm} style={styles.scoreValue} />
         {isNewBest ? (
           <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
-            🏅 {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
+            <GlyphIcon name="medal" size={13} /> {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
           </Text>
         ) : bestScore ? (
           <Text style={styles.best} maxFontSizeMultiplier={1.2}>
@@ -408,7 +409,7 @@ const GameOverOverlay = ({
       {unlockRows.length > 0 && (
         <Reveal delay={1000} calm={calm}>
         <View style={styles.unlockCard} accessibilityLiveRegion="polite">
-          <Text style={styles.unlockTitle} maxFontSizeMultiplier={1.2}>🔓 {t('over.unlock.title').toLocaleUpperCase()}</Text>
+          <Text style={styles.unlockTitle} maxFontSizeMultiplier={1.2}><GlyphIcon name="padlock" size={13} /> {t('over.unlock.title').toLocaleUpperCase()}</Text>
           {unlockRows.map(row => (
             <View key={`${row.kind}${row.skin ? `-${row.skin.hero}-${row.skin.skin}` : ''}`} style={styles.unlockRow}>
               <Text style={styles.unlockText} numberOfLines={2} maxFontSizeMultiplier={1.2}>{row.text}</Text>

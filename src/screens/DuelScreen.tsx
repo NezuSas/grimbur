@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../ui/components/Text";
 import EmberIcon from "../ui/components/EmberIcon";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
@@ -274,7 +275,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     {myStake > 0 ? (
                       <View style={styles.stakeBox}>
                         <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}><EmberIcon size={13} /> {t("duel.stakeRoom", { n: myStake.toLocaleString() })}</Text>
-                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? `  ·  🏆 ${pot.toLocaleString()}` : ""}</Text>
+                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? <>{"  ·  "}<GlyphIcon name="trophy" size={12} /> {pot.toLocaleString()}</> : ""}</Text>
                       </View>
                     ) : null}
                     {room.full ? <Text style={styles.error}>{t("duel.full")}</Text> : null}
