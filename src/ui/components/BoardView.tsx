@@ -107,6 +107,23 @@ const BoardView: React.FC<Props> = memo(
     // Player move animation
     const playerScale = useRef(new Animated.Value(1)).current;
 
+    // The hero breathes while standing still: a slow, tiny vertical swell (off when the player asked for calm).
+    const heroBreath = useRef(new Animated.Value(1)).current;
+    useEffect(() => {
+      if (calm) {
+        heroBreath.setValue(1);
+        return;
+      }
+      const loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(heroBreath, { toValue: 1.04, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+          Animated.timing(heroBreath, { toValue: 1, duration: 1100, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+      return () => loop.stop();
+    }, [calm, heroBreath]);
+
     // A new floor or a restart puts the hero on its start tile: it appears there instead of sliding in from the old spot.
     const lastFloor = useRef({ level, seen: visited.length });
     useEffect(() => {
@@ -358,7 +375,7 @@ const BoardView: React.FC<Props> = memo(
           >
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
             {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
-            <View
+            <Animated.View
               style={{
                 width: tileSize * 0.8,
                 height: tileSize * 0.8,
@@ -366,6 +383,7 @@ const BoardView: React.FC<Props> = memo(
                   { scaleX: lastSide.current === "left" ? -1 : 1 },
                   { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
                   { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
+                  { scaleY: heroBreath },
                 ],
               }}
             >
@@ -381,7 +399,7 @@ const BoardView: React.FC<Props> = memo(
                   source={attackSource}
                 />
               )}
-            </View>
+            </Animated.View>
           </Animated.View>
 
           {flying && (() => {
