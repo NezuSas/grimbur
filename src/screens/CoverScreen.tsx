@@ -27,6 +27,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 
 const CoverScreen: React.FC<Props> = ({ navigation }) => {
   const storySeen = useSettingsStore(s => s.storySeen);
+  const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   // An expedition left half-way (or cut short by Android) can be continued from here.
   const [savedRun, setSavedRun] = useState<SavedRun | null>(null);
@@ -128,6 +129,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           bestScore={stats.bestScore}
           bestFloor={stats.bestLevel}
           firstRun={stats.gamesPlayed === 0}
+          tutorialPending={!tutorialSeen}
           forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
           achievementsBadge={unlocked > achievementsSeen}
           collectionBadge={collectionBadge(stats)}

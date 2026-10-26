@@ -9,6 +9,8 @@ type Props = {
   visible: boolean;
   /** Leaving to the menu keeps the run on disk (expedition, endless): no warning needed, a note instead. */
   saveOnExit: boolean;
+  /** A live duel offers no mid-match restart: replaying the same seeded cave would be an unfair preview. */
+  canRestart: boolean;
   onResume: () => void;
   onRestart: () => void;
   onMainMenu: () => void;
@@ -17,7 +19,7 @@ type Props = {
 const TINT = '#4FC3F7';
 const WARN = '#FF8A80';
 
-const PauseOverlay = ({ visible, saveOnExit, onResume, onRestart, onMainMenu }: Props) => {
+const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, onMainMenu }: Props) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   // Restarting always throws the run away; so does the menu when the mode cannot be saved. Both ask first.
@@ -49,7 +51,7 @@ const PauseOverlay = ({ visible, saveOnExit, onResume, onRestart, onMainMenu }: 
         <PopupTitle tint={TINT} icon="pause" title={t('pause.title')} />
         <PopButton label={t('pause.resume')} glyph="▶" onPress={onResume} />
         <View style={styles.row}>
-          <PopButton variant="secondary" label={t('pause.restart')} glyph="🔄" onPress={() => setConfirm('restart')} style={styles.half} />
+          {canRestart && <PopButton variant="secondary" label={t('pause.restart')} glyph="🔄" onPress={() => setConfirm('restart')} style={styles.half} />}
           <PopButton
             variant="secondary"
             label={t('pause.menu')}
