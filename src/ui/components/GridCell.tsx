@@ -20,6 +20,13 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "
   coin:     require("../../assets/sprites/items/Icon_Gem.png"),
 };
 
+/** The second frame of each guardian: generated as one sheet per character, so the pair always matches. */
+const BREATHE: Record<"enemy" | "stalker" | "sleeper", ImageSourcePropType> = {
+  enemy:   require("../../assets/sprites/enemies/Guardian_Enemy_Breathe.png"),
+  stalker: require("../../assets/sprites/enemies/Stalker_Enemy_Breathe.png"),
+  sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy_Breathe.png"),
+};
+
 export const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };
 
 const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
@@ -28,6 +35,34 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
   LEFT: "chevron-back",
   RIGHT: "chevron-forward",
 };
+
+/** A guardian breathes: two frames swapped on a slow beat, each creature on its own phase so a floor never moves in lockstep. */
+const EnemySprite = memo(({ type, size, calm }: { type: "enemy" | "stalker" | "sleeper"; size: number; calm: boolean }) => {
+  const [inhale, setInhale] = useState(false);
+  useEffect(() => {
+    if (calm) {
+      setInhale(false);
+      return;
+    }
+    let interval: ReturnType<typeof setInterval> | undefined;
+    const start = setTimeout(() => {
+      setInhale(true);
+      interval = setInterval(() => setInhale(v => !v), 850);
+    }, 150 + Math.random() * 900);
+    return () => {
+      clearTimeout(start);
+      if (interval) clearInterval(interval);
+    };
+  }, [calm]);
+  return (
+    <SpriteImage
+      style={{ width: size, height: size, position: "absolute" }}
+      source={inhale ? BREATHE[type] : ASSETS[type]}
+      resizeMode="contain"
+    />
+  );
+});
+EnemySprite.displayName = "EnemySprite";
 
 /** The vortex turns slowly forever (and swells with the shared pulse): a whirlpool, not a sticker. */
 const VortexSprite = memo(({ size, calm, pulse }: { size: number; calm: boolean; pulse: Animated.Value }) => {
@@ -288,11 +323,7 @@ const GridCell = memo(({
         <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
       )}
       {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
-        <SpriteImage
-          style={{ width: tileSize * 0.9, height: tileSize * 0.9, position: 'absolute' }}
-          source={entity.type === 'stalker' ? ASSETS.stalker : entity.type === 'sleeper' ? ASSETS.sleeper : ASSETS.enemy}
-          resizeMode="contain"
-        />
+        <EnemySprite type={entity.type} size={tileSize * 0.9} calm={calm} />
       )}
       {entity?.type === 'sleeper' && (isVisited || isPlayerHere) && (
         <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
