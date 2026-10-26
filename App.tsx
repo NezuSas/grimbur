@@ -1,6 +1,7 @@
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { NavigationContainer, DarkTheme } from "@react-navigation/native";
+import { NavigationContainer, DarkTheme, type LinkingOptions } from "@react-navigation/native";
+import type { RootStackParamList } from "./src/navigation/types";
 import { AppState, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import * as SplashScreen from 'expo-splash-screen';
@@ -31,6 +32,17 @@ installGlobalErrorHandler();
 
 // Web dev builds only: ?screen=...&preset=... opens a screen directly (null everywhere else).
 const devLaunch = readDevHarness();
+
+// grimbur://challenge/ABCDEFGH opens the friend challenge straight on its board (the app.json scheme).
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ["grimbur://"],
+  config: {
+    screens: {
+      ChallengeScreen: "challenge/:code",
+      DuelScreen: "duel/:code",
+    },
+  },
+};
 
 /**
  * Longest the splash waits for ALL the sounds before starting the app anyway (the first ones are ready much sooner, and
@@ -159,7 +171,8 @@ export default function App() {
     <View style={{ flex: 1, backgroundColor: "black" }} onLayout={onLayoutRootView}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
-          <NavigationContainer theme={DarkTheme} initialState={devLaunch?.initialState}>
+          {/* The dev harness owns the URL on web: deep links are only wired on the real app. */}
+          <NavigationContainer theme={DarkTheme} linking={devLaunch ? undefined : linking} initialState={devLaunch?.initialState}>
             <ErrorBoundary>
               <StackNavigator />
             </ErrorBoundary>

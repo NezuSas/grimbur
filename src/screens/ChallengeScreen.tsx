@@ -16,6 +16,7 @@ import { formatTime } from "../shared/utils/formatTime";
 import { getPlayerId } from "../services/playerProfile";
 import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/challenge/code";
 import { loadChallengeBoard, rememberChallenge, type ChallengeDoc } from "../services/challenges";
+import { GAME_CONFIG } from "../config/gameConfig";
 import { withUiScale } from "../ui/layout/scaledWindow";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChallengeScreen">;
@@ -81,7 +82,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
   const share = async () => {
     if (!challenge) return;
     try {
-      await Share.share({ message: t("challenge.shareMessage", { code: formatChallengeCode(challenge.code), depth: depthName(challenge.depth) }) });
+      await Share.share({ message: t("challenge.shareMessage", { code: formatChallengeCode(challenge.code), depth: depthName(challenge.depth), url: GAME_CONFIG.store.url }) });
     } catch (e) {
       console.warn("[challenge] share failed:", e);
     }

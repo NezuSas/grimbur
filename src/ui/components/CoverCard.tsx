@@ -318,7 +318,8 @@ const CoverCard: React.FC<Props> = ({
         {!firstRun && <DockButton ui={ui} size={dockSize} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
         {!firstRun && <DockButton ui={ui} size={dockSize} icon="flag" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
         {!firstRun && <DockButton ui={ui} size={dockSize} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="people" label={t("cover.friends")} onPress={onPressFriends} />}
+        {/* Friends stays reachable on a fresh install: a player invited with a challenge code must be able to enter it. */}
+        <DockButton ui={ui} size={dockSize} icon="people" label={t("cover.friends")} onPress={onPressFriends} />
         {!firstRun && <DockButton ui={ui} size={dockSize} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
         {!firstRun && <DockButton ui={ui} size={dockSize} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
         <DockButton ui={ui} size={dockSize} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
