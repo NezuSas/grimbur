@@ -148,7 +148,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, killer, flagPing, biome, calm
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm
 }: {
   index: number;
   tileSize: number;
@@ -177,6 +177,8 @@ const GridCell = memo(({
   revealDelay: number;
   /** One breathing value shared by every cell of the board (0..1): clue badges and wind-up auras follow it. */
   pulse: Animated.Value;
+  /** The heartbeat, only while the hero stands next to a hazard: the clue badges beat with it instead of breathing. */
+  beat?: Animated.Value;
   /** This tile killed the hero. */
   killer: boolean;
   /** Changes every time a step onto this flagged tile is refused (0 = never). */
@@ -205,7 +207,11 @@ const GridCell = memo(({
   const roar = enemyCount > 0;
   const vortex = pitCount > 0;
   // The hint badge breathes between 85% and 100%: it must stay visible at every moment.
-  const hintScale = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }), [pulse]);
+  // While the hero stands next to a hazard the badges beat with the heart instead, a little past full size.
+  const hintScale = useMemo(
+    () => (beat ? beat.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1.15] }) : pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] })),
+    [pulse, beat],
+  );
   const auraScale = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.14] }), [pulse]);
   const tintOpacity = useMemo(() => pulse.interpolate({ inputRange: [0, 1], outputRange: [0.1, 0.25] }), [pulse]);
 

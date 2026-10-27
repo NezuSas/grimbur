@@ -104,6 +104,8 @@ type Props = {
   flagPing?: { index: number; n: number } | null;
   /** Reduced motion: no shakes, no pulsing. */
   calm?: boolean;
+  /** The heartbeat, only while the hero stands next to a hazard (and not calm): the clues beat with it. */
+  beat?: Animated.Value;
   /** The outfit the hero wears (classic when omitted). */
   skin?: SkinId;
   /** The cave type of this floor (the plain cave when omitted). */
@@ -111,7 +113,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, skin, biome = "cave" }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave" }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -403,6 +405,7 @@ const BoardView: React.FC<Props> = memo(
                   facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
                   onTileLoaded={onTileLoaded}
                   pulse={pulse}
+                  beat={calm ? undefined : beat}
                   killer={killerTile === i}
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
