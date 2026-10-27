@@ -158,6 +158,11 @@ export default function GameScreen({ navigation, route }: Props) {
   const stateRef = useRef(state);
   stateRef.current = state;
   const routeOf = useRouteLog(state);
+  // Where the HUD's gem counter sits on screen (measured by the HUD): picked gems fly there.
+  const gemAnchor = useRef<{ x: number; y: number } | null>(null);
+  const onGemAnchor = useCallback((at: { x: number; y: number }) => {
+    gemAnchor.current = at;
+  }, []);
   const pausedRef = useRef(false);
   pausedRef.current = paused;
   const onRefusedFlag = useCallback(() => setToast({ text: t("toast.flagged"), key: Date.now() }), [t]);
@@ -632,7 +637,8 @@ export default function GameScreen({ navigation, route }: Props) {
         <Profiler id="hud" onRender={onRenderProfile}>
         <ScoreBar
           score={state.score}
-          coins={state.coins}
+          // Gems still flying are not counted off yet: the counter ticks as each one lands.
+          coins={state.coins + activeCoins.length}
           attackValue={state.attack}
           shield={state.shield}
           onPause={canPause ? openPause : undefined}
@@ -646,6 +652,7 @@ export default function GameScreen({ navigation, route }: Props) {
           gemPop={gemPop}
           calm={reduceFlash}
           bossHearts={isLair ? bossHearts(state) : undefined}
+          onGemAnchor={onGemAnchor}
         />
         </Profiler>
       </View>
@@ -771,8 +778,8 @@ export default function GameScreen({ navigation, route }: Props) {
           key={c.id}
           startX={c.x}
           startY={c.y}
-          targetX={windowWidth - insets.right - controlPanelWidth * 0.5}
-          targetY={insets.top + hudHeight * 0.5}
+          targetX={gemAnchor.current ? gemAnchor.current.x - 16 : windowWidth - insets.right - controlPanelWidth * 0.5}
+          targetY={gemAnchor.current ? gemAnchor.current.y - 16 : insets.top + hudHeight * 0.5}
           onComplete={() => removeCoin(c.id)}
         />
       ))}

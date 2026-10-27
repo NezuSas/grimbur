@@ -12,36 +12,14 @@ import { LocalStats } from "../../core/stats/runStats";
 import { useT } from "../../i18n/useT";
 import { forgeText } from "../../i18n/keys";
 import { useSettingsStore } from "../../state/settings/store";
+import { useRollTo } from "../../ui/useRollTo";
+import { Burst } from "../../ui/components/Burst";
+
+/** The anvil sparks now live with the shared UI (the board throws gems with them); the Forge keeps its import. */
+export { Burst, SPARKS } from "../../ui/components/Burst";
 
 export const EMBER = "#FFAB40";
 export const GOLD = "#FFD54F";
-
-/** Rolls a shown number towards its target instead of jumping, so spending and earning read as movement. */
-const useRollTo = (target: number, calm: boolean): number => {
-  const [shown, setShown] = useState(target);
-  const shownRef = useRef(target);
-  useEffect(() => {
-    if (calm || shownRef.current === target) {
-      shownRef.current = target;
-      setShown(target);
-      return;
-    }
-    const anim = new Animated.Value(shownRef.current);
-    const id = anim.addListener(({ value }) => {
-      shownRef.current = Math.round(value);
-      setShown(shownRef.current);
-    });
-    Animated.timing(anim, { toValue: target, duration: 550, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start(() => {
-      shownRef.current = target;
-      setShown(target);
-    });
-    return () => {
-      anim.removeListener(id);
-      anim.stopAnimation();
-    };
-  }, [target, calm]);
-  return shown;
-};
 
 /** The ember balance: the number rolls to its new value and the chip pops, so paying feels like paying. */
 export const Balance: React.FC<{ value: number; label: string }> = ({ value, label }) => {
@@ -86,42 +64,6 @@ export const Rise: React.FC<{ delay?: number; style?: StyleProp<ViewStyle>; chil
     <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }, style]}>
       {children}
     </Animated.View>
-  );
-};
-
-/** Painted embers thrown from a card that was just bought (nothing when calm: the toast and the balance already answer). */
-export const SPARKS = Array.from({ length: 9 }, (_, i) => ({ angle: (i / 9) * Math.PI * 2 + 0.4, dist: 38 + (i % 3) * 16, size: 10 + (i % 3) * 3 }));
-const EMBER_SPRITE = require("../../assets/sprites/items/Icon_Ember.png");
-export const Burst: React.FC<{ run: number }> = ({ run }) => {
-  const calm = useSettingsStore(s => s.reduceFlash);
-  const t = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (!run || calm) return;
-    t.setValue(0);
-    Animated.timing(t, { toValue: 1, duration: 700, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
-  }, [run, calm, t]);
-  if (!run || calm) return null;
-  return (
-    <View style={styles.burst} pointerEvents="none">
-      {SPARKS.map((s, i) => (
-        <Animated.View
-          key={i}
-          style={{
-            position: "absolute",
-            opacity: t.interpolate({ inputRange: [0, 0.12, 1], outputRange: [0, 1, 0] }),
-            transform: [
-              { translateX: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(s.angle) * s.dist] }) },
-              // Embers fly out and up a little, like sparks off an anvil.
-              { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(s.angle) * s.dist - 16] }) },
-              { rotate: t.interpolate({ inputRange: [0, 1], outputRange: ["0deg", `${(i % 2 ? 1 : -1) * 90}deg`] }) },
-              { scale: t.interpolate({ inputRange: [0, 1], outputRange: [1.1, 0.4] }) },
-            ],
-          }}
-        >
-          <SpriteImage source={EMBER_SPRITE} style={{ width: s.size, height: s.size }} resizeMode="contain" accessibilityIgnoresInvertColors />
-        </Animated.View>
-      ))}
-    </View>
   );
 };
 
@@ -354,6 +296,5 @@ const styles = StyleSheet.create({
   ctaMaxed: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.5)" },
   ctaMaxedText: { color: GOLD, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
 
-  burst: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   ring: { position: "absolute", borderWidth: 3, borderColor: "#FFF3D6" },
 });

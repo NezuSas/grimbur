@@ -1,8 +1,9 @@
-import React, { memo, useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef, type ComponentRef } from "react";
 import { View, StyleSheet, ImageSourcePropType, Animated } from "react-native";
 import Text from "./Text";
 import { useGameLayout } from "../layout/useGameLayout";
 import SpriteImage from "./SpriteImage";
+import { useRollTo } from "../useRollTo";
 
 type Props = {
   icon?: ImageSourcePropType;
@@ -17,15 +18,29 @@ type Props = {
   compact?: boolean;
   /** Peak scale of the pop when the value changes (a streak makes it bigger). */
   popScale?: number;
+  /** The number rolls to a new value instead of jumping (numbers only). */
+  roll?: boolean;
+  /** Reduced motion: no pop and no roll. */
+  calm?: boolean;
+  /** Reports where the icon's centre is on screen, so things can fly into it. */
+  onAnchor?: (at: { x: number; y: number }) => void;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact, popScale = 1.15 }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact, popScale = 1.15, roll = false, calm = false, onAnchor }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const popRef = useRef(popScale);
   popRef.current = popScale;
+  const rolled = useRollTo(typeof value === "number" ? value : 0, calm || !roll || typeof value !== "number");
+  const shown = roll && typeof value === "number" ? rolled : value;
+  const box = useRef<ComponentRef<typeof View>>(null);
+  const measure = () => {
+    if (!onAnchor) return;
+    box.current?.measureInWindow((x, y, _w, h) => onAnchor({ x: x + iconDim / 2 + (compact ? 5 : 10), y: y + h / 2 }));
+  };
 
   useEffect(() => {
+    if (calm) return;
     // 120-160ms scale pop: 1 -> 1.15 -> 1
     Animated.sequence([
       Animated.timing(scaleAnim, {
@@ -43,6 +58,8 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, icon
 
   return (
     <View
+      ref={box}
+      onLayout={measure}
       style={[
         styles.container,
         { paddingRight: spacing(12), paddingVertical: spacing(4), marginHorizontal: spacing(4) },
@@ -60,7 +77,7 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, icon
           maxFontSizeMultiplier={1.15}
           numberOfLines={1}
         >
-          {value}
+          {shown}
         </Animated.Text>
         {label && <Text style={styles.label}>{label}</Text>}
       </View>
