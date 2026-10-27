@@ -34,6 +34,8 @@ type Props = {
   bossHearts?: number;
   /** When provided, a pause button is shown next to the timer. */
   onPause?: () => void;
+  /** Reports where the gem counter's icon is on screen (picked gems fly into it). */
+  onGemAnchor?: (at: { x: number; y: number }) => void;
 };
 
 /** The HUD never scales text beyond this, so it always fits the fixed bar height. */
@@ -89,7 +91,7 @@ const ShieldBadge: React.FC<{ shield: boolean; breakKey: number; calm: boolean; 
 };
 
 const ScoreBar: React.FC<Props> = memo(
-  ({ score, attackValue, coins, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause }) => {
+  ({ score, attackValue, coins, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause, onGemAnchor }) => {
     const { t, plural } = useT();
     const { hudHeight, insets, fontSize, spacing, screenWidth } = useGameLayout();
     // Portrait and split-screen windows: the avatar goes and the sides take only what they need.
@@ -187,6 +189,9 @@ const ScoreBar: React.FC<Props> = memo(
               icon={require("../../assets/sprites/items/Icon_Gem.png")}
               value={coins}
               popScale={gemPop}
+              roll
+              calm={calm}
+              onAnchor={onGemAnchor}
               iconDim={statIconSize}
               compact={compact}
               a11yLabel={plural("a11y.gemsLeft", coins)}

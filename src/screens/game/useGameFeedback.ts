@@ -132,6 +132,8 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           pushPopup({ points, type: "coin" }, e.tile);
           const label = gemStreakLabel(streak);
           if (label) pushPopup({ points: 0, type: "streak", sub: label, popScale: Math.min(1.4, 1 + 0.08 * streak) }, e.tile);
+          // The gem flies to the HUD counter (which ticks when it lands); when calm, the counter simply changes.
+          if (reduceFlash) break;
           const at = anchorOf(e.tile);
           setActiveCoins(coins => [
             ...coins,
