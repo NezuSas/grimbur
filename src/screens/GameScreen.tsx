@@ -70,6 +70,7 @@ import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
 import { buildShareCard, buildShareMessage } from "./game/shareMessage";
 import { useRouteLog } from "./game/useRouteLog";
+import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
 import ShareCard from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
@@ -559,6 +560,9 @@ export default function GameScreen({ navigation, route }: Props) {
   }, [state.level]);
 
   const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
+  // Next to a hazard the screen's glow and the clues on the board beat with one heart (still when calm).
+  const inDanger = (nearby.enemy || nearby.pit) && !runEnded && !levelUpWindow;
+  const heartbeat = useHeartbeat(inDanger && !reduceFlash, Math.max(nearby.enemyCount, nearby.pitCount));
   const relicNames = state.relics.map(id => relicText(t, id, "name")).join(", ");
 
   const boardSummary = [
@@ -652,6 +656,7 @@ export default function GameScreen({ navigation, route }: Props) {
         vortex={nearby.pit && !runEnded && !levelUpWindow}
         intensity={Math.max(nearby.enemyCount, nearby.pitCount)}
         calm={reduceFlash}
+        beat={heartbeat}
       />
       {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && (
         <FloorBanner
@@ -712,6 +717,7 @@ export default function GameScreen({ navigation, route }: Props) {
             shakeKey={shakeKey}
             flagPing={flagPing}
             calm={reduceFlash}
+            beat={inDanger ? heartbeat : undefined}
           />
           </Profiler>
         </View>
