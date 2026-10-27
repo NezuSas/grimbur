@@ -83,6 +83,8 @@ type Props = {
   /** Gems still on the floor when the run ended (for the near-miss line). */
   gemsLeft?: number;
   onShare?: () => void;
+  /** Copies the daily's text to paste in a chat; resolves with whether it was copied. */
+  onCopyText?: () => Promise<boolean>;
   /** Opens the Forge (shown when the run earned embers). */
   onForge?: () => void;
   onRetry: () => void;
@@ -128,11 +130,22 @@ const GameOverOverlay = ({
   rankUp,
   gemsLeft,
   onShare,
+  onCopyText,
   onForge,
   onRetry,
   retryLabel,
   onMainMenu,
 }: Props) => {
+  // The copy button answers with a check for a moment (the text itself is out of sight, in the clipboard).
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+  const copyText = async () => {
+    if (onCopyText && (await onCopyText())) setCopied(true);
+  };
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -497,6 +510,11 @@ const GameOverOverlay = ({
         {onShare ? (
           <TouchableOpacity style={[styles.sideButton, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
             <Ionicons name="share-social" size={20} color="#4FC3F7" />
+          </TouchableOpacity>
+        ) : null}
+        {onCopyText ? (
+          <TouchableOpacity style={[styles.sideButton, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
+            <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#69F0AE' : '#4FC3F7'} />
           </TouchableOpacity>
         ) : null}
       </View>

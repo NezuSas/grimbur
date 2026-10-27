@@ -33,6 +33,15 @@ describe('buildShareMessage', () => {
     expect(text).toContain('share.daily.title');
     expect(text).toContain('over.streak#4');
   });
+
+  it('draws the daily route instead of one square per floor when there is one', () => {
+    const route = [['tile', 'gem'], ['tile', 'arrow']] as const;
+    const text = buildShareMessage(run, { isDaily: true, dailyDate: '2026-10-16', ascension: 0, heroName, route: route.map(f => [...f]) }, { t: t as never, plural: plural as never });
+    expect(text).toContain('🟫💎\n🟫🏹💀');
+    expect(text).not.toMatch(/🟩|🟥|⬛/);
+    const resumed = buildShareMessage(run, { isDaily: true, dailyDate: '2026-10-16', ascension: 0, heroName, route: [[], []] }, { t: t as never, plural: plural as never });
+    expect(resumed).toContain('🟩🟩🟩🟩🟩🟩🟥⬛⬛⬛'); // nothing recorded: the floors as before
+  });
 });
 
 describe('run results', () => {

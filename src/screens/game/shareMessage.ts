@@ -6,6 +6,7 @@ import type { TranslationKey } from "../../i18n/en";
 import type { Params } from "../../i18n/translate";
 import type { Character } from "../../data/characters";
 import type { ShareCardData } from "../../ui/components/ShareCard";
+import { buildRouteGrid, type RouteMark } from "./routeGrid";
 
 interface Run {
   level: number;
@@ -25,6 +26,8 @@ interface Opts {
   heroName: string;
   /** The friend challenge the run belonged to: the message invites to the same cave. */
   challengeCode?: string;
+  /** The daily's route, one list of marks per floor: drawn instead of one square per floor when there is one. */
+  route?: RouteMark[][];
 }
 
 interface Texts {
@@ -48,7 +51,9 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
       streakText: opts.streak ? plural("over.streak" as never, opts.streak) : "",
       footer: t("share.daily.footer"),
     });
-    return `${text}\n${GAME_CONFIG.store.url}`;
+    const grid = opts.route ? buildRouteGrid(opts.route, run.isVictory ? "victory" : "defeat") : "";
+    const withRoute = grid ? text.replace(dailyPips(run.level, GAME_CONFIG.expedition.floors, run.isVictory), grid) : text;
+    return `${withRoute}\n${GAME_CONFIG.store.url}`;
   }
   const depth = depthLabel(opts.ascension, t);
   const lines = [t("share.title", { hero: opts.heroName, depth: depth ? ` · ${depth}` : "" })];

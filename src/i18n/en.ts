@@ -652,6 +652,8 @@ export const en = {
   'over.explainEmbers': 'Gems stay in this run. Embers are yours forever: spend them in the Forge.',
   'over.menu': 'Menu',
   'over.share': 'Share result',
+  'over.copyText': 'Copy result as text',
+  'over.copied': 'Result copied',
   'over.newBestFloor': 'New deepest floor!',
   'over.bestFloor': 'Deepest floor {floor}',
   'over.dailyBonus': 'First run of the day: +{count} embers included',
