@@ -2,7 +2,7 @@
 
 Use this with whatever image tool your plans include (ChatGPT image generation, Midjourney, Figma, hand drawing...).
 Drop the finished PNGs at the paths below and tell me; I wire them in, resize/compress them and update the code.
-**Claude cannot generate images or audio itself** (audio is synthesised by `scripts/generateAudio.js`).
+(Audio is synthesised by `scripts/generateAudio.js`.)
 
 ## Style (decide once, apply to everything)
 
