@@ -187,7 +187,8 @@ const GridCell = memo(({
   calm: boolean;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
-  const [isVisited, setShown] = useState(visitedProp);
+  // On a new floor the tiles already lit wait for their delay too, so the floor opens in a cascade from the start.
+  const [isVisited, setShown] = useState(visitedProp && revealDelay <= 0);
   useEffect(() => {
     if (!visitedProp) {
       setShown(false);
@@ -229,14 +230,26 @@ const GridCell = memo(({
     ]).start();
   }, [flagPing]);
 
-  // A tile "pops" when it is uncovered (not when the floor first draws): quick, native-driven, and a no-op on mount.
-  const revealScale = useRef(new Animated.Value(1)).current;
+  // A tile flips over when it is uncovered: it turns in from edge-on and the spring carries it a little past flat
+  // before it settles (native-driven; a no-op for tiles already shown on mount, and nothing at all when calm).
+  const flip = useRef(new Animated.Value(1)).current;
+  const flipTransform = useMemo(
+    () => [
+      { perspective: 600 },
+      { rotateY: flip.interpolate({ inputRange: [0, 1], outputRange: ["90deg", "0deg"] }) },
+      { scale: flip.interpolate({ inputRange: [0, 1], outputRange: [0.86, 1] }) },
+    ],
+    [flip],
+  );
   const wasVisited = useRef(isVisited);
+  // The delay lasts one render (the board's next one clears it): the flash layer stays once a ripple reached this tile.
+  const rippled = useRef(false);
+  if (revealDelay > 0) rippled.current = true;
   useEffect(() => {
-    if (isVisited && !wasVisited.current) {
-      revealScale.setValue(0.82);
-      Animated.spring(revealScale, { toValue: 1, friction: 5, tension: 160, useNativeDriver: true }).start();
-      if (revealDelay > 0) {
+    if (isVisited && !wasVisited.current && !calm) {
+      flip.setValue(0);
+      Animated.spring(flip, { toValue: 1, friction: 4.5, tension: 120, useNativeDriver: true }).start();
+      if (rippled.current) {
         // A golden flash runs through the tile as the ripple reaches it.
         glow.setValue(0);
         Animated.sequence([
@@ -262,15 +275,15 @@ const GridCell = memo(({
   const countSize = Math.max(8, tileSize * 0.24);
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.cell,
-        { width: tileSize, height: tileSize, position: "absolute", left: col * tileSize, top: row * tileSize },
+        { width: tileSize, height: tileSize, position: "absolute", left: col * tileSize, top: row * tileSize, transform: flipTransform },
       ]}
     >
       {/* Base tile */}
       <AnimatedSprite
-        style={{ width: tileSize, height: tileSize, transform: [{ scale: revealScale }] }}
+        style={{ width: tileSize, height: tileSize }}
         source={backgroundAsset}
         resizeMode="contain"
         onLoadEnd={onTileLoaded}
@@ -286,7 +299,7 @@ const GridCell = memo(({
         ]}
       />
 
-      {revealDelay > 0 && (
+      {rippled.current && (
         <Animated.View
           pointerEvents="none"
           style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,213,79,0.55)", borderRadius: 8, opacity: glow }]}
@@ -430,7 +443,7 @@ const GridCell = memo(({
       {isPlayerHere && (
         <View style={[styles.playerHighlight, { width: tileSize, height: tileSize }]} />
       )}
-    </View>
+    </Animated.View>
   );
 });
 
