@@ -179,11 +179,18 @@ const BoardView: React.FC<Props> = memo(
       return () => loop.stop();
     }, [needsPulse, calm, pulse]);
 
-    // Player move animation
-    const playerScale = useRef(new Animated.Value(1)).current;
+    // Squash and stretch of a step: the hero stretches along the way it goes, then squashes on landing.
+    const stretchX = useRef(new Animated.Value(1)).current;
+    const stretchY = useRef(new Animated.Value(1)).current;
 
     // The hero breathes while standing still: a slow, tiny vertical swell (off when the player asked for calm).
     const heroBreath = useRef(new Animated.Value(1)).current;
+    // Breath and step together, kept on the hero's feet: the body narrows a touch as it swells (volume holds), and
+    // the scale around the middle is shifted back down so only the chest rises and the feet stay planted.
+    const heroBody = tileSize * 0.8;
+    const bodyX = useMemo(() => Animated.multiply(stretchX, heroBreath.interpolate({ inputRange: [1, 1.04], outputRange: [1, 0.985] })), [stretchX, heroBreath]);
+    const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
+    const feet = useMemo(() => bodyY.interpolate({ inputRange: [0, 2], outputRange: [heroBody / 2, -heroBody / 2] }), [bodyY, heroBody]);
     useEffect(() => {
       if (calm) {
         heroBreath.setValue(1);
@@ -221,27 +228,24 @@ const BoardView: React.FC<Props> = memo(
         const id = ++dustId.current;
         setDusts(current => [...current.slice(-5), { id, x: from.col * tileSize, y: from.row * tileSize }]);
       }
-      Animated.parallel([
-        Animated.timing(playerPos, {
-          toValue: { x: colIndex * tileSize, y: rowIndex * tileSize },
-          duration: 150,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        // Micro-scale: 1 -> 1.03 -> 1
+      Animated.timing(playerPos, {
+        toValue: { x: colIndex * tileSize, y: rowIndex * tileSize },
+        duration: 150,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+      // Stretch along the step while sliding (about 105 ms), squash on landing, then a springy settle. Not when calm.
+      if (!calm && (from.row !== rowIndex || from.col !== colIndex)) {
+        const sideways = from.row === rowIndex;
+        const to = (value: Animated.Value, toValue: number, duration: number) => Animated.timing(value, { toValue, duration, useNativeDriver: true });
+        const settle = (value: Animated.Value) => Animated.spring(value, { toValue: 1, friction: 4, tension: 220, useNativeDriver: true });
         Animated.sequence([
-          Animated.timing(playerScale, {
-            toValue: 1.03,
-            duration: 75,
-            useNativeDriver: true,
-          }),
-          Animated.timing(playerScale, {
-            toValue: 1,
-            duration: 75,
-            useNativeDriver: true,
-          }),
-        ])
-      ]).start();
+          Animated.parallel([to(stretchX, sideways ? 1.14 : 0.9, 60), to(stretchY, sideways ? 0.9 : 1.14, 60)]),
+          Animated.delay(45),
+          Animated.parallel([to(stretchX, 1.12, 45), to(stretchY, 0.88, 45)]),
+          Animated.parallel([settle(stretchX), settle(stretchY)]),
+        ]).start();
+      }
     }, [rowIndex, colIndex, tileSize]);
 
     // A new floor or a restart changes the guardian count without a kill: re-arm the guard silently.
@@ -445,7 +449,6 @@ const BoardView: React.FC<Props> = memo(
                 transform: [
                   { translateX: playerPos.x }, 
                   { translateY: playerPos.y },
-                  { scale: playerScale },
                   { scale: heroShrink }
                 ],
               },
@@ -454,15 +457,16 @@ const BoardView: React.FC<Props> = memo(
           >
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
             {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
+            {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
+            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
             <Animated.View
               style={{
-                width: tileSize * 0.8,
-                height: tileSize * 0.8,
+                width: heroBody,
+                height: heroBody,
                 transform: [
                   { scaleX: lastSide.current === "left" ? -1 : 1 },
                   { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
                   { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
-                  { scaleY: heroBreath },
                 ],
               }}
             >
@@ -478,6 +482,7 @@ const BoardView: React.FC<Props> = memo(
                   source={attackSource}
                 />
               )}
+            </Animated.View>
             </Animated.View>
           </Animated.View>
 
