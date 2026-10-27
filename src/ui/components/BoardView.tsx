@@ -6,6 +6,7 @@ import type { BiomeId } from "../../core/engine/biomes";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
+import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import { stepTarget } from "../../core/engine/travel";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
@@ -13,8 +14,6 @@ import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
-/** How long an arrow flies: farther tiles take longer. */
-const flightMs = (shot: ArrowShot) => 110 + 55 * shot.tiles;
 
 /** Three specks of dust that drift up from the tile the hero just left, then vanish. */
 const DustPuff = memo(({ x, y, tileSize, onDone }: { x: number; y: number; tileSize: number; onDone: () => void }) => {
@@ -142,10 +141,10 @@ const BoardView: React.FC<Props> = memo(
       ]).start();
     }, [punch, shakeAnim, shakeY]);
 
-    // When the arrow in flight lands (ms since epoch): a kill or a hit on the Grimbur waits for it.
+    // When the arrow in flight is seen to land (ms since epoch): a kill or a hit on the Grimbur waits for it.
     const arrowLands = useRef(0);
     useEffect(() => {
-      if (shot && !calm) arrowLands.current = Date.now() + flightMs(shot);
+      if (shot && !calm) arrowLands.current = Date.now() + landMs(shot);
     }, [shot, calm]);
     const untilArrowLands = () => Math.max(0, arrowLands.current - Date.now());
 
@@ -360,7 +359,7 @@ const BoardView: React.FC<Props> = memo(
     if (currentFacing === "left" || currentFacing === "right") lastSide.current = currentFacing;
     const drawn = isAttacking || aiming;
 
-    // The arrow: flies from the hero to the tile it stops on, then a ring bursts there when it hit something.
+    // The arrow: flies from the hero to the tile it stops on, trailing the hero's colour, and strikes there (see ArrowFlight).
     const flight = useRef(new Animated.Value(1)).current;
     const [flying, setFlying] = useState<ArrowShot | null>(null);
     useEffect(() => {
@@ -482,59 +481,7 @@ const BoardView: React.FC<Props> = memo(
             </Animated.View>
           </Animated.View>
 
-          {flying && (() => {
-            const vec = flying.dir === "UP" ? { x: 0, y: -1 } : flying.dir === "DOWN" ? { x: 0, y: 1 } : flying.dir === "LEFT" ? { x: -1, y: 0 } : { x: 1, y: 0 };
-            const angle = flying.dir === "UP" ? "-90deg" : flying.dir === "DOWN" ? "90deg" : flying.dir === "LEFT" ? "180deg" : "0deg";
-            const reach = flying.tiles * tileSize;
-            const head = tileSize * 0.1;
-            return (
-              <>
-                <Animated.View
-                  pointerEvents="none"
-                  style={{
-                    position: "absolute",
-                    left: colIndex * tileSize,
-                    top: rowIndex * tileSize,
-                    width: tileSize,
-                    height: tileSize,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 9,
-                    opacity: flight.interpolate({ inputRange: [0, 0.8, 0.95], outputRange: [1, 1, flying.hit ? 0 : 0.2] }),
-                    transform: [
-                      { translateX: flight.interpolate({ inputRange: [0, 0.8], outputRange: [vec.x * tileSize * 0.35, vec.x * reach], extrapolate: "clamp" }) },
-                      { translateY: flight.interpolate({ inputRange: [0, 0.8], outputRange: [vec.y * tileSize * 0.35, vec.y * reach], extrapolate: "clamp" }) },
-                      { rotate: angle },
-                    ],
-                  }}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <View style={{ width: tileSize * 0.4, height: Math.max(2, tileSize * 0.07), borderRadius: 2, backgroundColor: "#F5E6B8" }} />
-                    <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#FFD54F" }} />
-                  </View>
-                </Animated.View>
-                {flying.hit && (
-                  <Animated.View
-                    pointerEvents="none"
-                    style={{
-                      position: "absolute",
-                      left: (colIndex + vec.x * flying.tiles) * tileSize,
-                      top: (rowIndex + vec.y * flying.tiles) * tileSize,
-                      width: tileSize,
-                      height: tileSize,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      zIndex: 9,
-                      opacity: flight.interpolate({ inputRange: [0, 0.78, 0.86, 1], outputRange: [0, 0, 0.95, 0] }),
-                      transform: [{ scale: flight.interpolate({ inputRange: [0, 0.78, 1], outputRange: [0.3, 0.3, 1.5] }) }],
-                    }}
-                  >
-                    <View style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, borderWidth: 3, borderColor: "#FFD54F" }} />
-                  </Animated.View>
-                )}
-              </>
-            );
-          })()}
+          {flying && <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} />}
 
           {/* A spotlight on the killer: the rest of the board dims so nothing competes with it */}
           {dying && killerTile != null && killerEntityType && (
