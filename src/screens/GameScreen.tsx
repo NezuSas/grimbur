@@ -25,6 +25,7 @@ import AttackPanel from "../ui/components/AttackPanel";
 import CoinFlight from "../ui/components/game/CoinFlight";
 import DangerVignette from "../ui/components/game/DangerVignette";
 import FloorBanner from "../ui/components/game/FloorBanner";
+import BossIntro from "../ui/components/game/BossIntro";
 import RelicTray from "../ui/components/RelicTray";
 import ToolBar from "../ui/components/ToolBar";
 import CoachHint from "../ui/components/game/CoachHint";
@@ -548,10 +549,17 @@ export default function GameScreen({ navigation, route }: Props) {
 
   useProximityAudio(state);
 
-  // The Grimbur lair announces itself: a roar, a heavy thump in the hand and a dark red veil that lifts.
+  // The Grimbur lair announces itself once its board is in sight (after the relic draft that opens the floor): the
+  // Grimbur's entrance card, a roar, a heavy thump in the hand and a dark red veil that lifts. Once per lair.
   const lairVeil = useRef(new Animated.Value(0)).current;
+  const [bossIntro, setBossIntro] = useState(false);
+  const lairShown = useRef("");
+  const lairInSight = isLair && state.turn === 0 && !state.pendingDraft && !levelUpWindow && !runEnded && !bootCover;
   useEffect(() => {
-    if (isLairFloor(state.mode, state.level) && state.turn === 0) {
+    const lairKey = `${runNumber}-${state.runSeed}-${state.level}`;
+    if (lairInSight && lairShown.current !== lairKey) {
+      lairShown.current = lairKey;
+      setBossIntro(true);
       emitSound("BOSS_ROAR");
       haptic.impact(ImpactFeedbackStyle.Heavy);
       if (!reduceFlash) {
@@ -562,7 +570,7 @@ export default function GameScreen({ navigation, route }: Props) {
         ]).start();
       }
     }
-  }, [state.level]);
+  }, [lairInSight]);
 
   const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
   // Next to a hazard the screen's glow and the clues on the board beat with one heart (still when calm).
@@ -665,7 +673,7 @@ export default function GameScreen({ navigation, route }: Props) {
         calm={reduceFlash}
         beat={heartbeat}
       />
-      {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && (
+      {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
         <FloorBanner
           floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
@@ -788,6 +796,10 @@ export default function GameScreen({ navigation, route }: Props) {
 
       {/* The lair's dark red veil (see the roar effect above). */}
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "#2B0008", opacity: lairVeil, zIndex: 30 }]} />
+
+      {bossIntro && (
+        <BossIntro name={t("boss.intro.name")} title={t("boss.intro.title")} skipLabel={t("boss.intro.skip")} calm={reduceFlash} onDone={() => setBossIntro(false)} />
+      )}
 
       {toast && (
         <Toast text={toast.text} toastKey={toast.key} top={insets.top + hudHeight + 8} onDone={() => setToast(null)} />
