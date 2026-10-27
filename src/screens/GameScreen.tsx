@@ -69,6 +69,8 @@ import { useArrowRefill } from "./game/useArrowRefill";
 import { useT } from "../i18n/useT";
 import { BIOME_TINT } from "./game/types";
 import { buildShareCard, buildShareMessage } from "./game/shareMessage";
+import { useRouteLog } from "./game/useRouteLog";
+import * as Clipboard from "expo-clipboard";
 import ShareCard from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
@@ -154,6 +156,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // Latest values for listeners and timers (so effects do not need volatile dependencies).
   const stateRef = useRef(state);
   stateRef.current = state;
+  const routeOf = useRouteLog(state);
   const pausedRef = useRef(false);
   pausedRef.current = paused;
   const onRefusedFlag = useCallback(() => setToast({ text: t("toast.flagged"), key: Date.now() }), [t]);
@@ -419,7 +422,7 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       const s = stateRef.current;
       const run = { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory, time: sessionTimeRef.current };
-      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code };
+      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code, route: isDaily ? routeOf() : undefined };
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
       setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
@@ -429,7 +432,22 @@ export default function GameScreen({ navigation, route }: Props) {
       setShareCard(null);
       sharing.current = false;
     }
-  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, challenge, selectedCharacter, sessionTimeRef]);
+  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, challenge, selectedCharacter, sessionTimeRef, routeOf]);
+
+  // The daily as plain text (its route in squares), ready to paste in a chat; the picture keeps its own button.
+  const handleCopyText = useCallback(async () => {
+    const s = stateRef.current;
+    const run = { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory, time: sessionTimeRef.current };
+    const opts = { isDaily: true, dailyDate, ascension, streak: runResult?.streak, heroName: selectedCharacter.playerName, route: routeOf() };
+    try {
+      await Clipboard.setStringAsync(buildShareMessage(run, opts, { t, plural }));
+      analytics.track("daily_shared", { score: s.score });
+      return true;
+    } catch (e) {
+      console.warn("[share] the text could not be copied:", e);
+      return false;
+    }
+  }, [dailyDate, runResult, t, plural, ascension, selectedCharacter, sessionTimeRef, routeOf]);
 
   // ── Floor cleared → level-complete screen → next floor ────────────────────
   useEffect(() => {
@@ -804,6 +822,7 @@ export default function GameScreen({ navigation, route }: Props) {
           demo: demoEnd,
           onTryUnlock: handleTryUnlock,
           onShare: handleShare,
+          onCopyText: isDaily ? handleCopyText : undefined,
           onUnlock: handleUnlock,
           onForge: () => navigation.navigate("ForgeScreen"),
           onRetry: duelParam ? handleRematch : handleRetry,

@@ -653,6 +653,8 @@ export const es: Record<TranslationKey, string> = {
   'over.retry': 'Reintentar',
   'over.menu': 'Menú',
   'over.share': 'Compartir resultado',
+  'over.copyText': 'Copiar resultado como texto',
+  'over.copied': 'Resultado copiado',
   'over.newBestFloor': '¡Nuevo piso más hondo!',
   'over.bestFloor': 'Piso más hondo {floor}',
   'over.dailyBonus': 'Primera partida del día: +{count} brasas incluidas',

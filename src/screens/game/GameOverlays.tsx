@@ -50,6 +50,8 @@ type Props = {
     demo: boolean;
     onTryUnlock: (kind: "hero" | "depth" | "endless" | "skin", detail?: { hero: number; skin: string }) => void;
     onShare: () => void;
+    /** Copies the daily's text (only offered on the daily); resolves with whether it was copied. */
+    onCopyText?: () => Promise<boolean>;
     onUnlock: () => void;
     onForge: () => void;
     onRetry: () => void;
@@ -126,6 +128,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         rankUp={result?.rankUp}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={gameOver.onShare}
+        onCopyText={gameOver.onCopyText}
         floors={GAME_CONFIG.expedition.floors}
         endless={gameOver.endless}
         demo={gameOver.demo}
