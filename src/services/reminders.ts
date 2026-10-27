@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { isRunningInExpoGo } from 'expo';
 import Constants from 'expo-constants';
 import { planReminder } from '../core/notifications/reminderPlan';
 import { dailyKey } from '../core/engine/seed';
@@ -20,9 +21,12 @@ const CHANNEL = 'daily-reminder';
 
 /**
  * Expo Go does not ship the notifications module (loading it raises an error screen), so reminders exist only in the real app
- * (the installed build). The Settings row is hidden where they are not supported.
+ * (the installed build). The Settings row is hidden where they are not supported. Expo Go is told the way expo-notifications
+ * itself tells it (its native module is there): recent SDKs leave `appOwnership` unset in Expo Go, which let the module
+ * load and fail.
  */
-export const remindersSupported = (): boolean => Platform.OS !== 'web' && Constants.appOwnership !== 'expo';
+const inExpoGo = (): boolean => isRunningInExpoGo() || Constants.appOwnership === 'expo';
+export const remindersSupported = (): boolean => Platform.OS !== 'web' && !inExpoGo();
 
 function load(): Notifications | null {
   if (!remindersSupported()) return null;
