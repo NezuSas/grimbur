@@ -13,6 +13,8 @@ import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
+/** How long an arrow flies: farther tiles take longer. */
+const flightMs = (shot: ArrowShot) => 110 + 55 * shot.tiles;
 
 /** Three specks of dust that drift up from the tile the hero just left, then vanish. */
 const DustPuff = memo(({ x, y, tileSize, onDone }: { x: number; y: number; tileSize: number; onDone: () => void }) => {
@@ -118,7 +120,32 @@ const BoardView: React.FC<Props> = memo(
     // ── Animations ────────────────────────────────────────────────────────
     const playerPos  = useRef(new Animated.ValueXY({ x: colIndex * tileSize, y: rowIndex * tileSize })).current;
     const shakeAnim  = useRef(new Animated.Value(0)).current;
+    const shakeY     = useRef(new Animated.Value(0)).current;
+    const punch      = useRef(new Animated.Value(1)).current;
     const shakeGuard = useRef<number | undefined>(guardianCount);
+
+    // A hit lands in three beats: wait for the arrow to arrive, freeze for a blink on a slight punch (the hit-stop), then
+    // the board shakes both ways and lets go. Callers skip it when calm.
+    const impact = useCallback((amp: number, holdMs: number, waitMs: number) => {
+      const to = (value: Animated.Value, toValue: number, duration: number) => Animated.timing(value, { toValue, duration, useNativeDriver: true });
+      Animated.sequence([
+        Animated.delay(waitMs),
+        to(punch, 1.02, 0),
+        Animated.delay(holdMs),
+        Animated.parallel([
+          Animated.sequence([to(shakeAnim, amp, 40), to(shakeAnim, -amp, 50), to(shakeAnim, amp * 0.6, 45), to(shakeAnim, -amp * 0.35, 45), to(shakeAnim, 0, 40)]),
+          Animated.sequence([to(shakeY, -amp * 0.6, 40), to(shakeY, amp * 0.5, 50), to(shakeY, -amp * 0.3, 45), to(shakeY, 0, 85)]),
+          to(punch, 1, 220),
+        ]),
+      ]).start();
+    }, [punch, shakeAnim, shakeY]);
+
+    // When the arrow in flight lands (ms since epoch): a kill or a hit on the Grimbur waits for it.
+    const arrowLands = useRef(0);
+    useEffect(() => {
+      if (shot && !calm) arrowLands.current = Date.now() + flightMs(shot);
+    }, [shot, calm]);
+    const untilArrowLands = () => Math.max(0, arrowLands.current - Date.now());
 
     // One breathing value for every clue badge, wind-up aura, bobbing gem and swelling vortex
     // (a loop per cell used to cost one timer each).
@@ -227,13 +254,7 @@ const BoardView: React.FC<Props> = memo(
       const prev = shakeGuard.current;
       shakeGuard.current = guardianCount;
       if (prev === undefined || guardianCount >= prev || calm) return;
-
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 3,  duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -3, duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 2,  duration: 30, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0,  duration: 30, useNativeDriver: true }),
-      ]).start();
+      impact(3, 60, untilArrowLands());
     }, [guardianCount]);
 
     // Tells the screen when every tile of this floor has been drawn (the start-up cover waits for it).
@@ -255,16 +276,10 @@ const BoardView: React.FC<Props> = memo(
       }
     }, [level, tilesToLoad]);
 
-    // Death: one hard shake.
+    // Death: the longest freeze and one hard shake, at once (the blow is not an arrow).
     useEffect(() => {
       if (!dying || calm) return;
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 9, duration: 45, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -9, duration: 60, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 6, duration: 55, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -4, duration: 55, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-      ]).start();
+      impact(9, 100, 0);
     }, [dying]);
 
     // The killer reveals itself: it leaps over the hero, grows with a punch, claw marks cut across the tile and the hero fades.
@@ -314,12 +329,7 @@ const BoardView: React.FC<Props> = memo(
       if (shakeKey === lastShakeKey.current) return;
       lastShakeKey.current = shakeKey;
       if (calm) return;
-      Animated.sequence([
-        Animated.timing(shakeAnim, { toValue: 6, duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: -6, duration: 50, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 3, duration: 40, useNativeDriver: true }),
-        Animated.timing(shakeAnim, { toValue: 0, duration: 40, useNativeDriver: true }),
-      ]).start();
+      impact(6, 80, untilArrowLands());
     }, [shakeKey]);
 
     // ── Memoized state sets ───────────────────────────────────────────────
@@ -355,7 +365,7 @@ const BoardView: React.FC<Props> = memo(
       if (!shot || calm) return;
       setFlying(shot);
       flight.setValue(0);
-      Animated.timing(flight, { toValue: 1, duration: 110 + 55 * shot.tiles, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(flight, { toValue: 1, duration: flightMs(shot), easing: Easing.out(Easing.quad), useNativeDriver: true }).start(({ finished }) => {
         if (finished) setFlying(null);
       });
     }, [shot?.key]);
@@ -365,7 +375,7 @@ const BoardView: React.FC<Props> = memo(
         <Animated.View
           style={[
             styles.boardFrame,
-            { width: boardWidth, height: boardHeight, transform: [{ translateX: shakeAnim }], overflow: dying && killerTile != null ? "visible" : "hidden" },
+            { width: boardWidth, height: boardHeight, transform: [{ translateX: shakeAnim }, { translateY: shakeY }, { scale: punch }], overflow: dying && killerTile != null ? "visible" : "hidden" },
           ]}
         >
           {/* Grid Cells optimization */}
