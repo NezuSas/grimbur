@@ -324,9 +324,11 @@ const BoardView: React.FC<Props> = memo(
 
     // ── Memoized state sets ───────────────────────────────────────────────
     const visitedSet = useMemo(() => new Set(visited), [visited]);
-    // Uncovering four or more tiles in one go (the lantern relic) makes a ripple that spreads from the hero.
-    const lastVisited = useRef({ level, count: visited.length });
-    const burst = lastVisited.current.level === level && visited.length - lastVisited.current.count >= 4;
+    // Uncovering two or more tiles in one go (the lantern relic, the scout) makes a ripple that spreads ring by ring
+    // from the hero, on the tile just reached; a new floor opens the same way from its start tile. Calm: no ripple.
+    const lastVisited = useRef({ level: -1, count: 0 });
+    const entering = lastVisited.current.level !== level;
+    const burst = !calm && (entering || visited.length - lastVisited.current.count >= 2);
     useEffect(() => {
       lastVisited.current = { level, count: visited.length };
     }, [level, visited.length]);
@@ -395,7 +397,7 @@ const BoardView: React.FC<Props> = memo(
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
                   calm={!!calm}
-                  revealDelay={burst ? Math.min(900, 70 * (Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex))) + 30 : 0}
+                  revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );
             })}
