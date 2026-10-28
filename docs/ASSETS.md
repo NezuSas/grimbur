@@ -40,8 +40,13 @@ sliceIconGrid, buildAppIcons), so every sprite can be rebuilt from its master.
 | backgrounds/Cover_Background.png, Bg_Crystal.jpg, Bg_Magma.jpg, Bg_Lair.jpg | bg_cave_v1.png, bg_crystal_v1.png, bg_magma_v1.png, bg_lair_v1.png |
 | characters/{Hero,Attack,Win,Lose,Icon}_{Cyan,Red,Green,Gold,Pink,Orange}.png | hero_{cyan,red,green,gold,pink,orange}_v1.png |
 | skins/** (every outfit) | recoloured from the heroes above by scripts/generateSkins.py |
+| forge/*.png (10 Forge upgrades) | forge_v1.png |
+| relics/*.png (11 relics) | relics_v1.png |
+| tools/*.png (tools, abilities, shop) | tools_v1.png |
+| items/Icon_{Gem,Shield,Arrows,Ember,EmberPile}.png, ui/Icon_*.png (glyphs) | glyphs_v1.png |
+| ui/Attack_{Ready,Empty,Arrow}.png | attack_v1.png |
 
-Earlier art still in use (relics, Forge and tool icons, UI glyphs, items) was generated with
+No Figma-generated art remains in use; earlier versions were generated with
 Figma's AI image generation (2026-10-25/26, owner's Figma Pro plan). Keep the generation records with the release
 evidence.
 
