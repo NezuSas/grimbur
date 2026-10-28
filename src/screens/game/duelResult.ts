@@ -34,7 +34,8 @@ export function duelResultView(
   const rivalLine = top.status === "away" ? t("duel.result.away", params) : top.status === "done" ? t("duel.result.final", params) : t("duel.result.waiting", params);
   switch (standing.state) {
     case "won":
-      return { headline: t("duel.result.win"), line: rivalLine, prize: stake > 0 ? t("duel.result.prize", { n: prize > 0 ? prize : "…" }) : "", color: "#9EE37D" };
+      // A prize equal to the stake is just the stake coming back: nobody else ever started, so there was nothing to win.
+      return { headline: t("duel.result.win"), line: rivalLine, prize: stake > 0 ? (prize === stake ? t("duel.result.refund", { n: stake }) : t("duel.result.prize", { n: prize > 0 ? prize : "…" })) : "", color: "#9EE37D" };
     case "lost":
       return { headline: t("duel.result.lose"), line: place + rivalLine, prize: stake > 0 ? t("duel.result.lostStake", { n: stake }) : "", color: "#FF8A80" };
     case "tie":
