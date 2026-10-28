@@ -57,11 +57,16 @@ const EnemySprite = memo(({ type, size, calm }: { type: "enemy" | "stalker" | "s
     };
   }, [calm]);
   return (
-    <SpriteImage
-      style={{ width: size, height: size, position: "absolute" }}
-      source={inhale ? BREATHE[type] : ASSETS[type]}
-      resizeMode="contain"
-    />
+    <>
+      {/* A dark pool under the creature and a faint ember of danger: painted stone on painted stone needs the separation. */}
+      <View pointerEvents="none" style={[styles.creatureGlow, { width: size * 0.86, height: size * 0.5, borderRadius: size, bottom: size * 0.02 }]} />
+      <View pointerEvents="none" style={[styles.creatureShadow, { width: size * 0.7, height: size * 0.2, borderRadius: size, bottom: size * 0.04 }]} />
+      <SpriteImage
+        style={{ width: size, height: size, position: "absolute" }}
+        source={inhale ? BREATHE[type] : ASSETS[type]}
+        resizeMode="contain"
+      />
+    </>
   );
 });
 EnemySprite.displayName = "EnemySprite";
@@ -349,7 +354,7 @@ const GridCell = memo(({
         <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
       )}
       {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
-        <EnemySprite type={entity.type} size={tileSize * 0.9} calm={calm} />
+        <EnemySprite type={entity.type} size={tileSize * 0.98} calm={calm} />
       )}
       {entity?.type === 'sleeper' && (isVisited || isPlayerHere) && (
         <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
@@ -484,10 +489,13 @@ const GridCell = memo(({
 
 const styles = StyleSheet.create({
   cell: { alignItems: "center", justifyContent: "center" },
+  creatureShadow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(0,0,0,0.55)" },
+  creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(255,72,40,0.16)" },
   bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
   tileTone: { position: 'absolute', borderRadius: 6 },
-  toneLit: { backgroundColor: 'rgba(255,196,110,0.26)', borderWidth: 1.5, borderColor: 'rgba(255,214,150,0.5)' },
-  toneDark: { backgroundColor: 'rgba(4,0,18,0.5)' },
+  // The painted tiles already tell explored from unexplored; these only push the two a little further apart.
+  toneLit: { backgroundColor: 'rgba(255,236,200,0.07)' },
+  toneDark: { backgroundColor: 'rgba(4,0,18,0.28)' },
   sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B3E5FC', fontWeight: '900' },
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
