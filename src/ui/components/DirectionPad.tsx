@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, memo } from "react";
 import { View, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
 import Text from "./Text";
-import { LinearGradient } from "expo-linear-gradient";
+import SpriteImage from "./SpriteImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction } from "../../core/engine/types";
@@ -34,16 +34,19 @@ type AttackButtonProps = {
   onAim?: (aim: Direction | "facing" | null) => void;
 };
 
-const AIM_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
-  UP: "arrow-up",
-  DOWN: "arrow-down",
-  LEFT: "arrow-back",
-  RIGHT: "arrow-forward",
-};
+const ATTACK_ART = {
+  ready: require("../../assets/sprites/ui/Attack_Ready.png"),
+  empty: require("../../assets/sprites/ui/Attack_Empty.png"),
+  arrow: require("../../assets/sprites/ui/Attack_Arrow.png"),
+} as const;
+
+/** The painted arrow is drawn pointing right: the turn that points it the way the player aims. */
+const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT: "180deg", UP: "-90deg" };
 
 /**
- * The round attack button. The number of arrows left is printed on it, big, so the player never has to
- * look away. Tap to shoot where the hero faces; press and drag toward a side to aim without moving.
+ * The attack button: a painted medallion (dull stone once the quiver is empty) with the arrows left on a badge, so the
+ * player never has to look away. Tap to shoot where the hero faces; press and drag toward a side to aim without moving,
+ * and a painted arrow turns to show the way.
  */
 export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: AttackButtonProps) => {
   const { t } = useT();
@@ -110,25 +113,19 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
         accessibilityActions={(Object.keys(names) as Direction[]).map(d => ({ name: d, label: `${t("a11y.attack")}: ${names[d]}` }))}
         onAccessibilityTap={() => onAttack()}
         onAccessibilityAction={e => onAttack(e.nativeEvent.actionName as Direction)}
-        style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, empty && styles.attackEmpty, aim && styles.attackAiming]}
+        style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, !empty && styles.attackReady]}
       >
-        <LinearGradient
-          colors={empty ? ["#5b5b66", "#33333b"] : ["#FF6B3D", "#E6194B"]}
-          style={[StyleSheet.absoluteFill, { borderRadius: size / 2 }]}
-        />
+        <SpriteImage source={empty ? ATTACK_ART.empty : ATTACK_ART.ready} style={{ width: size, height: size }} resizeMode="contain" accessibilityIgnoresInvertColors />
         {aim ? (
-          <Ionicons name={AIM_ICON[aim]} size={Math.round(size * 0.62)} color="#fff" />
-        ) : (
-          <>
-            <Ionicons name="flash" size={Math.round(size * 0.36)} color={empty ? "#9a9aa5" : "#fff"} />
-            <Text
-              style={[styles.count, { fontSize: Math.max(16, size * 0.3) }, empty && { color: "#FFB4B4" }]}
-              allowFontScaling={false}
-            >
-              {arrows}
-            </Text>
-          </>
-        )}
+          <View style={[StyleSheet.absoluteFill, styles.aimLayer, { borderRadius: size / 2 }]}>
+            <SpriteImage source={ATTACK_ART.arrow} style={{ width: size * 0.92, height: size * 0.92, transform: [{ rotate: AIM_TURN[aim] }] }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          </View>
+        ) : null}
+        <View style={[styles.countBadge, { minWidth: size * 0.42, height: size * 0.34, borderRadius: size * 0.17, right: -size * 0.04, bottom: -size * 0.02 }, empty && styles.countBadgeEmpty]}>
+          <Text style={[styles.count, { fontSize: Math.max(13, size * 0.22) }, empty && { color: "#FFB4B4" }]} allowFontScaling={false}>
+            {arrows}
+          </Text>
+        </View>
       </View>
     </Animated.View>
   );
@@ -285,26 +282,19 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 213, 79, 0.3)",
   },
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
-  attack: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "rgba(255, 255, 255, 0.4)",
-    overflow: "visible",
-    ...Platform.select({
-      ios: { shadowColor: "#FF4B2B", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.55, shadowRadius: 10 },
-      android: { elevation: 10 },
-    }),
-  },
-  attackEmpty: { borderColor: "rgba(255,255,255,0.18)", shadowOpacity: 0 },
-  attackAiming: { borderColor: "#fff" },
+  // The medallion is painted: no border or Android elevation (that drew a square shadow behind the round art).
+  attack: { alignItems: "center", justifyContent: "center", overflow: "visible" },
+  attackReady: Platform.select({
+    ios: { shadowColor: "#FF6A2B", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.6, shadowRadius: 10 },
+    default: {},
+  }) ?? {},
+  aimLayer: { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(20,8,4,0.55)" },
+  countBadge: { position: "absolute", paddingHorizontal: 6, backgroundColor: "#1b120b", borderWidth: 2, borderColor: "#E8B04A", alignItems: "center", justifyContent: "center" },
+  countBadgeEmpty: { borderColor: "#8a8a92" },
   count: {
-    color: "#fff",
+    color: "#FFE3A0",
     fontWeight: "900",
-    textShadowColor: "rgba(0,0,0,0.45)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-    marginTop: -2,
+    includeFontPadding: false,
   },
 });
 

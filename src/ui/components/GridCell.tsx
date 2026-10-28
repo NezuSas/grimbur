@@ -162,7 +162,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false
 }: {
   index: number;
   tileSize: number;
@@ -183,8 +183,6 @@ const GridCell = memo(({
   aimStep: number;
   /** This is the last tile the arrow can reach. */
   aimLast: boolean;
-  /** Direction the hero faces when this is the tile in front of it (where a plain shot would go). */
-  facing: Direction | null;
   /** The tile's base image has been drawn. */
   onTileLoaded: () => void;
   /** When many tiles are uncovered at once (a relic), each one waits this long so they open as a ripple. */
@@ -449,12 +447,6 @@ const GridCell = memo(({
         </Animated.View>
       )}
 
-      {facing && !aimed && !isPlayerHere && (
-        <View style={styles.facingMark} pointerEvents="none">
-          <Ionicons name={FACING_ICON[facing]} size={tileSize * 0.34} color="rgba(255,255,255,0.7)" />
-        </View>
-      )}
-
       {aimed && (
         <View style={[styles.aim, aimLast && styles.aimLast]} pointerEvents="none">
           {/* A chevron along the line of fire, fading with distance; a ring marks where the arrow stops */}
@@ -489,7 +481,6 @@ const styles = StyleSheet.create({
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
   stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
   bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
-  facingMark: { position: "absolute", left: 4, top: 4, right: 4, bottom: 4, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.06)", alignItems: "center", justifyContent: "center", zIndex: 3 },
   aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,82,82,0.6)", backgroundColor: "rgba(255,82,82,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
   aimLast: { borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.24)" },
   aimRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,255,255,0.85)" },
