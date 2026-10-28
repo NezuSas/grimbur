@@ -3,6 +3,7 @@ import type { MetaEffects } from "../core/stats/forge";
 import type { LessonId } from "../core/tutorial/lessons";
 import type { SkinId } from "../data/skinArt";
 import type { Direction } from "../core/engine/types";
+import type { RelicId } from "../core/engine/relics";
 
 /** A friend challenge being played: its code, the run seed and the difficulty it stands for (see core/challenge/code.ts). */
 export type ChallengeParam = { code: string; seed: number; depth: number };
@@ -21,7 +22,7 @@ export type RootStackParamList = {
   DuelScreen: { code?: string; characterIndex?: number; skin?: SkinId; stake?: number } | undefined;
   TutorialScreen: { characterIndex?: number; skin?: SkinId; replay?: boolean; ascension?: number; meta?: MetaEffects } | undefined;
   /** `devMoves`: development only, plays these steps first so a screenshot can show explored tiles and clues. */
-  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[]; devBiome?: "cave" | "crystal" | "magma" | "lair"; devHideBanner?: boolean; devAim?: Direction; devHoldDeath?: boolean; devShoot?: number; devGameOver?: { hero: number; skin?: SkinId; cause: "enemy" | "stalker" | "sleeper" | "boss" | "pit"; victory?: boolean; full?: boolean } };
+  LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[]; devBiome?: "cave" | "crystal" | "magma" | "lair"; devHideBanner?: boolean; devAim?: Direction; devHoldDeath?: boolean; devShoot?: number; devDraft?: RelicId[]; devGameOver?: { hero: number; skin?: SkinId; cause: "enemy" | "stalker" | "sleeper" | "boss" | "pit"; victory?: boolean; full?: boolean } };
   /** `devBiome`: development only, draws the floor as that cave type (for screenshots). */
   /** `resume`: continue the expedition saved on disk instead of starting a new run (see services/savedRun.ts). */
   GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; resume?: boolean; challenge?: ChallengeParam; duel?: { code: string; name: string; stake: number; members: string[]; matchId: string }; devBiome?: "cave" | "crystal" | "magma" | "lair" } | undefined;
