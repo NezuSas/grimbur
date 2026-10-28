@@ -25,8 +25,15 @@ const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220 }: 
   }, [fade, fadeMs]);
   const { height } = useWindowDimensions();
   const [keyboard, setKeyboard] = useState(0);
+  // The window's height with no keyboard: on Android (adjustResize) the OS already shrinks the window by part or all of the
+  // keyboard, so only the rest is lifted here; lifting the full keyboard again pushed the card off-centre.
+  // The tallest the window has been (the app is landscape-only, so it never legitimately gets shorter): Android shrinks the
+  // window a moment before it reports the keyboard, so "the height while no keyboard is reported" would already be short.
+  const fullHeight = useRef(height);
+  fullHeight.current = Math.max(fullHeight.current, height);
+  const lift = Math.max(0, keyboard - Math.max(0, fullHeight.current - height));
 
-  // The window is edge-to-edge, so the OS does not resize it: lift the content above the keyboard ourselves.
+  // Lift the content above whatever part of the keyboard still covers the window.
   useEffect(() => {
     if (!keyboardAvoiding) return;
     const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', e =>
@@ -54,7 +61,7 @@ const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220 }: 
           {
             minHeight: height,
             paddingTop: Math.max(insets.top, 8),
-            paddingBottom: Math.max(insets.bottom, 8) + keyboard,
+            paddingBottom: Math.max(insets.bottom, 8) + lift,
             paddingLeft: Math.max(insets.left, 12),
             paddingRight: Math.max(insets.right, 12),
           },

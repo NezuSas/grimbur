@@ -73,7 +73,7 @@ import { buildShareCard, buildShareMessage } from "./game/shareMessage";
 import { useRouteLog } from "./game/useRouteLog";
 import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
-import ShareCard from "../ui/components/ShareCard";
+import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
 import { rememberChallenge } from "../services/challenges";
@@ -444,7 +444,7 @@ export default function GameScreen({ navigation, route }: Props) {
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
       setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
-      await new Promise<void>(resolve => setTimeout(resolve, 280)); // the card lays out and its pictures draw
+      await new Promise<void>(resolve => setTimeout(resolve, 500)); // the card lays out and its pictures (background, hero, logo) decode
       await shareResult(shareCardRef, message, t("share.dialog"));
     } finally {
       setShareCard(null);
@@ -646,6 +646,13 @@ export default function GameScreen({ navigation, route }: Props) {
 
   return (
     <Profiler id="screen" onRender={onRenderProfile}>
+    {shareCard ? (
+      // Drawn inside the window (Android does not draw what lies outside it) but under the opaque game screen, so the player
+      // never sees it; it is only on screen while a result is being shared.
+      <View ref={shareCardRef} collapsable={false} pointerEvents="none" style={{ position: "absolute", left: 0, top: 0 }}>
+        <ShareCard {...shareCard} width={Math.min(windowWidth, SHARE_CARD_WIDTH)} />
+      </View>
+    ) : null}
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
@@ -841,11 +848,6 @@ export default function GameScreen({ navigation, route }: Props) {
 
       <DuelChip duel={duel} level={state.level} score={state.score} top={insets.top + hudHeight - 14} />
 
-      {shareCard ? (
-        <View ref={shareCardRef} collapsable={false} pointerEvents="none" style={{ position: "absolute", left: -4000, top: 0 }}>
-          <ShareCard {...shareCard} />
-        </View>
-      ) : null}
 
       <GameOverlays
         state={state}
