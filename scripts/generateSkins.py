@@ -24,40 +24,41 @@ HERO_NAMES = ['Vael', 'Sera', 'Borin', 'Auric', 'Mira', 'Bram']
 HERO_COUNT = len(HERO_FILES)
 
 BRAM_REGIONS = {
+    # 2026-10-28 art: the apron is the burnt-orange cloth below the beard (same hue as the beard, so it is boxed by pose).
     'hero': dict(
-        include=[[(128, 168), (186, 174), (240, 176), (240, 296), (134, 296)]],
-        exclude=[[(184, 150), (230, 150), (244, 196), (240, 224), (214, 226), (208, 200), (206, 186), (196, 181), (184, 175)]],
-        shirt=[(60, 130), (330, 130), (330, 300), (60, 300)],
-        shirt_exclude=[(60, 0), (330, 0), (330, 100), (60, 100)],
+        include=[[(126, 186), (254, 186), (260, 308), (126, 308)]],
+        exclude=[],
+        seed=(0.45, 0.68, 9),
+        shirt=[(60, 120), (330, 120), (330, 330), (60, 330)],
+        shirt_exclude=[(60, 0), (330, 0), (330, 110), (60, 110)],
     ),
     'attack': dict(
-        include=[[(106, 182), (172, 182), (200, 200), (222, 214), (232, 250), (198, 292), (106, 292)]],
-        exclude=[[(168, 150), (196, 170), (222, 196), (218, 216), (200, 216), (184, 196), (170, 184)]],
-        shirt=[(0, 150), (330, 150), (330, 300), (0, 300)],
-        shirt_exclude=[(0, 0), (330, 0), (330, 110), (0, 110)],
+        include=[[(92, 204), (288, 204), (292, 304), (92, 304)]],
+        exclude=[],
+        seed=(0.55, 0.8, 7),
+        shirt=[(0, 120), (384, 120), (384, 330), (0, 330)],
+        shirt_exclude=[(0, 0), (384, 0), (384, 110), (0, 110)],
     ),
-    # win: arm raised, laughing. The apron is the lower-front cloth; the beard ends ~y197 and the braid hangs at x217-240, y187-217.
     'win': dict(
-        include=[[(134, 212), (160, 200), (212, 198), (214, 214), (226, 226), (246, 236), (246, 262), (242, 306), (160, 310), (126, 300), (126, 240)]],
-        exclude=[[(214, 182), (246, 182), (246, 222), (226, 224), (214, 214)]],
-        seed=(0.55, 0.7, 9),
-        shirt=[(60, 130), (330, 130), (330, 300), (60, 300)],
-        shirt_exclude=[(60, 0), (330, 0), (330, 115), (60, 115)],
+        include=[[(132, 194), (268, 194), (274, 318), (132, 318)]],
+        exclude=[],
+        seed=(0.45, 0.68, 9),
+        shirt=[(60, 130), (384, 130), (384, 330), (60, 330)],
+        shirt_exclude=[(60, 0), (384, 0), (384, 120), (60, 120)],
     ),
-    # lose: sitting, only two slivers of apron show (left of the bomb bandolier, and below the belt); the beard/braid cover the rest.
     'lose': dict(
-        include=[[(118, 225), (142, 222), (150, 242), (192, 248), (194, 283), (146, 284), (124, 262)],
-                 [(140, 284), (193, 284), (197, 300), (192, 340), (133, 340), (133, 322), (140, 322)]],
-        exclude=[[(138, 190), (222, 190), (222, 236), (190, 244), (165, 242), (146, 226)]],
-        seed=(0.55, 0.7, 9),
-        shirt=[(60, 190), (330, 190), (330, 280), (60, 280)],
-        shirt_exclude=[(60, 0), (330, 0), (330, 200), (60, 200)],
+        include=[[(108, 270), (384, 270), (384, 334), (108, 334)]],
+        exclude=[],
+        seed=(0.58, 0.82, 5),
+        shirt=[(60, 170), (384, 170), (384, 300), (60, 300)],
+        shirt_exclude=[(60, 0), (384, 0), (384, 160), (60, 160)],
     ),
     'icon': dict(
-        include=[[(104, 180), (156, 184), (170, 206), (176, 244), (104, 244)]],
+        include=[[(176, 140), (242, 140), (242, 242), (66, 242), (66, 216), (176, 206)]],
         exclude=[],
-        shirt=[(0, 150), (256, 150), (256, 250), (0, 250)],
-        shirt_exclude=[(0, 0), (256, 0), (256, 100), (0, 100)],
+        seed=(0.45, 0.68, 7),
+        shirt=[(0, 130), (256, 130), (256, 256), (0, 256)],
+        shirt_exclude=[(0, 0), (256, 0), (256, 120), (0, 120)],
     ),
 }
 
@@ -68,19 +69,13 @@ HERO_MASKS = {
     0: dict(hue_lo=170, hue_hi=262, hue_soft=14, sat_min=0.22, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=205),
     1: dict(hue_lo=336, hue_hi=3, hue_soft=6, sat_min=0.62, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=352),
     2: dict(stone=True, hue_lo=68, hue_hi=160, hue_soft=14, sat_min=0.34, sat_soft=0.14, val_min=0.20, val_soft=0.10, hue_center=100),
-    3: dict(hue_lo=22, hue_hi=60, hue_soft=4, sat_min=0.86, sat_soft=0.08, val_min=0.5, val_soft=0.12, hue_center=42, min_density=0.42,
-        # win/lose poses: the held gem and the sparkles stay natural gold; the lose pose's goggle rims and hat buckle too
-        keep={'win': [[(222, 24), (298, 24), (298, 98), (224, 98)],
-                      [(100, 200), (118, 200), (118, 222), (100, 222)],
-                      [(206, 36), (226, 36), (226, 60), (206, 60)],
-                      [(236, 160), (266, 160), (266, 192), (236, 192)]],
-              'lose': [[(186, 90), (320, 90), (320, 182), (186, 182)]]}),
+    3: dict(hue_lo=24, hue_hi=60, hue_soft=4, sat_min=0.72, sat_soft=0.08, val_min=0.55, val_soft=0.12, hue_center=40, min_density=0.42),
     # Mira: crimson/magenta hood and cape (the wand gem is hue ~300-315, outside the band; cream and brass stay natural).
     4: dict(hue_lo=322, hue_hi=358, hue_soft=8, sat_min=0.45, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=342),
     # Bram: the beard/hair share the apron's hue, so the apron is selected by POSITION (include/exclude polygons per sprite
     # kind, pixel coordinates of the 384px poses / 256px icon) on top of a hue band. 'shirt' = the grey-blue cloth that gets a
     # mild grade in the legendary themes (never the goggle lenses: 'shirt_exclude').
-    5: dict(hue_lo=2, hue_hi=30, hue_soft=5, sat_min=0.5, sat_soft=0.12, val_min=0.12, val_soft=0.10, hue_center=16,
+    5: dict(hue_lo=6, hue_hi=25, hue_soft=3, sat_min=0.55, sat_soft=0.12, val_min=0.12, val_soft=0.10, hue_center=16,
             regions=BRAM_REGIONS),
 }
 
