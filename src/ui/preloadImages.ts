@@ -47,6 +47,7 @@ export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePr
     require('../assets/sprites/items/Icon_EmberPile.png'),
     require('../assets/sprites/ui/Clue_Guardian.png'),
     require('../assets/sprites/ui/Clue_Vortex.png'),
+    require('../assets/sprites/ui/Logo_Grimbur.png'),
     ...Object.values(FORGE_ICONS).filter((source): source is NonNullable<typeof source> => source != null),
     ...Object.values(GLYPHS),
     ...Object.values(RELIC_IMAGES).filter((source): source is NonNullable<typeof source> => source != null),

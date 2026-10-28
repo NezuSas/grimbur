@@ -19,6 +19,10 @@ import GoalLine from "./GoalLine";
 import type { Goal } from "../../core/stats/goals";
 import { formatCountdown } from "../../core/stats/countdown";
 
+/** The painted title (the name is a brand, so it is never translated). */
+const LOGO = require("../../assets/sprites/ui/Logo_Grimbur.png");
+const LOGO_RATIO = 1024 / 422;
+
 type Props = {
   /** An expedition saved half-way: its floor, and whether it is an endless run. */
   savedRun: { floor: number; endless: boolean } | null;
@@ -216,9 +220,14 @@ const CoverCard: React.FC<Props> = ({
 
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
-      <Text style={[styles.titleMain, { fontSize: titleSize, letterSpacing: titleSize * 0.08 }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
-        GRIMBUR
-      </Text>
+      <SpriteImage
+        source={LOGO}
+        style={{ width: Math.min(leftWidth, titleSize * 5.6), height: Math.min(leftWidth, titleSize * 5.6) / LOGO_RATIO }}
+        resizeMode="contain"
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel="Grimbur"
+      />
       <Text style={[styles.titleSub, { fontSize: titleSize * 0.4, letterSpacing: titleSize * 0.14 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
         {t("cover.subtitle")}
       </Text>
@@ -373,15 +382,6 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, alignItems: "center", justifyContent: "center", gap: 10 },
   contentWide: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24 },
   titleBlock: { alignItems: "center", justifyContent: "center" },
-  titleMain: {
-    color: "#F2C14E",
-    fontWeight: "900",
-    letterSpacing: 6,
-    textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.9)",
-    textShadowOffset: { width: 0, height: 4 },
-    textShadowRadius: 10,
-  },
   titleSub: {
     color: "#ffffff",
     fontWeight: "800",
