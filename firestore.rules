@@ -1,7 +1,7 @@
 rules_version = '2';
 
-// Public leaderboard. Anyone can read; anyone can append a well-formed score;
-// nobody can edit or delete. Limits mirror src/core/leaderboard/validation.ts.
+// Public leaderboard. Anyone can read; each player keeps one well-formed row (their auth uid) that only a better score
+// replaces; nobody can delete. Limits mirror src/core/leaderboard/validation.ts.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -15,7 +15,7 @@ service cloud.firestore {
     function validScore(d) {
       return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
         && d.keys().hasAll(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
-        && isInt(d.level) && d.level >= 1 && d.level <= 12
+        && isInt(d.level) && d.level >= 1 && d.level <= 10
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
         && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
         && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
@@ -34,11 +34,14 @@ service cloud.firestore {
         && !n.lower().matches('.*(http|www\\.|://).*');
     }
 
-    match /highscores/{scoreId} {
+    // One row per player, keyed by their auth uid: a player cannot fill the board with copies of themselves.
+    match /highscores/{uid} {
       // At most 20 rows per query: the app reads the top 20.
-      allow read: if request.query.limit <= 20;
-      allow create: if request.auth != null && validScore(request.resource.data);
-      allow update, delete: if false;
+      allow list: if request.query.limit <= 20;
+      allow get: if true;
+      allow create: if isOwner(uid) && validScore(request.resource.data);
+      allow update: if isOwner(uid) && validScore(request.resource.data) && request.resource.data.score > resource.data.score;
+      allow delete: if false;
     }
 
     // Cloud backup of a player's progress. The document id is a random 16-character recovery key that only its owner knows (80 bits,
@@ -59,7 +62,8 @@ service cloud.firestore {
     }
 
     // Daily and weekly boards: one document per player per day (`<day>_<playerId>`). Replaying the day can only raise the score. The
-    // weekly board reads the same documents by `week`. Limits mirror src/core/leaderboard/daily.ts.
+    // weekly board reads the same documents for the seven days of the week (`day in [...]`), so there is no week to forge.
+    // Limits mirror src/core/leaderboard/daily.ts.
     function pad(n) { return n < 10 ? '0' + string(n) : string(n); }
     function dayOf(t) { return string(t.year()) + '-' + pad(t.month()) + '-' + pad(t.day()); }
     // Local days may be a day ahead of or behind the server's (UTC): anything else is a made-up day.
@@ -70,10 +74,9 @@ service cloud.firestore {
     }
 
     function validDaily(d, id) {
-      return d.keys().hasOnly(['day', 'week', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
-        && d.keys().hasAll(['day', 'week', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+      return d.keys().hasOnly(['day', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+        && d.keys().hasAll(['day', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
         && d.day is string && d.day.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$') && recentDay(d.day)
-        && d.week is string && d.week.matches('^20[0-9]{2}-W(0[1-9]|[1-4][0-9]|5[0-3])$')
         && validPid(d.pid)
         && id == d.day + '_' + d.pid
         && isInt(d.level) && d.level >= 1 && d.level <= 10
@@ -118,11 +121,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Duel rooms: `duels/{code}` holds the stake the creator chose. It is written once and never changed, and every player of the room
+    // must play for exactly that stake, so somebody who joins cannot raise the pot. A rematch room is created by whoever arrives first.
+    match /duels/{code} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if request.auth != null
+        && code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
+        && request.resource.data.keys().hasOnly(['code', 'host', 'stake', 'createdAt'])
+        && request.resource.data.keys().hasAll(['code', 'host', 'stake', 'createdAt'])
+        && request.resource.data.code == code
+        && isOwner(request.resource.data.host)
+        && isInt(request.resource.data.stake) && request.resource.data.stake >= 0 && request.resource.data.stake <= 100000
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     // Live duels: each player keeps one document `<code>_<playerId>` that they update while they play and the rival listens to.
     // Limits mirror src/core/duel/duel.ts. `updatedAt` is the server's time: it is how the rival knows someone is still there.
+    // `startedAt` is stamped with the server's time on every lobby/ready write and frozen once the run starts: a floor is only
+    // believed when there has been time to reach it.
     function validDuel(d, id) {
-      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
-        && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt'])
+      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt', 'startedAt'])
+        && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt', 'startedAt'])
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
         && validPid(d.pid)
         && id == d.code + '_' + d.pid
@@ -135,20 +156,43 @@ service cloud.firestore {
         && isInt(d.stake) && d.stake >= 0 && d.stake <= 100000
         && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
         && validName(d.name)
-        && d.updatedAt == request.time;
+        && d.updatedAt == request.time
+        && d.startedAt is timestamp
+        // The stake is the room's (see /duels): nobody plays for another one.
+        && d.stake == get(/databases/$(database)/documents/duels/$(d.code)).data.stake
+        // Before the run nothing has been played; only the last floor can be won.
+        && (d.state in ['playing', 'done'] || (d.level == 1 && d.score == 0 && d.victory == false && d.startedAt == request.time))
+        && (!d.victory || (d.state == 'done' && d.level == 10))
+        // A floor takes a few seconds at the very least.
+        && (d.state in ['lobby', 'ready'] || request.time >= d.startedAt + duration.value((d.level - 1) * 5, 's'));
     }
+
+    function stateRank(s) { return {'lobby': 0, 'ready': 1, 'playing': 2, 'done': 3}[s]; }
 
     match /duel_players/{id} {
       // Up to 4 rows of a room are listed (two players and room for a stray one).
       allow list: if request.query.limit <= 4;
       allow get: if true;
-      allow create: if validDuel(request.resource.data, id) && isOwner(request.resource.data.pid);
-      // The stake cannot be changed once the run has begun (it was paid), and the player stays the same.
+      // A player enters a room in the lobby (or ready), never straight into a run.
+      allow create: if validDuel(request.resource.data, id)
+        && isOwner(request.resource.data.pid)
+        && request.resource.data.state in ['lobby', 'ready'];
+      // The player stays the same; the state only moves forward (lobby and ready may swap: "not ready any more" is allowed); the
+      // run's start time, floor and score never go back; `done` is final.
       allow update: if validDuel(request.resource.data, id)
         && isOwner(resource.data.pid)
         && request.resource.data.code == resource.data.code
         && request.resource.data.pid == resource.data.pid
-        && (resource.data.state in ['lobby', 'ready'] || request.resource.data.stake == resource.data.stake);
+        && (resource.data.state in ['lobby', 'ready'] || stateRank(request.resource.data.state) >= stateRank(resource.data.state))
+        && (resource.data.state in ['lobby', 'ready'] || request.resource.data.startedAt == resource.data.startedAt)
+        && request.resource.data.level >= resource.data.level
+        && request.resource.data.score >= resource.data.score
+        && (resource.data.state != 'done' || (
+          request.resource.data.state == 'done'
+          && request.resource.data.level == resource.data.level
+          && request.resource.data.score == resource.data.score
+          && request.resource.data.victory == resource.data.victory
+          && request.resource.data.time == resource.data.time));
       allow delete: if false;
     }
 

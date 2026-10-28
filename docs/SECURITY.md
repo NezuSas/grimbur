@@ -6,9 +6,11 @@ The web API key in `src/lib/firebase.ts` is not a secret by design.
 
 ## What the repo already does
 
-- `firestore.rules` (this repo): only `create` is allowed on `highscores`, only with exactly the six expected
-  fields and plausible ranges (score ≤ level × 20,000, coins ≤ level × 8, name 1–20 chars, ...).
-  Updates and deletes are denied, and every other collection is closed.
+- `firestore.rules` (this repo): `highscores/{uid}` holds one row per player, written only by that player, with exactly the
+  six expected fields and plausible ranges (score ≤ level × 20,000, coins ≤ level × 8, level ≤ 10, name 1–20 chars, ...).
+  An update must raise the score; deletes are denied, and every other collection is closed.
+- Duels: a room document `duels/{code}` holds the stake its creator chose (nobody can change it), every player must use that
+  stake, and a player's state only moves forward (lobby/ready → playing → done, `done` is final) with floor and score never going down.
 - `src/core/leaderboard/validation.ts`: the same limits on the client, plus name sanitising and a baseline
   English/Spanish profanity filter. `addHighscore` refuses invalid submissions.
 
@@ -18,11 +20,10 @@ The web API key in `src/lib/firebase.ts` is not a secret by design.
    ```bash
    npm i -g firebase-tools
    firebase login
-   firebase deploy --only firestore:rules --project mario-s-grid
+   firebase deploy --only firestore:rules,firestore:indexes --project nezu-games
    ```
    Before that, open the Firebase console → Firestore → Rules and save a copy of whatever is deployed now.
-2. **Check the project.** The project id is `mario-s-grid`, which looks like a leftover from an older game.
-   Consider creating a fresh Firebase project for this game and updating `src/lib/firebase.ts`.
+2. **Check the project.** The project is `nezu-games` (`.firebaserc`, `src/lib/firebase.ts`). The old `mario-s-grid` project is no longer used.
 3. **Turn on App Check** (Play Integrity for Android, App Attest for iOS) so only your genuine app can call
    Firestore. Needs `@react-native-firebase/app-check` and a development build.
 4. **Optional, stronger anti-cheat:** rules cannot prove a score is real. A Cloud Function that receives the

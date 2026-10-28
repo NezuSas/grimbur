@@ -1,7 +1,7 @@
 import { collection, doc, getDoc, getDocs, limit, orderBy, query, setDoc, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { checkName } from '../core/leaderboard/validation';
-import { DailySubmission, dailyDocId, validateDaily, weekKey } from '../core/leaderboard/daily';
+import { DailySubmission, dailyDocId, validateDaily, weekDays } from '../core/leaderboard/daily';
 import { rankRows } from '../core/leaderboard/threshold';
 import { getPlayerId } from './playerProfile';
 
@@ -35,12 +35,9 @@ export type SubmitOutcome = 'saved' | 'not-better';
 export async function submitDailyScore(result: DailyResult, name: string): Promise<SubmitOutcome> {
   const checked = checkName(name);
   if (!checked.ok) throw new Error(`[daily] rejected name (${checked.reason})`);
-  const week = weekKey(result.day);
-  if (!week) throw new Error('[daily] not a day');
   const pid = await getPlayerId();
   const row: DailySubmission = {
     day: result.day,
-    week,
     pid,
     name: checked.name,
     level: Math.min(10, Math.max(1, Math.round(result.level))),
@@ -59,8 +56,9 @@ export async function submitDailyScore(result: DailyResult, name: string): Promi
   return 'saved';
 }
 
-async function load(field: 'day' | 'week', value: string): Promise<BoardDoc[]> {
-  const q = query(collection(db, COLLECTION), where(field, '==', value), orderBy('score', 'desc'), limit(20));
+async function load(days: string[]): Promise<BoardDoc[]> {
+  if (days.length === 0) return [];
+  const q = query(collection(db, COLLECTION), days.length === 1 ? where('day', '==', days[0]) : where('day', 'in', days), orderBy('score', 'desc'), limit(20));
   const snap = await withTimeout(getDocs(q), 'load');
   const docs: BoardDoc[] = snap.docs.map(d => ({ id: d.id, data: () => d.data() as BoardRow }));
   // Ties on score: the faster run first.
@@ -68,7 +66,7 @@ async function load(field: 'day' | 'week', value: string): Promise<BoardDoc[]> {
 }
 
 /** The best results of a day (up to 20). Throws when the network fails. */
-export const loadDayBoard = (day: string): Promise<BoardDoc[]> => load('day', day);
+export const loadDayBoard = (day: string): Promise<BoardDoc[]> => load([day]);
 
-/** The best results of an ISO week (up to 20). Throws when the network fails. */
-export const loadWeekBoard = (week: string): Promise<BoardDoc[]> => load('week', week);
+/** The best results of the ISO week a day belongs to (up to 20). Throws when the network fails. */
+export const loadWeekBoard = (day: string): Promise<BoardDoc[]> => load(weekDays(day));

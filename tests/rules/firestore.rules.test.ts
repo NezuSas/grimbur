@@ -8,7 +8,7 @@
  */
 import { readFileSync } from 'fs';
 import { RulesTestEnvironment, assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
+import { type DocumentReference, addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, setDoc, updateDoc, where } from 'firebase/firestore';
 
 let env: RulesTestEnvironment;
 
@@ -25,13 +25,20 @@ const db = () => env.unauthenticatedContext().firestore() as never;
 const authed = (uid: string) => env.authenticatedContext(uid).firestore() as never;
 const scores = (d: never = authed(UID)) => collection(d, 'highscores');
 
+const mine = (uid = UID) => doc(authed(uid), 'highscores', uid);
+
 describe('highscores: create', () => {
-  it('accepts a well-formed score from a signed-in player', async () => {
-    await assertSucceeds(addDoc(scores(), good));
+  it('accepts a well-formed score from a signed-in player, in the row of their own uid', async () => {
+    await assertSucceeds(setDoc(mine(), good));
   });
 
   it('rejects a write without sign-in', async () => {
-    await assertFails(addDoc(collection(db(), 'highscores'), good));
+    await assertFails(setDoc(doc(db(), 'highscores', UID), good));
+  });
+
+  it("rejects rows under a random id or under somebody else's uid (one row per player)", async () => {
+    await assertFails(addDoc(scores(), good));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'highscores', UID), good));
   });
 
   it.each([
@@ -40,7 +47,7 @@ describe('highscores: create', () => {
     ['a score above what the floors allow', { ...good, score: 5 * 20000 + 1 }],
     ['a negative score', { ...good, score: -1 }],
     ['a fractional score', { ...good, score: 10.5 }],
-    ['a floor beyond 12', { ...good, level: 13 }],
+    ['a floor beyond 10', { ...good, level: 11 }],
     ['too many gems', { ...good, coins: 5 * 8 + 1 }],
     ['an unknown hero', { ...good, characterIndex: 6 }],
     ['a run too fast for its floors', { ...good, level: 10, score: 100, coins: 1, time: 3 }],
@@ -51,7 +58,7 @@ describe('highscores: create', () => {
     ['a direction-changing character in the name', { ...good, name: 'ab‮cd' }],
     ['a number as name', { ...good, name: 5 }],
   ])('rejects %s', async (_label, data) => {
-    await assertFails(addDoc(scores(), data as never));
+    await assertFails(setDoc(mine(), data as never));
   });
 });
 
@@ -62,14 +69,17 @@ describe('highscores: read, update, delete', () => {
     await assertFails(getDocs(query(scores())));
   });
 
-  it('never edits or deletes a row', async () => {
-    let id = '';
-    await env.withSecurityRulesDisabled(async ctx => {
-      const ref = await addDoc(collection(ctx.firestore(), 'highscores'), good);
-      id = ref.id;
-    });
-    await assertFails(updateDoc(doc(authed(UID), 'highscores', id), { score: 1 }));
-    await assertFails(deleteDoc(doc(authed(UID), 'highscores', id)));
+  it('a player only raises their own row, never lowers it, never deletes it', async () => {
+    await assertSucceeds(setDoc(mine(), good));
+    await assertSucceeds(setDoc(mine(), { ...good, score: 5000 }));
+    await assertFails(setDoc(mine(), { ...good, score: 4000 }));
+    await assertFails(updateDoc(mine(), { score: 1 }));
+    await assertFails(deleteDoc(mine()));
+  });
+
+  it("nobody edits another player's row", async () => {
+    await assertSucceeds(setDoc(mine(), good));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'highscores', UID), { ...good, score: 99999 }));
   });
 });
 
@@ -116,7 +126,7 @@ describe('daily and weekly scores', () => {
   const pid = UID;
   const dayKey = (offsetDays: number) => new Date(Date.now() + offsetDays * 86400000).toISOString().slice(0, 10);
   const today = dayKey(0);
-  const entry = (patch: Record<string, unknown> = {}) => ({ day: today, week: '2026-W42', pid, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, ...patch });
+  const entry = (patch: Record<string, unknown> = {}) => ({ day: today, pid, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, ...patch });
   const entryRef = (day = today, p = pid, asUid = p) => doc(authed(asUid), 'daily_scores', `${day}_${p}`);
 
   it('accepts a result for today, yesterday and tomorrow (local days differ from the server day)', async () => {
@@ -153,7 +163,7 @@ describe('daily and weekly scores', () => {
   const bad: [string, Record<string, unknown>, string?][] = [
     ['a day far from today', { day: '2020-01-01' }],
     ['a document id that does not match', {}, 'wrong-id'],
-    ['a made-up week', { week: 'week 42' }],
+    ['a week field (the weekly board reads the days)', { week: '2026-W42' }],
     ['a bad player id', { pid: 'short' }],
     ['a floor beyond 10', { level: 11, score: 100, coins: 1, time: 100 }],
     ['a score above what the floors allow', { score: 6 * 20000 + 1 }],
@@ -175,7 +185,7 @@ describe('daily and weekly scores', () => {
     });
     const col = collection(db(), 'daily_scores');
     await assertSucceeds(getDocs(query(col, where('day', '==', today), orderBy('score', 'desc'), limit(20))));
-    await assertSucceeds(getDocs(query(col, where('week', '==', '2026-W42'), orderBy('score', 'desc'), limit(20))));
+    await assertSucceeds(getDocs(query(col, where('day', 'in', [dayKey(-1), today, dayKey(1)]), orderBy('score', 'desc'), limit(20))));
     await assertFails(getDocs(query(col, where('day', '==', today), orderBy('score', 'desc'), limit(21))));
     await assertFails(getDocs(query(col)));
     await assertSucceeds(getDoc(doc(db(), 'daily_scores', `${today}_${pid}`)));
@@ -280,19 +290,75 @@ describe('friend challenges', () => {
 describe('live duels', () => {
   const pid = UID;
   const code = 'ABCD2345';
-  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, stake: 0, updatedAt: serverTimestamp(), ...patch });
+  // A lobby write stamps `startedAt`; once the run starts the app merges its writes and leaves it alone (`run`).
+  const entry = (patch: Record<string, unknown> = {}) => ({ code, pid, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, stake: 0, startedAt: serverTimestamp(), updatedAt: serverTimestamp(), ...patch });
+  const run = (patch: Record<string, unknown>) => {
+    const { startedAt: _ignored, ...rest } = entry(patch);
+    return rest;
+  };
+  const merge = (r: DocumentReference, data: Record<string, unknown>) => setDoc(r, data, { merge: true });
+  /** The room of a code, with its stake, written by the creator. */
+  const openRoom = async (c = code, stake = 0) => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'duels', c), { code: c, host: pid, stake, createdAt: new Date() });
+    });
+  };
+  /** This player's document as it is `secondsAgo` after the start (written with the rules off: the emulator cannot wait). */
+  const startedAgo = async (secondsAgo: number, patch: Record<string, unknown> = {}) => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'duel_players', `${code}_${pid}`), { ...run({ state: 'playing' }), startedAt: new Date(Date.now() - secondsAgo * 1000), updatedAt: new Date(), ...patch });
+    });
+  };
+  beforeEach(async () => openRoom());
   const ref = (c = code, p = pid) => doc(authed(p), 'duel_players', `${c}_${p}`);
 
-  it('a player joins and then keeps updating their own state', async () => {
-    await assertSucceeds(setDoc(ref(), entry()));
-    await assertSucceeds(setDoc(ref(), entry({ state: 'ready' })));
-    await assertSucceeds(setDoc(ref(), entry({ state: 'playing', level: 3, score: 1200 })));
-    await assertSucceeds(setDoc(ref(), entry({ state: 'done', level: 4, score: 2000, time: 300 })));
+  it('a player joins, gets ready, starts and keeps updating their own state', async () => {
+    await assertSucceeds(merge(ref(), entry()));
+    await assertSucceeds(merge(ref(), entry({ state: 'ready' })));
+    await assertSucceeds(merge(ref(), entry({ state: 'lobby' }))); // "not ready any more"
+    await assertSucceeds(merge(ref(), run({ state: 'playing' })));
+    await startedAgo(60, { level: 2, score: 300 });
+    await assertSucceeds(merge(ref(), run({ state: 'playing', level: 3, score: 1200 })));
+    await assertSucceeds(merge(ref(), run({ state: 'done', level: 4, score: 2000, time: 300 })));
     await assertFails(deleteDoc(ref()));
   });
 
+  it('enters the room in the lobby, never straight into a run', async () => {
+    const other = 'H000000000000000';
+    await assertFails(merge(doc(authed(other), 'duel_players', `${code}_${other}`), entry({ pid: other, state: 'playing' })));
+    await assertFails(merge(doc(authed(other), 'duel_players', `${code}_${other}`), entry({ pid: other, state: 'done', level: 10, score: 5000, victory: true })));
+  });
+
+  it('a state never goes back, floor and score never go down, and done is final', async () => {
+    await startedAgo(60, { level: 3, score: 900 });
+    await assertFails(merge(ref(), entry({ state: 'lobby' })));
+    await assertFails(merge(ref(), run({ state: 'playing', level: 2, score: 900 })));
+    await assertFails(merge(ref(), run({ state: 'playing', level: 3, score: 800 })));
+    await assertSucceeds(merge(ref(), run({ state: 'done', level: 3, score: 900, time: 60 })));
+    await assertSucceeds(merge(ref(), run({ state: 'done', level: 3, score: 900, time: 60 }))); // the retry of the same end
+    await assertFails(merge(ref(), run({ state: 'done', level: 4, score: 1500, time: 70 })));
+    await assertFails(merge(ref(), run({ state: 'playing', level: 3, score: 900 })));
+  });
+
+  it('refuses a floor there was no time to reach, and a victory before the last floor', async () => {
+    await startedAgo(10);
+    await assertFails(merge(ref(), run({ state: 'playing', level: 10, score: 1000 })));
+    await assertFails(merge(ref(), run({ state: 'done', level: 2, score: 100, victory: true, time: 10 })));
+    await assertSucceeds(merge(ref(), run({ state: 'playing', level: 2, score: 100 })));
+  });
+
+  it('the start time cannot be moved once the run has begun', async () => {
+    await startedAgo(60);
+    await assertFails(merge(ref(), entry({ state: 'playing', level: 2, score: 100 })));
+  });
+
+  it('a player in the lobby has played nothing', async () => {
+    await assertFails(merge(ref(), entry({ level: 5, score: 1000 })));
+    await assertFails(merge(ref(), entry({ state: 'ready', victory: true })));
+  });
+
   it("refuses a write without sign-in, and sabotaging a rival's document", async () => {
-    await assertSucceeds(setDoc(ref(), entry({ state: 'playing', level: 3, score: 1200 })));
+    await assertSucceeds(merge(ref(), entry()));
     await assertFails(setDoc(doc(db(), 'duel_players', `${code}_${pid}`), entry({ state: 'done' })));
     // The classic grief: writing `done` with a losing score into the rival's document.
     await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'duel_players', `${code}_${pid}`), entry({ state: 'done', level: 1, score: 0, time: 1 })));
@@ -317,15 +383,32 @@ describe('live duels', () => {
     await assertFails(setDoc(doc(authed(owner), 'duel_players', `${c}_${owner}`), entry({ pid: owner, ...patch })));
   });
 
-  it('the stake can change in the lobby but not once the run has begun', async () => {
+  it("every player plays for the room's stake: nobody who joins can raise it", async () => {
+    const big = 'BCDF2345';
+    await openRoom(big, 50);
     const owner = `G${'0'.repeat(14)}K`;
-    const r = doc(authed(owner), 'duel_players', `${code}_${owner}`);
-    const mine = (patch: Record<string, unknown>) => entry({ pid: owner, ...patch });
-    await assertSucceeds(setDoc(r, mine({ stake: 0 })));
-    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'ready' })));
-    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'playing', level: 2, score: 100 })));
-    await assertFails(setDoc(r, mine({ stake: 0, state: 'playing', level: 2, score: 100 })));
-    await assertSucceeds(setDoc(r, mine({ stake: 50, state: 'done', level: 3, score: 300, time: 60 })));
+    const r = doc(authed(owner), 'duel_players', `${big}_${owner}`);
+    await assertFails(setDoc(r, entry({ code: big, pid: owner, stake: 5000 })));
+    await assertSucceeds(setDoc(r, entry({ code: big, pid: owner, stake: 50 })));
+    await assertFails(setDoc(r, entry({ code: big, pid: owner, stake: 100000, state: 'ready' })));
+  });
+
+  it('a room without its stake document cannot be joined', async () => {
+    const owner = `J${'0'.repeat(15)}`;
+    await assertFails(setDoc(doc(authed(owner), 'duel_players', `NRRM2345_${owner}`), entry({ code: 'NRRM2345', pid: owner })));
+  });
+
+  it('the room is written once by its creator and never changed', async () => {
+    const c = 'NEWR2345';
+    const room = (patch: Record<string, unknown> = {}) => ({ code: c, host: pid, stake: 100, createdAt: serverTimestamp(), ...patch });
+    await assertFails(setDoc(doc(db(), 'duels', c), room()));
+    await assertFails(setDoc(doc(authed(pid), 'duels', c), room({ host: 'VANDAL0000000000' })));
+    await assertFails(setDoc(doc(authed(pid), 'duels', c), room({ stake: 100001 })));
+    await assertSucceeds(setDoc(doc(authed(pid), 'duels', c), room()));
+    await assertSucceeds(getDoc(doc(db(), 'duels', c)));
+    await assertFails(setDoc(doc(authed(pid), 'duels', c), room({ stake: 1 })));
+    await assertFails(deleteDoc(doc(authed(pid), 'duels', c)));
+    await assertFails(getDocs(collection(db(), 'duels')));
   });
 
   it('a document id that does not match is refused', async () => {
@@ -334,7 +417,7 @@ describe('live duels', () => {
 
   it('lists at most 4 rows of a room and reads single documents, without sign-in', async () => {
     await env.withSecurityRulesDisabled(async ctx => {
-      await setDoc(doc(ctx.firestore(), 'duel_players', `${code}_${pid}`), { ...entry(), updatedAt: new Date() });
+      await setDoc(doc(ctx.firestore(), 'duel_players', `${code}_${pid}`), { ...entry(), startedAt: new Date(), updatedAt: new Date() });
     });
     const col = collection(db(), 'duel_players');
     await assertSucceeds(getDocs(query(col, where('code', '==', code), limit(4))));

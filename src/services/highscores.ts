@@ -8,7 +8,7 @@ import {
   collection,
   doc,
   setDoc,
-  DocumentReference,
+  getDoc,
   getDocs,
   orderBy,
   limit,
@@ -31,14 +31,6 @@ export type Doc = { id: string; data: () => HighscoreRow };
 const REQUEST_TIMEOUT_MS = 8000;
 /** The cached top-10 threshold is re-fetched after this long. */
 const THRESHOLD_TTL_MS = 60_000;
-
-/**
- * A submission keeps one document id for as long as it is being retried. If the first attempt times out
- * but still reaches the server, the retry rewrites the same document instead of creating a duplicate row.
- */
-const pendingRefs = new Map<string, DocumentReference>();
-const pendingRetried = new Set<string>();
-const submissionKey = (r: HighscoreRow) => [r.name, r.score, r.level, r.coins, r.characterIndex, r.time].join('|');
 
 let cachedThreshold: { value: Threshold; at: number } | null = null;
 
@@ -103,35 +95,28 @@ export async function prefetchLeaderboardThreshold(): Promise<void> {
   }
 }
 
+/**
+ * Saves a run on the global board. A player has one row, keyed by their auth uid (firestore.rules lets only them write it, and only
+ * with a higher score): a run that does not beat the player's own row is not sent. Retrying after a timeout rewrites the same
+ * document, so it never makes a duplicate.
+ */
 export async function addHighscore(row: HighscoreRow): Promise<void> {
   cachedThreshold = null; // the board is about to change
-  await ensureSignedIn(); // the rules only accept writes from a signed-in (anonymous) player
+  const uid = await ensureSignedIn(); // the rules only accept writes from a signed-in (anonymous) player, to their own row
 
   // Guard: time is at least 1 second (avoids 00:00 entries) and always an integer.
   const safeTime = Number.isFinite(row.time) ? Math.max(Math.round(row.time), 1) : 1;
   const nameCheck = checkName(row.name);
   if (!nameCheck.ok) throw new Error(`[Highscores] Rejected name (${nameCheck.reason})`);
 
-  const safeRow: HighscoreRow = { ...row, name: nameCheck.name, time: safeTime };
+  const safeRow: HighscoreRow = { ...row, level: Math.min(10, Math.max(1, Math.round(row.level))), name: nameCheck.name, time: safeTime };
   const problems = validateSubmission(safeRow);
   if (problems.length > 0) throw new Error(`[Highscores] Invalid submission: ${problems.join(", ")}`);
 
-  const key = submissionKey(safeRow);
-  const ref = pendingRefs.get(key) ?? doc(collection(db, "highscores"));
-  pendingRefs.set(key, ref);
-  try {
-    await withTimeout(setDoc(ref, safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
-    pendingRefs.delete(key);
-  } catch (e) {
-    // A retry after the row already landed is rejected by the rules (no updates). That means it is saved.
-    if ((e as { code?: string })?.code === "permission-denied" && pendingRefs.has(key) && pendingRetried.has(key)) {
-      pendingRefs.delete(key);
-      pendingRetried.delete(key);
-      return;
-    }
-    pendingRetried.add(key);
-    throw e;
-  }
+  const ref = doc(db, "highscores", uid);
+  const existing = await withTimeout(getDoc(ref), REQUEST_TIMEOUT_MS, "readOwnRow");
+  if (existing.exists() && Number(existing.data()?.score) >= safeRow.score) return; // the player's best is already there
+  await withTimeout(setDoc(ref, safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
 }
 
 /**
