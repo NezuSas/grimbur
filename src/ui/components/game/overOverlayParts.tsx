@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated } from "react-native";
 import Text from "../Text";
 import type { EntityType } from '../../../core/engine/types';
+import { formatNumberNow } from '../../../i18n/useT';
 
 export const KILLERS: Partial<Record<EntityType, number>> = {
   enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
@@ -46,7 +47,7 @@ export const CountedScore = ({ score, active, calm, style }: { score: number; ac
   const shown = useCountUp(score, active, calm ? 0 : 800, 420);
   return (
     <Text style={style} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-      {shown.toLocaleString()}
+      {formatNumberNow(shown)}
     </Text>
   );
 };

@@ -257,7 +257,7 @@ const GameOverOverlay = ({
     if (!def) return id;
     return def.metric === 'wins' || def.metric === 'daily'
       ? plural(`mission.desc.${def.metric}` as never, def.target, { n: def.target })
-      : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target.toLocaleString() });
+      : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target });
   };
 
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
@@ -385,8 +385,8 @@ const GameOverOverlay = ({
             {(endless
               ? t('over.bestFloor', { floor: bestScore })
               : dailyLabel
-              ? t('over.bestToday', { score: bestScore.toLocaleString() })
-              : t('over.best', { score: bestScore.toLocaleString() })
+              ? t('over.bestToday', { score: bestScore })
+              : t('over.best', { score: bestScore })
             ).toLocaleUpperCase()}
           </Text>
         ) : null}

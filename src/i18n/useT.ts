@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { getLocales } from 'expo-localization';
 import { en, TranslationKey } from './en';
 import { es } from './es';
-import { createTranslator, resolveLanguage, Language, Params } from './translate';
+import { createTranslator, formatNumber, resolveLanguage, Language, Params } from './translate';
 import { useSettingsStore } from '../state/settings/store';
 
 const dictionaries: Record<Language, Record<TranslationKey, string>> = { en, es };
@@ -27,9 +27,14 @@ export function useT() {
   const language = resolveLanguage(preference, preference === 'auto' ? getDeviceLanguageCode() : null);
 
   return useMemo(
-    () => ({ language, ...createTranslator<TranslationKey>(dictionaries, language) }),
+    () => ({ language, ...createTranslator<TranslationKey>(dictionaries, language), n: (value: number) => formatNumber(value, language) }),
     [language],
   );
+}
+
+/** `formatNumber` bound to the current language choice, for code outside React (share cards, messages). */
+export function formatNumberNow(value: number): string {
+  return formatNumber(value, resolveLanguage(useSettingsStore.getState().language, getDeviceLanguageCode()));
 }
 
 /** For code outside React (e.g. building a share message). */

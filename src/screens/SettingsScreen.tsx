@@ -515,7 +515,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
             {pending ? (
               <View style={styles.confirmBox}>
                 <Text style={styles.confirmText} maxFontSizeMultiplier={1.3}>
-                  {t("backup.summary", { runs: pending.runs, score: pending.bestScore.toLocaleString(), embers: pending.embers, achievements: pending.achievements })}
+                  {t("backup.summary", { runs: pending.runs, score: pending.bestScore, embers: pending.embers, achievements: pending.achievements })}
                 </Text>
                 <Text style={styles.confirmWarn} maxFontSizeMultiplier={1.3}>
                   {t("backup.warn")}

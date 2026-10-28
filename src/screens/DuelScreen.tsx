@@ -36,7 +36,7 @@ const TINT = "#FF8A80";
  * ready, a short countdown starts the same cave on every phone. A stake is paid when the cave starts; the winner takes the pot.
  */
 const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const code = route.params?.code ?? null;
   const heroIndex = route.params?.characterIndex ?? null;
   const creatorStake = route.params?.stake;
@@ -196,7 +196,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           started.current = false;
           setReady(false);
           setCount(null);
-          setProblem(t("duel.stakeShort", { n: stake.toLocaleString() }));
+          setProblem(t("duel.stakeShort", { n: stake }));
           return;
         }
         navigation.replace("GameScreen", {
@@ -219,7 +219,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const onReady = () => {
     if (!canPay) {
-      setProblem(t("duel.stakeShort", { n: myStake.toLocaleString() }));
+      setProblem(t("duel.stakeShort", { n: myStake }));
       return;
     }
     setReady(true);
@@ -291,14 +291,14 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.hint}>{t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}</Text>
                     {myStake > 0 ? (
                       <View style={styles.stakeBox}>
-                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}><EmberIcon size={13} /> {t("duel.stakeRoom", { n: myStake.toLocaleString() })}</Text>
-                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? <>{"  ·  "}<GlyphIcon name="trophy" size={12} /> {pot.toLocaleString()}</> : ""}</Text>
+                        <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}><EmberIcon size={13} /> {t("duel.stakeRoom", { n: myStake })}</Text>
+                        <Text style={styles.stakeSub} maxFontSizeMultiplier={1.2}>{t("duel.stakeHint", { fee: DUEL_FEE_PERCENT })}{pot > 0 ? <>{"  ·  "}<GlyphIcon name="trophy" size={12} /> {n(pot)}</> : ""}</Text>
                       </View>
                     ) : null}
                     {room.full ? <Text style={styles.error}>{t("duel.full")}</Text> : null}
                     {underway && !ready ? <Text style={styles.error}>{t("duel.underway")}</Text> : null}
                     {!stakeKnown ? <Text style={styles.hint}>{t("duel.waitingHost")}</Text> : null}
-                    {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake.toLocaleString() })}</Text> : null}
+                    {!canPay ? <Text style={styles.error}>{t("duel.stakeShort", { n: myStake })}</Text> : null}
                     {!stakeAllowed ? <Text style={styles.error}>{t("duel.stakeLocked")}</Text> : null}
                     {problem ? <Text style={styles.error} accessibilityLiveRegion="polite">{problem}</Text> : null}
                     {count !== null ? (

@@ -59,9 +59,9 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
   const [room, setRoom] = useState<Room>(EMPTY_ROOM);
   const [wallNow, setWallNow] = useState(() => Date.now());
   /** The server time of our last write and the phone's clock when it landed: the duel's clock keeps ticking from there. */
-  const [anchor, setAnchor] = useState<{ server: number; wall: number } | null>(null);
+  const anchor = useRef<{ server: number; wall: number } | null>(null);
   /** When this match began on this phone: a member whose document never arrives stops blocking the verdict after a while. */
-  const matchStart = useRef(Date.now());
+  const [matchStart] = useState(() => Date.now());
   const [prize, setPrize] = useState(0);
   const [offline, setOffline] = useState(false);
   const lastSent = useRef({ level: 0, score: -1, at: 0 });
@@ -112,7 +112,11 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
     let cancelled = false;
     void getPlayerId().then(id => {
       if (cancelled) return;
-      off = watchRoom(code, id, setRoom, e => console.warn("[duel] room error:", e));
+      off = watchRoom(code, id, r => {
+        // The clock's anchor moves with every write of ours that lands; between writes (and after the last one) it ticks on its own.
+        if (r.serverNow !== null && r.serverNow !== anchor.current?.server) anchor.current = { server: r.serverNow, wall: Date.now() };
+        setRoom(r);
+      }, e => console.warn("[duel] room error:", e));
     });
     const tick = setInterval(() => setWallNow(Date.now()), 3000);
     return () => {
@@ -121,11 +125,6 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
       clearInterval(tick);
     };
   }, [code]);
-
-  // The clock's anchor moves with every write of ours that lands; between writes (and after the last one) it ticks on its own.
-  useEffect(() => {
-    if (room.serverNow !== null) setAnchor({ server: room.serverNow, wall: Date.now() });
-  }, [room.serverNow]);
 
   // Publishing: the start, every change (spaced out), the heartbeat and the end.
   useEffect(() => {
@@ -158,7 +157,7 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
 
   // Rivals: only the players of this match. Time is the server's (this player's own last write), so a wrong clock changes nothing.
   const members = new Set(memberKey ? memberKey.split(",") : []);
-  const now = duelNow(anchor?.server ?? null, anchor?.wall ?? 0, wallNow);
+  const now = duelNow(anchor.current?.server ?? null, anchor.current?.wall ?? 0, wallNow);
   const mine = room.rivals.filter(r => members.has(r.pid));
   const rivals: RivalView[] = mine.map(r => ({ pid: r.pid, name: r.name, level: r.level, score: r.score, victory: r.victory, characterIndex: r.characterIndex, status: rivalStatus(r, r.updatedAt, now) }));
   // A member whose document has not arrived yet still counts as playing (the duel is never decided without them).
@@ -169,7 +168,7 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
     ? duelStanding(me, true, [
         ...mine.map((r, i) => ({ result: { victory: r.victory, level: r.level, score: r.score, time: r.time }, finished: rivals[i].status === "done" || (r.updatedAt !== null && isGone(r.updatedAt, now)) })),
         // A member whose document never arrived stops blocking the verdict once they have been silent a whole "gone" window.
-        ...missing.map(() => ({ result: { victory: false, level: 1, score: 0, time: 0 }, finished: wallNow - matchStart.current > GONE_AFTER_MS })),
+        ...missing.map(() => ({ result: { victory: false, level: 1, score: 0, time: 0 }, finished: wallNow - matchStart > GONE_AFTER_MS })),
       ])
     : null;
 

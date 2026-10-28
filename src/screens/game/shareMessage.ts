@@ -47,7 +47,7 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
       floors: GAME_CONFIG.expedition.floors,
       victory: run.isVictory,
       title: n => t("share.daily.title", { n }),
-      scoreText: t("share.daily.score", { score: run.score.toLocaleString() }),
+      scoreText: t("share.daily.score", { score: run.score }),
       streakText: opts.streak ? plural("over.streak" as never, opts.streak) : "",
       footer: t("share.daily.footer"),
     });
@@ -58,7 +58,7 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
   const depth = depthLabel(opts.ascension, t);
   const lines = [t("share.title", { hero: opts.heroName, depth: depth ? ` · ${depth}` : "" })];
   if (!opts.endless) lines.push(dailyPips(run.level, GAME_CONFIG.expedition.floors, run.isVictory));
-  lines.push(t("share.line", { result: resultOf(run, !!opts.endless, t), score: run.score.toLocaleString(), gems: plural("common.gems" as never, run.totalCoins), time: formatTime(run.time) }));
+  lines.push(t("share.line", { result: resultOf(run, !!opts.endless, t), score: run.score, gems: plural("common.gems" as never, run.totalCoins), time: formatTime(run.time) }));
   lines.push(opts.challengeCode ? t("share.challenge", { code: formatChallengeCode(opts.challengeCode) }) : t("share.invite"));
   lines.push(GAME_CONFIG.store.url);
   return lines.join("\n");

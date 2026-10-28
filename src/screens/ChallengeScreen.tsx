@@ -30,7 +30,7 @@ const TINT = "#4FC3F7";
  * joins one; with a code it shows the code, how to play it and the results of everyone who did.
  */
 const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const code = route.params?.code ?? null;
   const challenge = code ? parseChallengeCode(code) : null;
   const challengeCode = challenge?.code ?? null;
@@ -119,7 +119,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
           </Text>
         </View>
         <Text style={styles.score} numberOfLines={1} adjustsFontSizeToFit>
-          {row.score.toLocaleString()}
+          {n(row.score)}
         </Text>
       </View>
     );

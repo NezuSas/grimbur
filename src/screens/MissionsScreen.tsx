@@ -30,7 +30,7 @@ const TIER_COLOR = { easy: "#81C784", medium: "#4FC3F7", hard: "#FF8A65" } as co
 const daysToMonday = (now: Date): number => 7 - ((now.getDay() + 6) % 7);
 
 const MissionsScreen: React.FC<Props> = ({ navigation }) => {
-  const { t, plural } = useT();
+  const { t, plural, n } = useT();
   const [stats, setStats] = useState<LocalStats>(() => {
     const known = peekLocalStats() ?? EMPTY_STATS;
     // Until the saved ones are read, show what today's missions would be (nothing flashes empty).
@@ -64,7 +64,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-  const text = (def: MissionDef) => (def.metric === "wins" || def.metric === "daily" ? plural(`mission.desc.${def.metric}` as never, def.target, { n: def.target }) : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target.toLocaleString() }));
+  const text = (def: MissionDef) => (def.metric === "wins" || def.metric === "daily" ? plural(`mission.desc.${def.metric}` as never, def.target, { n: def.target }) : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target }));
 
   const rank = rankOf(stats.lifetimeEmbers);
   const rankName = t(`rank.${rank.level}` as TranslationKey);
@@ -90,7 +90,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
               <View style={[styles.fill, { width: `${(shown / def.target) * 100}%`, backgroundColor: done ? "#9EE37D" : color }]} />
             </View>
             <Text style={styles.count} maxFontSizeMultiplier={1.2}>
-              {shown.toLocaleString()}/{def.target.toLocaleString()}
+              {n(shown)}/{def.target}
             </Text>
           </View>
         </View>
@@ -145,10 +145,10 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                   <View style={[styles.fill, { width: `${rank.progress * 100}%`, backgroundColor: GOLD }]} />
                 </View>
                 <Text style={styles.rankNext} maxFontSizeMultiplier={1.2}>
-                  {rank.to === null ? t("missions.rankTop") : t("missions.rankNext", { n: rank.remaining.toLocaleString(), name: nextName })}
+                  {rank.to === null ? t("missions.rankTop") : t("missions.rankNext", { n: rank.remaining, name: nextName })}
                 </Text>
                 <Text style={styles.rankEarned} maxFontSizeMultiplier={1.2}>
-                  {rank.to === null ? t("missions.rankEarned", { earned: rank.earned.toLocaleString() }) : t("missions.rankEarnedOf", { earned: rank.earned.toLocaleString(), to: rank.to.toLocaleString() })}
+                  {rank.to === null ? t("missions.rankEarned", { earned: rank.earned }) : t("missions.rankEarnedOf", { earned: rank.earned, to: rank.to })}
                 </Text>
               </View>
               <Ionicons name={ladder ? "chevron-up" : "chevron-down"} size={22} color="#8f8aab" />
@@ -171,7 +171,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                         {t(`rank.${level}` as TranslationKey)}
                       </Text>
                       <Text style={styles.ladderFrom} maxFontSizeMultiplier={1.2}>
-                        {t("missions.rankFrom", { n: from.toLocaleString() })}
+                        {t("missions.rankFrom", { n: from })}
                       </Text>
                       {reached ? <Ionicons name={current ? "location" : "checkmark"} size={16} color={current ? GOLD : "#9EE37D"} /> : <View style={{ width: 16 }} />}
                     </View>

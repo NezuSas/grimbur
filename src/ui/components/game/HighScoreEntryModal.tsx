@@ -87,7 +87,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
         {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
       </Text>
       <Text style={styles.score} maxFontSizeMultiplier={1.3}>
-        {t('entry.points', { score: score.toLocaleString() })}
+        {t('entry.points', { score: score })}
       </Text>
       <Text style={styles.subtitle} maxFontSizeMultiplier={1.3}>
         {t('entry.subtitle', { floor: level, gems: plural('common.gems', totalCoins), time: formatTime(time) })}
