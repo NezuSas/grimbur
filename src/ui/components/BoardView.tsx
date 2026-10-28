@@ -8,7 +8,6 @@ import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
-import { stepTarget } from "../../core/engine/travel";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
 import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
@@ -412,7 +411,6 @@ const BoardView: React.FC<Props> = memo(
     const heroArt = characterWithSkin(characterIndex, skin);
     const idleSource = heroArt.playerImage;
     const attackSource = heroArt.attackImage;
-    const facingTile = stepTarget(playerIndex, (facingDir || 'RIGHT').toUpperCase() as Direction, rows, cols);
     // While the attack button is held the hero already turns toward the aim and draws the bow.
     const aiming = !!aimDir;
     const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
@@ -463,7 +461,6 @@ const BoardView: React.FC<Props> = memo(
                   aimed={aimTiles && aimTiles.has(i) ? aimDir : null}
                   aimStep={aimTiles && aimTiles.has(i) ? Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) : 0}
                   aimLast={!!aimTiles && aimTiles.has(i) && Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) === aimTiles.size}
-                  facing={i === facingTile ? (facingDir.toUpperCase() as Direction) : null}
                   onTileLoaded={onTileLoaded}
                   pulse={pulse}
                   beat={calm ? undefined : beat}
