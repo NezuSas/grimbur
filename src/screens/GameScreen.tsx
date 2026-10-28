@@ -143,6 +143,8 @@ export default function GameScreen({ navigation, route }: Props) {
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = state.omen;
   const floorBiome = (__DEV__ ? route.params?.devBiome : undefined) ?? biomeFor(state.level, state.mode);
+  // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
+  const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
   // A new cave type is announced on its first floor (the omen, when there is one, takes the banner).
@@ -725,7 +727,7 @@ export default function GameScreen({ navigation, route }: Props) {
             cols={state.cols}
             entityMap={state.entityMap}
             playerIndex={state.playerIndex}
-            visited={state.visited}
+            visited={shownVisited}
             facingDir={state.facingDir}
             characterIndex={characterIndex}
             skin={skin}

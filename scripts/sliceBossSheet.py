@@ -11,7 +11,7 @@ Writes the frames into src/assets/sprites/enemies/ (512px each).
 import os
 import sys
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'src', 'assets', 'sprites', 'enemies')
@@ -21,10 +21,28 @@ PADDING = 0.06
 WHITE_DIST = 60  # how far from pure white still counts as background
 
 
-def white_background_to_alpha(im: Image.Image) -> Image.Image:
-    """Only background connected to the image border becomes transparent: ivory fangs and claws survive."""
+def white_background_to_alpha(im: Image.Image, hole_min_area: int = 0) -> Image.Image:
+    """Only background connected to the image border becomes transparent: ivory fangs and claws survive.
+    With `hole_min_area`, enclosed white pockets at least that big (the gap between an arm and a leg) go too,
+    while small white highlights inside the art stay."""
     rgb = np.asarray(im.convert('RGB'), dtype=np.int16)
     near_white = ((255 - rgb).max(axis=2) <= WHITE_DIST)
+    if hole_min_area:
+        pure = near_white
+        bg = white_background_to_alpha(im).getchannel('A')
+        bg = np.asarray(bg) == 0
+        holes = Image.fromarray(np.where(pure & ~bg, 255, 0).astype(np.uint8), 'L')
+        arr = np.asarray(holes).copy()
+        for y, x in zip(*np.nonzero(arr == 255)):
+            if arr[y, x] != 255:
+                continue
+            region = Image.fromarray(arr).copy()  # Pillow 12 shares the array read-only: fill a real copy
+            ImageDraw.floodfill(region, (int(x), int(y)), 100)
+            filled = np.asarray(region) == 100
+            arr[filled] = 200 if filled.sum() >= hole_min_area else 50
+        rgba = np.asarray(white_background_to_alpha(im)).copy()
+        rgba[arr == 200, 3] = 0
+        return Image.fromarray(rgba, 'RGBA')
     bg = np.zeros_like(near_white)
     bg[0, :] = near_white[0, :]
     bg[-1, :] = near_white[-1, :]
