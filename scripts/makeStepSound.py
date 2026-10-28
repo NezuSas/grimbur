@@ -1,4 +1,7 @@
 """
+SUPERSEDED by scripts/makeStepSound.js, which writes the current, longer footstep. Running this one would bring back the
+0.14 s step that a single step on some Android phones never sounded. Kept for the history of the design below.
+
 Synthesises the footstep (src/assets/sfx/move.wav).
 
   python scripts/makeStepSound.py
