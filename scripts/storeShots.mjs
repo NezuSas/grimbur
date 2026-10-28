@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'docs', 'release', 'store', 'screenshots');
-const BASE = 'http://localhost:8081';
+// The dev harness only exists in a development build: point SHOT_BASE at a dev server when the main one runs --no-dev.
+const BASE = process.env.SHOT_BASE ?? 'http://localhost:8081';
 const WAIT_MS = 180000; // the most to wait: shot.mjs fires as soon as the page has finished loading
 const PARALLEL = 2;
 

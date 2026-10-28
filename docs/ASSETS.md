@@ -36,8 +36,12 @@ sliceIconGrid, buildAppIcons), so every sprite can be rebuilt from its master.
 | tiles/Danger_Vortex.png, tiles/Trap_Sprung.png, assets/emblem.png | props_v1.png |
 | ui/Clue_Guardian.png, ui/Clue_Vortex.png | clues_v1.png |
 | ui/Logo_Grimbur.png | logo_v1.png |
+| ui/Icon_Monster.png (cut from the emblem) | props_v1.png |
+| backgrounds/Cover_Background.png, Bg_Crystal.jpg, Bg_Magma.jpg, Bg_Lair.jpg | bg_cave_v1.png, bg_crystal_v1.png, bg_magma_v1.png, bg_lair_v1.png |
+| characters/{Hero,Attack,Win,Lose,Icon}_{Cyan,Red,Green,Gold,Pink,Orange}.png | hero_{cyan,red,green,gold,pink,orange}_v1.png |
+| skins/** (every outfit) | recoloured from the heroes above by scripts/generateSkins.py |
 
-Earlier art (heroes and outfits, backgrounds, relics, Forge and tool icons, UI glyphs, items) was generated with
+Earlier art still in use (relics, Forge and tool icons, UI glyphs, items) was generated with
 Figma's AI image generation (2026-10-25/26, owner's Figma Pro plan). Keep the generation records with the release
 evidence.
 
