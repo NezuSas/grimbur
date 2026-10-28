@@ -8,6 +8,7 @@ import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 import BossSprite from "./BossSprite";
+import GlyphIcon from "./GlyphIcon";
 
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
 
@@ -23,6 +24,12 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "
 };
 
 /** The second frame of each guardian: generated as one sheet per character, so the pair always matches. */
+/** The painted clue tokens: their shapes match what the manual and the tutorial describe. */
+export const CLUE_ART = {
+  roar: require("../../assets/sprites/ui/Clue_Guardian.png"),
+  vortex: require("../../assets/sprites/ui/Clue_Vortex.png"),
+} as const;
+
 const BREATHE: Record<"enemy" | "stalker" | "sleeper", ImageSourcePropType> = {
   enemy:   require("../../assets/sprites/enemies/Guardian_Enemy_Breathe.png"),
   stalker: require("../../assets/sprites/enemies/Stalker_Enemy_Breathe.png"),
@@ -391,38 +398,20 @@ const GridCell = memo(({
         </View>
       )}
 
-      {/* Clues: a round warm badge for guardians, a dark diamond with a swirl for vortexes. Always numbered; side by side. */}
+      {/* Clues: a round amber token for guardians, a violet diamond for vortexes. Always numbered; side by side. */}
       {showHints && (
         <View style={styles.hintContainer} pointerEvents="none">
-          {compact && roar && (
-            <Animated.View style={[styles.hintRoar, { width: badge, height: badge, borderRadius: badge / 2, borderWidth: 1.5, transform: [{ scale: hintScale }] }]}>
-              <Text style={[styles.hintCountText, styles.hintCompactRoar, { fontSize: countSize }]}>{enemyCount}</Text>
-            </Animated.View>
-          )}
-          {compact && vortex && (
+          {roar && (
             <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
-              <View style={[styles.hintVortexShape, { width: badge * 0.78, height: badge * 0.78, left: badge * 0.11, top: badge * 0.11, borderWidth: 1.5 }]} />
-              <View style={[StyleSheet.absoluteFill, styles.hintVortexIcon]}>
-                <Text style={[styles.hintCountText, { fontSize: countSize }]}>{pitCount}</Text>
-              </View>
-            </Animated.View>
-          )}
-          {!compact && roar && (
-            <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
-              <View style={[styles.hintRoar, { width: badge, height: badge, borderRadius: badge / 2 }]}>
-                <Ionicons name="volume-high" size={badge * 0.62} color="#7f2400" />
-              </View>
+              <SpriteImage source={CLUE_ART.roar} style={{ width: badge, height: badge }} resizeMode="contain" />
               <View style={[styles.hintCount, { minWidth: countSize + 3, height: countSize + 3, borderRadius: (countSize + 3) / 2 }]}>
                 <Text style={[styles.hintCountText, { fontSize: countSize }]}>{enemyCount}</Text>
               </View>
             </Animated.View>
           )}
-          {!compact && vortex && (
+          {vortex && (
             <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
-              <View style={[styles.hintVortexShape, { width: badge * 0.78, height: badge * 0.78, left: badge * 0.11, top: badge * 0.11 }]} />
-              <View style={[StyleSheet.absoluteFill, styles.hintVortexIcon]}>
-                <Ionicons name="infinite" size={badge * 0.62} color="#fff" />
-              </View>
+              <SpriteImage source={CLUE_ART.vortex} style={{ width: badge, height: badge }} resizeMode="contain" />
               <View style={[styles.hintCount, styles.hintCountVortex, { minWidth: countSize + 3, height: countSize + 3, borderRadius: (countSize + 3) / 2 }]}>
                 <Text style={[styles.hintCountText, { fontSize: countSize }]}>{pitCount}</Text>
               </View>
@@ -456,7 +445,7 @@ const GridCell = memo(({
       {flagged && (
         <Animated.View style={[styles.pickup, { transform: [{ translateX: flagShake }] }]} pointerEvents="none">
           <Animated.View style={[styles.flagBlink, { opacity: flagBlink }]} />
-          <Ionicons name="flag" size={tileSize * 0.5} color="#FF5252" />
+          <GlyphIcon name="flag" size={tileSize * 0.58} />
         </Animated.View>
       )}
 
@@ -522,9 +511,6 @@ const styles = StyleSheet.create({
     gap: 3,
     zIndex: 5,
   },
-  hintRoar:   { backgroundColor: "#ffd9a0", borderColor: "#e65100", borderWidth: 2, alignItems: "center", justifyContent: "center" },
-  hintVortexShape: { position: "absolute", backgroundColor: "#4a148c", borderColor: "#e1bee7", borderWidth: 2, borderRadius: 3, transform: [{ rotate: "45deg" }] },
-  hintVortexIcon: { alignItems: "center", justifyContent: "center" },
   hintCount: {
     position: "absolute",
     right: -3,
@@ -538,7 +524,6 @@ const styles = StyleSheet.create({
   },
   hintCountVortex: { borderColor: "#e1bee7" },
   hintCountText: { color: "#fff", fontWeight: "900", includeFontPadding: false },
-  hintCompactRoar: { color: "#7f2400" },
   chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#FFEB3B", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
   chargeMarkText: { color: "#B71C1C", fontWeight: "900", includeFontPadding: false },
   flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(255,23,68,0.55)", borderRadius: 8 },

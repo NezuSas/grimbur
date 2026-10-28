@@ -7,6 +7,7 @@ import RelicIcon from "../../ui/components/RelicIcon";
 import JoystickBase from "../../ui/components/JoystickBase";
 import { ABILITY_ART } from "../../ui/toolArt";
 import { Art, ClueExample } from "../../ui/components/manual/ManualParts";
+import { CLUE_ART } from "../../ui/components/GridCell";
 import { IMG } from "./kit";
 import type { Kit } from "./kit";
 import { manualStyles as styles } from "./styles";
@@ -76,7 +77,7 @@ export const ExplorePane = ({ kit }: { kit: Kit }) => {
         </Text>
       </View>
       {fact("manual.explore.gems", "#4fc3f7", image(IMG.gem, "#4fc3f7"))}
-      {fact("manual.explore.clue", "#ffa726", icon("volume-high", "#ffa726"))}
+      {fact("manual.explore.clue", "#ffa726", image(CLUE_ART.roar, "#ffa726"))}
       <ClueExample hidden={IMG.hidden} revealed={IMG.revealed} caption={t("manual.explore.clue.example")} />
       {fact("manual.explore.pace", "#81c784", icon("footsteps", "#81c784"))}
     </>
@@ -92,16 +93,12 @@ export const HazardsPane = ({ kit }: { kit: Kit }) => {
         <View style={styles.visualItem}>
           <SpriteImage source={IMG.guardian} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.visualText}>{t("manual.hazards.guardian").toLocaleUpperCase()}</Text>
-          <View style={[styles.hintIconContainer, { backgroundColor: "#ffcc80" }]}>
-            <Ionicons name="volume-high" size={16} color="#bf360c" />
-          </View>
+          <SpriteImage source={CLUE_ART.roar} style={styles.clueToken} resizeMode="contain" accessibilityIgnoresInvertColors />
         </View>
         <View style={styles.visualItem}>
           <SpriteImage source={IMG.vortex} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.visualText}>{t("manual.hazards.vortex").toLocaleUpperCase()}</Text>
-          <View style={[styles.hintIconContainer, { backgroundColor: "#9c27b0" }]}>
-            <Ionicons name="infinite" size={16} color="#fff" />
-          </View>
+          <SpriteImage source={CLUE_ART.vortex} style={styles.clueToken} resizeMode="contain" accessibilityIgnoresInvertColors />
         </View>
       </View>
       {fact("manual.hazards.guardianInfo", "#ef5350", image(IMG.guardian, "#ef5350"))}

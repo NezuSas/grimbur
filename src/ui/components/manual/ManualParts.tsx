@@ -3,6 +3,7 @@ import { ImageSourcePropType, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
+import { CLUE_ART } from "../GridCell";
 
 export const CARD = "rgba(18,14,38,0.9)";
 export const BORDER = "rgba(255,255,255,0.09)";
@@ -70,7 +71,7 @@ export const ClueExample = ({ hidden, revealed, caption }: { hidden: ImageSource
         <>
           <SpriteImage source={revealed} style={{ width: S, height: S, position: "absolute" }} resizeMode="stretch" accessibilityIgnoresInvertColors />
           <View style={styles.clueBadge}>
-            <Ionicons name="volume-high" size={16} color="#bf360c" />
+            <SpriteImage source={CLUE_ART.roar} style={{ width: 30, height: 30 }} resizeMode="contain" accessibilityIgnoresInvertColors />
             <View style={styles.clueCount}>
               <Text style={styles.clueCountText}>1</Text>
             </View>
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   example: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 14 },
   exampleText: { flex: 1, color: "#c3bedb", fontSize: 14, lineHeight: 20 },
   q: { color: "#FFD54F", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
-  clueBadge: { width: 30, height: 30, borderRadius: 15, backgroundColor: "#ffcc80", alignItems: "center", justifyContent: "center" },
+  clueBadge: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   clueCount: { position: "absolute", right: -7, bottom: -7, width: 18, height: 18, borderRadius: 9, backgroundColor: "#1a1030", borderWidth: 1.5, borderColor: "#fff", alignItems: "center", justifyContent: "center" },
   clueCountText: { color: "#fff", fontWeight: "900", fontSize: 11 },
   table: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14 },
