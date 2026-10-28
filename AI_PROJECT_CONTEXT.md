@@ -1,65 +1,29 @@
 # AI Project Context
 
-## Project Name
-Grimbur
+Quick orientation for AI coding assistants. The deeper docs are `README.md`, `architecture.md`,
+`GAMEPLAY_SPEC.md`, `TECHNICAL_SPEC.md` and `docs/`.
 
-## Project Type
-Mobile game built with React Native and Expo.
+## What this is
+**Grimbur: Cave of Clues** — a landscape-only mobile deduction roguelite (a modern Hunt the Wumpus).
+Expo SDK 58 · React Native 0.88 · React 19.3 · strict TypeScript · zustand · React Navigation · Firebase (Firestore,
+anonymous auth). English and Spanish via `src/i18n`.
 
-## Purpose
-This project implements a version of the classic Hunt the Wumpus game.
+## Ground rules
+- `src/core/**` is pure and deterministic: no I/O, no `Math.random` (seeded PRNG in `core/random`), no React imports.
+  Side-effects live in hooks/screens/services.
+- Every gameplay change needs a Jest test; run `npm test`, `npm run typecheck`, `npm run lint` before committing
+  (CI runs them on every push, plus `npm run test:rules` against the Firestore emulator — needs Java 17).
+- Firestore writes must satisfy `firestore.rules`; the rules tests in `tests/rules` are the contract.
+- UI text goes through `t()` from `src/i18n/useT` with keys in both `en.ts` and `es.ts`; numeric params are
+  locale-formatted automatically.
+- Animations respect the `reduceFlash` setting (calm mode) from the settings store.
+- Do not rename the EAS slug (`wumpusadventures`), AsyncStorage keys (`wumpus.*`) or sprite filenames: they are
+  stable identifiers kept on purpose after the game was renamed.
 
-## Tech Stack
-- React Native
-- Expo
-- TypeScript
-- Node.js ecosystem
-
-## Repository Structure
-
-Main folders:
-
-src/ → application source code  
-tests/ → automated tests  
-assets/ → images and static resources  
-android/ → android build configuration  
-
-Main entry files:
-
-App.tsx  
-index.ts  
-
-## Git Information
-
-Run the following commands in the terminal and paste the results below:
-
-git config user.name
-git config user.email
-git remote -v
-
-Git user name:
-<PASTE OUTPUT HERE>
-
-Git user email:
-<PASTE OUTPUT HERE>
-
-Repository remote:
-<PASTE OUTPUT HERE>
-
-## Development Rules
-
-- Do not modify project structure without explanation.
-- Follow TypeScript strict typing.
-- Maintain compatibility with Expo.
-- Avoid introducing unnecessary dependencies.
-
-## AI Instructions
-
-Before making changes:
-
-1. Analyze the project structure.
-2. Understand how the game logic works.
-3. Identify main modules in src/.
-4. Document architecture before refactoring.
-
-Do not start refactoring until architecture analysis is complete.
+## Layout (short)
+- `src/core/engine` reducer + board generator + deduction solver · `core/duel` live duels · `core/stats` forge,
+  achievements, missions.
+- `src/screens` orchestrators (`screens/game` is the in-run logic) · `src/ui/components` presentation.
+- `src/services` Firestore, local stats, saved runs, backups · `src/state` zustand stores.
+- `scripts/` art/audio pipelines (Python) and the balance simulator (`npx tsx scripts/simulate.ts`).
+- `docs/release/` store listing, operations guide, release checklist.
