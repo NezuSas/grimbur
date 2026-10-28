@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Pressable, Animated, Easing, useWindowDimensions } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Animated, Easing, useWindowDimensions } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +9,7 @@ import EmberParticles from "./EmberParticles";
 import { useSettingsStore } from "../../state/settings/store";
 import StreakBadge from "./StreakBadge";
 import SpriteImage from "./SpriteImage";
+import PressScale from "./PressScale";
 import { BOSS_FRAMES } from "./BossSprite";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 import { haptic } from "../../shared/haptics";
@@ -95,13 +96,13 @@ const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolea
 
 /** A round icon button with its name underneath: the menu dock. */
 const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string; size: number }) => (
-  <Pressable
+  <PressScale
     onPress={() => {
       haptic.impact();
       emitSound("UI_TAP");
       onPress();
     }}
-    style={({ pressed }) => [styles.dockItem, pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] }]}
+    style={styles.dockItem}
     accessibilityRole="button"
     accessibilityLabel={dot && dotLabel ? `${label}. ${dotLabel}` : label}
   >
@@ -112,7 +113,7 @@ const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: k
     <Text style={[styles.dockLabel, { fontSize: Math.min(11 * ui, Math.max(8.5, size / 4.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
       {label}
     </Text>
-  </Pressable>
+  </PressScale>
 );
 
 /**
@@ -392,9 +393,9 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
-  lockedHint: { color: "#f0ecff", fontSize: 12, fontWeight: "700", textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
+  lockedHint: { color: "#F8F6F3", fontSize: 12, fontWeight: "700", textAlign: "center", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
   tagline: {
-    color: "#f0ecff",
+    color: "#F8F6F3",
     fontWeight: "600",
     fontSize: 13,
     letterSpacing: 1,
@@ -466,9 +467,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#FF4D4D",
     borderWidth: 2,
-    borderColor: "#1a1030",
+    borderColor: "#2A2016",
   },
-  dockLabel: { color: "#e6e1fa", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
+  dockLabel: { color: "#F3EEE8", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
   settings: {
     position: "absolute",
     width: MIN_TOUCH,

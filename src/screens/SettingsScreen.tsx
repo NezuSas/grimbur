@@ -656,7 +656,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("settings.title")} onBack={() => navigation.goBack()} />
 
         {wide ? (
@@ -681,10 +681,10 @@ const styles = StyleSheet.create({
   paneContent: { paddingHorizontal: 14, paddingVertical: 14, alignItems: "center" },
   paneInner: { width: "100%", maxWidth: 640, gap: 16 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
-  tryText: { flex: 1, color: "#b8b4d0", fontSize: 13, fontWeight: "700" },
-  keyLabel: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  tryText: { flex: 1, color: "#D4C2B0", fontSize: 13, fontWeight: "700" },
+  keyLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   keyText: { color: "#FFD54F", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
-  keyLast: { color: "#8f8aab", fontSize: 12, fontWeight: "700", textAlign: "center" },
+  keyLast: { color: "#B99A7C", fontSize: 12, fontWeight: "700", textAlign: "center" },
   notice: { fontSize: 12.5, fontWeight: "700", paddingBottom: 10, paddingHorizontal: 4 },
   noticeOk: { color: "#9ee37d" },
   noticeBad: { color: "#FF8A80" },
@@ -704,12 +704,12 @@ const styles = StyleSheet.create({
   confirmWarn: { color: "#FF8A80", fontSize: 12 },
   infoBox: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 6 },
   infoText: { color: "#b0b0b0", fontSize: 12, flexShrink: 1 },
-  aboutHero: { alignItems: "center", paddingVertical: 20, borderRadius: 18, backgroundColor: "rgba(18,14,38,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
+  aboutHero: { alignItems: "center", paddingVertical: 20, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
   aboutName: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 6 },
   aboutSub: { color: "#fff", fontWeight: "900", fontSize: 14, letterSpacing: 8 },
-  aboutTag: { color: "#a9a3c6", fontSize: 13, fontWeight: "700", marginTop: 8, textAlign: "center", paddingHorizontal: 16 },
+  aboutTag: { color: "#CBB49E", fontSize: 13, fontWeight: "700", marginTop: 8, textAlign: "center", paddingHorizontal: 16 },
   versionPill: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)" },
-  versionText: { color: "#d8d2f0", fontWeight: "800", fontSize: 12.5, letterSpacing: 0.6 },
+  versionText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12.5, letterSpacing: 0.6 },
 });
 
 export default SettingsScreen;

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
 
 export const GOLD = "#FFD54F";
-export const CARD_BG = "rgba(18,14,38,0.9)";
+export const CARD_BG = "rgba(34, 26, 18,0.9)";
 export const CARD_BORDER = "rgba(255,255,255,0.09)";
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   chip: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   rowText: { flex: 1, flexShrink: 1 },
   rowLabel: { color: "#fff", fontWeight: "800", fontSize: 16 },
-  rowHint: { color: "#a9a3c6", fontSize: 12.5, lineHeight: 17, marginTop: 2 },
+  rowHint: { color: "#CBB49E", fontSize: 12.5, lineHeight: 17, marginTop: 2 },
   rowControl: { marginLeft: 8 },
   rowBody: { paddingLeft: 50 },
   track: { width: 52, height: 30, borderRadius: 15, backgroundColor: "#34324a", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", justifyContent: "center", paddingHorizontal: 2 },
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   segmented: { flexDirection: "row", backgroundColor: "rgba(0,0,0,0.35)", borderRadius: 14, padding: 4, gap: 4 },
   segment: { flex: 1, minHeight: 46, borderRadius: 11, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   segmentActive: { backgroundColor: GOLD },
-  segmentText: { color: "#b9b4d4", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8 },
+  segmentText: { color: "#D6C4B2", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8 },
   segmentTextActive: { color: "#1a1200" },
   action: { width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD, alignItems: "center", justifyContent: "center" },
   actionDanger: { backgroundColor: "rgba(255,82,82,0.14)", borderWidth: 1.5, borderColor: "rgba(255,138,128,0.7)" },

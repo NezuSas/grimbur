@@ -23,7 +23,7 @@ const GOLD = "#FFD54F";
 
 const ModeCard = ({ icon, tint, title, hint, onPress }: { icon: keyof typeof Ionicons.glyphMap; tint: string; title: string; hint: string; onPress: () => void }) => (
   <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={`${title}. ${hint}`} style={({ pressed }) => [styles.cardShadow, { shadowColor: tint }, pressed && { transform: [{ scale: 0.98 }] }]}>
-    <LinearGradient colors={["#2F2458", "#171030"]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={[styles.card, { borderColor: tint }]}>
+    <LinearGradient colors={["#513E2B", "#2A2016"]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={[styles.card, { borderColor: tint }]}>
       <View style={styles.lit} pointerEvents="none" />
       <View style={[styles.medallion, { borderColor: tint, backgroundColor: tint + "26" }]}>
         <Ionicons name={icon} size={30} color={tint} />
@@ -36,7 +36,7 @@ const ModeCard = ({ icon, tint, title, hint, onPress }: { icon: keyof typeof Ion
           {hint}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={22} color="#b9b4d4" />
+      <Ionicons name="chevron-forward" size={22} color="#D6C4B2" />
     </LinearGradient>
   </Pressable>
 );
@@ -58,7 +58,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("friends.title")} subtitle={t("friends.subtitle")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.inner}>
@@ -102,7 +102,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           <Text style={styles.code} numberOfLines={1} maxFontSizeMultiplier={1.2}>{formatChallengeCode(r.code)}</Text>
                           <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.2}>{r.total > 2 ? t("duel.historyPlace", { n: r.placement, total: r.total }) : new Date(r.at).toLocaleDateString()}</Text>
                         </View>
-                        <Text style={[styles.bestValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9ee37d" : "#b9b4d4" }]} maxFontSizeMultiplier={1.2}>
+                        <Text style={[styles.bestValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9ee37d" : "#D6C4B2" }]} maxFontSizeMultiplier={1.2}>
                           {r.stake > 0 ? <><EmberIcon size={11} /> {`${r.net > 0 ? "+" : ""}${n(r.net)}`}</> : "—"}
                         </Text>
                       </View>
@@ -142,7 +142,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           {c.best !== null ? n(c.best) : "—"}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={18} color="#8f8aab" />
+                      <Ionicons name="chevron-forward" size={18} color="#B99A7C" />
                     </Pressable>
                   );
                 })}
@@ -168,17 +168,17 @@ const styles = StyleSheet.create({
   lit: { position: "absolute", top: 0, left: 24, right: 24, height: 2, borderRadius: 1, backgroundColor: "rgba(255,255,255,0.22)" },
   medallion: { width: 56, height: 56, borderRadius: 28, borderWidth: 2.5, alignItems: "center", justifyContent: "center" },
   cardTitle: { fontWeight: "900", fontSize: 16, letterSpacing: 2 },
-  cardHint: { color: "#d7d2ee", fontSize: 13, lineHeight: 18 },
+  cardHint: { color: "#E9E0D7", fontSize: 13, lineHeight: 18 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2, marginTop: 8 },
-  summary: { color: "#d7d2ee", fontWeight: "800", fontSize: 13 },
+  summary: { color: "#E9E0D7", fontWeight: "800", fontSize: 13 },
   outcome: { minWidth: 74, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1.5, alignItems: "center" },
   outcomeText: { fontWeight: "900", fontSize: 11, letterSpacing: 1 },
-  empty: { color: "#9f9abb", fontSize: 13.5, lineHeight: 19 },
+  empty: { color: "#C4AA91", fontSize: 13.5, lineHeight: 19 },
   list: { gap: 8 },
-  row: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,15,40,0.85)" },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingVertical: 8, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(36, 28, 19,0.85)" },
   code: { color: "#fff", fontWeight: "900", fontSize: 18, letterSpacing: 3 },
   rowSub: { color: "#FF9A5C", fontWeight: "800", fontSize: 12 },
   best: { alignItems: "flex-end" },
-  bestLabel: { color: "#8f8aab", fontWeight: "900", fontSize: 10, letterSpacing: 1.5 },
+  bestLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 10, letterSpacing: 1.5 },
   bestValue: { color: "#9ee37d", fontWeight: "900", fontSize: 18 },
 });

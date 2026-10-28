@@ -185,7 +185,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
         <ScreenHeader
           title={t("collection.title")}
           subtitle={t("collection.count", { owned: total.owned, total: total.total })}
@@ -329,7 +329,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               accessibilityLabel={`${skinText(t, shown)}. ${actionLabel}`}
               style={[styles.cta, { backgroundColor: canAct ? accent : "rgba(255,255,255,0.14)" }, canAct && { shadowColor: accent }]}
             >
-              <Text style={[styles.ctaText, !canAct && { color: "#d8d2f0" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+              <Text style={[styles.ctaText, !canAct && { color: "#EAE1D8" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                 {actionLabel.toLocaleUpperCase()}
               </Text>
               {canAct ? <Ionicons name={owned ? "shirt" : "flame"} size={20} color="#111" /> : equipped ? <Ionicons name="checkmark-circle" size={20} color="#9EE37D" /> : null}
@@ -353,14 +353,14 @@ const styles = StyleSheet.create({
   tabTight: { flexDirection: "column", gap: 1, paddingHorizontal: 2, paddingVertical: 3 },
   tabImageTight: { width: 26, height: 26, borderRadius: 13 },
   tabImage: { width: 30, height: 30, borderRadius: 15 },
-  tabCount: { color: "#cfc9e8", fontWeight: "900", fontSize: 12 },
+  tabCount: { color: "#E4D8CD", fontWeight: "900", fontSize: 12 },
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
   chipOn: { backgroundColor: "#E8BA52", borderColor: "#E8BA52" },
-  chipText: { color: "#d8d2f0", fontWeight: "800", fontSize: 12 },
+  chipText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12 },
   chipTextOn: { color: "#1a0f00" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 14 },
-  empty: { color: "#a8a2c4", fontSize: 13, padding: 12 },
+  empty: { color: "#CAB39C", fontSize: 13, padding: 12 },
 
   card: { borderRadius: 16, alignItems: "center", justifyContent: "flex-start", paddingTop: 4, overflow: "hidden" },
   cardName: { color: "#fff", fontWeight: "900", fontSize: 12, marginTop: -2, paddingHorizontal: 4 },
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   tagText: { fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
   lockInfo: { gap: 4, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
   lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
-  lockSub: { color: "#c9c3e6", fontSize: 12 },
+  lockSub: { color: "#E1D4C8", fontSize: 12 },
   lockTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   lockFill: { height: "100%", borderRadius: 3 },
   cta: { minHeight: MIN_TOUCH + 4, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 14, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)", shadowOpacity: 0.7, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 },

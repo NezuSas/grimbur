@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import Rise, { riseDelay } from "../ui/components/Rise";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -72,17 +73,17 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   const m = stats.missions;
   const allClaimed = m.daily.length > 0 && m.daily.every(p => p.claimed);
 
-  const card = (p: MissionProgress) => {
+  const card = (p: MissionProgress, index = 0) => {
     const def = missionDef(p.id);
     if (!def) return null;
     const done = isComplete(p);
     const color = TIER_COLOR[def.tier];
     const shown = Math.min(p.progress, def.target);
     return (
-      <View key={p.id} style={[styles.mission, p.claimed && styles.missionClaimed]}>
+      <Rise key={p.id} delay={riseDelay(index, 80)} style={[styles.mission, p.claimed && styles.missionClaimed]}>
         <View style={[styles.tierBar, { backgroundColor: color }]} />
         <View style={styles.missionBody}>
-          <Text style={[styles.missionText, p.claimed && { color: "#8f8aab" }]} maxFontSizeMultiplier={1.3}>
+          <Text style={[styles.missionText, p.claimed && { color: "#B99A7C" }]} maxFontSizeMultiplier={1.3}>
             {text(def)}
           </Text>
           <View style={styles.barRow}>
@@ -118,13 +119,13 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
             ) : null}
           </TouchableOpacity>
         )}
-      </View>
+      </Rise>
     );
   };
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("missions.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.inner}>
@@ -151,7 +152,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                   {rank.to === null ? t("missions.rankEarned", { earned: rank.earned }) : t("missions.rankEarnedOf", { earned: rank.earned, to: rank.to })}
                 </Text>
               </View>
-              <Ionicons name={ladder ? "chevron-up" : "chevron-down"} size={22} color="#8f8aab" />
+              <Ionicons name={ladder ? "chevron-up" : "chevron-down"} size={22} color="#B99A7C" />
             </TouchableOpacity>
             {ladder ? (
               <View style={styles.ladder}>
@@ -167,7 +168,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                       <View style={[styles.ladderBadge, reached && styles.ladderBadgeOn]}>
                         <Text style={[styles.ladderNumber, reached && { color: GOLD }]}>{level}</Text>
                       </View>
-                      <Text style={[styles.ladderName, !reached && { color: "#8f8aab" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      <Text style={[styles.ladderName, !reached && { color: "#B99A7C" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                         {t(`rank.${level}` as TranslationKey)}
                       </Text>
                       <Text style={styles.ladderFrom} maxFontSizeMultiplier={1.2}>
@@ -192,7 +193,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
             <View style={[styles.mission, styles.bonus, m.bonusClaimed && styles.missionClaimed]}>
               <View style={[styles.tierBar, { backgroundColor: GOLD }]} />
               <View style={styles.missionBody}>
-                <Text style={[styles.missionText, m.bonusClaimed && { color: "#8f8aab" }]} maxFontSizeMultiplier={1.3}>
+                <Text style={[styles.missionText, m.bonusClaimed && { color: "#B99A7C" }]} maxFontSizeMultiplier={1.3}>
                   {t("missions.bonus")}
                 </Text>
                 {!allClaimed ? (
@@ -243,7 +244,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const CARD = "rgba(18,14,38,0.9)";
+const CARD = "rgba(34, 26, 18,0.9)";
 const BORDER = "rgba(255,255,255,0.09)";
 
 const styles = StyleSheet.create({
@@ -253,34 +254,34 @@ const styles = StyleSheet.create({
   rankCard: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 18, borderWidth: 1, borderColor: "rgba(255,213,79,0.35)", padding: 16 },
   rankBadge: { width: 68, height: 68, borderRadius: 34, backgroundColor: "rgba(255,213,79,0.16)", borderWidth: 3, borderColor: GOLD, alignItems: "center", justifyContent: "center" },
   rankNumber: { color: GOLD, fontWeight: "900", fontSize: 30 },
-  rankLabel: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  rankLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   rankName: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 1 },
-  rankNext: { color: "#b9b4d4", fontSize: 12.5, fontWeight: "700" },
-  rankEarned: { color: "#8f8aab", fontSize: 11.5, fontWeight: "700" },
+  rankNext: { color: "#D6C4B2", fontSize: 12.5, fontWeight: "700" },
+  rankEarned: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
   ladder: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 12, gap: 6 },
-  ladderInfo: { color: "#c3bedb", fontSize: 13, lineHeight: 19, marginBottom: 4 },
+  ladderInfo: { color: "#DCCCBD", fontSize: 13, lineHeight: 19, marginBottom: 4 },
   ladderRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 12 },
   ladderCurrent: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.45)" },
   ladderBadge: { width: 30, height: 30, borderRadius: 15, borderWidth: 2, borderColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
   ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.14)" },
-  ladderNumber: { color: "#8f8aab", fontWeight: "900", fontSize: 14 },
+  ladderNumber: { color: "#B99A7C", fontWeight: "900", fontSize: 14 },
   ladderName: { flex: 1, color: "#fff", fontWeight: "900", fontSize: 15 },
-  ladderFrom: { color: "#8f8aab", fontSize: 12, fontWeight: "700" },
+  ladderFrom: { color: "#B99A7C", fontSize: 12, fontWeight: "700" },
   sectionHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 10, paddingHorizontal: 4 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
-  refresh: { color: "#8f8aab", fontWeight: "700", fontSize: 12 },
-  empty: { color: "#8f8aab", fontStyle: "italic", paddingHorizontal: 4 },
+  refresh: { color: "#B99A7C", fontWeight: "700", fontSize: 12 },
+  empty: { color: "#B99A7C", fontStyle: "italic", paddingHorizontal: 4 },
   mission: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, overflow: "hidden", paddingRight: 12 },
   missionClaimed: { opacity: 0.6 },
   bonus: { borderColor: "rgba(255,213,79,0.4)" },
   tierBar: { width: 5, alignSelf: "stretch" },
   missionBody: { flex: 1, paddingVertical: 12, gap: 8 },
   missionText: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  bonusHint: { color: "#a9a3c6", fontSize: 12.5 },
+  bonusHint: { color: "#CBB49E", fontSize: 12.5 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   track: { flex: 1, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   fill: { height: "100%", borderRadius: 4 },
-  count: { color: "#cfc9e8", fontWeight: "800", fontSize: 12, minWidth: 54, textAlign: "right" },
+  count: { color: "#E4D8CD", fontWeight: "800", fontSize: 12, minWidth: 54, textAlign: "right" },
   reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,171,64,0.5)", backgroundColor: "rgba(255,171,64,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
   rewardReady: { backgroundColor: GOLD, borderColor: "#FFE082" },
   rewardText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },

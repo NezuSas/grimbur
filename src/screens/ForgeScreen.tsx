@@ -172,7 +172,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
         <ScreenHeader
           title={t("forge.title")}
           subtitle={t("forge.hint")}
@@ -356,7 +356,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   error: { color: "#FF5252", fontWeight: "800", textAlign: "center" },
-  footer: { color: "#8f8aa8", fontSize: 12, textAlign: "center", marginTop: 6 },
+  footer: { color: "#B8997A", fontSize: 12, textAlign: "center", marginTop: 6 },
 
   topRow: { flexDirection: "row", gap: 10 },
   featured: {
@@ -369,32 +369,32 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   featuredReady: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.12)", shadowColor: EMBER, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
-  featuredKicker: { color: "#c9c3e6", fontWeight: "900", letterSpacing: 2, fontSize: 11 },
+  featuredKicker: { color: "#E1D4C8", fontWeight: "900", letterSpacing: 2, fontSize: 11 },
   featuredBody: { flexDirection: "row", gap: 12, alignItems: "center" },
   featuredName: { color: "#fff", fontWeight: "900", fontSize: 20 },
   featuredAll: { color: GOLD, fontWeight: "900", fontSize: 16, textAlign: "center", paddingVertical: 16 },
-  missing: { color: "#a8a2c4", fontSize: 12, textAlign: "center" },
+  missing: { color: "#CAB39C", fontSize: 12, textAlign: "center" },
 
   gear: {
     borderRadius: 20,
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.14)",
-    backgroundColor: "rgba(20,15,40,0.88)",
+    backgroundColor: "rgba(36, 28, 19,0.88)",
     padding: 12,
     gap: 5,
   },
   gearTitle: { color: EMBER, fontWeight: "900", letterSpacing: 2, fontSize: 11 },
   gearRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  gearText: { color: "#e8e3fa", fontSize: 13, fontWeight: "700", flexShrink: 1 },
-  gearEmpty: { color: "#a8a2c4", fontSize: 13 },
-  owned: { color: "#8f8aa8", fontSize: 12, fontWeight: "700", marginTop: 2 },
+  gearText: { color: "#F3EEEA", fontSize: 13, fontWeight: "700", flexShrink: 1 },
+  gearEmpty: { color: "#CAB39C", fontSize: 13 },
+  owned: { color: "#B8997A", fontSize: 12, fontWeight: "700", marginTop: 2 },
 
   how: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,171,64,0.3)", backgroundColor: "rgba(255,171,64,0.06)", padding: 10, gap: 8 },
   howHead: { flexDirection: "row", alignItems: "center", gap: 8 },
   howTitle: { color: EMBER, fontWeight: "900", letterSpacing: 1, fontSize: 12, flex: 1 },
   howRow: { flexDirection: "row", gap: 12 },
   howItem: { flex: 1, flexDirection: "row", gap: 8, alignItems: "flex-start" },
-  howText: { flex: 1, color: "#e4defa", fontSize: 12.5 },
+  howText: { flex: 1, color: "#F2ECE6", fontSize: 12.5 },
 
   filters: { alignSelf: "stretch" },
   filtersInner: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 },
@@ -410,14 +410,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   chipOn: { backgroundColor: EMBER, borderColor: EMBER },
-  chipText: { color: "#d8d2f0", fontWeight: "800", fontSize: 13 },
+  chipText: { color: "#EAE1D8", fontWeight: "800", fontSize: 13 },
   chipTextOn: { color: "#1a0f00" },
   chipBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#FF5252", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   chipBadgeText: { color: "#fff", fontSize: 11, fontWeight: "900" },
   readyNote: { color: EMBER, fontWeight: "800", fontSize: 12, marginLeft: 4, flexShrink: 1 },
 
   sectionRow: { flexDirection: "row", gap: 8 },
-  desc: { color: "#cfc9e8", fontSize: 12.5, lineHeight: 17 },
+  desc: { color: "#E4D8CD", fontSize: 12.5, lineHeight: 17 },
   toast: {
     position: "absolute",
     alignSelf: "center",

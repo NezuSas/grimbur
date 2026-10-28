@@ -52,7 +52,9 @@ const StackNavigator: React.FC = () => {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
-          animation: "none",
+          // A short fade between screens instead of a cut (the stack is landscape-only, so a slide would cross the whole phone).
+          animation: "fade",
+          animationDuration: 220,
           contentStyle: { backgroundColor: "#000" },
           // Screens under the one in front stop rendering (their animations and timers stop with them) until they come back.
           freezeOnBlur: true,

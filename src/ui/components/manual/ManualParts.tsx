@@ -5,7 +5,7 @@ import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import { CLUE_ART } from "../GridCell";
 
-export const CARD = "rgba(18,14,38,0.9)";
+export const CARD = "rgba(34, 26, 18,0.9)";
 export const BORDER = "rgba(255,255,255,0.09)";
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -140,21 +140,21 @@ const styles = StyleSheet.create({
   factArt: { paddingTop: 2 },
   factTitleRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   factLabel: { flex: 1, color: "#fff", fontWeight: "900", fontSize: 16 },
-  factDetail: { color: "#c3bedb", fontSize: 14.5, lineHeight: 21 },
+  factDetail: { color: "#DCCCBD", fontSize: 14.5, lineHeight: 21 },
   tag: { maxWidth: 140, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   tagText: { fontWeight: "900", fontSize: 10.5, letterSpacing: 0.8, textAlign: "center" },
   sub: { fontWeight: "900", fontSize: 13, letterSpacing: 2, marginTop: 6 },
   example: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 14 },
-  exampleText: { flex: 1, color: "#c3bedb", fontSize: 14, lineHeight: 20 },
+  exampleText: { flex: 1, color: "#DCCCBD", fontSize: 14, lineHeight: 20 },
   q: { color: "#FFD54F", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
   clueBadge: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
-  clueCount: { position: "absolute", right: -7, bottom: -7, width: 18, height: 18, borderRadius: 9, backgroundColor: "#1a1030", borderWidth: 1.5, borderColor: "#fff", alignItems: "center", justifyContent: "center" },
+  clueCount: { position: "absolute", right: -7, bottom: -7, width: 18, height: 18, borderRadius: 9, backgroundColor: "#2A2016", borderWidth: 1.5, borderColor: "#fff", alignItems: "center", justifyContent: "center" },
   clueCountText: { color: "#fff", fontWeight: "900", fontSize: 11 },
   table: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14 },
   tableRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 11 },
   tableDivider: { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)" },
   tableLabel: { color: "#fff", fontWeight: "800", fontSize: 14.5 },
-  tableNote: { color: "#9d97ba", fontSize: 12, marginTop: 1 },
+  tableNote: { color: "#C2A88F", fontSize: 12, marginTop: 1 },
   value: { minWidth: 70, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1, alignItems: "center" },
   valueText: { fontWeight: "900", fontSize: 14 },
 });

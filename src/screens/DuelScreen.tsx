@@ -246,7 +246,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           <SpriteImage source={hero.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
         ) : (
           <View style={[styles.avatar, styles.avatarEmpty]}>
-            <Ionicons name="hourglass" size={22} color="#8f8aab" />
+            <Ionicons name="hourglass" size={22} color="#B99A7C" />
           </View>
         )}
         <View style={{ flex: 1 }}>
@@ -268,7 +268,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("duel.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {inLobby && challenge ? (
@@ -341,20 +341,20 @@ const styles = StyleSheet.create({
   colMain: { flexGrow: 1, flexBasis: 300, minWidth: 0 },
   colPlayers: { flexGrow: 1, flexBasis: 300, minWidth: 0, gap: 8 },
   cardTitle: { color: TINT, fontWeight: "900", fontSize: 18, letterSpacing: 3, textAlign: "center" },
-  kicker: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
   code: { color: GOLD, fontWeight: "900", fontSize: 36, letterSpacing: 5, textAlign: "center", alignSelf: "stretch" },
-  hint: { color: "#c3bedb", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
+  hint: { color: "#DCCCBD", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
   input: { alignSelf: "stretch", minHeight: 52, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", color: "#fff", fontSize: 22, fontWeight: "900", letterSpacing: 3, textAlign: "center", paddingHorizontal: 12 },
   error: { color: "#FF8A80", fontSize: 12.5, fontWeight: "700", textAlign: "center" },
   count: { color: "#fff", fontWeight: "900", fontSize: 64, textAlign: "center" },
   stakeBox: { alignSelf: "stretch", alignItems: "center", gap: 2, padding: 8, borderRadius: 12, backgroundColor: "rgba(255,171,64,0.12)", borderWidth: 1, borderColor: "rgba(255,171,64,0.5)" },
   stakeText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },
-  stakeSub: { color: "#d7d2ee", fontSize: 12, textAlign: "center" },
-  player: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 2, backgroundColor: "rgba(20,15,40,0.85)", padding: 12 },
+  stakeSub: { color: "#E9E0D7", fontSize: 12, textAlign: "center" },
+  player: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 2, backgroundColor: "rgba(36, 28, 19,0.85)", padding: 12 },
   avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "rgba(255,255,255,0.08)" },
   avatarEmpty: { alignItems: "center", justifyContent: "center" },
-  playerTitle: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  playerTitle: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   playerName: { color: "#fff", fontWeight: "900", fontSize: 17 },
   playerState: { fontWeight: "800", fontSize: 13 },
 });

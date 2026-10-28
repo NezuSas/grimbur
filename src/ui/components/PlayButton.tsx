@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 12,
   },
-  playIcon: { backgroundColor: "#1a1030", alignItems: "center", justifyContent: "center" },
+  playIcon: { backgroundColor: "#2A2016", alignItems: "center", justifyContent: "center" },
   texts: { flex: 1, gap: 1 },
-  title: { color: "#1a1030", fontWeight: "900", letterSpacing: 4 },
+  title: { color: "#2A2016", fontWeight: "900", letterSpacing: 4 },
   subtitle: { color: "rgba(26,16,48,0.82)", fontWeight: "600" },
-  footnote: { color: "#d9d3f0", fontSize: 12, fontWeight: "700", textAlign: "center", letterSpacing: 0.5 },
+  footnote: { color: "#EAE2D9", fontSize: 12, fontWeight: "700", textAlign: "center", letterSpacing: 0.5 },
 });
 
 export default PlayButton;

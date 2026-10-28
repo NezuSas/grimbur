@@ -90,7 +90,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
           { transform: [{ scale: cardScale }], width: cardWidth, maxHeight: (height - insets.top - insets.bottom) * 0.94, borderColor: character.arrowColor, shadowColor: character.arrowColor },
         ]}
       >
-        <LinearGradient colors={["#2B2050", "#181031", "#0F0A22"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />
+        <LinearGradient colors={["#493827", "#2A2017", "#1D160F"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />
         <View style={styles.lit} pointerEvents="none" />
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
           <View style={[styles.row, { padding: compact ? 12 : 20 }, stacked && { flexDirection: "column", gap: 12 }]}>
@@ -169,7 +169,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "rgba(6,4,16,0.94)", justifyContent: "center", alignItems: "center" },
+  container: { flex: 1, backgroundColor: "rgba(13, 10, 7,0.94)", justifyContent: "center", alignItems: "center" },
   card: {
     borderRadius: 32,
     borderWidth: 3,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   statRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 5, gap: 8 },
-  statLabel: { color: "#b9b4d4", fontWeight: "900", letterSpacing: 1, fontSize: 12, flex: 1 },
+  statLabel: { color: "#D6C4B2", fontWeight: "900", letterSpacing: 1, fontSize: 12, flex: 1 },
   statValue: { fontWeight: "900", letterSpacing: 1, fontSize: 18, flexShrink: 1 },
   button: {
     minHeight: MIN_TOUCH,

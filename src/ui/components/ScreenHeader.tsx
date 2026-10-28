@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import PressScale from "./PressScale";
 import Text from "./Text";
 import { Ionicons } from '@expo/vector-icons';
 import { MIN_TOUCH, useGameLayout } from '../layout/useGameLayout';
@@ -26,7 +27,7 @@ const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
 
   return (
     <View style={styles.bar}>
-      <TouchableOpacity
+      <PressScale
         style={[styles.back, { left: side }]}
         onPress={onBack}
         hitSlop={8}
@@ -34,7 +35,7 @@ const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
         accessibilityLabel={t('a11y.back')}
       >
         <Ionicons name="arrow-back" size={24} color="#fff" />
-      </TouchableOpacity>
+      </PressScale>
 
       <View style={[styles.center, { paddingHorizontal: sidePad }]}>
         <Text style={[styles.title, { fontSize: Math.min(fontSize(26), 30) }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center' },
   title: { color: '#fff', fontWeight: '900', letterSpacing: 4, textAlign: 'center' },
   underline: { height: 3, width: 44, borderRadius: 2, backgroundColor: '#FFD54F', marginTop: 4 },
-  subtitle: { color: '#c9c3e6', fontSize: 12, fontWeight: '700', marginTop: 4, textAlign: 'center' },
+  subtitle: { color: '#E1D4C8', fontSize: 12, fontWeight: '700', marginTop: 4, textAlign: 'center' },
   right: { position: 'absolute', zIndex: 2 },
 });
 

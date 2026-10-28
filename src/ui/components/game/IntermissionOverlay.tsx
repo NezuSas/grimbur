@@ -130,7 +130,7 @@ const IntermissionOverlay = ({
               accessibilityState={{ disabled: !canBuy }}
               style={({ pressed }) => [styles.cardShadow, { width: cardWidth, shadowColor: color, opacity: canBuy ? 1 : 0.55 }, pressed && { transform: [{ scale: 0.97 }] }]}
             >
-              <LinearGradient colors={canBuy ? ["#2F2458", "#171030"] : ["#241E3A", "#151024"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.card, { borderColor: canBuy ? color : "#4a4560" }]}>
+              <LinearGradient colors={canBuy ? ["#513E2B", "#2A2016"] : ["#241E3A", "#151024"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.card, { borderColor: canBuy ? color : "#655240" }]}>
               <View style={styles.cardLit} pointerEvents="none" />
               <View style={[styles.artWell, { borderColor: canBuy ? color + "88" : "#4a456088", backgroundColor: canBuy ? color + "1F" : "rgba(255,255,255,0.04)" }]}>
                 <SpriteImage source={SHOP_ART[item]} style={{ width: compact ? 30 : 38, height: compact ? 30 : 38 }} resizeMode="contain" accessibilityIgnoresInvertColors />
@@ -143,8 +143,8 @@ const IntermissionOverlay = ({
                   {desc}
                 </Text>
               )}
-              <View style={[styles.price, { backgroundColor: canBuy ? color : "#4a4560" }]}>
-                <Ionicons name="diamond" size={11} color="#1a1030" />
+              <View style={[styles.price, { backgroundColor: canBuy ? color : "#655240" }]}>
+                <Ionicons name="diamond" size={11} color="#2A2016" />
                 <Text style={styles.priceText} allowFontScaling={false}>
                   {blocked ?? price}
                 </Text>
@@ -188,7 +188,7 @@ const IntermissionOverlay = ({
                   accessibilityRole="radio"
                   accessibilityState={{ selected: on }}
                   accessibilityLabel={`${name}. ${rule}`}
-                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD54F" : "#4a4560", backgroundColor: on ? "rgba(255,215,0,0.14)" : "#1b1530", shadowColor: "#FFD54F", shadowOpacity: on ? 0.5 : 0, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: on ? 8 : 0 }]}
+                  style={[styles.door, { width: doorWidth, borderColor: on ? "#FFD54F" : "#655240", backgroundColor: on ? "rgba(255,215,0,0.14)" : "#1b1530", shadowColor: "#FFD54F", shadowOpacity: on ? 0.5 : 0, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: on ? 8 : 0 }]}
                 >
                   <Ionicons name={on ? "radio-button-on" : "radio-button-off"} size={18} color={on ? "#FFD54F" : "#8d86a8"} />
                   <View style={styles.doorText}>
@@ -224,7 +224,7 @@ export default IntermissionOverlay;
 const styles = StyleSheet.create({
   headerRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   title: { color: "#FFD54F", fontWeight: "900", fontSize: 22, letterSpacing: 3, textShadowColor: "rgba(255,213,79,0.55)", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
-  subtitle: { color: "#bdb8d4", fontSize: 12, textAlign: "center", marginTop: 4 },
+  subtitle: { color: "#D7C6B5", fontSize: 12, textAlign: "center", marginTop: 4 },
   purse: {
     flexDirection: "row",
     alignItems: "center",
@@ -256,9 +256,9 @@ const styles = StyleSheet.create({
   cardLit: { position: "absolute", top: 0, left: 16, right: 16, height: 2, borderRadius: 1, backgroundColor: "rgba(255,255,255,0.22)" },
   artWell: { width: 54, height: 54, borderRadius: 27, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   cardName: { color: "#fff", fontWeight: "900", fontSize: 13, textAlign: "center", alignSelf: "stretch" },
-  cardDesc: { color: "#bdb8d4", fontSize: 11, textAlign: "center" },
+  cardDesc: { color: "#D7C6B5", fontSize: 11, textAlign: "center" },
   price: { flexDirection: "row", alignItems: "center", gap: 3, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 },
-  priceText: { color: "#1a1030", fontWeight: "900", fontSize: 12 },
+  priceText: { color: "#2A2016", fontWeight: "900", fontSize: 12 },
   altar: {
     flexDirection: "row",
     alignItems: "center",
@@ -280,6 +280,6 @@ const styles = StyleSheet.create({
   door: { flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderRadius: 14, padding: 10 },
   doorText: { flex: 1, gap: 2 },
   doorName: { color: "#fff", fontWeight: "900", fontSize: 14 },
-  doorRule: { color: "#bdb8d4", fontSize: 11 },
+  doorRule: { color: "#D7C6B5", fontSize: 11 },
   biome: { color: "#80DEEA", fontWeight: "700", fontSize: 12, textAlign: "center" },
 });

@@ -40,6 +40,7 @@ import { formatChallengeCode } from "../core/challenge/code";
 import { dailyKey } from "../core/engine/seed";
 import { haptic } from "../shared/haptics";
 import type { TranslationKey } from "../i18n/en";
+import PressScale from "../ui/components/PressScale";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
@@ -290,7 +291,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Animated.View pointerEvents="none" style={[styles.heroBox, { height: heroH, width: heroW, bottom: rosterH + 6 }, heroMotion]}>
                   <SpriteImage
                     source={art.playerImage}
-                    style={{ width: "100%", height: "100%", ...(locked ? { tintColor: "#06030f", opacity: 0.92 } : null) }}
+                    style={{ width: "100%", height: "100%", ...(locked ? { tintColor: "#0C0906", opacity: 0.92 } : null) }}
                     resizeMode="contain"
                     accessibilityIgnoresInvertColors
                   />
@@ -472,7 +473,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               accessibilityLabel={locked ? `${name}. ${t("heroes.locked")}. ${unlockText(t, selected)}` : t("heroes.pick", { name })}
               style={[styles.cta, { backgroundColor: ctaDisabled ? "rgba(255,255,255,0.14)" : accent }, !ctaDisabled && { shadowColor: accent }]}
             >
-              <Text style={[styles.ctaText, ctaDisabled && { color: "#d8d2f0" }, { fontSize: Math.round(16 * Math.min(ui, 1.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+              <Text style={[styles.ctaText, ctaDisabled && { color: "#EAE1D8" }, { fontSize: Math.round(16 * Math.min(ui, 1.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                 {(locked ? unlockText(t, selected) || t("heroes.locked") : t("heroes.pick", { name })).toLocaleUpperCase()}
               </Text>
               {!ctaDisabled && <Ionicons name="chevron-forward" size={22} color="#111" />}
@@ -480,7 +481,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </View>
 
-        <TouchableOpacity
+        <PressScale
           style={[styles.backButton, { top: 10, left: 14 }]}
           onPress={() => navigation.goBack()}
           hitSlop={8}
@@ -488,7 +489,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           accessibilityLabel={t("a11y.back")}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
+        </PressScale>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
   panelContentCentered: { flexGrow: 1, justifyContent: "center" },
   kickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 34, paddingLeft: 0 },
   kicker: { fontWeight: "900", letterSpacing: 2, fontSize: 11, flexShrink: 1 },
-  modeRule: { color: "#cfc9e8", fontSize: 12, marginTop: -4 },
+  modeRule: { color: "#E4D8CD", fontSize: 12, marginTop: -4 },
   depth: { flexDirection: "row", alignItems: "center", gap: 6 },
   depthButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,112,67,0.35)", borderWidth: 1, borderColor: "#FF7043", alignItems: "center", justifyContent: "center" },
   depthLabel: { minWidth: 84, alignItems: "center" },
@@ -552,7 +553,7 @@ const styles = StyleSheet.create({
   },
   cardLabel: { fontWeight: "900", letterSpacing: 1.5, fontSize: 10 },
   cardName: { color: "#fff", fontWeight: "900" },
-  cardDesc: { color: "#d4d0e8" },
+  cardDesc: { color: "#E7DCD2" },
   abilityHead: { flexDirection: "row", alignItems: "center", gap: 10 },
   abilityIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
 
@@ -564,7 +565,7 @@ const styles = StyleSheet.create({
   recordText: { fontWeight: "800", fontSize: 12, flexShrink: 1 },
   lockInfo: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
   lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
-  lockSub: { color: "#c9c3e6", fontSize: 12, marginTop: 1 },
+  lockSub: { color: "#E1D4C8", fontSize: 12, marginTop: 1 },
   lockTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", marginTop: 6, overflow: "hidden" },
   lockFill: { height: "100%", borderRadius: 3 },
 

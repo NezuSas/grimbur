@@ -36,7 +36,7 @@ export const PopupPanel = ({ tint, width, children, style, animate = true }: Pan
         { width, shadowColor: tint, opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] },
       ]}
     >
-      <LinearGradient colors={["#2B2050", "#1A1233", "#120C26"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.panel, { borderColor: tint + "CC" }, style]}>
+      <LinearGradient colors={["#493827", "#2D2318", "#201912"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.panel, { borderColor: tint + "CC" }, style]}>
         <View style={[styles.lit, { backgroundColor: "rgba(255,255,255,0.22)" }]} pointerEvents="none" />
         <View style={[styles.stud, { top: 8, left: 8, backgroundColor: tint }]} pointerEvents="none" />
         <View style={[styles.stud, { top: 8, right: 8, backgroundColor: tint }]} pointerEvents="none" />
@@ -97,7 +97,7 @@ type ButtonProps = {
 
 const BUTTON_COLORS = {
   primary: { fill: ["#FFE082", "#FFB300"] as const, edge: "#B26A00", text: "#2B1A00" },
-  secondary: { fill: ["#3A2E66", "#291F4D"] as const, edge: "#150F2B", text: "#FFFFFF" },
+  secondary: { fill: ["#5A4A3A", "#463626"] as const, edge: "#261D14", text: "#FFFFFF" },
   danger: { fill: ["#FF8A80", "#E53935"] as const, edge: "#8E1B18", text: "#FFFFFF" },
 };
 
@@ -167,11 +167,11 @@ const styles = StyleSheet.create({
   medallion: { width: 52, height: 52, borderRadius: 26, borderWidth: 2.5, alignItems: "center", justifyContent: "center", shadowOpacity: 0.7, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 6 },
   glyph: { fontSize: 26 },
   title: { fontWeight: "900", fontSize: 20, letterSpacing: 3, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
-  subtitle: { color: "#b9b4d4", fontSize: 12.5, textAlign: "center" },
+  subtitle: { color: "#D6C4B2", fontSize: 12.5, textAlign: "center" },
   rule: { height: 2, width: "70%", alignSelf: "center", marginTop: 2 },
   button: { minHeight: MIN_TOUCH + 4, borderRadius: 16, paddingHorizontal: 16, justifyContent: "center", alignItems: "center", borderBottomWidth: 4, overflow: "hidden", alignSelf: "stretch" },
   gloss: { position: "absolute", top: 0, left: 0, right: 0, height: "48%", backgroundColor: "rgba(255,255,255,0.18)" },
   buttonText: { fontWeight: "900", fontSize: 15, letterSpacing: 1.2 },
   link: { minHeight: MIN_TOUCH, paddingHorizontal: 18, justifyContent: "center" },
-  linkText: { color: "#b9b4d4", fontWeight: "800", fontSize: 14, textDecorationLine: "underline" },
+  linkText: { color: "#D6C4B2", fontWeight: "800", fontSize: 14, textDecorationLine: "underline" },
 });

@@ -28,7 +28,7 @@ export function duelResultView(
 ): DuelResultView | null {
   if (!standing) return null;
   const top = best(rivals);
-  if (!top) return { headline: t("duel.label", { code }), line: t("duel.result.noRival"), prize: "", color: "#b9b4d4" };
+  if (!top) return { headline: t("duel.label", { code }), line: t("duel.result.noRival"), prize: "", color: "#D6C4B2" };
   const params = { name: top.name, floor: top.level, score: top.score };
   const place = standing.total > 2 ? `${t("duel.result.place", { n: standing.placement, total: standing.total })} · ` : "";
   const rivalLine = top.status === "away" ? t("duel.result.away", params) : top.status === "done" ? t("duel.result.final", params) : t("duel.result.waiting", params);

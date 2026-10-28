@@ -1,6 +1,6 @@
 import { MIN_TOUCH } from "../../ui/layout/useGameLayout";
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, TouchableOpacity, View, type StyleProp, type ViewStyle } from "react-native";
+import { Animated, Easing, StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import { UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../../core/stats/forge";
@@ -49,23 +49,7 @@ export const Balance: React.FC<{ value: number; label: string }> = ({ value, lab
   );
 };
 
-/** A block that rises and fades in after `delay` ms, so the screen builds itself instead of appearing (instant when calm). */
-export const Rise: React.FC<{ delay?: number; style?: StyleProp<ViewStyle>; children: React.ReactNode }> = ({ delay = 0, style, children }) => {
-  const calm = useSettingsStore(s => s.reduceFlash);
-  const v = useRef(new Animated.Value(calm ? 1 : 0)).current;
-  useEffect(() => {
-    if (calm) {
-      v.setValue(1);
-      return;
-    }
-    Animated.timing(v, { toValue: 1, duration: 320, delay, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
-  }, [calm, delay, v]);
-  return (
-    <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }, style]}>
-      {children}
-    </Animated.View>
-  );
-};
+export { default as Rise } from "../../ui/components/Rise";
 
 /**
  * The upgrade's picture: a relic's artwork, its own painted icon, or (as a last resort) its emoji.
@@ -259,7 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.12)",
-    backgroundColor: "rgba(20, 15, 40, 0.88)",
+    backgroundColor: "rgba(36, 28, 19, 0.88)",
     padding: 10,
     gap: 8,
     overflow: "hidden",
@@ -278,7 +262,7 @@ const styles = StyleSheet.create({
   badgeMaxed: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.16)" },
   cardText: { flex: 1, gap: 3 },
   name: { color: "#fff", fontWeight: "900", fontSize: 16 },
-  desc: { color: "#cfc9e8", fontSize: 12.5, lineHeight: 17 },
+  desc: { color: "#E4D8CD", fontSize: 12.5, lineHeight: 17 },
   pips: { flexDirection: "row", gap: 5, marginTop: 3 },
   pip: { width: 20, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.16)" },
   pipOn: { backgroundColor: EMBER },
@@ -291,7 +275,7 @@ const styles = StyleSheet.create({
   ctaBuyText: { color: "#1a0f00", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
   ctaLocked: { backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" },
   fill: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: "rgba(255,171,64,0.28)" },
-  ctaLockedText: { color: "#d8d2f0", fontWeight: "800", fontSize: 14 },
+  ctaLockedText: { color: "#EAE1D8", fontWeight: "800", fontSize: 14 },
   ctaMaxed: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.5)" },
   ctaMaxedText: { color: GOLD, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
 
