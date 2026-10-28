@@ -1,4 +1,4 @@
-import { AWAY_AFTER_MS, GONE_AFTER_MS, isGone, tieShare, DuelPlayer, STAKES, MAX_STAKE, duelOutcome, duelSettled, duelStanding, isAway, potOf, prizeOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
+import { AWAY_AFTER_MS, GONE_AFTER_MS, duelNow, duelPayout, isGone, tieShare, DuelPlayer, STAKES, MAX_STAKE, duelOutcome, duelSettled, duelStanding, isAway, potOf, prizeOf, rivalStatus, validateDuelPlayer } from '../../src/core/duel/duel';
 
 const base: DuelPlayer = { code: 'ABCD2345', pid: '7J2K9QXM4HT6RN3B', name: 'Oscar', characterIndex: 1, state: 'playing', level: 4, score: 1500, victory: false, time: 0, stake: 25 };
 
@@ -154,5 +154,38 @@ describe('ties and leaving', () => {
   it('a disconnected rival is only gone after a long time', () => {
     expect(isGone(1_000_000 - AWAY_AFTER_MS - 1, 1_000_000)).toBe(false);
     expect(isGone(1_000_000 - GONE_AFTER_MS - 1, 1_000_000)).toBe(true);
+  });
+});
+
+describe('duelNow', () => {
+  it('ticks forward from the last server write, so a rival can still become gone after our run ends', () => {
+    const server = 5_000_000;
+    const wallAtWrite = 1_000;
+    expect(duelNow(server, wallAtWrite, wallAtWrite)).toBe(server);
+    expect(duelNow(server, wallAtWrite, wallAtWrite + GONE_AFTER_MS + 1)).toBe(server + GONE_AFTER_MS + 1);
+    expect(isGone(server, duelNow(server, wallAtWrite, wallAtWrite + GONE_AFTER_MS + 1))).toBe(true);
+  });
+
+  it('never goes backwards when the phone clock jumps back, and uses the wall clock before any write lands', () => {
+    expect(duelNow(5_000_000, 10_000, 9_000)).toBe(5_000_000);
+    expect(duelNow(null, 0, 1234)).toBe(1234);
+  });
+});
+
+describe('duelPayout', () => {
+  it('pays the pot minus the fee on a win and the share on a tie', () => {
+    expect(duelPayout('won', 100, 2, 1)).toBe(prizeOf(100, 2));
+    expect(duelPayout('tie', 100, 2, 2)).toBe(tieShare(100, 2, 2));
+    expect(duelPayout('lost', 100, 2, 1)).toBe(0);
+  });
+
+  it('returns the whole stake, fee-free, when no rival ever started', () => {
+    expect(duelPayout('won', 100, 1, 1)).toBe(100);
+    expect(duelPayout('tie', 100, 1, 2)).toBe(100);
+  });
+
+  it('pays nothing without a stake', () => {
+    expect(duelPayout('won', 0, 2, 1)).toBe(0);
+    expect(duelPayout('won', 0, 1, 1)).toBe(0);
   });
 });

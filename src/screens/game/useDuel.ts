@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { MutableRefObject } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { HEARTBEAT_MS, MIN_PUBLISH_MS, duelStanding, isGone, prizeOf, rivalStatus, tieShare } from "../../core/duel/duel";
+import { GONE_AFTER_MS, HEARTBEAT_MS, MIN_PUBLISH_MS, duelNow, duelPayout, duelStanding, isGone, rivalStatus } from "../../core/duel/duel";
 import type { RivalStatus, Standing } from "../../core/duel/duel";
 import type { GameState } from "../../core/engine/types";
 import { EMPTY_ROOM, publishDuelState, watchRoom, type Room } from "../../services/duel";
@@ -58,6 +58,10 @@ const paidKey = (code: string, matchId: string) => `grimbur.duel.paid.${code}.${
 export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeRef }: Params): DuelView {
   const [room, setRoom] = useState<Room>(EMPTY_ROOM);
   const [wallNow, setWallNow] = useState(() => Date.now());
+  /** The server time of our last write and the phone's clock when it landed: the duel's clock keeps ticking from there. */
+  const [anchor, setAnchor] = useState<{ server: number; wall: number } | null>(null);
+  /** When this match began on this phone: a member whose document never arrives stops blocking the verdict after a while. */
+  const matchStart = useRef(Date.now());
   const [prize, setPrize] = useState(0);
   const [offline, setOffline] = useState(false);
   const lastSent = useRef({ level: 0, score: -1, at: 0 });
@@ -118,6 +122,11 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
     };
   }, [code]);
 
+  // The clock's anchor moves with every write of ours that lands; between writes (and after the last one) it ticks on its own.
+  useEffect(() => {
+    if (room.serverNow !== null) setAnchor({ server: room.serverNow, wall: Date.now() });
+  }, [room.serverNow]);
+
   // Publishing: the start, every change (spaced out), the heartbeat and the end.
   useEffect(() => {
     if (!code) return;
@@ -149,7 +158,7 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
 
   // Rivals: only the players of this match. Time is the server's (this player's own last write), so a wrong clock changes nothing.
   const members = new Set(memberKey ? memberKey.split(",") : []);
-  const now = room.serverNow ?? wallNow;
+  const now = duelNow(anchor?.server ?? null, anchor?.wall ?? 0, wallNow);
   const mine = room.rivals.filter(r => members.has(r.pid));
   const rivals: RivalView[] = mine.map(r => ({ pid: r.pid, name: r.name, level: r.level, score: r.score, victory: r.victory, characterIndex: r.characterIndex, status: rivalStatus(r, r.updatedAt, now) }));
   // A member whose document has not arrived yet still counts as playing (the duel is never decided without them).
@@ -159,7 +168,8 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
   const standing = code && runEnded
     ? duelStanding(me, true, [
         ...mine.map((r, i) => ({ result: { victory: r.victory, level: r.level, score: r.score, time: r.time }, finished: rivals[i].status === "done" || (r.updatedAt !== null && isGone(r.updatedAt, now)) })),
-        ...missing.map(() => ({ result: { victory: false, level: 1, score: 0, time: 0 }, finished: false })),
+        // A member whose document never arrived stops blocking the verdict once they have been silent a whole "gone" window.
+        ...missing.map(() => ({ result: { victory: false, level: 1, score: 0, time: 0 }, finished: wallNow - matchStart.current > GONE_AFTER_MS })),
       ])
     : null;
 
@@ -181,7 +191,8 @@ export function useDuel({ duel, stateRef, characterIndex, runEnded, sessionTimeR
   // Only stakes that were really paid make the pot: a member who never started their run (closed the app at the countdown) paid nothing.
   const players = 1 + mine.filter(r => r.state === "playing" || r.state === "done").length;
   const tiedFirst = standing?.tiedFirst ?? 1;
-  const amount = standingState === "won" ? prizeOf(stake, players) : standingState === "tie" ? tieShare(stake, players, tiedFirst) : 0;
+  // The payout also covers the duel nobody else ever started: the whole stake comes back, no fee on a match that never was.
+  const amount = standingState ? duelPayout(standingState, stake, players, tiedFirst) : 0;
   useEffect(() => {
     if (!code || stake <= 0 || amount <= 0 || paying.current) return;
     paying.current = true;

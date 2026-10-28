@@ -123,6 +123,26 @@ export function duelStanding(me: Result, meDone: boolean, rivals: readonly { res
   return { state: placement === 1 ? 'leading' : 'trailing', decided: false, placement, total, tiedFirst };
 }
 
+/**
+ * "Now" by the server for a duel: the server time of this player's last write, advanced by the phone's clock since that write landed.
+ * Without the advance the clock freezes once this player stops writing (their run is over), a rival who vanishes after that never
+ * counts as gone, and a duel with a stake stays undecided forever.
+ */
+export const duelNow = (serverAtAnchor: number | null, wallAtAnchor: number, wallNow: number): number =>
+  serverAtAnchor === null ? wallNow : serverAtAnchor + Math.max(0, wallNow - wallAtAnchor);
+
+/**
+ * The embers this player takes once the duel is decided: the pot (minus the fee) for a win, their share for a tie, and the whole
+ * stake back when no rival ever started (nothing was contested, so nothing is kept). Nothing otherwise.
+ */
+export function duelPayout(state: Standing['state'], stake: number, players: number, tiedFirst: number): number {
+  if (stake <= 0) return 0;
+  if (players <= 1) return stake;
+  if (state === 'won') return prizeOf(stake, players);
+  if (state === 'tie') return tieShare(stake, players, tiedFirst);
+  return 0;
+}
+
 /** The embers a winner takes: everybody's stake. Only players who started count. */
 export const potOf = (stake: number, players: number): number => Math.max(0, stake) * Math.max(0, players);
 
