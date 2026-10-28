@@ -109,7 +109,6 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   presentRef.current = present;
 
   const publish = useCallback(
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (state: "lobby" | "ready") => {
       if (!code || name === null || heroIndex === null || !stakeKnownRef.current) return;
       try {

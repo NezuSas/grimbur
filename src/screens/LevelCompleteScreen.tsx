@@ -218,7 +218,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 4,
     borderBottomColor: "rgba(0,0,0,0.3)",
   },
-  buttonText: { color: "#111", fontWeight: "900", letterSpacing: 2, fontSize: 16 },
   skipHint: { color: "rgba(255,255,255,0.55)", fontSize: 11, fontWeight: "700", letterSpacing: 2, marginTop: 8, textAlign: "center" },
 });
 

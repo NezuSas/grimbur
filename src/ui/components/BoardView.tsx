@@ -658,26 +658,6 @@ const styles = StyleSheet.create({
   },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
   heroLayer: { position: "absolute", left: 0, top: 0, width: "100%", height: "100%", resizeMode: "contain" },
-  hintBadge: {
-    padding: 3,
-    borderRadius: 100,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    width: '56%',
-    height: '56%',
-    // High visibility glow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  // Guardian clue: a warm round badge. Vortex clue: a dark diamond. Shape and brightness differ, not only the hue.
-  hintText: {
-    color: "#fff",
-    fontWeight: "900",
-  },
 });
 
 export default BoardView;

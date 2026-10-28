@@ -254,7 +254,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,171,64,0.7)",
   },
-  balanceFlame: { fontSize: 20 },
   balanceValue: { color: EMBER, fontSize: 20, fontWeight: "900" },
   card: {
     borderRadius: 18,

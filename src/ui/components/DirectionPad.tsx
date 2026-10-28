@@ -284,10 +284,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "rgba(255, 213, 79, 0.3)",
   },
-  glow: {
-    position: "absolute",
-    backgroundColor: "rgba(255, 213, 79, 0.25)",
-  },
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   attack: {
     alignItems: "center",
