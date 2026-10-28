@@ -249,6 +249,8 @@ export default function LessonScreen({ navigation, route }: Props) {
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.6)" }]} />
       <StatusBar hidden />
       {__DEV__ && route.params.devHideBanner ? null : banner}
+      {/* Development only: the relic draft as the game shows it, with these relics, to check how it fits a window. */}
+      {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} onPick={() => {}} /> : null}
       {__DEV__ && route.params.devGameOver ? (
         <GameOverOverlay
           visible

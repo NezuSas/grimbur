@@ -25,6 +25,7 @@ import GemShower from './GemShower';
 import EmberParticles from '../EmberParticles';
 import { useSettingsStore } from '../../../state/settings/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 
 type Props = {
@@ -169,6 +170,10 @@ const GameOverOverlay = ({
   const heroPop = useRef(new Animated.Value(0.82)).current;
   const heroFloat = useRef(new Animated.Value(0)).current;
   const [showBreakdown, setShowBreakdown] = useState(false);
+  // The scrolling extras (landscape): how tall the box is, how tall its content, and whether it is scrolled to the end.
+  const [extrasBox, setExtrasBox] = useState(0);
+  const [extrasContent, setExtrasContent] = useState(0);
+  const [extrasAtEnd, setExtrasAtEnd] = useState(false);
   useEffect(() => {
     if (!visible) {
       heroPop.setValue(0.82);
@@ -196,6 +201,8 @@ const GameOverOverlay = ({
   const compact = height < 460;
   // On a very short window the buttons share one row: a big Retry plus icon-only Menu / Forge / Share.
   const short = height < 340;
+  // A landscape phone (height runs out): the same two rows of buttons, a little lower, so the run's rewards keep room.
+  const snug = wide && height < 430;
   const accent = victory || demo ? '#FFD54F' : '#FF5252';
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
@@ -264,8 +271,18 @@ const GameOverOverlay = ({
     ...(dailyLabel && freezeEarned ? [{ key: 'fearn', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeEarned') }] : []),
   ];
 
+  // The run's own numbers (gems, time): under the portrait in landscape, where they balance the two columns.
+  const statChips = stats.map(s => (
+    <View key={s.label} style={[styles.stat, snug && styles.statSnug]} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
+      <Ionicons name={s.icon} size={16} color={s.color} />
+      <Text style={[styles.statValue, { color: s.color }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        {s.value}
+      </Text>
+    </View>
+  ));
+
   const left = (
-    <View style={[styles.left, wide && { width: '38%' }]}>
+    <View style={[styles.left, wide && { width: '36%' }]}>
       <View style={{ width: haloSize, height: haloSize, alignItems: 'center', justifyContent: 'center' }}>
         {/* A halo of light in the colour of the moment (gold for a win, red for a defeat) instead of a frame */}
         <View pointerEvents="none" style={[styles.halo, { width: haloSize, height: haloSize, borderRadius: haloSize / 2, backgroundColor: accent + '14' }]} />
@@ -292,6 +309,13 @@ const GameOverOverlay = ({
           {killerName.toLocaleUpperCase()}
         </Text>
       )}
+      {/* Landscape: the hero's line sits under the portrait (room to spare there), so the right column keeps its height. */}
+      {wide && quote ? (
+        <Text style={[styles.quote, styles.quoteLeft, { color: accent }]} numberOfLines={3} maxFontSizeMultiplier={1.2}>
+          {"“"}{quote}{"”"}
+        </Text>
+      ) : null}
+      {wide ? <View style={[styles.statsRow, styles.statsLeft]}>{statChips}</View> : null}
       {depth > 0 && (
         <Text style={styles.depth} maxFontSizeMultiplier={1.2}>
           <EmberIcon size={12} /> {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
@@ -326,14 +350,15 @@ const GameOverOverlay = ({
     </View>
   );
 
-  const info = (
+  // What a run ended with, always in full view: title, floors, score and the run's numbers. Never cut or scrolled away.
+  const essentials = (
     <>
-      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }, short && { fontSize: 20, letterSpacing: 1 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }, snug && styles.titleSnug, short && { fontSize: 20, letterSpacing: 1 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {title.toLocaleUpperCase()}
       </Text>
 
-      {/* The hero speaks: a line in their own voice for the win or the fall */}
-      {quote ? (
+      {/* The hero speaks: a line in their own voice for the win or the fall (under the portrait in landscape) */}
+      {quote && !wide ? (
         <Text style={[styles.quote, { color: accent }]} maxFontSizeMultiplier={1.3}>
           {"“"}{quote}{"”"}
         </Text>
@@ -341,7 +366,7 @@ const GameOverOverlay = ({
 
       {/* How far the run got: one pip per floor */}
       {!endless && height >= 340 && (
-      <View style={styles.pips} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
+      <View style={[styles.pips, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
         {Array.from({ length: floors }, (_, i) => (
           <View key={i} style={[styles.pip, i < level && { backgroundColor: accent }, i === level - 1 && !victory && styles.pipLast]} />
         ))}
@@ -350,7 +375,7 @@ const GameOverOverlay = ({
 
       <View style={styles.scoreRow} accessible accessibilityLabel={`${t('over.score')}: ${score}`}>
         <Text style={styles.scoreLabel} maxFontSizeMultiplier={1.2}>{t('over.score').toLocaleUpperCase()}</Text>
-        <CountedScore score={score} active={visible} calm={calm} style={styles.scoreValue} />
+        <CountedScore score={score} active={visible} calm={calm} style={[styles.scoreValue, snug && styles.scoreSnug]} />
         {isNewBest ? (
           <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
             <GlyphIcon name="medal" size={13} /> {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
@@ -367,27 +392,12 @@ const GameOverOverlay = ({
         ) : null}
       </View>
 
-      {(nearGems || nearBest) && (
-        <View style={styles.headline} accessibilityLiveRegion="polite">
-          <Ionicons name="flag" size={18} color="#FFD54F" />
-          <Text style={styles.headlineText} maxFontSizeMultiplier={1.2}>
-            {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
-          </Text>
-        </View>
-      )}
-
+      {!wide || (embers && embers > 0) ? (
       <View style={styles.statsRow}>
-        {stats.map(s => (
-          <View key={s.label} style={styles.stat} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
-            <Ionicons name={s.icon} size={16} color={s.color} />
-            <Text style={[styles.statValue, { color: s.color }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-              {s.value}
-            </Text>
-          </View>
-        ))}
+        {wide ? null : statChips}
         {embers && embers > 0 ? (
           <TouchableOpacity
-            style={[styles.stat, styles.embersPill]}
+            style={[styles.stat, snug && styles.statSnug, styles.embersPill]}
             onPress={breakdown ? () => setShowBreakdown(v => !v) : undefined}
             disabled={!breakdown}
             activeOpacity={0.8}
@@ -400,12 +410,27 @@ const GameOverOverlay = ({
           </TouchableOpacity>
         ) : null}
       </View>
+      ) : null}
 
       {breakdown && showBreakdown ? (
         <Text style={styles.breakdown} maxFontSizeMultiplier={1.2}>
           {breakdown}
         </Text>
       ) : null}
+    </>
+  );
+
+  // Everything else the run produced (a near miss, notes, unlocks, goals, a tip): in landscape it scrolls under the essentials.
+  const extras = (
+    <>
+      {(nearGems || nearBest) && (
+        <View style={styles.headline} accessibilityLiveRegion="polite">
+          <Ionicons name="flag" size={18} color="#FFD54F" />
+          <Text style={styles.headlineText} maxFontSizeMultiplier={1.2}>
+            {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
+          </Text>
+        </View>
+      )}
 
       {notes.length > 0 && (
         <View style={styles.notes}>
@@ -464,7 +489,7 @@ const GameOverOverlay = ({
     <>
       {demo && onUnlock ? (
         <TouchableOpacity
-          style={[styles.retry, { backgroundColor: accent }]}
+          style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent }]}
           onPress={onUnlock}
           activeOpacity={0.85}
           accessibilityRole="button"
@@ -477,14 +502,14 @@ const GameOverOverlay = ({
         </TouchableOpacity>
       ) : (
       <TouchableOpacity
-        style={[styles.retry, { backgroundColor: accent }]}
+        style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent }]}
         onPress={onRetry}
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={retryLabel ?? t('over.retry')}
       >
         <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
-        <Text style={[styles.retryText, victory && { color: '#000' }, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.retryText, victory && { color: '#000' }, snug && styles.retryTextSnug, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {(retryLabel ?? t('over.retry')).toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
@@ -497,23 +522,23 @@ const GameOverOverlay = ({
             {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
-        <TouchableOpacity style={[styles.sideButton, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
+        <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
           <Ionicons name="home" size={18} color="#fff" />
           {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
-          <TouchableOpacity style={[styles.sideButton, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
+          <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
             <Ionicons name="hammer" size={18} color={canBuyNow ? '#1a0f00' : '#FFAB40'} />
             {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         {onShare ? (
-          <TouchableOpacity style={[styles.sideButton, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
+          <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
             <Ionicons name="share-social" size={20} color="#4FC3F7" />
           </TouchableOpacity>
         ) : null}
         {onCopyText ? (
-          <TouchableOpacity style={[styles.sideButton, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
+          <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
             <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#69F0AE' : '#4FC3F7'} />
           </TouchableOpacity>
         ) : null}
@@ -526,15 +551,31 @@ const GameOverOverlay = ({
   // lines a run produced (record, embers breakdown, achievements, unlocks, goals).
   const availableHeight = height - Math.max(insets.top, 8) - Math.max(insets.bottom, 8) - 8;
   const right = wide ? (
-    <View style={[styles.right, { maxHeight: availableHeight - 32 }]}>
-      <ScrollView style={styles.infoScroll} contentContainerStyle={styles.infoContent} showsVerticalScrollIndicator={false}>
-        {info}
-      </ScrollView>
+    <View style={[styles.right, snug && styles.rightSnug, { maxHeight: availableHeight - 32 }]}>
+      {essentials}
+      <View style={styles.extrasBox}>
+        <ScrollView
+          style={styles.infoScroll}
+          contentContainerStyle={styles.infoContent}
+          showsVerticalScrollIndicator={false}
+          onLayout={e => setExtrasBox(e.nativeEvent.layout.height)}
+          onContentSizeChange={(_, h) => setExtrasContent(h)}
+          onScroll={e => setExtrasAtEnd(e.nativeEvent.contentOffset.y + e.nativeEvent.layoutMeasurement.height >= e.nativeEvent.contentSize.height - 4)}
+          scrollEventThrottle={64}
+        >
+          {extras}
+        </ScrollView>
+        {/* More below: a fade says so, instead of a row cut in half at the edge. */}
+        {extrasContent > extrasBox + 4 && !extrasAtEnd ? (
+          <LinearGradient pointerEvents="none" colors={['rgba(16,12,30,0)', 'rgba(16,12,30,0.95)']} style={styles.moreFade} />
+        ) : null}
+      </View>
       <View style={[styles.actions, short && styles.actionsShort]}>{actions}</View>
     </View>
   ) : (
     <View style={styles.right}>
-      {info}
+      {essentials}
+      {extras}
       {actions}
     </View>
   );
@@ -583,6 +624,9 @@ const styles = StyleSheet.create({
   left: { alignItems: 'center', gap: 8 },
   halo: { position: 'absolute' },
   quote: { fontStyle: 'italic', fontWeight: '700', fontSize: 14, opacity: 0.95 },
+  quoteLeft: { textAlign: 'center', fontSize: 13, maxWidth: 260 },
+  extrasBox: { flexShrink: 1, minHeight: 0 },
+  moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
   headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
   killerBadge: { position: 'absolute', backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
@@ -606,7 +650,8 @@ const styles = StyleSheet.create({
   pipLast: { borderWidth: 1, borderColor: '#fff' },
   scoreRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 },
   scoreLabel: { color: '#9a9ab0', fontWeight: '900', fontSize: 12, letterSpacing: 2 },
-  scoreValue: { color: '#FFD54F', fontWeight: '900', fontSize: 38, minWidth: 110 },
+  // Fixed-width digits keep the counting score from jittering, so the best score can sit right beside it.
+  scoreValue: { color: '#FFD54F', fontWeight: '900', fontSize: 34, fontVariant: ['tabular-nums'] },
   newBest: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.4 },
   best: { color: '#8f8fa8', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -682,6 +727,17 @@ const styles = StyleSheet.create({
   forgeButton: { borderColor: 'rgba(255,171,64,0.6)', backgroundColor: 'rgba(255,171,64,0.12)' },
   forgeButtonPrimary: { backgroundColor: '#FFAB40', borderColor: '#FFD180' },
   iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: MIN_TOUCH, width: MIN_TOUCH, minWidth: MIN_TOUCH, paddingHorizontal: 0 },
+  // Landscape phones: buttons at phone scale (still comfortable touch targets), so the card is not all buttons.
+  sideSnug: { minHeight: 40, borderRadius: 12 },
+  retryTextSnug: { fontSize: 15, letterSpacing: 1.5 },
+  titleSnug: { fontSize: 19, letterSpacing: 1.5 },
+  statsLeft: { justifyContent: 'center', marginTop: 2 },
+  // Landscape phones: the top of the card a little tighter, so whole rows of the extras fit under it.
+  rightSnug: { gap: 6 },
+  pipsSnug: { marginTop: -2 },
+  scoreSnug: { fontSize: 30, lineHeight: 34 },
+  statSnug: { paddingVertical: 4 },
+  retrySnug: { minHeight: 44, borderRadius: 14, borderBottomWidth: 3 },
   iconShort: { flexBasis: 38, width: 38, minWidth: 38 },
   sideText: { color: '#fff', fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 });
