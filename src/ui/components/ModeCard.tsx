@@ -53,7 +53,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
           </View>
         )}
         <View style={styles.text}>
-          <Text style={[styles.title, featured && styles.titleFeatured, { fontSize: (featured ? 19 : compactCard ? 12 : 15) * ui, letterSpacing: compactCard ? 0.5 : 1.5 }, locked && { color: "#cfcbe6" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.title, featured && styles.titleFeatured, { fontSize: (featured ? 19 : compactCard ? 12 : 15) * ui, letterSpacing: compactCard ? 0.5 : 1.5 }, locked && { color: "#E4D8CD" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
             {title.toLocaleUpperCase()}
           </Text>
           <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   text: { flex: 1, gap: 1 },
   title: { color: "#fff", fontWeight: "800", fontSize: 15, letterSpacing: 1.5 },
   titleFeatured: { fontSize: 19, letterSpacing: 2 },
-  subtitle: { color: "#bdb7d8", fontSize: 12, lineHeight: 15 },
+  subtitle: { color: "#D8C8B7", fontSize: 12, lineHeight: 15 },
   badge: { alignItems: "center", justifyContent: "center" },
 });
 

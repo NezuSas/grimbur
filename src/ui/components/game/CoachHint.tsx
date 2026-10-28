@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     alignItems: "flex-start",
-    backgroundColor: "rgba(30,20,60,0.96)",
+    backgroundColor: "rgba(52, 40, 28,0.96)",
     borderColor: "#FFD54F",
     borderWidth: 2,
     borderRadius: 16,

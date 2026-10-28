@@ -106,7 +106,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <View key={item.id} style={[styles.row, mine && styles.rowMine]}>
         <View style={[styles.rank, index < 3 && { backgroundColor: ["#FFD54F", "#CFD8DC", "#FFAB91"][index] }]}>
-          <Text style={[styles.rankText, index < 3 && { color: "#1a1030" }]}>{index + 1}</Text>
+          <Text style={[styles.rankText, index < 3 && { color: "#2A2016" }]}>{index + 1}</Text>
         </View>
         <SpriteImage source={hero.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
         <View style={{ flex: 1 }}>
@@ -127,7 +127,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("challenge.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {challenge ? (
@@ -185,19 +185,19 @@ const styles = StyleSheet.create({
   cols: { width: "100%", maxWidth: 940, flexDirection: "row", flexWrap: "wrap", gap: 16, alignItems: "flex-start" },
   colCode: { flexGrow: 1, flexBasis: 300, minWidth: 0 },
   colBoard: { flexGrow: 1, flexBasis: 300, minWidth: 0, gap: 8 },
-  kicker: { color: "#8f8aab", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   code: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 5, textAlign: "center", alignSelf: "stretch" },
-  hint: { color: "#c3bedb", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
+  hint: { color: "#DCCCBD", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
   pair: { flexDirection: "row", gap: 10, alignSelf: "stretch" },
   half: { flex: 1 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
-  empty: { color: "#c9c3e6", fontSize: 14, textAlign: "center", paddingTop: 10 },
-  row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(20,15,40,0.8)", paddingVertical: 8, paddingHorizontal: 10 },
+  empty: { color: "#E1D4C8", fontSize: 14, textAlign: "center", paddingTop: 10 },
+  row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(36, 28, 19,0.8)", paddingVertical: 8, paddingHorizontal: 10 },
   rowMine: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.1)" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-  rankText: { color: "#d8d2f0", fontWeight: "900", fontSize: 15 },
+  rankText: { color: "#EAE1D8", fontWeight: "900", fontSize: 15 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)" },
   name: { color: "#fff", fontWeight: "900", fontSize: 16 },
-  sub: { color: "#9f9abb", fontSize: 12, marginTop: 1 },
+  sub: { color: "#C4AA91", fontSize: 12, marginTop: 1 },
   score: { color: "#9ee37d", fontWeight: "900", fontSize: 20, minWidth: 84, textAlign: "right" },
 });

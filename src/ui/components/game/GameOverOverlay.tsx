@@ -607,7 +607,7 @@ export default GameOverOverlay;
 const styles = StyleSheet.create({
   duelBox: { alignSelf: 'stretch', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   duelHeadline: { fontWeight: '900', fontSize: 15, letterSpacing: 1.5, textAlign: 'center' },
-  duelLine: { color: '#d7d2ee', fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
+  duelLine: { color: '#E9E0D7', fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
   card: {
     backgroundColor: 'rgba(16, 12, 30, 0.97)',
     borderRadius: 26,
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
   headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
-  killerBadge: { position: 'absolute', backgroundColor: '#1a1030', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  killerBadge: { position: 'absolute', backgroundColor: '#2A2016', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
   killer: { fontWeight: '900', fontSize: 14, letterSpacing: 2, textAlign: 'center', maxWidth: '100%' },
   depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
@@ -643,11 +643,11 @@ const styles = StyleSheet.create({
   pip: { flex: 1, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.14)' },
   pipLast: { borderWidth: 1, borderColor: '#fff' },
   scoreRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 },
-  scoreLabel: { color: '#9a9ab0', fontWeight: '900', fontSize: 12, letterSpacing: 2 },
+  scoreLabel: { color: '#C0A58A', fontWeight: '900', fontSize: 12, letterSpacing: 2 },
   // Fixed-width digits keep the counting score from jittering, so the best score can sit right beside it.
   scoreValue: { color: '#FFD54F', fontWeight: '900', fontSize: 34, fontVariant: ['tabular-nums'] },
   newBest: { color: '#FFD54F', fontWeight: '900', fontSize: 12, letterSpacing: 1.4 },
-  best: { color: '#8f8fa8', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
+  best: { color: '#B99C7E', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   stat: {
     flexDirection: 'row',

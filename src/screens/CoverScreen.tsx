@@ -152,7 +152,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#0E0B1F",
+    backgroundColor: "#1B150F",
   },
 });
 

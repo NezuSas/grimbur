@@ -83,7 +83,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
               style={({ pressed }) => [styles.shadow, { width: cardWidth, shadowColor: tint }, pressed && { transform: [{ scale: 0.97 }] }]}
             >
               <LinearGradient
-                colors={cursed ? ['#3A1A1E', '#1E0E12'] : ['#2F2458', '#171030']}
+                colors={cursed ? ['#3A1A1E', '#1E0E12'] : ['#513E2B', '#2A2016']}
                 start={{ x: 0.2, y: 0 }}
                 end={{ x: 0.8, y: 1 }}
                 style={[styles.card, { borderColor: tint, paddingVertical: tight ? 8 : 12 }]}

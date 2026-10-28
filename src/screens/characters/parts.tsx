@@ -72,7 +72,7 @@ export const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress }:
     >
       <SpriteImage
         source={skinArt(heroIndex, skin).scoreImage}
-        style={{ width: box * 0.82, height: box * 0.82, borderRadius: box * 0.41, ...(locked ? { tintColor: "#0b0716" } : null) }}
+        style={{ width: box * 0.82, height: box * 0.82, borderRadius: box * 0.41, ...(locked ? { tintColor: "#130E0A" } : null) }}
         resizeMode="cover"
         accessibilityIgnoresInvertColors
       />
@@ -118,7 +118,7 @@ export const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPr
 
 const styles = StyleSheet.create({
   thumb: { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", overflow: "visible" },
-  thumbLock: { position: "absolute", right: -2, bottom: -2, backgroundColor: "#1a1030", borderRadius: 10, padding: 3, borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" },
+  thumbLock: { position: "absolute", right: -2, bottom: -2, backgroundColor: "#2A2016", borderRadius: 10, padding: 3, borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" },
 
   swatchRing: { borderWidth: RING, alignItems: "center", justifyContent: "center" },
   swatch: { width: SWATCH, height: SWATCH, borderRadius: SWATCH / 2, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", overflow: "hidden" },

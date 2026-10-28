@@ -140,5 +140,5 @@ const frame = StyleSheet.create({
   heading: { flexDirection: "row", alignItems: "center", gap: 14 },
   headingChip: { width: 60, height: 60, borderRadius: 18, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
   headingTitle: { fontWeight: "900", fontSize: 22, letterSpacing: 1.5 },
-  headingCount: { color: "#8f8aab", fontWeight: "800", fontSize: 12, letterSpacing: 1.5, marginTop: 2 },
+  headingCount: { color: "#B99A7C", fontWeight: "800", fontSize: 12, letterSpacing: 1.5, marginTop: 2 },
 });

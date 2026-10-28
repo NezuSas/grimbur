@@ -122,7 +122,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("manual.title")} subtitle={topics[index]?.label} onBack={() => navigation.goBack()} />
         {wide ? (
           <View style={styles.body}>
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   pager: { flexDirection: "row", gap: 10, marginTop: 6 },
   pagerButton: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, minHeight: MIN_TOUCH + 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD },
   pagerNext: { justifyContent: "flex-end" },
-  pagerHint: { color: "#8f8aab", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.5 },
+  pagerHint: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.5 },
   pagerLabel: { color: "#fff", fontWeight: "800", fontSize: 14 },
 });
 

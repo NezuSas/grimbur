@@ -117,7 +117,7 @@ export default ShareCard;
 
 const makeStyles = (u: number) =>
   StyleSheet.create({
-    card: { width: SHARE_CARD_WIDTH * u, height: SHARE_CARD_HEIGHT * u, backgroundColor: "#120C26", flexDirection: "row", alignItems: "center", overflow: "hidden" },
+    card: { width: SHARE_CARD_WIDTH * u, height: SHARE_CARD_HEIGHT * u, backgroundColor: "#201912", flexDirection: "row", alignItems: "center", overflow: "hidden" },
     frame: { position: "absolute", left: 14 * u, top: 14 * u, right: 14 * u, bottom: 14 * u, borderWidth: 4 * u, borderRadius: 34 * u },
     left: { width: 460 * u, height: "100%", alignItems: "center", justifyContent: "center" },
     halo: { position: "absolute", width: 380 * u, height: 380 * u, borderRadius: 190 * u, borderWidth: 4 * u },
@@ -129,11 +129,11 @@ const makeStyles = (u: number) =>
     headline: { color: "#FFFFFF", fontSize: 54 * u, lineHeight: 62 * u, fontWeight: "900", letterSpacing: 2 * u },
     scoreRow: { flexDirection: "row", alignItems: "baseline", gap: 18 * u },
     score: { color: "#FFFFFF", fontSize: 104 * u, lineHeight: 118 * u, fontWeight: "900", letterSpacing: 2 * u },
-    scoreLabel: { color: "#b9b4d4", fontSize: 30 * u, fontWeight: "900", letterSpacing: 6 * u },
+    scoreLabel: { color: "#D6C4B2", fontSize: 30 * u, fontWeight: "900", letterSpacing: 6 * u },
     pips: { flexDirection: "row", gap: 10 * u, marginTop: 2 * u },
-    pip: { width: 52 * u, height: 52 * u, borderRadius: 12 * u, borderWidth: 3 * u, backgroundColor: "#2c2650", borderColor: "#443d70", alignItems: "center", justifyContent: "center" },
+    pip: { width: 52 * u, height: 52 * u, borderRadius: 12 * u, borderWidth: 3 * u, backgroundColor: "#4D3B29", borderColor: "#6A5643", alignItems: "center", justifyContent: "center" },
     chips: { flexDirection: "row", gap: 12 * u, flexWrap: "wrap", marginTop: 4 * u },
     chip: { flexDirection: "row", alignItems: "center", gap: 10 * u, borderWidth: 3 * u, borderRadius: 18 * u, paddingHorizontal: 18 * u, paddingVertical: 8 * u },
     chipText: { color: "#FFFFFF", fontSize: 30 * u, fontWeight: "900" },
-    invite: { color: "#d7d2ee", fontSize: 28 * u, fontStyle: "italic", marginTop: 6 * u },
+    invite: { color: "#E9E0D7", fontSize: 28 * u, fontStyle: "italic", marginTop: 6 * u },
   });

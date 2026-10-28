@@ -57,6 +57,6 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, onRevive, onDecline
 export default ReviveOverlay;
 
 const styles = StyleSheet.create({
-  body: { color: "#d7d2ee", fontSize: 14.5, lineHeight: 21, textAlign: "center" },
-  meta: { color: "#9d97ba", fontSize: 12.5, fontWeight: "700" },
+  body: { color: "#E9E0D7", fontSize: 14.5, lineHeight: 21, textAlign: "center" },
+  meta: { color: "#C2A88F", fontSize: 12.5, fontWeight: "700" },
 });

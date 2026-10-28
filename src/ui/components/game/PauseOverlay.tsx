@@ -75,5 +75,5 @@ export default PauseOverlay;
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
   half: { flex: 1 },
-  note: { color: '#b9b4d4', fontSize: 12, textAlign: 'center' },
+  note: { color: '#D6C4B2', fontSize: 12, textAlign: 'center' },
 });

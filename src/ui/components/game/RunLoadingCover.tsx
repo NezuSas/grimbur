@@ -51,7 +51,7 @@ const RunLoadingCover: React.FC<Props> = ({ visible }) => {
 };
 
 const styles = StyleSheet.create({
-  cover: { ...StyleSheet.absoluteFill, backgroundColor: '#0E0B1F', zIndex: 2000, elevation: 2000 },
+  cover: { ...StyleSheet.absoluteFill, backgroundColor: '#1B150F', zIndex: 2000, elevation: 2000 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
   gem: { width: 72, height: 72 },
   text: { color: '#d0c8f0', fontWeight: '800', letterSpacing: 2, fontSize: 13 },

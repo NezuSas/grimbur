@@ -31,7 +31,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
     return (
       <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.waiting")}>
         <View style={[styles.chip, { borderColor: "#b9b4d4AA" }]}>
-          <Ionicons name="flash" size={14} color="#b9b4d4" />
+          <Ionicons name="flash" size={14} color="#D6C4B2" />
           <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("duel.chip.waiting")}</Text>
         </View>
       </View>
@@ -45,7 +45,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
       <View style={styles.panel}>
         {rows.map(r => {
           const ahead = level !== r.level ? level > r.level : score > r.score;
-          const color = r.status === "away" ? "#b9b4d4" : r.status === "done" ? "#80DEEA" : ahead ? "#9EE37D" : "#FF8A80";
+          const color = r.status === "away" ? "#D6C4B2" : r.status === "done" ? "#80DEEA" : ahead ? "#9EE37D" : "#FF8A80";
           return (
             <View key={r.pid} style={styles.row}>
               <Ionicons name={r.status === "done" ? "flag" : "flash"} size={13} color={color} />

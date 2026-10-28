@@ -77,10 +77,10 @@ const styles = StyleSheet.create({
   rail: { padding: 12, gap: 8 },
   railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
   railChip: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
-  railLabel: { flex: 1, color: "#b9b4d4", fontWeight: "800", fontSize: 14 },
+  railLabel: { flex: 1, color: "#D6C4B2", fontWeight: "800", fontSize: 14 },
   railBar: { position: "absolute", left: 0, top: 10, bottom: 10, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
   chipsWrap: { height: 62, flexShrink: 0 },
   chips: { paddingHorizontal: 12, paddingVertical: 10, gap: 8, alignItems: "center" },
   topChip: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 46, paddingHorizontal: 14, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", backgroundColor: "rgba(255,255,255,0.05)" },
-  topChipText: { color: "#b9b4d4", fontWeight: "800", fontSize: 13 },
+  topChipText: { color: "#D6C4B2", fontWeight: "800", fontSize: 13 },
 });

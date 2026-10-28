@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
+import Rise, { riseDelay } from "../ui/components/Rise";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import EmberIcon from "../ui/components/EmberIcon";
@@ -81,7 +82,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.88)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
         <ScreenHeader title={t("ach.title")} subtitle={t("ach.progress", { done, total })} onBack={() => navigation.goBack()} />
 
         <FlatList
@@ -143,7 +144,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                     accessibilityState={{ selected: filter === key }}
                     accessibilityLabel={t(`ach.filter.${key}` as TranslationKey)}
                   >
-                    <Text style={[styles.chipText, filter === key && { color: "#1a1030" }]} maxFontSizeMultiplier={1.1}>
+                    <Text style={[styles.chipText, filter === key && { color: "#2A2016" }]} maxFontSizeMultiplier={1.1}>
                       {t(`ach.filter.${key}` as TranslationKey).toLocaleUpperCase()}
                     </Text>
                   </TouchableOpacity>
@@ -151,12 +152,13 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </View>
           }
-          renderItem={({ item }) => {
+          renderItem={({ item, index }) => {
             const unlockedOn = stats.achievements[item.id];
             const name = achievementText(t, item.id, "name");
             const description = achievementText(t, item.id, "desc");
             return (
-              <View
+              <Rise
+                delay={riseDelay(index, 60)}
                 style={[styles.card, unlockedOn ? styles.cardUnlocked : styles.cardLocked, columns > 1 && { flex: 1 }]}
                 accessible
                 accessibilityLabel={`${name}. ${description}. ${unlockedOn ? t("ach.unlockedOn", { date: unlockedOn }) : t("ach.locked")}`}
@@ -165,13 +167,13 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={[styles.icon, !unlockedOn && { opacity: 0.4 }]}>{item.icon}</Text>
                   {!unlockedOn && (
                     <View style={styles.lock}>
-                      <Ionicons name="lock-closed" size={13} color="#d8d2f0" />
+                      <Ionicons name="lock-closed" size={13} color="#EAE1D8" />
                     </View>
                   )}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <View style={styles.nameRow}>
-                    <Text style={[styles.name, !unlockedOn && { color: "#cfcbe6" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                    <Text style={[styles.name, !unlockedOn && { color: "#E4D8CD" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                       {name}
                     </Text>
                     <View style={[styles.reward, !unlockedOn && styles.rewardOpen]}>
@@ -207,7 +209,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                     </View>
                   ) : null}
                 </View>
-              </View>
+              </Rise>
             );
           }}
         />
@@ -232,7 +234,7 @@ const styles = StyleSheet.create({
     minHeight: 84,
   },
   cardUnlocked: { backgroundColor: "rgba(255, 213, 79, 0.1)", borderColor: "rgba(255, 213, 79, 0.55)" },
-  cardLocked: { backgroundColor: "rgba(20, 15, 40, 0.8)", borderColor: "rgba(255,255,255,0.1)" },
+  cardLocked: { backgroundColor: "rgba(36, 28, 19, 0.8)", borderColor: "rgba(255,255,255,0.1)" },
   badge: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 2 },
   badgeUnlocked: { backgroundColor: "rgba(255,213,79,0.18)", borderColor: GOLD },
   badgeLocked: { backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.16)" },
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: "#2a2440",
+    backgroundColor: "#413223",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -257,11 +259,11 @@ const styles = StyleSheet.create({
   goal: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(144,202,249,0.1)", borderWidth: 1, borderColor: "rgba(144,202,249,0.4)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
   goalIcon: { fontSize: 22 },
   goalName: { color: "#fff", fontWeight: "700", fontSize: 13 },
-  goalCount: { color: "#b8c7e6", fontWeight: "800", fontSize: 12 },
+  goalCount: { color: "#DDCFC1", fontWeight: "800", fontSize: 12 },
   chips: { flexDirection: "row", gap: 8, justifyContent: "center" },
   chip: { minHeight: 36, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", alignItems: "center", justifyContent: "center" },
   chipOn: { backgroundColor: "#F2C14E", borderColor: "#F2C14E" },
-  chipText: { color: "#d8d2f0", fontWeight: "800", fontSize: 12, letterSpacing: 1 },
+  chipText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12, letterSpacing: 1 },
   reward: { borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: "rgba(255,171,64,0.12)" },
   rewardOpen: { backgroundColor: "rgba(255,171,64,0.22)" },
   rewardText: { color: "#FFAB40", fontSize: 10, fontWeight: "800" },
@@ -272,8 +274,8 @@ const styles = StyleSheet.create({
   progressRow: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   progressTrack: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   progressFill: { height: "100%", borderRadius: 3, backgroundColor: "#90CAF9" },
-  progressText: { color: "#b8c7e6", fontSize: 11, fontWeight: "700", minWidth: 44, textAlign: "right" },
-  desc: { color: "#c4bfdc", fontSize: 13 },
+  progressText: { color: "#DDCFC1", fontSize: 11, fontWeight: "700", minWidth: 44, textAlign: "right" },
+  desc: { color: "#DCCEBF", fontSize: 13 },
   dateChip: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 },
   date: { color: "#b7f2a0", fontSize: 12, fontWeight: "800" },
 });

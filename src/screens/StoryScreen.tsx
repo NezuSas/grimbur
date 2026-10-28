@@ -110,7 +110,7 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  dim: { flex: 1, backgroundColor: "rgba(6,4,16,0.78)" },
+  dim: { flex: 1, backgroundColor: "rgba(13, 10, 7,0.78)" },
   touch: { flex: 1, justifyContent: "center", paddingHorizontal: 28 },
   scene: { alignItems: "center", gap: 24 },
   sceneWide: { flexDirection: "row", justifyContent: "center" },
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   heroGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center", padding: 10 },
   text: { flex: 1, maxWidth: 460, gap: 10 },
   title: { color: "#FFD54F", fontWeight: "900", fontSize: 26, letterSpacing: 3 },
-  body: { color: "#efeaff", fontSize: 18, lineHeight: 27, fontWeight: "600" },
+  body: { color: "#F8F4F1", fontSize: 18, lineHeight: 27, fontWeight: "600" },
   bottom: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 28, paddingBottom: 18 },
   dots: { flexDirection: "row", gap: 8 },
   dot: { width: 9, height: 9, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.25)" },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   cta: { minHeight: MIN_TOUCH + 4, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#FFD54F", paddingHorizontal: 22, borderRadius: 16, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   ctaText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1.5, fontSize: 15 },
   skip: { position: "absolute", top: 14, right: 22, paddingHorizontal: 12, paddingVertical: 8 },
-  skipText: { color: "#b9b4d4", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
+  skipText: { color: "#D6C4B2", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
 });
 
 export default StoryScreen;

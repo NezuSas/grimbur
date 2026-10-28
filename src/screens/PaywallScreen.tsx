@@ -185,7 +185,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
     </View>
   );
 
-  const noticeColor = notice?.tone === "error" ? "#FF8A80" : notice?.tone === "ok" ? "#9ee37d" : "#d9d3f0";
+  const noticeColor = notice?.tone === "error" ? "#FF8A80" : notice?.tone === "ok" ? "#9ee37d" : "#EAE2D9";
 
   const buy = (
     <View style={[styles.card, styles.buy, wide && { flex: 1 }, short && { padding: 12, gap: 8 }]}>
@@ -207,7 +207,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         accessibilityLabel={t("paywall.buy", { price })}
       >
         <LinearGradient colors={["#F7D774", "#E8A93A"]} style={styles.ctaFill}>
-          {busy === "buying" ? <ActivityIndicator color="#1a1030" /> : <Ionicons name="lock-open" size={22} color="#1a1030" />}
+          {busy === "buying" ? <ActivityIndicator color="#2A2016" /> : <Ionicons name="lock-open" size={22} color="#2A2016" />}
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {(busy === "buying" ? t("paywall.buying") : t("paywall.buyShort")).toLocaleUpperCase()}
           </Text>
@@ -254,7 +254,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(6,4,16,0.9)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("paywall.title")} onBack={decline} />
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", padding: gap, paddingBottom: gap + insets.bottom }}
@@ -293,7 +293,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#0E0B1F" },
+  root: { flex: 1, backgroundColor: "#1B150F" },
   columns: { flexDirection: "row", alignItems: "stretch" },
   card: {
     backgroundColor: "rgba(16,12,30,0.92)",
@@ -316,18 +316,18 @@ const styles = StyleSheet.create({
     borderColor: "rgba(242,193,78,0.7)",
   },
   headline: { color: GOLD, fontWeight: "900", letterSpacing: 2 },
-  tagline: { color: "#e6e1fa", fontWeight: "700" },
+  tagline: { color: "#F3EEE8", fontWeight: "700" },
   feature: { flexDirection: "row", alignItems: "center", gap: 10 },
   featureIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
   featureText: { flex: 1, color: "#fff", fontWeight: "700" },
   free: { color: "#9fd8a8", fontWeight: "700" },
   buy: { justifyContent: "center", alignItems: "stretch" },
   priceBlock: { alignItems: "center" },
-  oneTime: { color: "#9a9ab0", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
+  oneTime: { color: "#C0A58A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
   price: { color: "#FFD54F", fontWeight: "900" },
   cta: { borderRadius: 18, overflow: "hidden", borderBottomWidth: 4, borderBottomColor: "#B07A1C" },
   ctaFill: { minHeight: MIN_TOUCH + 8, flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
-  ctaText: { color: "#1a1030", fontWeight: "900", fontSize: 18, letterSpacing: 2, flexShrink: 1 },
+  ctaText: { color: "#2A2016", fontWeight: "900", fontSize: 18, letterSpacing: 2, flexShrink: 1 },
   notice: { fontSize: 13, fontWeight: "700", textAlign: "center" },
   secondary: {
     minHeight: MIN_TOUCH,
@@ -343,12 +343,12 @@ const styles = StyleSheet.create({
   },
   secondaryText: { color: "#fff", fontWeight: "900", fontSize: 13, letterSpacing: 1, flexShrink: 1 },
   decline: { minHeight: MIN_TOUCH, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
-  declineText: { color: "#c9c3e6", fontWeight: "700", fontSize: 14, textDecorationLine: "underline", textAlign: "center" },
-  promise: { color: "#8f8fa8", fontSize: 12, fontWeight: "600", textAlign: "center" },
+  declineText: { color: "#E1D4C8", fontWeight: "700", fontSize: 14, textDecorationLine: "underline", textAlign: "center" },
+  promise: { color: "#B99C7E", fontSize: 12, fontWeight: "600", textAlign: "center" },
   successTitle: { color: "#76FF03", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center" },
-  successBody: { color: "#e6e1fa", fontWeight: "600", textAlign: "center" },
+  successBody: { color: "#F3EEE8", fontWeight: "600", textAlign: "center" },
   links: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 },
   link: { minHeight: MIN_TOUCH - 8, paddingHorizontal: 10, justifyContent: "center" },
-  linkText: { color: "#a9a3c8", fontSize: 12, fontWeight: "700", textDecorationLine: "underline" },
-  linkDot: { color: "#a9a3c8", fontSize: 12 },
+  linkText: { color: "#CCB59F", fontSize: 12, fontWeight: "700", textDecorationLine: "underline" },
+  linkDot: { color: "#CCB59F", fontSize: 12 },
 });

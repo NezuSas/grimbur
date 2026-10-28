@@ -10,7 +10,7 @@ type Props = {
 };
 
 /** Same colour and same logo size as the native splash (app.json, expo-splash-screen: 288 dp canvas, monster 64% of it, so the system circle does not crop it), so that the one gives way to the other unseen. */
-export const SPLASH_BACKGROUND = '#0E0B1F';
+export const SPLASH_BACKGROUND = '#1B150F';
 export const SPLASH_LOGO_SIZE = 200;
 
 /**
@@ -77,5 +77,5 @@ const styles = StyleSheet.create({
   progressBox: { alignItems: 'center', gap: 8 },
   track: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.14)', overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 3, backgroundColor: '#FFD54F' },
-  label: { color: '#bdb7d8', fontSize: 12, letterSpacing: 1 },
+  label: { color: '#D8C8B7', fontSize: 12, letterSpacing: 1 },
 });
