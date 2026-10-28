@@ -6,13 +6,18 @@ import { GameState } from '../core/engine/types';
 
 /**
  * Starts/stops the "guardian near" and "vortex near" audio loops as the player
- * walks next to hazards, and silences them when the round ends.
+ * walks next to hazards, and silences them when the round ends. `active` is false
+ * while the game is paused or another screen is in front: the hums stop, and come
+ * back from the current situation when play resumes.
  */
 export function useProximityAudio(
   state: Pick<GameState, 'playerIndex' | 'rows' | 'cols' | 'entityMap' | 'isGameOver' | 'isLevelUp'>,
+  active = true,
 ) {
   const guardianNear = useRef(false);
   const vortexNear = useRef(false);
+  const activeRef = useRef(active);
+  activeRef.current = active;
 
   const { playerIndex, rows, cols, entityMap, isGameOver, isLevelUp } = state;
 
@@ -20,7 +25,7 @@ export function useProximityAudio(
     let enemy = false;
     let pit = false;
 
-    if (!isGameOver && !isLevelUp) {
+    if (active && !isGameOver && !isLevelUp) {
       ({ enemy, pit } = getNearbyHazards(playerIndex, rows, cols, entityMap));
     }
 
@@ -31,7 +36,7 @@ export function useProximityAudio(
 
     guardianNear.current = enemy;
     vortexNear.current = pit;
-  }, [playerIndex, rows, cols, entityMap, isGameOver, isLevelUp]);
+  }, [playerIndex, rows, cols, entityMap, isGameOver, isLevelUp, active]);
 
   // Leaving the screen (or the run) must silence the hazard hums at once.
   useEffect(
@@ -43,10 +48,11 @@ export function useProximityAudio(
   );
 
   // Going to the background pauses every player, so the loops are silent when the player comes back even though
-  // the hazard is still next to them: start them again from the current situation.
+  // the hazard is still next to them: start them again from the current situation (not while the game is paused:
+  // they come back with play).
   useEffect(() => {
     const sub = AppState.addEventListener('change', next => {
-      if (next !== 'active') return;
+      if (next !== 'active' || !activeRef.current) return;
       if (guardianNear.current) emitSound('GUARDIAN_NEAR');
       if (vortexNear.current) emitSound('VORTEX_NEAR');
     });

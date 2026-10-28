@@ -1,12 +1,13 @@
-import React, { memo, useCallback, useRef, useEffect, useMemo, useState } from "react";
+import React, { memo, useCallback, useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, Easing } from "react-native";
 import { characterWithSkin } from "../../data/characterSkins";
 import type { SkinId } from "../../data/skinArt";
 import type { BiomeId } from "../../core/engine/biomes";
 import { useGameLayout } from "../layout/useGameLayout";
-import { Direction, GameEntity } from "../../core/engine/types";
+import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
+import FallenFoe from "./game/FallenFoe";
 import { stepTarget } from "../../core/engine/travel";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
@@ -84,6 +85,10 @@ type Props = {
   aimTiles?: ReadonlySet<number>;
   /** The direction being aimed while the attack button is held: the hero turns that way and draws the bow. */
   aimDir?: Direction | null;
+  /** The game is paused or the screen is not in front: the idle loops (breath, pulse) stop. */
+  paused?: boolean;
+  /** The hero was just thrown by a vortex: it vanishes and reappears instead of sliding across the board. */
+  teleported?: boolean;
   /** The last arrow shot: it flies across the board from the hero. */
   shot?: ArrowShot | null;
   /** Drag from the hero to shoot: the side being aimed (null when none / cancelled), and the shot when the finger is lifted. */
@@ -112,7 +117,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave" }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave" }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -148,6 +153,44 @@ const BoardView: React.FC<Props> = memo(
     }, [shot, calm]);
     const untilArrowLands = () => Math.max(0, arrowLands.current - Date.now());
 
+    // A foe the arrow kills leaves the game state at once, but the player must see it die when the arrow gets there: it stays on
+    // the board as a ghost until the arrow lands, then falls (see FallenFoe). Laid out before paint so it never blinks. Calm: as before.
+    const [ghosts, setGhosts] = useState<Record<number, GameEntity>>({});
+    const [fallen, setFallen] = useState<{ id: number; entity: GameEntity }[]>([]);
+    // Traps that went off on this floor (the trap leaves the state when it bites): they stay drawn as sprung jaws.
+    const [sprung, setSprung] = useState<ReadonlySet<number>>(() => new Set());
+    const prevEntities = useRef(entityMap);
+    const ghostShot = useRef(0);
+    const ghostTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    useEffect(() => () => ghostTimers.current.forEach(clearTimeout), []);
+    useLayoutEffect(() => {
+      const before = prevEntities.current;
+      prevEntities.current = entityMap;
+      if (before[playerIndex]?.type === "trap" && !entityMap[playerIndex]) setSprung(s => new Set(s).add(playerIndex));
+      if (calm || !shot || !shot.hit || ghostShot.current === shot.key || before === entityMap) return;
+      ghostShot.current = shot.key;
+      const gone = Object.values(before).filter(e => (GUARDIAN_TYPES.includes(e.type) || e.type === "boss") && !entityMap[e.index]);
+      if (gone.length === 0) return;
+      setGhosts(g => ({ ...g, ...Object.fromEntries(gone.map(e => [e.index, e])) }));
+      ghostTimers.current.push(
+        setTimeout(() => {
+          setGhosts(g => {
+            const next = { ...g };
+            for (const e of gone) delete next[e.index];
+            return next;
+          });
+          setFallen(f => [...f, ...gone.map(entity => ({ id: shot.key * 100 + entity.index, entity }))]);
+        }, landMs(shot)),
+      );
+    }, [entityMap]); // eslint-disable-line react-hooks/exhaustive-deps
+    // A new floor or a restart drops whatever was still falling.
+    useEffect(() => {
+      setGhosts({});
+      setFallen([]);
+      setSprung(new Set());
+    }, [level]);
+    const shown = useMemo(() => (Object.keys(ghosts).length > 0 ? { ...entityMap, ...ghosts } : entityMap), [entityMap, ghosts]);
+
     // One breathing value for every clue badge, wind-up aura, bobbing gem and swelling vortex
     // (a loop per cell used to cost one timer each).
     const pulse = useRef(new Animated.Value(0)).current;
@@ -165,7 +208,7 @@ const BoardView: React.FC<Props> = memo(
       return false;
     }, [visited, entityMap, rows, cols]);
     useEffect(() => {
-      if (!needsPulse || calm) {
+      if (!needsPulse || calm || paused) {
         pulse.setValue(0);
         return;
       }
@@ -177,7 +220,7 @@ const BoardView: React.FC<Props> = memo(
       );
       loop.start();
       return () => loop.stop();
-    }, [needsPulse, calm, pulse]);
+    }, [needsPulse, calm, paused, pulse]);
 
     // Squash and stretch of a step: the hero stretches along the way it goes, then squashes on landing.
     const stretchX = useRef(new Animated.Value(1)).current;
@@ -192,7 +235,7 @@ const BoardView: React.FC<Props> = memo(
     const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
     const feet = useMemo(() => bodyY.interpolate({ inputRange: [0, 2], outputRange: [heroBody / 2, -heroBody / 2] }), [bodyY, heroBody]);
     useEffect(() => {
-      if (calm) {
+      if (calm || paused) {
         heroBreath.setValue(1);
         return;
       }
@@ -204,7 +247,7 @@ const BoardView: React.FC<Props> = memo(
       );
       loop.start();
       return () => loop.stop();
-    }, [calm, heroBreath]);
+    }, [calm, paused, heroBreath]);
 
     // Little dust puffs where the hero just stepped off: cheap, native-driven, gone in half a second.
     const [dusts, setDusts] = useState<{ id: number; x: number; y: number }[]>([]);
@@ -214,6 +257,7 @@ const BoardView: React.FC<Props> = memo(
     // A new floor or a restart puts the hero on its start tile: it appears there instead of sliding in from the old spot.
     const lastFloor = useRef({ level, seen: visited.length });
     const prevCell = useRef({ row: rowIndex, col: colIndex });
+    const warp = useRef(new Animated.Value(1)).current;
     useEffect(() => {
       const prev = lastFloor.current;
       lastFloor.current = { level, seen: visited.length };
@@ -222,6 +266,20 @@ const BoardView: React.FC<Props> = memo(
       if (level !== prev.level || visited.length < prev.seen) {
         playerPos.setValue({ x: colIndex * tileSize, y: rowIndex * tileSize });
         setDusts([]);
+        setSprung(new Set()); // a restart (or an undo) puts the traps back
+        return;
+      }
+      // A vortex throw is no walk: the hero shrinks away where it stood and pops up on the new tile (calm: it just moves).
+      if (teleported && (from.row !== rowIndex || from.col !== colIndex)) {
+        const land = () => playerPos.setValue({ x: colIndex * tileSize, y: rowIndex * tileSize });
+        if (calm) {
+          land();
+          return;
+        }
+        Animated.timing(warp, { toValue: 0, duration: 110, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => {
+          land();
+          Animated.spring(warp, { toValue: 1, friction: 5, tension: 140, useNativeDriver: true }).start();
+        });
         return;
       }
       if (!calm && (from.row !== rowIndex || from.col !== colIndex)) {
@@ -387,7 +445,7 @@ const BoardView: React.FC<Props> = memo(
           <View style={[StyleSheet.absoluteFill, { width: boardWidth, height: boardHeight }]}>
             {gridIndices.map(i => {
               // Recalculate hints for this specific cell in the current level layout
-              const near = visitedSet.has(i) ? getNearbyHazards(i, rows, cols, entityMap) : NO_HINTS;
+              const near = visitedSet.has(i) ? getNearbyHazards(i, rows, cols, shown) : NO_HINTS;
               
               return (
                 <GridCell
@@ -397,7 +455,7 @@ const BoardView: React.FC<Props> = memo(
                   cols={cols}
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}
-                  entity={entityMap?.[i]}
+                  entity={shown[i]}
                   enemyCount={near.enemyCount}
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}
@@ -413,6 +471,7 @@ const BoardView: React.FC<Props> = memo(
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
                   calm={!!calm}
+                  sprung={sprung.has(i)}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );
@@ -449,7 +508,8 @@ const BoardView: React.FC<Props> = memo(
                 transform: [
                   { translateX: playerPos.x }, 
                   { translateY: playerPos.y },
-                  { scale: heroShrink }
+                  { scale: heroShrink },
+                  { scale: warp }
                 ],
               },
             ]}
@@ -485,6 +545,17 @@ const BoardView: React.FC<Props> = memo(
             </Animated.View>
             </Animated.View>
           </Animated.View>
+
+          {fallen.map(f => (
+            <FallenFoe
+              key={f.id}
+              type={f.entity.type}
+              x={(f.entity.index % cols) * tileSize}
+              y={Math.floor(f.entity.index / cols) * tileSize}
+              tileSize={tileSize}
+              onDone={() => setFallen(list => list.filter(x => x.id !== f.id))}
+            />
+          ))}
 
           {flying && <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} />}
 

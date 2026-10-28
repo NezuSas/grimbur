@@ -24,6 +24,8 @@ export interface SoundState {
   attack:     LegacySoundHandle | null;
   monster:    LegacySoundHandle | null;
   vortex:     LegacySoundHandle | null;
+  /** The teleport: the vortex sound on a player of its own, so stopping the proximity loop never cuts it. */
+  teleport:   LegacySoundHandle | null;
   relic:      LegacySoundHandle | null;
   roar:       LegacySoundHandle | null;
   ui:         LegacySoundHandle | null;

@@ -10,6 +10,8 @@ type Props = {
   /** A drawn icon (used instead of an image). */
   iconNode?: React.ReactNode;
   value: number | string;
+  /** Shown right after the value, unrolled ("/5" after a rolling count). */
+  suffix?: string;
   label?: string;
   iconDim?: number;
   /** Spoken description for screen readers. */
@@ -26,7 +28,7 @@ type Props = {
   onAnchor?: (at: { x: number; y: number }) => void;
 };
 
-const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, iconDim = 32, a11yLabel, compact, popScale = 1.15, roll = false, calm = false, onAnchor }) => {
+const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, suffix, label, iconDim = 32, a11yLabel, compact, popScale = 1.15, roll = false, calm = false, onAnchor }) => {
   const { spacing } = useGameLayout();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const popRef = useRef(popScale);
@@ -78,6 +80,7 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, label, icon
           numberOfLines={1}
         >
           {shown}
+          {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
         </Animated.Text>
         {label && <Text style={styles.label}>{label}</Text>}
       </View>
@@ -108,6 +111,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     includeFontPadding: false,
   },
+  suffix: { fontSize: 12, color: "rgba(255,255,255,0.7)" },
   label: {
     color: "rgba(255, 255, 255, 0.6)",
     fontSize: 10,

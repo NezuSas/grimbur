@@ -14,6 +14,8 @@ type Props = {
   score: number;
   attackValue: number;
   coins: number;
+  /** Gems the floor started with: the counter reads found / total, so it climbs as gems are picked up. */
+  gemsTotal?: number;
   character: Character;
   level: number;
   /** Total floors of the expedition; shows `level/floors` when set. */
@@ -91,7 +93,7 @@ const ShieldBadge: React.FC<{ shield: boolean; breakKey: number; calm: boolean; 
 };
 
 const ScoreBar: React.FC<Props> = memo(
-  ({ score, attackValue, coins, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause, onGemAnchor }) => {
+  ({ score, attackValue, coins, gemsTotal, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause, onGemAnchor }) => {
     const { t, plural } = useT();
     const { hudHeight, insets, fontSize, spacing, screenWidth } = useGameLayout();
     // Portrait and split-screen windows: the avatar goes and the sides take only what they need.
@@ -187,14 +189,15 @@ const ScoreBar: React.FC<Props> = memo(
           ) : (
             <ScoreCounter
               icon={require("../../assets/sprites/items/Icon_Gem.png")}
-              value={coins}
+              value={gemsTotal !== undefined ? Math.max(0, gemsTotal - coins) : coins}
+              suffix={gemsTotal !== undefined ? `/${gemsTotal}` : undefined}
               popScale={gemPop}
               roll
               calm={calm}
               onAnchor={onGemAnchor}
               iconDim={statIconSize}
               compact={compact}
-              a11yLabel={plural("a11y.gemsLeft", coins)}
+              a11yLabel={gemsTotal !== undefined ? t("a11y.gemsFound", { found: Math.max(0, gemsTotal - coins), total: gemsTotal }) : plural("a11y.gemsLeft", coins)}
             />
           )}
           <ScoreCounter

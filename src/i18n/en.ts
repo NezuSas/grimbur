@@ -770,6 +770,7 @@ export const en = {
   'a11y.arrowsLeft': '{count} arrows left',
   'a11y.gemsLeft_one': '{count} gem left',
   'a11y.gemsLeft_other': '{count} gems left',
+  'a11y.gemsFound': '{found} of {total} gems found',
   'a11y.relics': 'Relics: {names}',
 
   // ── tutorial ──────────────────────────────────────────────────────────

@@ -221,6 +221,8 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const canPauseRef = useRef(false);
   canPauseRef.current = canPause;
+  const runEndedRef = useRef(runEnded);
+  runEndedRef.current = runEnded;
   const busyRef = useRef(false);
   busyRef.current = levelUpWindow || !!state.pendingDraft || second.visible; // the second-chance question is answered with its buttons
 
@@ -250,6 +252,12 @@ export default function GameScreen({ navigation, route }: Props) {
     void saveRun({ characterIndex, skin, ascension, meta: route.params?.meta, time: clock.get(), state: stateRef.current });
     return true;
   }, [resumable, characterIndex, skin, ascension, clock, route.params?.meta]);
+
+  // Every new floor is written as soon as it opens. Between floors nothing can be saved (the card, the draft and the shop live
+  // outside the engine), so if Android closes the app there, "Continuar" opens the start of the last floor reached, never an older one.
+  useEffect(() => {
+    if (state.level > 1 && state.turn === 0) saveCurrentRun();
+  }, [state.level, state.runSeed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Leaving mid-floor keeps the run for "Continuar"; otherwise whatever was played is recorded now. */
   const leaveRun = useCallback(() => {
@@ -296,7 +304,8 @@ export default function GameScreen({ navigation, route }: Props) {
   // Music, hardware Back and AppState only act while this screen is focused.
   useFocusEffect(
     useCallback(() => {
-      emitSound("GAME_MUSIC_START");
+      // Back from the Forge (or anywhere) over a finished run: the menu music it left with goes on; the run's loop does not return.
+      if (!runEndedRef.current) emitSound("GAME_MUSIC_START");
 
       const backSub = BackHandler.addEventListener("hardwareBackPress", () => {
         if (pausedRef.current) {
@@ -547,7 +556,13 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleBomb = useCallback(() => handleItem("bomb"), [handleItem]);
   const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
 
-  useProximityAudio(state);
+  // The gems the floor started with (the HUD counts found / total). Gems are never added within a floor, so the count at the
+  // floor's first render is its total.
+  const floorKey = `${state.runSeed}:${state.level}`;
+  const gemsTotal = useMemo(() => state.coins, [floorKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The hums and the heartbeat stop behind the pause menu and while another screen is in front.
+  useProximityAudio(state, !paused && isFocused);
 
   // The Grimbur lair announces itself once its board is in sight (after the relic draft that opens the floor): the
   // Grimbur's entrance card, a roar, a heavy thump in the hand and a dark red veil that lifts. Once per lair.
@@ -575,7 +590,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const nearby = getNearbyHazards(state.playerIndex, state.rows, state.cols, state.entityMap);
   // Next to a hazard the screen's glow and the clues on the board beat with one heart (still when calm).
   const inDanger = (nearby.enemy || nearby.pit) && !runEnded && !levelUpWindow;
-  const heartbeat = useHeartbeat(inDanger && !reduceFlash, Math.max(nearby.enemyCount, nearby.pitCount));
+  const heartbeat = useHeartbeat(inDanger && !reduceFlash && !paused && isFocused, Math.max(nearby.enemyCount, nearby.pitCount));
   const relicNames = state.relics.map(id => relicText(t, id, "name")).join(", ");
 
   const boardSummary = [
@@ -647,6 +662,7 @@ export default function GameScreen({ navigation, route }: Props) {
           score={state.score}
           // Gems still flying are not counted off yet: the counter ticks as each one lands.
           coins={state.coins + activeCoins.length}
+          gemsTotal={Math.max(gemsTotal, state.coins + activeCoins.length)}
           attackValue={state.attack}
           shield={state.shield}
           onPause={canPause ? openPause : undefined}
@@ -721,6 +737,8 @@ export default function GameScreen({ navigation, route }: Props) {
             aimTiles={aimTiles}
             aimDir={state.attack > 0 ? aimDir : null}
             shot={shot}
+            teleported={state.wasTeleported}
+            paused={paused || !isFocused}
             dying={state.isGameOver && !state.isVictory}
             onTileLongPress={toggleFlag}
             onReady={handleBoardReady}
@@ -849,7 +867,11 @@ export default function GameScreen({ navigation, route }: Props) {
           onShare: handleShare,
           onCopyText: isDaily ? handleCopyText : undefined,
           onUnlock: handleUnlock,
-          onForge: () => navigation.navigate("ForgeScreen"),
+          onForge: () => {
+            // The defeat or victory stopped the run's music: the Forge is a menu, it gets the menu music.
+            emitSound("COVER_SCREEN_START");
+            navigation.navigate("ForgeScreen");
+          },
           onRetry: duelParam ? handleRematch : handleRetry,
           retryLabel: duelParam ? t("duel.rematch") : undefined,
           onMainMenu: handleMainMenu,

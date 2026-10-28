@@ -37,7 +37,7 @@ const freshBoard = () =>
 
 /**
  * Guided first floor played with the real reducer. Each step completes from the game state alone
- * (see `core/tutorial/tutorial.ts`). Walking into the guardian simply restarts the lesson.
+ * (see `core/tutorial/tutorial.ts`). Walking into the guardian takes the hero back one step, on the same lesson step.
  */
 export default function TutorialScreen({ navigation, route }: Props) {
   const { t } = useT();
@@ -47,6 +47,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
   // Phones keep the base sizes; roomier windows grow the banner text up to 1.5x.
   const ui = Math.max(1, Math.min(1.5, winWidth / 900, winHeight / 540));
   const controlPosition = useSettingsStore(s => s.controlPosition);
+  const calm = useSettingsStore(s => s.reduceFlash);
   const setTutorialSeen = useSettingsStore(s => s.setTutorialSeen);
 
   const characterIndex = route.params?.characterIndex ?? 0;
@@ -101,36 +102,29 @@ export default function TutorialScreen({ navigation, route }: Props) {
     setFlags(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]));
   }, []);
 
-  // Dying (walking into the guardian) restarts the lesson from the beginning.
+  // Dying (walking into the guardian) takes the hero back to just before that step: the lesson goes on from the step it was on,
+  // with the gems and flags already earned (starting over from step 1 punished a beginner for the very thing being taught).
+  const beforeFatal = useRef(state);
+  const stateRef = useRef(state);
+  stateRef.current = state;
   useEffect(() => {
     if (!state.isGameOver) return;
     setShowRetry(true);
     const timer = setTimeout(() => {
-      dispatch({
-        type: "RESET",
-        character: characters[0],
-        rows: TUTORIAL_BOARD.rows,
-        cols: TUTORIAL_BOARD.cols,
-        entities: [...TUTORIAL_BOARD.entities],
-        coins: TUTORIAL_BOARD.coins,
-        attack: TUTORIAL_BOARD.attack,
-        seed: 7,
-        perks: NO_PERKS,
-      });
-      setStepIndex(0);
-      setFlags([]);
+      dispatch({ type: "RESTORE", state: beforeFatal.current });
       setShowRetry(false);
       emitSound("GAME_MUSIC_START");
     }, 1400);
     return () => clearTimeout(timer);
   }, [state.isGameOver]);
 
-  const move = useCallback((direction: Direction) => dispatch({ type: "MOVE", direction }), []);
+  const move = useCallback((direction: Direction) => {
+    if (!stateRef.current.isGameOver) beforeFatal.current = stateRef.current;
+    dispatch({ type: "MOVE", direction });
+  }, []);
   // The arrow in flight, worked out from the board as it is when the shot is taken.
   const [shot, setShot] = useState<ArrowShot | null>(null);
   const shotCount = useRef(0);
-  const stateRef = useRef(state);
-  stateRef.current = state;
   const attack = useCallback(() => {
     const s = stateRef.current;
     if (s.attack > 0) {
@@ -269,6 +263,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
           skin={route.params?.skin}
           isAttacking={isAttacking}
           shot={shot}
+          calm={calm}
           highlight={highlight}
           flags={flagSet}
           onTileLongPress={toggleFlag}

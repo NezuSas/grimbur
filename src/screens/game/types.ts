@@ -14,6 +14,11 @@ export const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
 
 /** How long the board stays on screen after a death (the red edge, the shake and the killer in view) before the defeat card covers it. */
 export const GAME_OVER_CARD_DELAY_MS = 1100;
+/**
+ * How long the board stays after the Grimbur falls: the arrow lands, the Grimbur crumbles (BOSS_FALL_MS) and the cave holds
+ * its breath a moment before the victory card.
+ */
+export const VICTORY_CARD_DELAY_MS = 2300;
 /** The run is saved this long after a death, once the killer's strike on the board has played. */
 export const RECORD_AFTER_STRIKE_MS = 650;
 /** How long the top-10 check may delay the entry modal; the game-over card never waits for it. */
