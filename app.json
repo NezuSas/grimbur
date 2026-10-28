@@ -3,7 +3,7 @@
     "name": "Grimbur",
     "slug": "wumpusadventures",
     "description": "Descend a haunted cave, read the clues, grab the gems and slay the Grimbur. A bite-sized deduction roguelite.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
