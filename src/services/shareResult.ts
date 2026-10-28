@@ -3,6 +3,7 @@ import type { ComponentRef, RefObject } from "react";
 import type { View } from "react-native";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import { SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 
 /**
  * Shares a result as a picture (the card drawn in `card`); when the picture cannot be made or the system cannot share files, the
@@ -11,7 +12,7 @@ import * as Sharing from "expo-sharing";
 export async function shareResult(card: RefObject<ComponentRef<typeof View> | null>, message: string, dialogTitle: string): Promise<"image" | "text" | "none"> {
   try {
     if (card.current && (await Sharing.isAvailableAsync())) {
-      const uri = await captureRef(card, { format: "png", quality: 1, result: "tmpfile", width: 1200, height: 630 });
+      const uri = await captureRef(card, { format: "png", quality: 1, result: "tmpfile", width: SHARE_CARD_WIDTH, height: SHARE_CARD_HEIGHT });
       await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle, UTI: "public.png" });
       return "image";
     }

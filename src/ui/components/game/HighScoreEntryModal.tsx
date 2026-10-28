@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Keyboard,
+  Platform,
   StyleSheet,
   TextInput,
   View,
@@ -42,6 +44,20 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   const submitting = useRef(false);
   const inputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
   const fade = useRef(new Animated.Value(0)).current;
+  const [keyboardUp, setKeyboardUp] = useState(false);
+  // The layout is chosen from the tallest the window has been: the keyboard shrinks the window on Android, and switching the
+  // card between its two layouts as the keyboard came and went made it jump.
+  const fullHeight = useRef(height);
+  fullHeight.current = Math.max(fullHeight.current, height);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardUp(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardUp(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   useEffect(() => {
     Animated.timing(fade, { toValue: visible ? 1 : 0, duration: 250, useNativeDriver: true }).start();
@@ -58,7 +74,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   if (!visible) return null;
 
   // With the keyboard up a landscape phone has ~150 dp: use a compact two-column card.
-  const compact = height < 460;
+  const compact = fullHeight.current < 460;
 
   const submit = async () => {
     if (saving || submitting.current) return; // guards double taps (the ref is set at once; the state only on the next render)
@@ -80,18 +96,23 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
 
   const summary = (
     <View style={styles.summary}>
-      <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
-        <GlyphIcon name="trophy" size={13} /> {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
-      </Text>
+      {/* With the keyboard up a landscape phone has little room left: only the title and the score stay. */}
+      {!keyboardUp && (
+        <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
+          <GlyphIcon name="trophy" size={13} /> {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
+        </Text>
+      )}
       <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
         {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
       </Text>
       <Text style={styles.score} maxFontSizeMultiplier={1.3}>
         {t('entry.points', { score: score })}
       </Text>
-      <Text style={styles.subtitle} maxFontSizeMultiplier={1.3}>
-        {t('entry.subtitle', { floor: level, gems: plural('common.gems', totalCoins), time: formatTime(time) })}
-      </Text>
+      {!keyboardUp && (
+        <Text style={styles.subtitle} maxFontSizeMultiplier={1.3}>
+          {t('entry.subtitle', { floor: level, gems: plural('common.gems', totalCoins), time: formatTime(time) })}
+        </Text>
+      )}
     </View>
   );
 
