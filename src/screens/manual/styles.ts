@@ -13,7 +13,7 @@ export const manualStyles = StyleSheet.create({
   visualImage: { width: 64, height: 64 },
   visualText: { color: "#b0b0b0", fontSize: 11, fontWeight: "900", marginTop: 6, letterSpacing: 1 },
   visualDetail: { color: "#c4c4c4", textAlign: "center", lineHeight: 21, fontSize: 14.5 },
-  hintIconContainer: { marginTop: 6, padding: 4, borderRadius: 20, borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
+  clueToken: { marginTop: 6, width: 30, height: 30 },
   note: { color: "#a9a9a9", fontStyle: "italic", fontSize: 13.5, paddingHorizontal: 4 },
   overlayGlyph: { flex: 1, alignItems: "center", justifyContent: "center" },
   attackDot: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#E6194B", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center" },
