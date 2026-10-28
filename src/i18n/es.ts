@@ -771,6 +771,7 @@ export const es: Record<TranslationKey, string> = {
   'a11y.arrowsLeft': '{count} flechas restantes',
   'a11y.gemsLeft_one': 'Queda {count} gema',
   'a11y.gemsLeft_other': 'Quedan {count} gemas',
+  'a11y.gemsFound': '{found} de {total} gemas recogidas',
   'a11y.relics': 'Reliquias: {names}',
 
   // ── tutorial ──────────────────────────────────────────────────────────

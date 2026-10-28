@@ -229,7 +229,7 @@ export function useSoundManager(): void {
       case 'STOP_GUARDIAN_NEAR': stopTrack(sounds.monster); break;
       case 'VORTEX_NEAR':       startLoopingTrack(sounds.vortex, HAZARD_VOL, 'sfx'); break;
       case 'STOP_VORTEX_NEAR':  stopTrack(sounds.vortex); break;
-      case 'VORTEX_TELEPORT':   playOnce(sounds.vortex, mixVolume('teleport')); break;
+      case 'VORTEX_TELEPORT':   playOnce(sounds.teleport ?? sounds.vortex, mixVolume('teleport')); break;
 
       case 'QUIT':            stopAllBackgroundMusic("quit"); break;
     }

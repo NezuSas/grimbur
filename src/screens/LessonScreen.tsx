@@ -67,6 +67,7 @@ export default function LessonScreen({ navigation, route }: Props) {
   // Phones keep the base sizes; roomier windows grow the banner text up to 1.5x.
   const ui = Math.max(1, Math.min(1.5, winWidth / 900, winHeight / 540));
   const controlPosition = useSettingsStore(s => s.controlPosition);
+  const calm = useSettingsStore(s => s.reduceFlash);
   const lesson = LESSONS[route.params.lesson];
 
   const devMoves = route.params.devMoves;
@@ -317,6 +318,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             dying={state.isGameOver}
             killerTile={state.isGameOver ? killerTile(state) : null}
             shot={shot}
+            calm={calm}
             aimDir={__DEV__ ? route.params.devAim ?? null : null}
             aimTiles={__DEV__ && route.params.devAim ? new Set(lineOfFire(state.playerIndex, route.params.devAim, 4, state.rows, state.cols)) : undefined}
             highlight={step.highlight}

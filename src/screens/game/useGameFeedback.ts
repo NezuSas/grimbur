@@ -14,6 +14,7 @@ import type { GameState } from "../../core/engine/types";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import { useGameLayout } from "../../ui/layout/useGameLayout";
 import type { Popup } from "./types";
+import { landMs } from "../../ui/components/game/ArrowFlight";
 
 type Params = {
   state: GameState;
@@ -45,6 +46,9 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
   const prevFeedback = useRef(state);
   const boardOrigin = useRef<{ x: number; y: number } | null>(null);
   const boardBox = useRef<ComponentRef<typeof View>>(null);
+  /** Feedback held back until an arrow is seen to land (cleared when the screen goes away). */
+  const arrowTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => () => arrowTimers.current.forEach(clearTimeout), []);
   /** Set while a retry restarts the run: the jump from the old board to the new one must not play any feedback. */
   const isResetting = useRef(false);
 
@@ -116,6 +120,16 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
       else recordLatency("step>render", sinceTap);
     }
 
+    // A hit by an arrow is heard and seen when the arrow arrives (the board keeps the foe until then), not when it leaves the bow.
+    // Calm draws no flight, so nothing waits there; a volley or a bomb spends no arrow and strikes at once.
+    const shotFired = state.attack < prev.attack;
+    const whenArrowLands = (tile: number, play: () => void) => {
+      const tiles = Math.abs(Math.floor(tile / state.cols) - Math.floor(state.playerIndex / state.cols)) + Math.abs((tile % state.cols) - (state.playerIndex % state.cols));
+      const wait = shotFired && !reduceFlash && tiles > 0 ? landMs({ key: 0, dir: state.facingDir, tiles, hit: true }) : 0;
+      if (wait === 0) play();
+      else arrowTimers.current.push(setTimeout(play, wait));
+    };
+
     // The gem streak ends as soon as the player pauses (see addGem) or any non-gem move happens after the window.
     for (const e of events) {
       switch (e.kind) {
@@ -142,20 +156,22 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           break;
         }
         case "kill": {
-          emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
-          if (e.combo > 0) {
-            const look = comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter"));
-            pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
-          }
-          flash(combatFlash, 0.35, 0.08, 25, 35);
+          const look = e.combo > 0 ? comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter")) : null;
+          whenArrowLands(e.tile, () => {
+            emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
+            if (look) pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
+            flash(combatFlash, 0.35, 0.08, 25, 35);
+          });
           break;
         }
         case "bossHit": {
-          emitSound("BOSS_HIT");
-          haptic.impact(ImpactFeedbackStyle.Heavy);
-          pushPopup({ points: e.dead ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore, type: "boss", popScale: e.dead ? 1.4 : 1 }, e.tile);
-          flash(combatFlash, e.dead ? 0.5 : 0.35, 0.1, 25, 60);
-          if (!reduceFlash) setShakeKey(k => k + 1);
+          whenArrowLands(e.tile, () => {
+            emitSound("BOSS_HIT");
+            haptic.impact(ImpactFeedbackStyle.Heavy);
+            pushPopup({ points: e.dead ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore, type: "boss", popScale: e.dead ? 1.4 : 1 }, e.tile);
+            flash(combatFlash, e.dead ? 0.5 : 0.35, 0.1, 25, 60);
+            if (!reduceFlash) setShakeKey(k => k + 1);
+          });
           break;
         }
         case "miss": {

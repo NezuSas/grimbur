@@ -13,7 +13,7 @@ import { queuePendingSubmit } from "../../services/pendingSubmits";
 import type { GameState } from "../../core/engine/types";
 import type { GameMode } from "../../core/engine/seed";
 import { dailyRunResult, runResultOf } from "./runResult";
-import { GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS } from "./types";
+import { GAME_OVER_CARD_DELAY_MS, RECORD_AFTER_STRIKE_MS, TOP_TEN_CHECK_TIMEOUT_MS, VICTORY_CARD_DELAY_MS } from "./types";
 import type { RunResult } from "./types";
 
 type Params = {
@@ -172,7 +172,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
         new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
       ]);
       if (!cancelled && mounted.current && qualifies) setShowHighScoreEntry(true);
-    }, s.isVictory ? 700 : GAME_OVER_CARD_DELAY_MS);
+    }, s.isVictory ? VICTORY_CARD_DELAY_MS : GAME_OVER_CARD_DELAY_MS);
 
     return () => {
       cancelled = true;

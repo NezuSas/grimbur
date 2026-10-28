@@ -9,6 +9,8 @@ import type { NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 import BossSprite from "./BossSprite";
 
+const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
+
 export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
   stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
@@ -148,7 +150,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, facing, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false
 }: {
   index: number;
   tileSize: number;
@@ -187,6 +189,8 @@ const GridCell = memo(({
   biome: BiomeId;
   /** Reduced motion: the vortex does not spin and the gems do not glint. */
   calm: boolean;
+  /** A trap went off here: the sprung jaws stay on the ground as a mark. */
+  sprung?: boolean;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   // On a new floor the tiles already lit wait for their delay too, so the floor opens in a cascade from the start.
@@ -277,8 +281,11 @@ const GridCell = memo(({
   const showHints = isVisited && !entity && (roar || vortex);
 
   const charged = (entity?.type === 'boss' || entity?.type === 'stalker') && (entity.charge ?? 0) >= 1;
-  const badge = Math.max(10, tileSize * (roar && vortex ? 0.4 : 0.5));
-  const countSize = Math.max(8, tileSize * 0.24);
+  // On small tiles (a big floor on a small phone) an icon plus a tiny number is unreadable: the badge becomes the number itself,
+  // in the badge's colour and shape, never below 11 dp.
+  const compact = tileSize < 34;
+  const badge = compact ? Math.max(15, tileSize * (roar && vortex ? 0.46 : 0.6)) : Math.max(10, tileSize * (roar && vortex ? 0.4 : 0.5));
+  const countSize = Math.max(11, tileSize * 0.24);
 
   return (
     <Animated.View
@@ -382,7 +389,20 @@ const GridCell = memo(({
       {/* Clues: a round warm badge for guardians, a dark diamond with a swirl for vortexes. Always numbered; side by side. */}
       {showHints && (
         <View style={styles.hintContainer} pointerEvents="none">
-          {roar && (
+          {compact && roar && (
+            <Animated.View style={[styles.hintRoar, { width: badge, height: badge, borderRadius: badge / 2, borderWidth: 1.5, transform: [{ scale: hintScale }] }]}>
+              <Text style={[styles.hintCountText, styles.hintCompactRoar, { fontSize: countSize }]}>{enemyCount}</Text>
+            </Animated.View>
+          )}
+          {compact && vortex && (
+            <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
+              <View style={[styles.hintVortexShape, { width: badge * 0.78, height: badge * 0.78, left: badge * 0.11, top: badge * 0.11, borderWidth: 1.5 }]} />
+              <View style={[StyleSheet.absoluteFill, styles.hintVortexIcon]}>
+                <Text style={[styles.hintCountText, { fontSize: countSize }]}>{pitCount}</Text>
+              </View>
+            </Animated.View>
+          )}
+          {!compact && roar && (
             <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
               <View style={[styles.hintRoar, { width: badge, height: badge, borderRadius: badge / 2 }]}>
                 <Ionicons name="volume-high" size={badge * 0.62} color="#7f2400" />
@@ -392,7 +412,7 @@ const GridCell = memo(({
               </View>
             </Animated.View>
           )}
-          {vortex && (
+          {!compact && vortex && (
             <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
               <View style={[styles.hintVortexShape, { width: badge * 0.78, height: badge * 0.78, left: badge * 0.11, top: badge * 0.11 }]} />
               <View style={[StyleSheet.absoluteFill, styles.hintVortexIcon]}>
@@ -408,6 +428,13 @@ const GridCell = memo(({
 
       {/* Render Entity (Gem) overlaid on background */}
       {entity?.type === 'coin' && <GemSprite tileSize={tileSize} calm={calm} pulse={pulse} />}
+
+      {/* A trap that went off stays on the ground, sprung: the floor remembers where it bit. */}
+      {sprung && !entity && (
+        <View style={styles.pickup} pointerEvents="none">
+          <SpriteImage source={TRAP_SPRUNG} style={{ width: tileSize * 0.62, height: tileSize * 0.62, opacity: 0.85 }} resizeMode="contain" />
+        </View>
+      )}
 
       {/* Power-ups (always visible, like gems). Traps stay hidden on purpose. */}
       {entity?.type === 'shield' && (
@@ -503,6 +530,7 @@ const styles = StyleSheet.create({
   },
   hintCountVortex: { borderColor: "#e1bee7" },
   hintCountText: { color: "#fff", fontWeight: "900", includeFontPadding: false },
+  hintCompactRoar: { color: "#7f2400" },
   chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#FFEB3B", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
   chargeMarkText: { color: "#B71C1C", fontWeight: "900", includeFontPadding: false },
   flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(255,23,68,0.55)", borderRadius: 8 },

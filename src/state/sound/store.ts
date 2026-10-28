@@ -332,6 +332,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     attack:     null,
     monster:    null,
     vortex:     null,
+    teleport:   null,
     relic:      null,
     roar:       null,
     ui:         null,
@@ -397,6 +398,8 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["attack", require("../../assets/sfx/attack.wav")],
         ["monster", require("../../assets/sfx/monster.wav")],
         ["vortex", require("../../assets/sfx/vortex.wav")],
+        // Same sound, own player: the teleport must not share a channel with the vortex proximity loop (STOP_VORTEX_NEAR cut it).
+        ["teleport", require("../../assets/sfx/vortex.wav")],
         ["relic", require("../../assets/sfx/relic.wav")],
         ["roar", require("../../assets/sfx/roar.wav")],
         ["ui", require("../../assets/sfx/ui.wav")],
@@ -412,7 +415,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
       // it is needed.
       const CRITICAL = ['move', 'coin', 'attack', 'cover'];
-      const LATER = ['ui', 'gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'roar', 'victory', 'forge', 'ember'];
+      const LATER = ['ui', 'gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember'];
       await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
       audioLog('init', 'ready (first sounds loaded, the rest follows)');
