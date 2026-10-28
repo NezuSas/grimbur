@@ -15,7 +15,8 @@ Están en el orden recomendado para la ficha: las dos primeras son las que se ve
 | 8 | `08_achievements.png` | Logros | 100+ achievements / Más de 100 logros |
 
 La ficha en inglés está en `en/` con los mismos ocho nombres, generada con las mismas recetas y `-Lang en`.
-Regenerar ambos juegos después de cambiar el aspecto del juego, para que no queden desactualizados.
+Regenerar ambos juegos después de cambiar el aspecto del juego, para que no queden desactualizados:
+con Metro corriendo, `node scripts/storeShots.mjs` rehace las 16 (o `node scripts/storeShots.mjs es only=01,03` solo algunas).
 
 Parámetros exactos (preset `veteran`, `-Sizes 1280x720 -Scale 1.5`):
 

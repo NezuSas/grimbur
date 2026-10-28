@@ -1,8 +1,8 @@
 # Asset inventory and licensing
 
-**Status: provenance UNKNOWN for every file below.** The repo contains no license or credits file, and nothing in the
-files tells where they came from. Before publishing commercially, fill in the *Source / license* column with proof
-(purchase receipt, CC0/CC-BY page, your own work, or generation tool + terms) and keep the evidence outside the app.
+**Status:** audio is synthesised by our own scripts and every sprite in use is AI-generated for this game (sections
+below record the tool and the master of each). Keep the generation records with the release evidence; if an asset
+cannot be traced, replace it.
 
 Why this matters: a store takedown or claim over one asset can pull the whole app, and a revenue-generating game needs
 clean rights. If an asset cannot be proven, replace it.
@@ -23,17 +23,28 @@ still in git history (commit 1ddb572) if you ever want to compare.
 
 ## Sprites (`src/assets/sprites`)
 
-| Files | Source / license |
+**AI-generated for this game (owned output).** The 2026-10-28 art pass was generated with ChatGPT image generation
+(OpenAI, account Nezu SAS, plan Pro); OpenAI's terms assign the output to the user. Each sheet's master is in
+`assets-src/art/` and the cutting scripts are in `scripts/` (stitchCaptures, sliceTileGrid, sliceCreatureGrid,
+sliceIconGrid, buildAppIcons), so every sprite can be rebuilt from its master.
+
+| Files | Master (`assets-src/art/`) |
 | --- | --- |
-| backgrounds/Cover_Background.png, Loading.png | ? |
-| characters/{Hero,Attack,Icon}_{Cyan,Gold,Green,Red}.png | ? |
-| enemies/Guardian_Enemy.png | ? |
-| items/Icon_Gem.png | ? |
-| tiles/Danger_Vortex.png, Tile_Hidden.png, Tile_Revealed.png | ? |
+| tiles/Tile_Hidden*.png, Tile_Revealed*.png (cave, crystal, magma, lair) | tiles_v1.png |
+| enemies/Guardian_Enemy*, Stalker_Enemy*, Sleeper_Enemy* (idle + breathe) | enemies_v1.png |
+| enemies/Grimbur_Boss*.png (idle, breathe, attack, hurt) | grimbur_v1.png |
+| tiles/Danger_Vortex.png, tiles/Trap_Sprung.png, assets/emblem.png | props_v1.png |
+| ui/Clue_Guardian.png, ui/Clue_Vortex.png | clues_v1.png |
+| ui/Logo_Grimbur.png | logo_v1.png |
+
+Earlier art (heroes and outfits, backgrounds, relics, Forge and tool icons, UI glyphs, items) was generated with
+Figma's AI image generation (2026-10-25/26, owner's Figma Pro plan). Keep the generation records with the release
+evidence.
 
 ## App icons (`assets/`)
 
-`icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png` (640×640, converted from JPEG to real PNG), `splash-icon.png` (1024×1024). Source: ?
+`icon.png`, `adaptive-icon.png`, `splash.png`, `splash-native.png` and `favicon.png` are built from `assets/emblem.png`
+(the Grimbur emblem above) by `scripts/buildAppIcons.py`.
 
 ## Removed: Mario image
 

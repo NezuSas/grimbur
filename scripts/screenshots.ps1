@@ -20,7 +20,6 @@ param(
 )
 $Screens = $Screens | ForEach-Object { $_ -split ',' }
 $Sizes = $Sizes | ForEach-Object { $_ -split ',' }
-$chrome = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 $dir = Join-Path $env:TEMP 'shots'
 New-Item -ItemType Directory -Force $dir | Out-Null
 foreach ($screen in $Screens) {
@@ -28,19 +27,16 @@ foreach ($screen in $Screens) {
     $w, $h = $size -split 'x'
     $out = Join-Path $dir "${screen}_${Preset}_${size}${Tag}.png"
     if (Test-Path $out) { [IO.File]::Delete($out) }
-    $profile = Join-Path $env:TEMP "chrome-shot-$([guid]::NewGuid().ToString('N'))"
     $url = "$Base/?screen=$screen&preset=$Preset&lang=$Lang"
     if ($Calm) { $url += "&calm=1" }
     if ($Pad) { $url += "&pad=$Pad" }
     if ($Skin) { $url += "&skin=$Skin" }
     if ($Cat) { $url += "&cat=$Cat" }
     if ($Params) { $url += "&params=$([uri]::EscapeDataString($Params))" }
-    # Start-Process -Wait is the reliable way to let headless Chrome finish writing the file; retry if the machine is busy.
-    $args = @('--headless=new', '--disable-gpu', '--hide-scrollbars', "--user-data-dir=$profile", "--window-size=$w,$h", "--force-device-scale-factor=$Scale", "--virtual-time-budget=$Budget", "--screenshot=$out", $url)
-    for ($try = 1; $try -le 3 -and -not (Test-Path $out); $try++) {
-      Start-Process -FilePath $chrome -ArgumentList $args -Wait | Out-Null
-    }
-    if (Test-Path $profile) { [IO.Directory]::Delete($profile, $true) }
+    # scripts/shot.mjs drives Chrome over the DevTools protocol and always closes it (headless Chrome with a virtual time
+    # budget could hang forever on a request that never settles, and every hung one kept running the game).
+    $env:SHOT_URL = $url
+    & node (Join-Path $PSScriptRoot 'shot.mjs') $out "${w}x${h}" x ([Math]::Max($Budget, 150000)) $Scale | Out-Null
     if (Test-Path $out) { Write-Output $out } else { Write-Output "FAILED $out" }
   }
 }
