@@ -20,11 +20,26 @@ export function resolveLanguage(preference: LanguagePreference, deviceLanguageCo
   return (LANGUAGES as readonly string[]).includes(code) ? (code as Language) : 'en';
 }
 
-/** Replaces every `{name}` with its value; unknown placeholders are left visible so bugs are easy to spot. */
-export function format(template: string, params?: Params): string {
+/** How each game language writes numbers (the chosen language, not the phone's locale, so text and digits never mix styles). */
+const NUMBER_LOCALE: Record<Language, string> = { en: 'en-US', es: 'es-EC' };
+
+/** `1234` as the chosen language writes it (`1,234` / `1.234`). Falls back to the plain digits where Intl is missing. */
+export function formatNumber(value: number, language: Language): string {
+  try {
+    return value.toLocaleString(NUMBER_LOCALE[language]);
+  } catch {
+    return String(value);
+  }
+}
+
+/**
+ * Replaces every `{name}` with its value; unknown placeholders are left visible so bugs are easy to spot.
+ * A number is written as `language` writes it, so callers pass numbers raw instead of pre-formatting them.
+ */
+export function format(template: string, params?: Params, language?: Language): string {
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
+    name in params ? (typeof params[name] === 'number' && language ? formatNumber(params[name] as number, language) : String(params[name])) : match,
   );
 }
 
@@ -49,8 +64,8 @@ export function createTranslator<K extends string>(
     key;
 
   return {
-    t: (key, params) => format(lookup(key), params),
+    t: (key, params) => format(lookup(key), params, language),
     plural: (base, count, params) =>
-      format(lookup(`${base}_${count === 1 ? 'one' : 'other'}`), { count, ...params }),
+      format(lookup(`${base}_${count === 1 ? 'one' : 'other'}`), { count, ...params }, language),
   };
 }

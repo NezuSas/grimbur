@@ -1,4 +1,4 @@
-import { createTranslator, format, resolveLanguage } from '../../src/i18n/translate';
+import { createTranslator, format, formatNumber, resolveLanguage } from '../../src/i18n/translate';
 
 const dictionaries = {
   en: { hello: 'Hello {name}', gems_one: '{count} gem', gems_other: '{count} gems', onlyEn: 'Only English' },
@@ -45,5 +45,19 @@ describe('createTranslator', () => {
     const es = createTranslator(dictionaries, 'es');
     expect(es.t('onlyEn')).toBe('Only English');
     expect(es.t('missing' as never)).toBe('missing');
+  });
+});
+
+describe('formatNumber', () => {
+  it('writes the number as the chosen game language does, not as the phone does', () => {
+    expect(formatNumber(1234567, 'en')).toBe('1,234,567');
+    expect(formatNumber(1234567, 'es')).toBe('1.234.567');
+    expect(formatNumber(999, 'es')).toBe('999');
+  });
+
+  it('numeric params in templates come out formatted; strings are left alone', () => {
+    const dict = { en: { balance: 'You have {n} embers ({note})' }, es: { balance: 'Tienes {n} brasas ({note})' } };
+    expect(createTranslator(dict, 'es').t('balance', { n: 12500, note: 'v1.2' })).toBe('Tienes 12.500 brasas (v1.2)');
+    expect(createTranslator(dict, 'en').t('balance', { n: 12500, note: 'v1.2' })).toBe('You have 12,500 embers (v1.2)');
   });
 });

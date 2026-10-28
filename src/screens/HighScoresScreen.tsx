@@ -38,7 +38,7 @@ type Board = "global" | "today" | "week";
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
 
 const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
   const [data, setData] = useState<Doc[]>([]);
@@ -104,7 +104,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       {mine.gamesPlayed > 0 ? (
         <>
           <Text style={styles.recordScore} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-            {mine.bestScore.toLocaleString()}
+            {n(mine.bestScore)}
           </Text>
           <Text style={styles.recordCaption} maxFontSizeMultiplier={1.2}>
             {t("scores.bestScore").toLocaleUpperCase()}
@@ -144,7 +144,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.threshold}>
           <Ionicons name="flag" size={14} color="#80DEEA" />
           <Text style={styles.thresholdText} maxFontSizeMultiplier={1.2}>
-            {t("scores.threshold", { score: tenth.toLocaleString() })}
+            {t("scores.threshold", { score: tenth })}
           </Text>
         </View>
       )}
@@ -210,7 +210,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </View>
         <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-          {(Number(row.score) || 0).toLocaleString()}
+          {n(Number(row.score) || 0)}
         </Text>
         </View>
         <TouchableOpacity

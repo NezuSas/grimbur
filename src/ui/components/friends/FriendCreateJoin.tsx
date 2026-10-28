@@ -49,7 +49,7 @@ const VersusArt = ({ tint, size }: { tint: string; size: number }) => (
  * Creating picks a difficulty (every one is open to a challenge: the rules are shown) and, for a duel, an optional stake.
  */
 const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
-  const { t } = useT();
+  const { t, n: num } = useT();
   const tint = TINT[mode];
   const { height } = useWindowDimensions();
   const [tab, setTab] = useState<"create" | "join">("create");
@@ -125,10 +125,10 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                         disabled={!affordable}
                         accessibilityRole="radio"
                         accessibilityState={{ selected: on, disabled: !affordable }}
-                        accessibilityLabel={n === 0 ? t("duel.stakeNone") : n.toLocaleString()}
+                        accessibilityLabel={n === 0 ? t("duel.stakeNone") : num(n)}
                       >
                         <Text style={[styles.chipText, on && { color: "#fff" }]} maxFontSizeMultiplier={1.2}>
-                          {n === 0 ? t("duel.stakeNone") : <><EmberIcon size={11} /> {n.toLocaleString()}</>}
+                          {n === 0 ? t("duel.stakeNone") : <><EmberIcon size={11} /> {num(n)}</>}
                         </Text>
                       </TouchableOpacity>
                     );
@@ -144,7 +144,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
 
             {mode === "duel" && stake >= CONFIRM_STAKE && confirming ? (
               <Text style={styles.error} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.3}>
-                {t("duel.confirmStake", { n: stake.toLocaleString() })}
+                {t("duel.confirmStake", { n: stake })}
               </Text>
             ) : null}
             <PopButton

@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import type { Character } from "../../data/characters";
+import { formatNumberNow } from "../../i18n/useT";
 
 export const SHARE_CARD_WIDTH = 1200;
 export const SHARE_CARD_HEIGHT = 630;
@@ -64,7 +65,7 @@ const ShareCard = ({ character, heroName, headline, score, level, floors, victor
           {headline.toLocaleUpperCase()}
         </Text>
         <View style={styles.scoreRow}>
-          <Text style={styles.score}>{score.toLocaleString()}</Text>
+          <Text style={styles.score}>{formatNumberNow(score)}</Text>
           <Text style={styles.scoreLabel}>{scoreLabel.toLocaleUpperCase()}</Text>
         </View>
 

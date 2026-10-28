@@ -273,7 +273,7 @@ const CoverCard: React.FC<Props> = ({
         compact={short}
         title={t("cover.playBig")}
         subtitle={firstRun && tutorialPending ? t("cover.firstRun") : savedRun ? t("cover.newRunNote") : t("cover.mode.expedition.sub")}
-        footnote={bestScore > 0 ? t("cover.best", { score: bestScore.toLocaleString(), floor: bestFloor }) : undefined}
+        footnote={bestScore > 0 ? t("cover.best", { score: bestScore, floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
       {/* On very short windows the goal line would push the dock off the screen: it waits for more room. */}

@@ -45,7 +45,7 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, onRevive, onDecline
           accessibilityLabel={`${t("revive.cta")}: ${price}`}
         />
         <Text style={styles.meta} maxFontSizeMultiplier={1.2}>
-          {t("revive.balance", { n: embers.toLocaleString() })}
+          {t("revive.balance", { n: embers })}
           {used > 0 ? `  ·  ${t("revive.used", { n: used })}` : ""}
         </Text>
         <PopLink label={t("revive.decline")} onPress={onDecline} disabled={busy} />

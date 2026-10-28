@@ -46,7 +46,7 @@ const ModeCard = ({ icon, tint, title, hint, onPress }: { icon: keyof typeof Ion
  * phone has opened, to play them again or see how the others did.
  */
 const FriendsScreen: React.FC<Props> = ({ navigation }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const [recent, setRecent] = useState<RecentChallenge[]>([]);
   const [history, setHistory] = useState<DuelRecord[]>([]);
   useFocusEffect(
@@ -84,7 +84,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                   const s = summarize(history);
                   return (
                     <Text style={styles.summary} maxFontSizeMultiplier={1.2}>
-                      {t("duel.historySummary", { won: s.won, lost: s.lost, tied: s.tied })}  ·  {t("duel.historyNet", { n: `${s.net > 0 ? "+" : ""}${s.net.toLocaleString()}` })}
+                      {t("duel.historySummary", { won: s.won, lost: s.lost, tied: s.tied })}  ·  {t("duel.historyNet", { n: `${s.net > 0 ? "+" : ""}${n(s.net)}` })}
                     </Text>
                   );
                 })()}
@@ -103,7 +103,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.2}>{r.total > 2 ? t("duel.historyPlace", { n: r.placement, total: r.total }) : new Date(r.at).toLocaleDateString()}</Text>
                         </View>
                         <Text style={[styles.bestValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9ee37d" : "#b9b4d4" }]} maxFontSizeMultiplier={1.2}>
-                          {r.stake > 0 ? <><EmberIcon size={11} /> {`${r.net > 0 ? "+" : ""}${r.net.toLocaleString()}`}</> : "—"}
+                          {r.stake > 0 ? <><EmberIcon size={11} /> {`${r.net > 0 ? "+" : ""}${n(r.net)}`}</> : "—"}
                         </Text>
                       </View>
                     );
@@ -139,7 +139,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                           {t("friends.best").toLocaleUpperCase()}
                         </Text>
                         <Text style={styles.bestValue} maxFontSizeMultiplier={1.2}>
-                          {c.best !== null ? c.best.toLocaleString() : "—"}
+                          {c.best !== null ? n(c.best) : "—"}
                         </Text>
                       </View>
                       <Ionicons name="chevron-forward" size={18} color="#8f8aab" />

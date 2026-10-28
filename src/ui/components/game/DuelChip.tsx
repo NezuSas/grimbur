@@ -39,7 +39,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
   }
   // At most three rows; the best rivals first (so the panel always shows who the player has to catch).
   const rows = [...duel.rivals].sort((a, b) => (b.victory ? 1 : 0) - (a.victory ? 1 : 0) || b.level - a.level || b.score - a.score).slice(0, 3);
-  const label = rows.map(r => (r.status === "away" ? t("duel.chip.away", { name: r.name }) : t("duel.chip.line", { name: r.name, floor: r.level, score: r.score.toLocaleString() }))).join(". ");
+  const label = rows.map(r => (r.status === "away" ? t("duel.chip.away", { name: r.name }) : t("duel.chip.line", { name: r.name, floor: r.level, score: r.score }))).join(". ");
   return (
     <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={label} accessibilityLiveRegion="polite">
       <View style={styles.panel}>
@@ -50,7 +50,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
             <View key={r.pid} style={styles.row}>
               <Ionicons name={r.status === "done" ? "flag" : "flash"} size={13} color={color} />
               <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                {r.status === "away" ? t("duel.chip.away", { name: r.name }) : t("duel.chip.line", { name: r.name, floor: r.level, score: r.score.toLocaleString() })}
+                {r.status === "away" ? t("duel.chip.away", { name: r.name }) : t("duel.chip.line", { name: r.name, floor: r.level, score: r.score })}
               </Text>
             </View>
           );

@@ -83,7 +83,7 @@ const Steps = ({ total, filled, color }: { total: number; filled: number; color:
 );
 
 const ProgressScreen: React.FC<Props> = ({ navigation }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
@@ -192,7 +192,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
               </View>
             </Card>
 
-            <Card icon="hammer" tint="#FFAB40" title={t("cover.forge")} value={`${forgeBought}/${forgeTotal}`} basis={basis} caption={t("progress.forgeCaption", { embers: stats.lifetimeEmbers.toLocaleString() })}>
+            <Card icon="hammer" tint="#FFAB40" title={t("cover.forge")} value={`${forgeBought}/${forgeTotal}`} basis={basis} caption={t("progress.forgeCaption", { embers: stats.lifetimeEmbers })}>
               <View style={styles.track}>
                 <View style={[styles.fill, { width: `${Math.round((forgeBought / forgeTotal) * 100)}%`, backgroundColor: "#FFAB40" }]} />
               </View>
@@ -264,7 +264,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                       <View style={{ flex: 1 }} />
                       {r.best && <Ionicons name="star" size={16} color={GOLD} />}
                       <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
-                        {r.mode === "endless" ? "∞" : r.score.toLocaleString()}
+                        {r.mode === "endless" ? "∞" : n(r.score)}
                       </Text>
                     </View>
                   );

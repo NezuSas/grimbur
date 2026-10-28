@@ -24,7 +24,7 @@ import { PopButton } from "../ui/components/game/popup";
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
 const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { t } = useT();
+  const { t, n } = useT();
   const { score, level, coins, totalCoins, characterIndex, kills = 0, totalEnemies = 0, time = 0 } = route.params;
   const character = characterWithSkin(characterIndex, route.params.skin);
   const { width, height } = useWindowDimensions();
@@ -142,7 +142,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
             <View style={[styles.column, stacked ? { width: "100%" } : { flex: 1.2, paddingLeft: 10 }]}>
               <View style={styles.statsContainer}>
                 {[
-                  { label: t("complete.score"), value: score.toLocaleString(), color: "#fff", icon: "star" as const },
+                  { label: t("complete.score"), value: n(score), color: "#fff", icon: "star" as const },
                   { label: t("complete.gems"), value: String(totalCoins || coins), color: "#FFD54F", icon: "diamond" as const },
                   { label: t("complete.kills"), value: `${kills} / ${totalEnemies}`, color: "#FF8A65", icon: "skull" as const },
                   { label: t("complete.time"), value: formatTime(time), color: "#4FC3F7", icon: "time" as const },
