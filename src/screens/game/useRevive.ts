@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { analytics } from "../../services/analytics";
 import { getLocalStats, spendEmbersFor } from "../../services/localStats";
 import { revivePrice } from "../../core/engine/revive";
@@ -33,6 +33,8 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived, freeFi
   const [embers, setEmbers] = useState(0);
   const [visible, setVisible] = useState(false);
   const [busy, setBusy] = useState(false);
+  // The guard against a double tap: state from the closure is still false on the second tap of the same frame, a ref is not.
+  const paying = useRef(false);
 
   // Are there embers enough? (The purse is read the moment the hero falls.)
   useEffect(() => {
@@ -67,7 +69,8 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived, freeFi
   }, [key]);
 
   const accept = useCallback(async () => {
-    if (busy) return;
+    if (paying.current) return;
+    paying.current = true;
     setBusy(true);
     try {
       const paid = price === 0 ? true : await spendEmbersFor(price);
@@ -82,9 +85,10 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived, freeFi
     } catch {
       decline();
     } finally {
+      paying.current = false;
       setBusy(false);
     }
-  }, [busy, price, state.level, state.score, revive, onRevived, decline]);
+  }, [price, state.level, state.score, revive, onRevived, decline]);
 
   // The record of the run waits while the question is open (and for the moment it takes to read the purse).
   const holdEnd = eligible && (gate?.key !== key || gate.result === "offer");

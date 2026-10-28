@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { analytics } from "../../services/analytics";
 import { getLocalStats, spendEmbersFor } from "../../services/localStats";
 import { REFILL_ARROWS, refillPrice } from "../../core/engine/revive";
@@ -23,6 +23,8 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
   const dry = playing && !isDaily && state.attack <= 0;
   const [embers, setEmbers] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  // The guard against a double tap: state from the closure is still false on the second tap of the same frame, a ref is not.
+  const paying = useRef(false);
 
   // The purse is read when the last arrow is gone (and again after each pack).
   useEffect(() => {
@@ -40,7 +42,8 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
   }, [dry, used]);
 
   const buy = useCallback(async () => {
-    if (busy) return;
+    if (paying.current) return;
+    paying.current = true;
     setBusy(true);
     try {
       const paid = await spendEmbersFor(price);
@@ -52,9 +55,10 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
     } catch {
       setEmbers(null);
     } finally {
+      paying.current = false;
       setBusy(false);
     }
-  }, [busy, price, state.level, refill]);
+  }, [price, state.level, refill]);
 
   const show = dry && embers !== null && embers >= price;
   return { show, price, arrows: REFILL_ARROWS, busy, buy };

@@ -20,7 +20,7 @@ import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/c
 import { COUNTDOWN_SECONDS, DUEL_FEE_PERCENT, HEARTBEAT_MS, MAX_PLAYERS, prizeOf, rivalStatus } from "../core/duel/duel";
 import type { RivalStatus } from "../core/duel/duel";
 import { getPlayerId, getPlayerName, setPlayerName } from "../services/playerProfile";
-import { EMPTY_ROOM, publishDuelState, watchRoom, type Room } from "../services/duel";
+import { EMPTY_ROOM, openDuelRoom, publishDuelState, watchDuelStake, watchRoom, type Room } from "../services/duel";
 import { rememberChallenge } from "../services/challenges";
 import { withUiScale } from "../ui/layout/scaledWindow";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
@@ -65,6 +65,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const [nameDraft, setNameDraft] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
   const [room, setRoom] = useState<Room>(EMPTY_ROOM);
+  const [roomStake, setRoomStake] = useState<number | null>(null);
   const [wallNow, setWallNow] = useState(() => Date.now());
   const [ready, setReady] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
@@ -88,10 +89,10 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const rivals = room.rivals.map(r => ({ ...r, status: rivalStatus(r, r.updatedAt, now) as RivalStatus }));
   const present = rivals.filter(r => r.status !== "away" && r.status !== "done");
   const underway = present.some(r => r.state === "playing");
-  // The creator chose the stake; everybody else adopts it from the room and cannot get ready before it is known.
-  const adopted = present.reduce((max, r) => Math.max(max, r.stake), 0);
-  const stakeKnown = creatorStake !== undefined || present.length > 0;
-  const myStake = creatorStake ?? adopted;
+  // The creator chose the stake and wrote it in the room (`duels/<code>`); everybody plays for that one and cannot get ready (or even
+  // appear in the room: the rules check the stake) before it is known.
+  const stakeKnown = roomStake !== null;
+  const myStake = roomStake ?? creatorStake ?? 0;
   const pot = prizeOf(myStake, present.length + 1);
   // Without the full game a run ends at the free floors: staking embers on it would be throwing them away.
   const stakeAllowed = myStake === 0 || hasFullGame;
@@ -102,13 +103,15 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   readyRef.current = ready;
   const stakeRef = useRef(myStake);
   stakeRef.current = myStake;
+  const stakeKnownRef = useRef(stakeKnown);
+  stakeKnownRef.current = stakeKnown;
   const presentRef = useRef(present);
   presentRef.current = present;
 
   const publish = useCallback(
     // eslint-disable-next-line react-hooks/preserve-manual-memoization
     async (state: "lobby" | "ready") => {
-      if (!code || name === null || heroIndex === null) return;
+      if (!code || name === null || heroIndex === null || !stakeKnownRef.current) return;
       try {
         await publishDuelState(code, name, { characterIndex: heroIndex, state, level: 1, score: 0, victory: false, time: 0, stake: stakeRef.current });
         setProblem(null);
@@ -117,7 +120,6 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
         setProblem(t("duel.offline"));
       }
     },
-    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     [code, name, heroIndex, t],
   );
 
@@ -143,11 +145,27 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
     };
   }, [inLobby, code, name, publish, t]);
 
+  // The room's stake: the creator writes it (unless a rematch room was already opened by another player), everybody listens to it.
+  useEffect(() => {
+    if (!inLobby || !code) return;
+    if (creatorStake !== undefined) {
+      void openDuelRoom(code, creatorStake)
+        .then(setRoomStake)
+        .catch(e => {
+          console.warn("[duel] could not open the room:", e);
+          setProblem(t("duel.offline"));
+        });
+    }
+    return watchDuelStake(code, stake => {
+      if (stake !== null) setRoomStake(stake);
+    }, e => console.warn("[duel] room stake error:", e));
+  }, [inLobby, code, creatorStake, t]);
+
   // What this player is (in the lobby or ready) is published whenever it changes, in order: the latest write is always the true state.
   useEffect(() => {
     if (!inLobby || !code || name === null) return;
     void publish(ready ? "ready" : "lobby");
-  }, [inLobby, code, name, ready, myStake, publish]);
+  }, [inLobby, code, name, ready, myStake, stakeKnown, publish]);
 
   // Everybody who is here is ready (or already playing: they started the countdown a moment before and this phone follows).
   const allReady = ready && room.me?.state === "ready" && present.length >= 1 && present.every(r => r.state === "ready" || r.state === "playing");

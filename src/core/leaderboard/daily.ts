@@ -1,6 +1,7 @@
 /**
  * The daily and weekly boards. A daily result is one document per player per day (`<day>_<playerId>`), so replaying the day only
- * improves it; the same document also carries the ISO week, which is what the weekly board reads (the best results of the week).
+ * improves it; the weekly board reads the same documents for the seven days of the ISO week (the best results of the week), so a
+ * result cannot be filed under a week it was not played in.
  * The limits mirror `firestore.rules`.
  */
 
@@ -33,12 +34,19 @@ export function weekKey(dayKey: string): string | null {
   return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
+/** The seven days (Monday to Sunday) of the ISO week a day belongs to, as day keys; empty for something that is not a day. */
+export function weekDays(dayKey: string): string[] {
+  const date = parseDay(dayKey);
+  if (!date) return [];
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => new Date(date.getTime() + i * 24 * 3600 * 1000).toISOString().slice(0, 10));
+}
+
 /** The id of a player's document for a day. */
 export const dailyDocId = (dayKey: string, playerId: string): string => `${dayKey}_${playerId}`;
 
 export interface DailySubmission {
   day: string;
-  week: string;
   pid: string;
   name: string;
   level: number;
@@ -52,7 +60,6 @@ export interface DailySubmission {
 export function validateDaily(row: DailySubmission): string[] {
   const problems: string[] = [];
   if (!DAY_PATTERN.test(row.day)) problems.push('day');
-  if (row.week !== weekKey(row.day)) problems.push('week');
   if (!PLAYER_ID_PATTERN.test(row.pid)) problems.push('player');
   if (!Number.isInteger(row.level) || row.level < 1 || row.level > DAILY_MAX_LEVEL) problems.push('level');
   if (!Number.isInteger(row.score) || row.score < 0 || row.score > row.level * 20000) problems.push('score');

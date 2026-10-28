@@ -7,7 +7,6 @@ import { useFocusEffect } from "@react-navigation/native";
 import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
 import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
 import { getPlayerId } from "../services/playerProfile";
-import { weekKey } from "../core/leaderboard/daily";
 import { dailyKey } from "../core/engine/seed";
 import { Segmented } from "../ui/components/settings/SettingsParts";
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
@@ -68,7 +67,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         setOfflineAt(result.offline ? result.at : null);
       } else {
         const day = dailyKey();
-        const rows = board === "today" ? await loadDayBoard(day) : await loadWeekBoard(weekKey(day) ?? "");
+        const rows = board === "today" ? await loadDayBoard(day) : await loadWeekBoard(day);
         setData(rows.map(r => ({ id: r.id, data: () => r.data() as unknown as HighscoreRow })));
         setOfflineAt(null);
       }

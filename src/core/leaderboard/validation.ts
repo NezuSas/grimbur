@@ -7,8 +7,8 @@ import { HERO_COUNT } from '../stats/achievements';
 
 export const LEADERBOARD_LIMITS = {
   maxNameLength: 20,
-  /** A full expedition is 10 floors; a little headroom for future floors. */
-  maxLevel: 12,
+  /** A full expedition is 10 floors (endless runs never go on the global board). */
+  maxLevel: 10,
   /** Generous upper bound for points earned per level (coins, kills, bonuses). */
   maxScorePerLevel: 20000,
   /** Difficulty caps coins at 8 per level. */

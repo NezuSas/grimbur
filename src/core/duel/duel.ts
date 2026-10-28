@@ -19,7 +19,7 @@ export interface DuelPlayer {
   victory: boolean;
   /** Seconds played, set when the player is done (0 before). */
   time: number;
-  /** Embers each player puts in the pot (0: a friendly duel). The room's stake is the one its creator chose; the others adopt it. */
+  /** Embers each player puts in the pot (0: a friendly duel). Always the room's stake (`duels/<code>`), the one its creator chose. */
   stake: number;
 }
 

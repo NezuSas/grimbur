@@ -15,20 +15,6 @@
       ]
     },
     {
-      "collectionGroup": "daily_scores",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "week",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "score",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "challenge_scores",
       "queryScope": "COLLECTION",
       "fields": [
