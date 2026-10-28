@@ -64,7 +64,8 @@ export interface GenerateOptions {
 
 export function generateBoard(
   level: number,
-  seed: number = Math.floor(Math.random() * 100000),
+  /** Required: the same seed always builds the same floor (the daily, challenges and duels depend on it). */
+  seed: number,
   options: GenerateOptions = {},
 ): BoardConfig {
   const withBoss = options.boss === true;
@@ -83,19 +84,25 @@ export function generateBoard(
   const safeIndices = getSafeZoneIndices(diff.rows, diff.cols, spawnRow, spawnCol, safeRadius);
   const safeSet = new Set(safeIndices);
 
-  // Up to FAIR_ATTEMPTS boards are tried to find one a player can solve by deduction alone (no blind guess);
-  // after that, any board whose gems are reachable is accepted and the hazard budget is relaxed.
-  const FAIR_ATTEMPTS = 30;
+  // Up to FAIR_ATTEMPTS boards are tried to find one a player can solve by deduction alone (no blind guess). Every
+  // RELAX_EVERY failures one hazard is taken away (a lighter floor beats a guess); only if that still fails, any board
+  // whose gems are reachable is accepted.
+  const FAIR_ATTEMPTS = 120;
+  const RELAX_EVERY = 4;
   const MAX_ATTEMPTS = FAIR_ATTEMPTS + 10;
+  // Lethal tiles never fill more than this share of the room the hero has to cross (outside the safe start).
+  const MAX_LETHAL_SHARE = 0.3;
+  // Stalkers start at least this many steps from the spawn (like the Grimbur): the first moves are never a race.
+  const STALKER_MIN_DISTANCE = 5;
   // Hazard budget; relaxed on later attempts so a solvable board always exists.
   const pressure = options.endless ? endlessPressure(level) : { enemies: 0, pits: 0, stalkers: 0 };
   // The arsenal's roaming stalker only joins from the floor stalkers start; before that it is one more guardian.
   const stalkersAllowed = level >= GAME_CONFIG.stalker.earlyFloor;
   let enemyBudget = Math.max(1, diff.enemies + omen.enemyDelta + (stalkersAllowed ? 0 : omen.stalkerDelta) + pressure.enemies);
   let pitBudget = Math.max(1, diff.pits + omen.pitDelta + pressure.pits + biome.extraPits + (options.extraPits ?? 0));
+  const room = Math.floor((totalCells - safeIndices.length) * MAX_LETHAL_SHARE);
   // Deeper depths put more hazards on every floor from the second, but never more than a share of the room the hero has to cross.
   if (level >= 2 && !withBoss && (mods.enemyBonus > 0 || mods.pitBonus > 0)) {
-    const room = Math.floor((totalCells - safeIndices.length) * ((options.ascension ?? 0) >= 4 ? 0.52 : 0.4));
     const hazards = enemyBudget + pitBudget;
     const extra = Math.max(0, Math.min(mods.enemyBonus + mods.pitBonus, room - hazards));
     const enemyExtra = Math.min(mods.enemyBonus, extra);
@@ -120,6 +127,18 @@ export function generateBoard(
   );
   if (level >= mods.stalkerFloor) stalkerBudget = Math.min(GAME_CONFIG.stalker.maxPerFloor + mods.stalkerBonus, stalkerBudget + mods.stalkerBonus);
   if (withBoss) stalkerBudget = Math.min(stalkerBudget, 1);
+  // The share cap counts stalkers too: past it, guardians and vortexes give way first (never below one of each), then stalkers.
+  // The endless descent is meant to grow denser floor after floor (see lair.ts): it keeps its own pressure.
+  if (!withBoss && !options.endless) {
+    let over = enemyBudget + pitBudget + stalkerBudget - room;
+    while (over > 0 && (enemyBudget > 1 || pitBudget > 1 || stalkerBudget > 0)) {
+      if (enemyBudget > 1 && enemyBudget >= pitBudget) enemyBudget--;
+      else if (pitBudget > 1) pitBudget--;
+      else if (enemyBudget > 1) enemyBudget--;
+      else stalkerBudget--;
+      over--;
+    }
+  }
   const coinBudget = withBoss ? 0 : Math.max(2, diff.coins + omen.coinDelta);
 
   let entities: GameEntity[] = [];
@@ -171,8 +190,8 @@ export function generateBoard(
       if (sleepers.length >= 2) sleepers[sleepers.length - 1].type = 'sleeper';
     }
 
-    // 1b. Stalkers (roaming guardians)
-    placeEntities(stalkerBudget, 'stalker');
+    // 1b. Stalkers (roaming guardians), far from the spawn (the top-left corner).
+    placeEntities(stalkerBudget, 'stalker', idx => Math.floor(idx / diff.cols) + (idx % diff.cols) >= STALKER_MIN_DISTANCE);
 
     // 2. Pits
     placeEntities(pitBudget, 'pit');
@@ -203,11 +222,15 @@ export function generateBoard(
     const fair = withBoss || attempt >= FAIR_ATTEMPTS || isSolvableByDeduction(diff.rows, diff.cols, entities, spawnIndex);
     if (gemsReachable && bossReachable && fair) break;
 
-    // Relax difficulty for the next attempt.
-    if (attempt >= FAIR_ATTEMPTS + 6) pitBudget = Math.max(1, pitBudget - 1);
-    if (attempt === MAX_ATTEMPTS - 2) {
-      enemyBudget = 0;
-      pitBudget = 0;
+    // Relax the floor for the next attempt, one hazard at a time and never below one guardian and one vortex: the bigger of
+    // the two budgets gives way first, then the stalkers. The endless descent, whose density is its difficulty, gives up a
+    // stalker first.
+    if ((attempt + 1) % RELAX_EVERY === 0 || attempt >= FAIR_ATTEMPTS) {
+      if (options.endless && stalkerBudget > 0) stalkerBudget--;
+      else if (enemyBudget > 1 && enemyBudget >= pitBudget) enemyBudget--;
+      else if (pitBudget > 1) pitBudget--;
+      else if (enemyBudget > 1) enemyBudget--;
+      else if (stalkerBudget > 0) stalkerBudget--;
     }
   }
 

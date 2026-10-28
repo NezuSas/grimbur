@@ -13,6 +13,13 @@ export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' |
 /** Entities that kill the player on contact. */
 export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper'];
 
+/**
+ * The hazards the clue numbers count (guardians, the Grimbur, stalkers where they stand, sleepers and vortexes). The clues on the
+ * board (proximity.ts) and the fairness check of the generator (solver.ts) both read this one list, so they can never disagree.
+ */
+export const CLUE_HAZARD_TYPES: readonly EntityType[] = ['enemy', 'boss', 'stalker', 'sleeper', 'pit'];
+export const isClueHazard = (type: EntityType | undefined): boolean => !!type && CLUE_HAZARD_TYPES.includes(type);
+
 /** Guardians an arrow, a volley or a bomb can destroy (the Grimbur is handled apart). */
 export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleeper'];
 
@@ -138,7 +145,8 @@ export type GameAction =
       entities: GameEntity[];
       coins: number;
       attack: number;
-      seed?: number;
+      /** Required: a run is the same cave every time it is replayed from its seed. */
+      seed: number;
       mode?: GameMode;
       runSeed?: number;
       perks?: HeroPerks;

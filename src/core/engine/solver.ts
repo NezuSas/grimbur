@@ -1,4 +1,4 @@
-import { GameEntity } from './types';
+import { GameEntity, isClueHazard } from './types';
 
 type Mark = 'safe' | 'danger';
 
@@ -12,9 +12,6 @@ function neighbours(index: number, rows: number, cols: number): number[] {
   if (c < cols - 1) out.push(index + 1);
   return out;
 }
-
-/** Hazards the clue numbers count: guardians and vortexes. Roaming stalkers are ignored (they move). */
-const isClueHazard = (type: string) => type === 'enemy' || type === 'pit' || type === 'boss' || type === 'sleeper';
 
 /**
  * Can a careful player collect every gem using only the clue numbers (Minesweeper-style deduction),

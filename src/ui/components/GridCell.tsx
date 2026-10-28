@@ -371,8 +371,9 @@ const GridCell = memo(({
         </>
       )}
 
-      {/* Wind-up warning: an icon too, so the danger never depends on colour alone */}
-      {charged && (isVisited || isPlayerHere) && (
+      {/* Wind-up warning: an icon too, so the danger never depends on colour alone. Drawn in the fog as well: a hunter only winds
+          up beside the hero, and a strike from an unexplored tile must never come without warning. */}
+      {charged && (
         <View style={[styles.chargeMark, { width: Math.max(12, tileSize * 0.34), height: Math.max(12, tileSize * 0.34) }]} pointerEvents="none">
           <Text style={[styles.chargeMarkText, { fontSize: Math.max(10, tileSize * 0.28) }]}>!</Text>
         </View>

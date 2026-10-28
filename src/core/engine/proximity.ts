@@ -1,4 +1,4 @@
-import { GameEntity } from './types';
+import { GameEntity, isClueHazard } from './types';
 
 export interface NearbyHazards {
   enemy: boolean;
@@ -34,8 +34,8 @@ export function getNearbyHazards(
   for (const { r, c } of neighbours) {
     if (r < 0 || r >= rows || c < 0 || c >= cols) continue;
     const type = entityMap[r * cols + c]?.type;
-    if (type === 'enemy' || type === 'boss' || type === 'stalker' || type === 'sleeper') enemyCount++;
     if (type === 'pit') pitCount++;
+    else if (isClueHazard(type)) enemyCount++;
   }
   return { enemy: enemyCount > 0, pit: pitCount > 0, enemyCount, pitCount };
 }

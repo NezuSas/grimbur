@@ -10,7 +10,7 @@ import { RelicId, draftRelics, relicCount } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
-import { createEntityMap, removeEntityAt, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss } from './worldHelpers';
+import { createEntityMap, removeEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss } from './worldHelpers';
 import type { World } from './worldHelpers';
 
 /** The state without its undo slot: what a step back restores. */
@@ -179,10 +179,21 @@ export function ensureWinnable(state: GameState): GameState {
   const rnd = createPRNG(((state.seed ^ Math.imul(state.turn + 1, 2654435761)) >>> 0) || 1);
   rnd(); // discard the weakly-mixed first sample
   const taken = new Set<number>([state.playerIndex, ...state.entities.map(e => e.index)]);
+  // Only tiles the hero can walk to (around the vortexes; guardians in the way can be shot, so they do not wall anything off).
+  const reachable = new Set<number>([state.playerIndex]);
+  const queue = [state.playerIndex];
+  for (let head = 0; head < queue.length; head++) {
+    for (const d of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]) {
+      const n = neighbour(queue[head], d, state.rows, state.cols);
+      if (n === -1 || reachable.has(n) || state.entityMap[n]?.type === 'pit' || state.entityMap[n]?.type === 'boss') continue;
+      reachable.add(n);
+      queue.push(n);
+    }
+  }
   const placed: GameEntity[] = [];
   for (let tries = 0; placed.length < wanted && tries < total * 4; tries++) {
     const index = Math.floor(rnd() * total);
-    if (taken.has(index)) continue;
+    if (taken.has(index) || !reachable.has(index)) continue;
     taken.add(index);
     placed.push({ index, type: 'ammo' });
   }
@@ -384,7 +395,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         vortexCost: newVortexCost,
         lastPickup: newLastPickup,
         turn: newTurn,
-        abilityCd: Math.max(0, state.abilityCd - 1),
+        // Retracing with the Wayfarer Boots is not an action for the clocks: the ability does not recharge either.
+        abilityCd: retracing ? state.abilityCd : Math.max(0, state.abilityCd - 1),
         // One step per floor can be taken back, never the one that ended the run or cleared the floor.
         undo: state.undoUsed || newIsGameOver || newIsLevelUp ? null : snapshotOf(state),
         lastBreath: newIsGameOver ? snapshotOf(state) : null,
@@ -618,7 +630,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         for (const v of state.visited) {
           for (const d of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]) {
             const n = neighbour(v, d, rows, cols);
-            if (n !== -1 && !seen.has(n) && !(state.entityMap[n] && LETHAL_TYPES.includes(state.entityMap[n].type))) candidates.add(n);
+            if (n !== -1 && !seen.has(n) && !staysDark(state.entityMap[n])) candidates.add(n);
           }
         }
         if (candidates.size === 0) return state;
@@ -652,8 +664,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         const lit: number[] = [];
         for (let i = 0; i < rows * cols; i++) {
           if (seen.has(i) || manhattan(i, state.playerIndex, cols) > FLARE_REACH) continue;
-          const e = state.entityMap[i];
-          if (e && LETHAL_TYPES.includes(e.type)) continue;
+          if (staysDark(state.entityMap[i])) continue;
           lit.push(i);
         }
         if (lit.length === 0) return state;
@@ -711,15 +722,18 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
     case 'REVIVE': {
       const before = state.lastBreath;
-      if (!state.isGameOver || state.isVictory || !before) return state;
-      // Back to just before the fatal action, with a shield and a few arrows; the tile that killed is flagged so it is not stepped on blind.
+      if (!state.isGameOver || state.isVictory || !before || state.mode === 'daily') return state;
+      // Back to just before the fatal action, with a shield and a few arrows; the tile that killed is flagged so it is not stepped on
+      // blind. Only a tile that holds what killed: a hunter that struck from beside the hero leaves the hero's own tile safe.
       const killer = state.playerIndex;
-      const marked = killer !== before.playerIndex && !before.marked.includes(killer) ? [...before.marked, killer] : before.marked;
+      const deadly = !!state.entityMap[killer];
+      const marked = deadly && killer !== before.playerIndex && !before.marked.includes(killer) ? [...before.marked, killer] : before.marked;
       return { ...before, undo: null, lastBreath: null, revives: (state.revives ?? 0) + 1, shield: true, attack: Math.max(before.attack, REVIVE_ARROWS), marked, isGameOver: false, deathCause: null };
     }
 
     case 'REFILL': {
-      if (state.isGameOver || state.isVictory || state.isLevelUp || state.pendingDraft) return state;
+      // The daily is the same cave and the same tools for everyone: nothing is bought there.
+      if (state.isGameOver || state.isVictory || state.isLevelUp || state.pendingDraft || state.mode === 'daily') return state;
       return { ...state, attack: state.attack + REFILL_ARROWS, refills: (state.refills ?? 0) + 1 };
     }
 
@@ -741,7 +755,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         attack: attack + heroPerks.bonusArrows + (withRelic('quiver') ? 2 : 0),
         shield: heroPerks.startShield || startShield === true || withRelic('bulwark'),
         perks: heroPerks,
-        seed: seed || Date.now(),
+        seed,
         runSeed: runSeed ?? seed ?? 0,
         mode: mode ?? 'expedition',
         ascension: ascension ?? 0,

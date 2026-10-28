@@ -34,12 +34,18 @@ export const replaceEntityAt = (world: World, index: number, next: GameEntity): 
 };
 
 /**
+ * Tiles a light (the Lantern, the Flare, the Scout) never reveals: hazards, and traps, whose tile would show no clue and read
+ * as a false 0. They stay hidden; only the clues around them show.
+ */
+export const staysDark = (entity: GameEntity | undefined): boolean => !!entity && (LETHAL_TYPES.includes(entity.type) || entity.type === 'trap');
+
+/**
  * Tiles explored at the start of a floor; the Old Lantern (or Mira's Lightbearer) reveals the area around the spawn.
- * A hazard is never lit: its tile stays hidden, only the clues around it show.
+ * A hazard or a trap is never lit (see staysDark).
  */
 export const startingVisited = (cols: number, rows: number, lantern: boolean, entities: readonly GameEntity[] = []): number[] => {
   if (!lantern) return [0];
-  const lethal = new Set(entities.filter(e => LETHAL_TYPES.includes(e.type)).map(e => e.index));
+  const lethal = new Set(entities.filter(e => staysDark(e)).map(e => e.index));
   const tiles: number[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -111,6 +117,8 @@ export const pickTeleportDestination = (
   visited: number[],
 ): number | null => {
   const total = state.rows * state.cols;
+  const { rows, cols } = state;
+  const around = (idx: number) => (['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]).map(d => neighbour(idx, d, rows, cols)).filter(n => n !== -1);
   const emptyUnvisited: number[] = [];
   const emptyVisited: number[] = [];
   const nonLethal: number[] = [];
@@ -136,8 +144,14 @@ export const pickTeleportDestination = (
   revisitRoll();
   const wantsRevisit = revisitRoll() < GAME_CONFIG.vortex.revisitChance;
 
+  // In the fog, a tile the player can read from: a clue of 0 (every neighbour is safe) or one next to explored ground.
+  const readable = emptyUnvisited.filter(
+    idx => around(idx).some(n => visitedSet.has(n)) || around(idx).every(n => !LETHAL_TYPES.includes(state.entityMap[n]?.type as EntityType)),
+  );
+
   const pool =
     wantsRevisit && emptyVisited.length > 0 ? emptyVisited :
+    readable.length > 0 ? readable :
     emptyUnvisited.length > 0 ? emptyUnvisited :
     emptyVisited.length > 0 ? emptyVisited :
     nonLethal;
