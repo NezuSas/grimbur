@@ -344,7 +344,6 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(255,171,64,0.16)", borderWidth: 1.5, borderColor: "rgba(255,171,64,0.7)" },
-  balanceFlame: { fontSize: 20 },
   balanceValue: { color: "#FFAB40", fontSize: 20, fontWeight: "900" },
 
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10 },

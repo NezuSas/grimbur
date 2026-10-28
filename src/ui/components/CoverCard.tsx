@@ -456,7 +456,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,171,64,0.6)",
   },
-  chipFlame: { fontSize: 15 },
   chipText: { color: "#FFAB40", fontWeight: "800", fontSize: 15 },
   dot: {
     position: "absolute",

@@ -54,6 +54,8 @@ const StackNavigator: React.FC = () => {
           headerShown: false,
           animation: "none",
           contentStyle: { backgroundColor: "#000" },
+          // Screens under the one in front stop rendering (their animations and timers stop with them) until they come back.
+          freezeOnBlur: true,
           ...NO_SWIPE_BACK,
         }}
       >
