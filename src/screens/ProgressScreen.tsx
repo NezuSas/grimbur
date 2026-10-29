@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { achievementArt } from "../ui/achievementArt";
 import Rise, { riseDelay } from "../ui/components/Rise";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -146,7 +147,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
           {/* The goal first: what to do next */}
           {next && (
             <View style={styles.next} accessible accessibilityLabel={`${achievementText(t, next.a.id, "name")}. ${next.p.current}/${next.p.target}`}>
-              <Text style={styles.nextIcon}>{next.a.icon}</Text>
+              <SpriteImage source={achievementArt(next.a)} style={styles.nextIcon} resizeMode="contain" accessibilityIgnoresInvertColors />
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.nextKicker} maxFontSizeMultiplier={1.1}>
                   {t("progress.next").toLocaleUpperCase()}
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   tierDot: { width: 9, height: 9, borderRadius: 5 },
   tierText: { color: "#EAE1D8", fontSize: 12, fontWeight: "800" },
   next: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(144,202,249,0.45)", backgroundColor: "rgba(144,202,249,0.1)", padding: 12 },
-  nextIcon: { fontSize: 28 },
+  nextIcon: { width: 40, height: 40 },
   nextKicker: { color: "#90CAF9", fontWeight: "800", letterSpacing: 2, fontSize: 10 },
   nextName: { color: "#fff", fontWeight: "800", fontSize: 15 },
   nextCount: { color: "#DDCFC1", fontWeight: "800", fontSize: 13 },

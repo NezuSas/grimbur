@@ -87,6 +87,14 @@ const shot = await send('Page.captureScreenshot', { format: 'png' });
 writeFileSync(out, Buffer.from(shot.result.data, 'base64'));
 console.log(out);
 ws.close();
+// Browser.close shuts Chrome down with all its helper processes; killing the launcher alone left renderers running.
+try {
+  const { webSocketDebuggerUrl } = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json();
+  const browser = new WebSocket(webSocketDebuggerUrl);
+  await new Promise(r => browser.addEventListener('open', r, { once: true }));
+  browser.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
+  await sleep(1500);
+} catch {}
 killChrome();
 await sleep(500);
 try { rmSync(profile, { recursive: true, force: true }); } catch {}
