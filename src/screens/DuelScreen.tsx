@@ -7,7 +7,6 @@ import Text from "../ui/components/Text";
 import EmberIcon from "../ui/components/EmberIcon";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
-import SpriteImage from "../ui/components/SpriteImage";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
 import { PopButton, PopupPanel } from "../ui/components/game/popup";
 import { RootStackParamList } from "../navigation/types";
@@ -24,6 +23,8 @@ import { EMPTY_ROOM, openDuelRoom, publishDuelState, watchDuelStake, watchRoom, 
 import { rememberChallenge } from "../services/challenges";
 import { withUiScale } from "../ui/layout/scaledWindow";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
+import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
+import { lookOf } from "../core/cosmetics/look";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DuelScreen">;
 
@@ -238,12 +239,12 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const stateLabel = (state: string, status: RivalStatus) =>
     status === "away" ? t("duel.state.away") : state === "ready" ? t("duel.state.ready") : state === "playing" || state === "done" ? t("duel.state.inGame") : t("duel.state.lobby");
 
-  const playerCard = (key: string, title: string, who: { name: string; characterIndex: number } | null, label: string, accent: string) => {
+  const playerCard = (key: string, title: string, who: { name: string; characterIndex: number; frame?: string; title?: string } | null, label: string, accent: string) => {
     const hero = who ? characters[who.characterIndex] || characters[0] : null;
     return (
       <View key={key} style={[styles.player, { borderColor: accent + "99" }]}>
         {hero ? (
-          <SpriteImage source={hero.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
+          <PlayerPortrait source={hero.scoreImage} size={who?.frame ? 62 : 52} frame={who?.frame} />
         ) : (
           <View style={[styles.avatar, styles.avatarEmpty]}>
             <Ionicons name="hourglass" size={22} color="#B99A7C" />
@@ -256,6 +257,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.playerName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {who?.name ?? t("duel.waitingRival")}
           </Text>
+          <PlayerTitle title={who?.title} />
           <Text style={[styles.playerState, { color: accent }]} maxFontSizeMultiplier={1.2}>
             {label}
           </Text>
@@ -315,8 +317,8 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
                 <View style={styles.colPlayers}>
                   <Text style={styles.section}>{t("duel.players", { n: present.length + 1, max: MAX_PLAYERS }).toLocaleUpperCase()}</Text>
-                  {playerCard("me", t("duel.you"), { name, characterIndex: heroIndex ?? 0 }, ready ? t("duel.state.ready") : t("duel.state.lobby"), GOLD)}
-                  {rivals.map(r => playerCard(r.pid, t("duel.rival"), { name: r.name, characterIndex: r.characterIndex }, stateLabel(r.state, r.status), TINT))}
+                  {playerCard("me", t("duel.you"), { name, characterIndex: heroIndex ?? 0, ...lookOf(peekLocalStats()) }, ready ? t("duel.state.ready") : t("duel.state.lobby"), GOLD)}
+                  {rivals.map(r => playerCard(r.pid, t("duel.rival"), { name: r.name, characterIndex: r.characterIndex, frame: r.frame, title: r.title }, stateLabel(r.state, r.status), TINT))}
                   {rivals.length === 0 ? playerCard("wait", t("duel.rival"), null, t("duel.state.waiting"), TINT) : null}
                   <Text style={styles.hint}>{t("duel.lobbyHint")}</Text>
                 </View>

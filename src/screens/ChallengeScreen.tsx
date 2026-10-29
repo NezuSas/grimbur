@@ -5,7 +5,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import Text from "../ui/components/Text";
 import ScreenHeader from "../ui/components/ScreenHeader";
-import SpriteImage from "../ui/components/SpriteImage";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
 import { PopButton, PopupPanel } from "../ui/components/game/popup";
@@ -19,6 +18,7 @@ import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/c
 import { loadChallengeBoard, rememberChallenge, type ChallengeDoc } from "../services/challenges";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { withUiScale } from "../ui/layout/scaledWindow";
+import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChallengeScreen">;
 
@@ -108,12 +108,13 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={[styles.rank, index < 3 && { backgroundColor: ["#FFD54F", "#CFD8DC", "#FFAB91"][index] }]}>
           <Text style={[styles.rankText, index < 3 && { color: "#2A2016" }]}>{index + 1}</Text>
         </View>
-        <SpriteImage source={hero.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
+        <PlayerPortrait source={hero.scoreImage} size={(row as { frame?: string }).frame ? 50 : 40} frame={(row as { frame?: string }).frame} />
         <View style={{ flex: 1 }}>
           <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {row.name}
             {mine ? `  ·  ${t("scores.you")}` : ""}
           </Text>
+          <PlayerTitle title={(row as { title?: string }).title} />
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {row.coins}  ·  {formatTime(row.time)}
           </Text>

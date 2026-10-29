@@ -426,3 +426,40 @@ describe('live duels', () => {
     await assertSucceeds(getDoc(doc(db(), 'duel_players', `${code}_${pid}`)));
   });
 });
+
+describe('player looks (frame and title)', () => {
+  const look = { frame: 'frame_gold', title: 'title_slayer' };
+
+  it('a score row may carry a frame and a title, or just one, or neither', async () => {
+    await assertSucceeds(setDoc(mine(), { ...good, ...look }));
+    await assertSucceeds(setDoc(mine('AAAAAAAAAAAAAAAA'), { ...good, frame: 'frame_bronze' }));
+    await assertSucceeds(setDoc(mine('BBBBBBBBBBBBBBBB'), good));
+  });
+
+  it.each([
+    ['a frame that is not a frame id', { frame: 'title_slayer' }],
+    ['a title that is not a title id', { title: 'frame_gold' }],
+    ['a frame with odd characters', { frame: 'frame_<script>' }],
+    ['a frame that is not text', { frame: 7 }],
+    ['an overlong title', { title: 'title_' + 'x'.repeat(20) }],
+  ])('rejects %s', async (_label, patch) => {
+    await assertFails(setDoc(mine(), { ...good, ...patch } as never));
+  });
+
+  it('daily, challenge and duel rows accept the look too', async () => {
+    const today = new Date().toISOString().slice(0, 10);
+    await assertSucceeds(setDoc(doc(authed(UID), 'daily_scores', `${today}_${UID}`), { day: today, pid: UID, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, ...look }));
+    await assertSucceeds(setDoc(doc(authed(UID), 'challenge_scores', `ABCD2345_${UID}`), { code: 'ABCD2345', pid: UID, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, ...look }));
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'duels', 'ABCD2345'), { code: 'ABCD2345', host: UID, stake: 0, createdAt: new Date() });
+    });
+    await assertSucceeds(
+      setDoc(
+        doc(authed(UID), 'duel_players', `ABCD2345_${UID}`),
+        { code: 'ABCD2345', pid: UID, name: 'Oscar', characterIndex: 1, state: 'lobby', level: 1, score: 0, victory: false, time: 0, stake: 0, startedAt: serverTimestamp(), updatedAt: serverTimestamp(), ...look },
+        { merge: true },
+      ),
+    );
+    await assertFails(setDoc(doc(authed(UID), 'challenge_scores', `ABCD2346_${UID}`), { code: 'ABCD2346', pid: UID, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, frame: 'crown!' }));
+  });
+});

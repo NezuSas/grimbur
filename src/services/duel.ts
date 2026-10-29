@@ -4,6 +4,8 @@ import { checkName } from '../core/leaderboard/validation';
 import { CODE_PATTERN } from '../core/challenge/code';
 import { DuelPlayer, DuelState, MAX_PLAYERS, validateDuelPlayer } from '../core/duel/duel';
 import { getPlayerId } from './playerProfile';
+import { lookOf } from '../core/cosmetics/look';
+import { peekLocalStats } from './localStats';
 
 /** Live duel: publishes this player's state and listens to the room (see core/duel/duel.ts and firestore.rules). */
 const COLLECTION = 'duel_players';
@@ -85,7 +87,7 @@ export async function publishDuelState(code: string, name: string, patch: { char
   // Before the run every write stamps `startedAt` with the server's time; once it starts the field is left alone (merged) and the rules
   // check that each floor was reachable in the time since.
   const stamp = inRun ? {} : { startedAt: serverTimestamp() };
-  const write = () => withTimeout(setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, ...stamp, updatedAt: serverTimestamp() }, { merge: true }));
+  const write = () => withTimeout(setDoc(doc(db, COLLECTION, `${code}_${pid}`), { ...row, ...lookOf(peekLocalStats()), ...stamp, updatedAt: serverTimestamp() }, { merge: true }));
   try {
     await write();
   } catch (e) {
