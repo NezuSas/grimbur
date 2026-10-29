@@ -1,6 +1,8 @@
 import React from "react";
 import { Animated, View } from "react-native";
 import type { ArrowShot } from "../BoardView";
+import SpriteImage from "../SpriteImage";
+import type { TrailLook } from "../../cosmeticArt";
 
 /** The part of `flight` (0..1) at which the arrow reaches its tile; the rest is the impact. */
 const LAND_AT = 0.8;
@@ -32,6 +34,8 @@ type Props = {
   col: number;
   /** The hero's own arrow colour: the trail and the impact take it. */
   color: string;
+  /** An equipped arrow trail (Collection): a painted arrow, and its two colours for the wake and the sparks. */
+  trail?: TrailLook | null;
 };
 
 /**
@@ -39,7 +43,7 @@ type Props = {
  * sparks; a miss sticks, quivers and kicks up a little dust. All of it rides one native-driven value; nothing when calm
  * (BoardView does not mount it then).
  */
-const ArrowFlight = ({ shot, flight, tileSize, row, col, color }: Props) => {
+const ArrowFlight = ({ shot, flight, tileSize, row, col, color, trail }: Props) => {
   const vec = VECTORS[shot.dir];
   const angle = ANGLES[shot.dir];
   const reach = shot.tiles * tileSize;
@@ -70,7 +74,11 @@ const ArrowFlight = ({ shot, flight, tileSize, row, col, color }: Props) => {
             transform: [...along(g.lag), { rotate: `${angle}deg` }, { scale: g.scale }],
           }}
         >
-          <View style={[shaft, { backgroundColor: color }]} />
+          {trail ? (
+            <View style={{ width: tileSize * 0.16, height: tileSize * 0.16, borderRadius: tileSize * 0.08, backgroundColor: trail.colors[i % 2] }} />
+          ) : (
+            <View style={[shaft, { backgroundColor: color }]} />
+          )}
         </Animated.View>
       ))}
 
@@ -83,10 +91,14 @@ const ArrowFlight = ({ shot, flight, tileSize, row, col, color }: Props) => {
           transform: [...along(0), { rotate }],
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View style={[shaft, { backgroundColor: "#F5E6B8" }]} />
-          <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#FFD54F" }} />
-        </View>
+        {trail ? (
+          <SpriteImage source={trail.arrow} style={{ width: tileSize * 1.05, height: tileSize * 0.35 }} resizeMode="contain" />
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={[shaft, { backgroundColor: "#F5E6B8" }]} />
+            <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#FFD54F" }} />
+          </View>
+        )}
       </Animated.View>
 
       {shot.hit ? (
@@ -104,7 +116,7 @@ const ArrowFlight = ({ shot, flight, tileSize, row, col, color }: Props) => {
               transform: [{ scale: flight.interpolate({ inputRange: [0, LAND_AT - 0.02, 1], outputRange: [0.3, 0.3, 1.5] }) }],
             }}
           >
-            <View style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, borderWidth: 3, borderColor: color }} />
+            <View style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, borderWidth: 3, borderColor: trail ? trail.colors[0] : color }} />
           </Animated.View>
           {SPARKS.map((s, i) => (
             <Animated.View
@@ -121,7 +133,7 @@ const ArrowFlight = ({ shot, flight, tileSize, row, col, color }: Props) => {
                 ],
               }}
             >
-              <View style={{ width: tileSize * 0.16, height: Math.max(2, tileSize * 0.05), borderRadius: 2, backgroundColor: i % 2 ? color : "#FFF8E1" }} />
+              <View style={{ width: tileSize * 0.16, height: Math.max(2, tileSize * 0.05), borderRadius: 2, backgroundColor: trail ? trail.colors[i % 2] : i % 2 ? color : "#FFF8E1" }} />
             </Animated.View>
           ))}
         </>

@@ -9,6 +9,7 @@ import type { LocalStats } from '../core/stats/runStats';
 import { allBiomeImages } from './biomeArt';
 import { allToolImages } from './toolArt';
 import { allAchievementArt } from './achievementArt';
+import { allCosmeticImages } from './cosmeticArt';
 
 /**
  * Every illustration the game shows in its first minutes, loaded once at startup so nothing pops in later.
@@ -60,6 +61,7 @@ export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePr
     ...allBiomeImages(),
     ...allToolImages(),
     ...allAchievementArt(),
+    ...allCosmeticImages(),
   ];
   // Hero win/lose images repeat the standing pose; load each file once.
   return Array.from(new Set(all));

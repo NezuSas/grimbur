@@ -73,6 +73,9 @@ import { buildShareCard, buildShareMessage } from "./game/shareMessage";
 import { useRouteLog } from "./game/useRouteLog";
 import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
+import { equippedCosmetic } from "../core/cosmetics/cosmetics";
+import { peekLocalStats } from "../services/localStats";
+import { BOARD_BIOME, TRAIL_LOOKS } from "../ui/cosmeticArt";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
@@ -143,6 +146,14 @@ export default function GameScreen({ navigation, route }: Props) {
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = state.omen;
   const floorBiome = (__DEV__ ? route.params?.devBiome : undefined) ?? biomeFor(state.level, state.mode);
+  // Equipped looks (Collection): read once per run. A board theme only repaints the floor; the biome's rules stay.
+  const [looks] = useState(() => {
+    const saved = peekLocalStats();
+    const trail = saved ? equippedCosmetic(saved, "trail") : null;
+    const board = saved ? equippedCosmetic(saved, "board") : null;
+    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null };
+  });
+  const artBiome = looks.board ?? floorBiome;
   // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
   const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
   const isLair = isLairFloor(state.mode, state.level);
@@ -656,12 +667,12 @@ export default function GameScreen({ navigation, route }: Props) {
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
-      source={BIOME_ART[floorBiome].background}
+      source={BIOME_ART[artBiome].background}
       style={styles.container}
       resizeMode="cover"
     >
       {/* Dark overlay for gameplay clarity */}
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: BIOME_TINT[floorBiome] }]} />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: BIOME_TINT[artBiome] }]} />
 
       <StatusBar hidden />
 
@@ -738,7 +749,8 @@ export default function GameScreen({ navigation, route }: Props) {
             facingDir={state.facingDir}
             characterIndex={characterIndex}
             skin={skin}
-            biome={floorBiome}
+            biome={artBiome}
+            trail={looks.trail}
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}
