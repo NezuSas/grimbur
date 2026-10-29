@@ -59,15 +59,15 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
   const [picked, setPicked] = useState<string | null>(initialPick ?? null);
   const shown = entries.find(e => e.key === picked) ?? entries.find(e => e.id && equippedCosmetic(stats, cosmeticInfo(e.id).kind) === e.id) ?? entries[0];
   const [stage, setStage] = useState({ w: 0, h: 0 });
-  const [gridW, setGridW] = useState(0);
   const busy = useRef(false);
 
   const pop = useRef(new Animated.Value(1)).current;
   useEffect(() => {
-    if (calm) return;
+    // A title only changes the words under the same portrait: the portrait does not pop again.
+    if (calm || category === "title") return;
     pop.setValue(0);
     Animated.spring(pop, { toValue: 1, friction: 7, tension: 90, useNativeDriver: true }).start();
-  }, [shown?.key, pop, calm]);
+  }, [shown?.key, pop, calm, category]);
 
   const portrait = skinArt(hero, "classic").scoreImage;
   const preview = Math.max(60, Math.min(stage.h, stage.w));
@@ -132,59 +132,37 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           : t("cosmetic.unlock.achievement", { name: achievementText(t, unlock.id, "name") });
   const unlockLine = howToEarn(info?.unlock);
 
-  // Titles are words, not pictures: each one is a ribbon with its whole name, a medal in a grid, grouped by what the
-  // player can do with it.
-  const titleCols = gridW >= 560 ? 4 : gridW >= 380 ? 3 : 2;
-  const plateW = gridW > 0 ? Math.floor((gridW - 10 * (titleCols - 1)) / titleCols) : 160;
-  const shortHow = (unlock: CosmeticInfo["unlock"]): string | null =>
-    !unlock ? null : unlock.kind === "achievement" ? achievementText(t, unlock.id, "name") : howToEarn(unlock);
+  // Titles are words, not pictures: each one is a tag as wide as its name, flowing in rows so no space is wasted, with
+  // its price or state inside. How to earn one is told in the showcase when it is picked.
   const plate = (c: CosmeticInfo, i: number) => {
     const has = ownsCosmetic(stats, c.id);
     const worn = equippedCosmetic(stats, "title") === c.id;
     const on = c.id === shown.key;
     const color = TIER_COLOR[c.tier];
-    const how = !has && c.price <= 0 ? shortHow(c.unlock) : null;
     return (
       <Rise key={c.id} delay={riseDelay(i)}>
         <PressScale
           onPress={() => setPicked(c.id)}
           accessibilityRole="button"
           accessibilityState={{ selected: on }}
-          accessibilityLabel={`${cosmeticText(t, c.id)}. ${t(`cosmetic.tier.${c.tier}` as TranslationKey)}${how ? `. ${howToEarn(c.unlock)}` : ""}`}
-          style={[styles.medal, { width: plateW }, on && { borderColor: "#FFE3A0", backgroundColor: color + "1F" }]}
+          accessibilityLabel={`${cosmeticText(t, c.id)}. ${t(`cosmetic.tier.${c.tier}` as TranslationKey)}`}
+          style={[styles.tag2, { borderColor: has ? color : color + "66" }, on && styles.tag2On, c.tier === "legendary" && has && styles.tag2Glow]}
         >
-          <View style={styles.ribbonRow}>
-            <View style={[styles.gem, { backgroundColor: color, opacity: has ? 1 : 0.45 }]} />
-            <View style={[styles.ribbon, { borderColor: has ? color : color + "66" }, c.tier === "legendary" && has && styles.ribbonGlow]}>
-              <Text style={[styles.ribbonText, !has && styles.ribbonTextLocked]} numberOfLines={2} maxFontSizeMultiplier={1.15}>
-                {cosmeticText(t, c.id).toLocaleUpperCase()}
-              </Text>
-            </View>
-            <View style={[styles.gem, { backgroundColor: color, opacity: has ? 1 : 0.45 }]} />
-          </View>
-          <Text style={[styles.medalTier, { color }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-            {t(`cosmetic.tier.${c.tier}` as TranslationKey).toLocaleUpperCase()}
+          <View style={[styles.gem, { backgroundColor: color, opacity: has ? 1 : 0.5 }]} />
+          <Text style={[styles.tag2Text, !has && styles.tag2TextLocked]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {cosmeticText(t, c.id).toLocaleUpperCase()}
           </Text>
           {worn ? (
-            <View style={[styles.medalState, styles.medalWorn]}>
+            <View style={styles.tag2Worn}>
               <Ionicons name="checkmark" size={12} color="#111" />
-              <Text style={[styles.medalStateText, { color: "#111" }]} maxFontSizeMultiplier={1.1}>{t("skin.equipped").toLocaleUpperCase()}</Text>
             </View>
-          ) : has ? (
-            <View style={styles.medalState}>
-              <Ionicons name="checkmark-circle" size={13} color="#9EE37D" />
-              <Text style={[styles.medalStateText, { color: "#9EE37D" }]} maxFontSizeMultiplier={1.1}>{(c.price > 0 ? t("skin.owned") : t("cosmetic.earned")).toLocaleUpperCase()}</Text>
-            </View>
-          ) : c.price > 0 ? (
-            <View style={styles.cardPrice}>
+          ) : has ? null : c.price > 0 ? (
+            <View style={styles.tag2Price}>
               <EmberIcon size={11} />
               <Text style={styles.cardPriceText} maxFontSizeMultiplier={1.1}>{c.price}</Text>
             </View>
           ) : (
-            <View style={styles.medalHow}>
-              <Ionicons name="trophy" size={11} color="#FFD54F" />
-              <Text style={styles.medalHowText} numberOfLines={2} maxFontSizeMultiplier={1.1}>{how}</Text>
-            </View>
+            <Ionicons name="trophy" size={13} color="#FFD54F" style={{ opacity: 0.85 }} />
           )}
         </PressScale>
       </Rise>
@@ -365,7 +343,6 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           showsVerticalScrollIndicator={false}
           onLayout={ev => {
             onGridWidth(ev.nativeEvent.layout.width);
-            setGridW(ev.nativeEvent.layout.width);
           }}
         >
           {category === "title"
@@ -424,19 +401,14 @@ const styles = StyleSheet.create({
   groupHead: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   groupTitle: { color: "#FFD54F", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
   groupCount: { color: "#1a0f00", backgroundColor: "#E8B04A", fontWeight: "900", fontSize: 11, paddingHorizontal: 7, borderRadius: 8, overflow: "hidden" },
-  medal: { alignItems: "center", justifyContent: "flex-start", gap: 4, paddingHorizontal: 4, paddingVertical: 6, borderRadius: 12, borderWidth: 1.5, borderColor: "transparent" },
-  ribbonRow: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "stretch", justifyContent: "center" },
-  gem: { width: 6, height: 6, transform: [{ rotate: "45deg" }], borderRadius: 1.5 },
-  ribbon: { flexShrink: 1, minHeight: 32, justifyContent: "center", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, borderWidth: 1.5, backgroundColor: "rgba(40, 26, 10, 0.95)" },
-  ribbonGlow: { shadowColor: "#FFD54F", shadowOpacity: 0.8, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 6 },
-  ribbonText: { color: "#FFD54F", fontWeight: "900", fontSize: 11.5, letterSpacing: 0.6, textAlign: "center" },
-  ribbonTextLocked: { color: "#CDBBA8" },
-  medalTier: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1.4 },
-  medalState: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(158,227,125,0.12)" },
-  medalWorn: { backgroundColor: "#9EE37D" },
-  medalStateText: { fontWeight: "900", fontSize: 10, letterSpacing: 0.8 },
-  medalHow: { flexDirection: "row", alignItems: "center", gap: 4, maxWidth: "100%" },
-  medalHowText: { flexShrink: 1, color: "#CAB39C", fontSize: 10.5, fontWeight: "700", textAlign: "center" },
+  gem: { width: 7, height: 7, transform: [{ rotate: "45deg" }], borderRadius: 1.5 },
+  tag2: { flexDirection: "row", alignItems: "center", gap: 7, minHeight: 40, paddingLeft: 12, paddingRight: 8, borderRadius: 12, borderWidth: 1.5, backgroundColor: "rgba(40, 26, 10, 0.92)" },
+  tag2On: { borderColor: "#FFE3A0", borderWidth: 2.5, backgroundColor: "rgba(232,176,74,0.22)" },
+  tag2Glow: { shadowColor: "#FFD54F", shadowOpacity: 0.7, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
+  tag2Text: { color: "#FFD54F", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8, paddingRight: 4 },
+  tag2TextLocked: { color: "#CDBBA8" },
+  tag2Price: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 9, backgroundColor: "rgba(0,0,0,0.5)" },
+  tag2Worn: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#9EE37D", alignItems: "center", justifyContent: "center" },
   dealBadge: { position: "absolute", top: 4, left: 4, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "#FF7043" },
   dealBadgeText: { color: "#fff", fontWeight: "900", fontSize: 11 },
 });
