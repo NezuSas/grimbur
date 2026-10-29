@@ -35,7 +35,8 @@ export type Doc = { id: string; data: () => HighscoreRow };
 /** Network calls never hang the UI: they fail after this long. */
 const REQUEST_TIMEOUT_MS = 8000;
 /** The cached top-10 threshold is re-fetched after this long. */
-const THRESHOLD_TTL_MS = 60_000;
+/** A run takes minutes: the line fetched at its start is still good when it ends. */
+const THRESHOLD_TTL_MS = 15 * 60_000;
 
 let cachedThreshold: { value: Threshold; at: number } | null = null;
 
@@ -128,9 +129,10 @@ export async function addHighscore(row: HighscoreRow): Promise<void> {
  * Whether a run would enter the top 10. Returns false when the board cannot be read
  * (offline): we never invite the player to submit a score that could not be saved.
  */
-export async function isTopTenScore(score: number, time: number): Promise<boolean> {
+export async function isTopTenScore(score: number, time: number): Promise<boolean | null> {
   const fresh = cachedThreshold && Date.now() - cachedThreshold.at < THRESHOLD_TTL_MS;
   if (!fresh) await prefetchLeaderboardThreshold();
-  if (!cachedThreshold) return false;
+  // null: the board could not be read (offline, or never fetched); the caller decides what to do without it.
+  if (!cachedThreshold) return null;
   return qualifies(cachedThreshold.value, score, time);
 }

@@ -22,7 +22,7 @@ export const VICTORY_CARD_DELAY_MS = 2300;
 /** The run is saved this long after a death, once the killer's strike on the board has played. */
 export const RECORD_AFTER_STRIKE_MS = 650;
 /** How long the top-10 check may delay the entry modal; the game-over card never waits for it. */
-export const TOP_TEN_CHECK_TIMEOUT_MS = 1500;
+export const TOP_TEN_CHECK_TIMEOUT_MS = 5000;
 
 /** A floating label: where it rises from, and how it looks. */
 export type Popup = {
