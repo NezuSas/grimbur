@@ -1,29 +1,29 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, ImageBackground, ScrollView, Share, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Clipboard from "expo-clipboard";
 import Text from "../ui/components/Text";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
-import { PopButton, PopupPanel } from "../ui/components/game/popup";
+import { PopButton } from "../ui/components/game/popup";
 import { RootStackParamList } from "../navigation/types";
 import { useT } from "../i18n/useT";
-import type { TranslationKey } from "../i18n/en";
 import characters from "../data/characters";
 import { formatTime } from "../shared/utils/formatTime";
 import { getPlayerId } from "../services/playerProfile";
-import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/challenge/code";
+import { newChallenge, parseChallengeCode } from "../core/challenge/code";
 import { loadChallengeBoard, rememberChallenge, type ChallengeDoc } from "../services/challenges";
-import { GAME_CONFIG } from "../config/gameConfig";
-import { withUiScale } from "../ui/layout/scaledWindow";
+import { useWindowDimensions, withUiScale } from "../ui/layout/scaledWindow";
+import CodeTicket, { FRIEND_ART } from "../ui/components/friends/CodeTicket";
+import Rise, { riseDelay } from "../ui/components/Rise";
+import SpriteImage from "../ui/components/SpriteImage";
 import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChallengeScreen">;
 
 const GOLD = "#FFD54F";
-const TINT = "#4FC3F7";
+const MEDAL = ["#FFD54F", "#CFD8DC", "#FFAB91"];
 
 /**
  * A friend challenge: the same cave for whoever has the code, played whenever each one wants. Without a code this screen creates one or
@@ -35,7 +35,8 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
   const challenge = code ? parseChallengeCode(code) : null;
   const challengeCode = challenge?.code ?? null;
 
-  const [copied, setCopied] = useState(false);
+  const { width } = useWindowDimensions();
+  const narrow = width < 600;
   const [rows, setRows] = useState<ChallengeDoc[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [myId, setMyId] = useState<string | null>(null);
@@ -74,38 +75,18 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
     [navigation],
   );
 
-  const depthName = (d: number) => t(`ascension.label.${d}` as TranslationKey);
 
   const play = () => {
     if (!challenge) return;
     navigation.navigate("CharactersScreen", { mode: "expedition", challenge: { code: challenge.code, seed: challenge.seed, depth: challenge.depth } });
   };
-  const share = async () => {
-    if (!challenge) return;
-    try {
-      await Share.share({ message: t("challenge.shareMessage", { code: formatChallengeCode(challenge.code), depth: depthName(challenge.depth), url: GAME_CONFIG.store.url }) });
-    } catch (e) {
-      console.warn("[challenge] share failed:", e);
-    }
-  };
-  const copy = async () => {
-    if (!challenge) return;
-    try {
-      await Clipboard.setStringAsync(formatChallengeCode(challenge.code));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // the code is on the screen
-    }
-  };
-
   const boardRow = (item: ChallengeDoc, index: number) => {
     const row = item.data();
     const hero = characters[row.characterIndex] || characters[0];
     const mine = !!myId && row.pid === myId;
     return (
-      <View key={item.id} style={[styles.row, mine && styles.rowMine]}>
-        <View style={[styles.rank, index < 3 && { backgroundColor: ["#FFD54F", "#CFD8DC", "#FFAB91"][index] }]}>
+      <Rise key={item.id} delay={riseDelay(index)} style={[styles.row, index < 3 && { borderLeftColor: MEDAL[index], borderLeftWidth: 4 }, mine && styles.rowMine]}>
+        <View style={[styles.rank, index < 3 && { backgroundColor: MEDAL[index] }]}>
           <Text style={[styles.rankText, index < 3 && { color: "#2A2016" }]}>{index + 1}</Text>
         </View>
         <PlayerPortrait source={hero.scoreImage} size={(row as { frame?: string }).frame ? 50 : 40} frame={(row as { frame?: string }).frame} />
@@ -122,7 +103,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
         <Text style={styles.score} numberOfLines={1} adjustsFontSizeToFit>
           {n(row.score)}
         </Text>
-      </View>
+      </Rise>
     );
   };
 
@@ -132,29 +113,23 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
         <ScreenHeader title={t("challenge.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {challenge ? (
-            <View style={styles.cols}>
-              <View style={styles.colCode}>
-                <PopupPanel tint={TINT} width="100%">
-                  <Text style={styles.kicker} maxFontSizeMultiplier={1.2}>
-                    {t("challenge.code").toLocaleUpperCase()}
-                  </Text>
-                  <Text style={styles.code} selectable adjustsFontSizeToFit numberOfLines={1} accessibilityLabel={formatChallengeCode(challenge.code).split("").join(" ")} maxFontSizeMultiplier={1.2}>
-                    {formatChallengeCode(challenge.code)}
-                  </Text>
-                  <Text style={styles.hint} maxFontSizeMultiplier={1.3}>
-                    {t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}
-                  </Text>
+            <View style={[styles.cols, narrow && { flexDirection: "column", alignItems: "stretch" }]}>
+              <View style={[styles.colCode, narrow && { width: "100%", maxWidth: undefined }]}>
+                <CodeTicket mode="challenge" code={challenge.code} depth={challenge.depth}>
                   <PopButton label={t("challenge.play")} icon="play" onPress={play} />
-                  <View style={styles.pair}>
-                    <PopButton variant="secondary" label={t("challenge.share")} icon="share-social" onPress={() => void share()} style={styles.half} />
-                    <PopButton variant="secondary" label={copied ? t("challenge.copied") : t("challenge.copy")} icon={copied ? "checkmark" : "copy"} onPress={() => void copy()} style={styles.half} />
-                  </View>
-                </PopupPanel>
+                </CodeTicket>
               </View>
               <View style={styles.colBoard}>
-                <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
-                  {t("challenge.board").toLocaleUpperCase()}
-                </Text>
+                <View style={styles.boardHead}>
+                  <Text style={styles.section} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
+                    {t("challenge.board").toLocaleUpperCase()}
+                  </Text>
+                  {status === "ready" && rows.length > 0 ? (
+                    <Text style={styles.boardCount} maxFontSizeMultiplier={1.1}>
+                      {t("challenge.players", { n: rows.length })}
+                    </Text>
+                  ) : null}
+                </View>
                 {status === "loading" ? (
                   <ActivityIndicator color={GOLD} style={{ marginTop: 20 }} />
                 ) : status === "error" ? (
@@ -163,7 +138,15 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
                     <PopButton variant="secondary" label={t("common.retry")} onPress={() => void load()} style={{ minWidth: 160 }} />
                   </View>
                 ) : rows.length === 0 ? (
-                  <Text style={styles.empty}>{t("challenge.empty")}</Text>
+                  <Rise style={styles.emptyBox}>
+                    <SpriteImage source={FRIEND_ART.challenge} style={styles.emptyArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+                    <Text style={styles.empty} maxFontSizeMultiplier={1.2}>
+                      {t("challenge.empty")}
+                    </Text>
+                    <Text style={styles.emptySub} maxFontSizeMultiplier={1.2}>
+                      {t("challenge.emptyHint")}
+                    </Text>
+                  </Rise>
                 ) : (
                   rows.map(boardRow)
                 )}
@@ -183,16 +166,16 @@ export default withUiScale(ChallengeScreen);
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   content: { padding: 14, alignItems: "center" },
-  cols: { width: "100%", maxWidth: 940, flexDirection: "row", flexWrap: "wrap", gap: 16, alignItems: "flex-start" },
-  colCode: { flexGrow: 1, flexBasis: 300, minWidth: 0 },
-  colBoard: { flexGrow: 1, flexBasis: 300, minWidth: 0, gap: 8 },
-  kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
-  code: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 5, textAlign: "center", alignSelf: "stretch" },
-  hint: { color: "#DCCCBD", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
-  pair: { flexDirection: "row", gap: 10, alignSelf: "stretch" },
-  half: { flex: 1 },
+  cols: { width: "100%", maxWidth: 980, flexDirection: "row", gap: 14, alignItems: "flex-start" },
+  colCode: { width: "40%", maxWidth: 380 },
+  colBoard: { flex: 1, gap: 8 },
+  boardHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" },
+  boardCount: { color: "#C4AA91", fontWeight: "800", fontSize: 12 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
-  empty: { color: "#E1D4C8", fontSize: 14, textAlign: "center", paddingTop: 10 },
+  emptyBox: { alignItems: "center", gap: 6, padding: 18, borderRadius: 18, borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(36,28,19,0.6)" },
+  emptyArt: { width: 64, height: 64, opacity: 0.6 },
+  empty: { color: "#E1D4C8", fontSize: 14, fontWeight: "800", textAlign: "center" },
+  emptySub: { color: "#C4AA91", fontSize: 12.5, textAlign: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(36, 28, 19,0.8)", paddingVertical: 8, paddingHorizontal: 10 },
   rowMine: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.1)" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
