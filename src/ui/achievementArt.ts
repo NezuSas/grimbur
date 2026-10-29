@@ -64,4 +64,21 @@ export function achievementArt(a: Pick<AchievementInfo, 'id' | 'desc'>): ImageSo
   return BY_ID[a.id] ?? (a.desc ? BY_KIND[a.desc] : undefined) ?? art.games;
 }
 
+export type AchievementTheme = keyof typeof art;
+
+/** The family an achievement belongs to, the one its emblem paints (heroes, floors, gems...). */
+export function achievementTheme(a: Pick<AchievementInfo, 'id' | 'desc'>): AchievementTheme {
+  if (a.id in HERO_WIN) return 'heroes';
+  const src = BY_ID[a.id] ?? (a.desc ? BY_KIND[a.desc] : undefined) ?? art.games;
+  return (Object.keys(art) as AchievementTheme[]).find(k => art[k] === src) ?? 'games';
+}
+
+/** Every family in the order the Achievements screen lists them: the first steps first, the long hauls last. */
+export const ACHIEVEMENT_THEMES: readonly AchievementTheme[] = [
+  'games', 'floor', 'gems', 'relics', 'forge', 'embers', 'score', 'wins', 'heroes', 'speed', 'depthWin', 'endless', 'streak', 'dailyRuns', 'dailyWins', 'achCount',
+];
+
+/** The emblem standing for a whole family. */
+export const themeArt = (theme: AchievementTheme): ImageSourcePropType => art[theme];
+
 export const allAchievementArt = (): ImageSourcePropType[] => Object.values(art);
