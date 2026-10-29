@@ -13,6 +13,8 @@ import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import PressScale from "../ui/components/PressScale";
 import Rise, { riseDelay } from "../ui/components/Rise";
+import CosmeticsBody, { type CosmeticCategory } from "./collection/CosmeticsBody";
+import { getPlayerName } from "../services/playerProfile";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
 import characters from "../data/characters";
@@ -32,6 +34,17 @@ import { useSettingsStore } from "../state/settings/store";
 import { heroAccent } from "../data/heroAccent";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
+
+type Category = "skins" | CosmeticCategory;
+/** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
+const CATEGORIES: { id: Category; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
+  { id: "deals", icon: "pricetag" },
+  { id: "skins", icon: "shirt" },
+  { id: "trail", icon: "flash" },
+  { id: "frame", icon: "ellipse-outline" },
+  { id: "title", icon: "ribbon" },
+  { id: "board", icon: "grid" },
+];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
 const RARITY_COLOR = { free: "#9FA8DA", rare: "#4FC3F7", legendary: "#FFD54F" } as const;
@@ -99,6 +112,11 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [gridWidth, setGridWidth] = useState(0);
   const [tabsWidth, setTabsWidth] = useState(0);
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
+  const [category, setCategory] = useState<Category>(route.params?.category ?? (route.params?.skin ? "skins" : "deals"));
+  const [playerName, setPlayerName] = useState("");
+  useEffect(() => {
+    void getPlayerName().then(n => setPlayerName(n ?? ""));
+  }, []);
   const heroRef = useRef(hero);
   heroRef.current = hero;
 
@@ -210,6 +228,33 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
           }
         />
 
+        <ScrollView horizontal style={styles.catsScroll} contentContainerStyle={styles.cats} showsHorizontalScrollIndicator={false}>
+          {CATEGORIES.map(c => {
+            const on = c.id === category;
+            return (
+              <PressScale
+                key={c.id}
+                onPress={() => {
+                  haptic.impact();
+                  setCategory(c.id);
+                }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                style={[styles.cat, on && styles.catOn]}
+              >
+                <Ionicons name={c.icon} size={15} color={on ? "#1a0f00" : "#E8B04A"} />
+                <Text style={[styles.catText, on && styles.catTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                  {t(`collection.cat.${c.id}` as TranslationKey)}
+                </Text>
+                {c.id === "deals" ? <View style={[styles.catDot, on && { backgroundColor: "#1a0f00" }]} /> : null}
+              </PressScale>
+            );
+          })}
+        </ScrollView>
+
+        {category !== "skins" ? (
+          <CosmeticsBody category={category} stats={stats} onStats={setStats} hero={hero} playerName={playerName} cardSize={cardSize} onGridWidth={setGridWidth} />
+        ) : (
         <View style={styles.body}>
           {/* ── Left: the chosen outfit, big, then what it takes to wear it ─────────────────────────── */}
           <View style={styles.showcase}>
@@ -349,6 +394,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
         </View>
+        )}
       </SafeAreaView>
     </ImageBackground>
   );
@@ -359,7 +405,14 @@ const styles = StyleSheet.create({
   balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(255,171,64,0.16)", borderWidth: 1.5, borderColor: "rgba(255,171,64,0.7)" },
   balanceValue: { color: "#FFAB40", fontSize: 20, fontWeight: "900" },
 
-  body: { flex: 1, flexDirection: "row", gap: 12, padding: 10 },
+  body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
+  catsScroll: { flexGrow: 0 },
+  cats: { flexDirection: "row", gap: 8, paddingHorizontal: 10, paddingVertical: 8 },
+  cat: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1.5, borderColor: "rgba(232,176,74,0.45)", backgroundColor: "rgba(255,255,255,0.05)" },
+  catOn: { backgroundColor: "#E8B04A", borderColor: "#E8B04A" },
+  catText: { color: "#EAE1D8", fontWeight: "900", fontSize: 13 },
+  catTextOn: { color: "#1a0f00" },
+  catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#FF7043" },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   browse: { flex: 1, gap: 8 },
   tabs: { flexDirection: "row", gap: 8 },

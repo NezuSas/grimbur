@@ -1,3 +1,4 @@
+import type { CosmeticId } from "../core/cosmetics/cosmetics";
 import type { TranslationKey } from './en';
 import type { Params } from './translate';
 import type { RelicId } from '../core/engine/relics';
@@ -63,3 +64,6 @@ export const forgeText = (t: T, id: UpgradeId, part: 'name' | 'desc'): string =>
 /** Localised omen text. */
 export const omenText = (t: T, id: string, part: 'name' | 'rule'): string =>
   t(`omen.${id}.${part}` as TranslationKey);
+
+/** The name of a trail, frame, title or board theme. */
+export const cosmeticText = (t: T, id: CosmeticId): string => t(`cosmetic.${id}.name` as TranslationKey);
