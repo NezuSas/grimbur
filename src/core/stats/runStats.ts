@@ -4,6 +4,7 @@ import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
+import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
 export interface DailyProgress {
   /** Local day (`YYYY-MM-DD`) this progress belongs to. */
@@ -59,6 +60,11 @@ export interface LocalStats {
   heroBestDepth: number[];
   /** Hero outfits: `owned` holds `heroIndex:skinId` keys (classic is implicit); `equipped` maps hero index to skin. */
   skins: { owned: string[]; equipped: Record<string, SkinId> };
+  /**
+   * Trails, frames, titles and board themes: `owned` holds the bought ones (earned ones are derived from their goal),
+   * `equipped` one per slot, `deals` what was bought from the daily shop on `date` (so its shelf never reshuffles).
+   */
+  cosmetics: { owned: CosmeticId[]; equipped: Partial<Record<CosmeticKind, CosmeticId>>; deals: { date: string | null; bought: string[] } };
   /** Today's and this week's missions with their progress. */
   missions: MissionsState;
 }
@@ -144,6 +150,7 @@ export const EMPTY_STATS: LocalStats = {
   history: [],
   heroBestDepth: Array.from({ length: HERO_COUNT }, () => 0),
   skins: { owned: [], equipped: {} },
+  cosmetics: { owned: [], equipped: {}, deals: { date: null, bought: [] } },
   missions: EMPTY_MISSIONS,
 };
 
@@ -415,6 +422,7 @@ export function parseStats(raw: string | null): LocalStats {
       history: parseHistory(data.history),
       heroBestDepth: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroBestDepth) ? Math.min(MAX_ASCENSION, Math.trunc(num(data.heroBestDepth[i]))) : 0)),
       skins: parseSkins(data.skins),
+      cosmetics: parseCosmetics(data.cosmetics),
       missions: parseMissions(data.missions),
     };
   } catch {
