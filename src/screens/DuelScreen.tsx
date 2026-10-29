@@ -11,25 +11,28 @@ import FriendCreateJoin from "../ui/components/friends/FriendCreateJoin";
 import { PopButton, PopupPanel } from "../ui/components/game/popup";
 import { RootStackParamList } from "../navigation/types";
 import { useT } from "../i18n/useT";
-import type { TranslationKey } from "../i18n/en";
 import characters from "../data/characters";
 import { creditEmbersFor, getLocalStats, peekLocalStats, spendEmbersFor } from "../services/localStats";
 import { EMPTY_STATS, type LocalStats } from "../core/stats/runStats";
-import { formatChallengeCode, newChallenge, parseChallengeCode } from "../core/challenge/code";
+import { newChallenge, parseChallengeCode } from "../core/challenge/code";
 import { COUNTDOWN_SECONDS, DUEL_FEE_PERCENT, HEARTBEAT_MS, MAX_PLAYERS, prizeOf, rivalStatus } from "../core/duel/duel";
 import type { RivalStatus } from "../core/duel/duel";
 import { getPlayerId, getPlayerName, setPlayerName } from "../services/playerProfile";
 import { EMPTY_ROOM, openDuelRoom, publishDuelState, watchDuelStake, watchRoom, type Room } from "../services/duel";
 import { rememberChallenge } from "../services/challenges";
-import { withUiScale } from "../ui/layout/scaledWindow";
+import { useWindowDimensions, withUiScale } from "../ui/layout/scaledWindow";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 import { lookOf } from "../core/cosmetics/look";
+import CodeTicket from "../ui/components/friends/CodeTicket";
+import Rise, { riseDelay } from "../ui/components/Rise";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DuelScreen">;
 
 const GOLD = "#FFD54F";
 const TINT = "#FF8A80";
+const STATE_COLOR = { ready: "#9EE37D", lobby: "#D6C4B2", away: "#FF8A80", inGame: "#4FC3F7", waiting: "#8D7B69" } as const;
+type Tone = keyof typeof STATE_COLOR;
 
 /**
  * Live duel for two to four players. Without a code: create a duel (a code to send, a difficulty and an optional stake of embers) or join
@@ -44,6 +47,8 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const challenge = code ? parseChallengeCode(code) : null;
   const inLobby = !!challenge && heroIndex !== null;
 
+  const { width } = useWindowDimensions();
+  const narrow = width < 600;
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   const { hasFullGame } = useEntitlements();
   useEffect(() => {
@@ -239,34 +244,36 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
   const stateLabel = (state: string, status: RivalStatus) =>
     status === "away" ? t("duel.state.away") : state === "ready" ? t("duel.state.ready") : state === "playing" || state === "done" ? t("duel.state.inGame") : t("duel.state.lobby");
 
-  const playerCard = (key: string, title: string, who: { name: string; characterIndex: number; frame?: string; title?: string } | null, label: string, accent: string) => {
+  const playerCard = (key: string, index: number, who: { name: string; characterIndex: number; frame?: string; title?: string; me?: boolean } | null, label: string, tone: Tone) => {
     const hero = who ? characters[who.characterIndex] || characters[0] : null;
+    const color = STATE_COLOR[tone];
     return (
-      <View key={key} style={[styles.player, { borderColor: accent + "99" }]}>
+      <Rise key={key} delay={riseDelay(index)} style={[styles.slot, narrow && { flexBasis: "100%" }, who ? (who.me ? styles.slotMe : styles.slotRival) : styles.slotEmpty]}>
         {hero ? (
-          <PlayerPortrait source={hero.scoreImage} size={who?.frame ? 62 : 52} frame={who?.frame} />
+          <PlayerPortrait source={hero.scoreImage} size={54} frame={who?.frame} />
         ) : (
-          <View style={[styles.avatar, styles.avatarEmpty]}>
-            <Ionicons name="hourglass" size={22} color="#B99A7C" />
+          <View style={styles.avatarEmpty}>
+            <Ionicons name="person-add" size={20} color="#8D7B69" />
           </View>
         )}
-        <View style={{ flex: 1 }}>
-          <Text style={styles.playerTitle} maxFontSizeMultiplier={1.2}>
-            {title.toLocaleUpperCase()}
-          </Text>
-          <Text style={styles.playerName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {who?.name ?? t("duel.waitingRival")}
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={[styles.playerName, !who && { color: "#8D7B69", fontSize: 14 }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {who ? (who.me ? `${who.name} · ${t("duel.you")}` : who.name) : t("duel.slotOpen")}
           </Text>
           <PlayerTitle title={who?.title} />
-          <Text style={[styles.playerState, { color: accent }]} maxFontSizeMultiplier={1.2}>
-            {label}
-          </Text>
+          <View style={[styles.statePill, { borderColor: color + "AA", backgroundColor: color + "1F" }]}>
+            <View style={[styles.stateDot, { backgroundColor: color }]} />
+            <Text style={[styles.playerState, { color }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              {label}
+            </Text>
+          </View>
         </View>
-      </View>
+      </Rise>
     );
   };
+  const toneOf = (state: string, status: RivalStatus): Tone =>
+    status === "away" ? "away" : state === "ready" ? "ready" : state === "playing" || state === "done" ? "inGame" : "lobby";
 
-  const depthName = (d: number) => t(`ascension.label.${d}` as TranslationKey);
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
@@ -285,12 +292,9 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                 </PopupPanel>
               </View>
             ) : (
-              <View style={styles.cols}>
-                <View style={styles.colMain}>
-                  <PopupPanel tint={TINT} width="100%">
-                    <Text style={styles.kicker}>{t("challenge.code").toLocaleUpperCase()}</Text>
-                    <Text style={styles.code} selectable adjustsFontSizeToFit numberOfLines={1}>{formatChallengeCode(challenge.code)}</Text>
-                    <Text style={styles.hint}>{t("challenge.depthLine", { depth: depthName(challenge.depth) })} {t("challenge.fair")}</Text>
+              <View style={[styles.cols, narrow && { flexDirection: "column", alignItems: "stretch" }]}>
+                <View style={[styles.colMain, narrow && { width: "100%", maxWidth: undefined }]}>
+                  <CodeTicket mode="duel" code={challenge.code} depth={challenge.depth}>
                     {myStake > 0 ? (
                       <View style={styles.stakeBox}>
                         <Text style={styles.stakeText} maxFontSizeMultiplier={1.2}><EmberIcon size={13} /> {t("duel.stakeRoom", { n: myStake })}</Text>
@@ -313,14 +317,23 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
                     ) : (
                       <PopButton label={t("duel.ready")} art="swords" onPress={onReady} disabled={room.full || !canPay || !stakeKnown || underway || !stakeAllowed} />
                     )}
-                  </PopupPanel>
+                  </CodeTicket>
                 </View>
                 <View style={styles.colPlayers}>
-                  <Text style={styles.section}>{t("duel.players", { n: present.length + 1, max: MAX_PLAYERS }).toLocaleUpperCase()}</Text>
-                  {playerCard("me", t("duel.you"), { name, characterIndex: heroIndex ?? 0, ...lookOf(peekLocalStats()) }, ready ? t("duel.state.ready") : t("duel.state.lobby"), GOLD)}
-                  {rivals.map(r => playerCard(r.pid, t("duel.rival"), { name: r.name, characterIndex: r.characterIndex, frame: r.frame, title: r.title }, stateLabel(r.state, r.status), TINT))}
-                  {rivals.length === 0 ? playerCard("wait", t("duel.rival"), null, t("duel.state.waiting"), TINT) : null}
-                  <Text style={styles.hint}>{t("duel.lobbyHint")}</Text>
+                  <View style={styles.playersHead}>
+                    <Text style={styles.section}>{t("duel.players", { n: present.length + 1, max: MAX_PLAYERS }).toLocaleUpperCase()}</Text>
+                    <View style={styles.seats}>
+                      {Array.from({ length: MAX_PLAYERS }, (_, i) => (
+                        <View key={i} style={[styles.seat, i < present.length + 1 && { backgroundColor: TINT }]} />
+                      ))}
+                    </View>
+                  </View>
+                  <View style={styles.slots}>
+                    {playerCard("me", 0, { name, characterIndex: heroIndex ?? 0, ...lookOf(peekLocalStats()), me: true }, ready ? t("duel.state.ready") : t("duel.state.lobby"), ready ? "ready" : "lobby")}
+                    {rivals.slice(0, MAX_PLAYERS - 1).map((r, i) => playerCard(r.pid, i + 1, { name: r.name, characterIndex: r.characterIndex, frame: r.frame, title: r.title }, stateLabel(r.state, r.status), toneOf(r.state, r.status)))}
+                    {Array.from({ length: Math.max(0, MAX_PLAYERS - 1 - rivals.length) }, (_, i) => playerCard(`open${i}`, rivals.length + 1 + i, null, t("duel.state.waiting"), "waiting"))}
+                  </View>
+                  <Text style={[styles.hint, { textAlign: "left" }]}>{t("duel.lobbyHint")}</Text>
                 </View>
               </View>
             )
@@ -339,9 +352,19 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   content: { padding: 14, alignItems: "center" },
   narrow: { width: "100%", maxWidth: 460 },
-  cols: { width: "100%", maxWidth: 940, flexDirection: "row", flexWrap: "wrap", gap: 16, alignItems: "flex-start" },
-  colMain: { flexGrow: 1, flexBasis: 300, minWidth: 0 },
-  colPlayers: { flexGrow: 1, flexBasis: 300, minWidth: 0, gap: 8 },
+  cols: { width: "100%", maxWidth: 980, flexDirection: "row", gap: 14, alignItems: "flex-start" },
+  colMain: { width: "40%", maxWidth: 380 },
+  colPlayers: { flex: 1, gap: 8 },
+  playersHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  seats: { flexDirection: "row", gap: 4 },
+  seat: { width: 18, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.15)" },
+  slots: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  slot: { flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, minHeight: 74, borderRadius: 16, borderWidth: 1.5, padding: 10 },
+  slotMe: { borderColor: "rgba(255,213,79,0.7)", backgroundColor: "rgba(255,213,79,0.08)" },
+  slotRival: { borderColor: "rgba(255,138,128,0.55)", backgroundColor: "rgba(36,28,19,0.9)" },
+  slotEmpty: { borderColor: "rgba(255,255,255,0.16)", borderStyle: "dashed", backgroundColor: "rgba(36,28,19,0.5)" },
+  statePill: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1 },
+  stateDot: { width: 6, height: 6, borderRadius: 3 },
   cardTitle: { color: TINT, fontWeight: "900", fontSize: 18, letterSpacing: 3, textAlign: "center" },
   kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
@@ -353,10 +376,7 @@ const styles = StyleSheet.create({
   stakeBox: { alignSelf: "stretch", alignItems: "center", gap: 2, padding: 8, borderRadius: 12, backgroundColor: "rgba(255,171,64,0.12)", borderWidth: 1, borderColor: "rgba(255,171,64,0.5)" },
   stakeText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },
   stakeSub: { color: "#E9E0D7", fontSize: 12, textAlign: "center" },
-  player: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 18, borderWidth: 2, backgroundColor: "rgba(36, 28, 19,0.85)", padding: 12 },
-  avatar: { width: 52, height: 52, borderRadius: 26, backgroundColor: "rgba(255,255,255,0.08)" },
-  avatarEmpty: { alignItems: "center", justifyContent: "center" },
-  playerTitle: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  avatarEmpty: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
   playerName: { color: "#fff", fontWeight: "900", fontSize: 17 },
-  playerState: { fontWeight: "800", fontSize: 13 },
+  playerState: { fontWeight: "900", fontSize: 11 },
 });
