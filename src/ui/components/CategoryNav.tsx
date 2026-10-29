@@ -15,13 +15,44 @@ type Props<Id extends string> = {
   /** A vertical rail (wide windows) or a row of chips (narrow ones). */
   wide: boolean;
   railWidth?: number;
+  /** A slim rail: the art over a short label, leaving the pane more room. */
+  compact?: boolean;
 };
 
 /**
  * The navigation shared by Settings and How to play: a rail of categories on the left on wide windows, a scrolling row of
  * chips on top on narrow ones. Each category has its own colour so a screen with many of them can be read at a glance.
  */
-export function CategoryNav<Id extends string>({ items, value, onChange, wide, railWidth = 200 }: Props<Id>) {
+export function CategoryNav<Id extends string>({ items, value, onChange, wide, railWidth = 200, compact }: Props<Id>) {
+  if (wide && compact) {
+    return (
+      <ScrollView style={{ width: railWidth, flexGrow: 0 }} contentContainerStyle={styles.slim} showsVerticalScrollIndicator={false}>
+        {items.map(c => {
+          const on = c.id === value;
+          return (
+            <TouchableOpacity
+              key={c.id}
+              onPress={() => onChange(c.id)}
+              activeOpacity={0.85}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={c.label}
+              style={[styles.slimItem, on && { backgroundColor: c.tint + "22", borderColor: c.tint + "99" }]}
+            >
+              {c.art ? (
+                <SpriteImage source={c.art} style={[styles.slimArt, !on && { opacity: 0.7 }]} resizeMode="contain" accessibilityIgnoresInvertColors />
+              ) : (
+                <Ionicons name={c.icon} size={24} color={c.tint} />
+              )}
+              <Text style={[styles.slimLabel, on && { color: c.tint }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+                {c.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    );
+  }
   if (wide) {
     return (
       <ScrollView style={{ width: railWidth, flexGrow: 0 }} contentContainerStyle={styles.rail} showsVerticalScrollIndicator={false}>
@@ -81,6 +112,10 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
 
 const styles = StyleSheet.create({
   rail: { padding: 12, gap: 8 },
+  slim: { paddingHorizontal: 8, paddingTop: 2, paddingBottom: 8, gap: 1 },
+  slimItem: { alignItems: "center", paddingVertical: 2, paddingHorizontal: 4, borderRadius: 14, borderWidth: 1.5, borderColor: "transparent" },
+  slimArt: { width: 28, height: 28 },
+  slimLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 10, maxWidth: "100%" },
   railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
   railChip: { width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
   railArt: { width: 38, height: 38 },
