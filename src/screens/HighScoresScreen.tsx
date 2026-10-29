@@ -19,7 +19,6 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
-import SpriteImage from "../ui/components/SpriteImage";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
@@ -29,6 +28,7 @@ import { buildReportMailto } from "../core/leaderboard/moderation";
 import type { TranslationKey } from "../i18n/en";
 import { isReal } from "../config/isReal";
 import { GAME_CONFIG } from "../config/gameConfig";
+import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
@@ -199,12 +199,13 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             {index + 1}
           </Text>
         </View>
-        <SpriteImage source={char.scoreImage} style={styles.avatar} accessibilityIgnoresInvertColors />
+        <PlayerPortrait source={char.scoreImage} size={row.frame ? 50 : 40} frame={row.frame} />
         <View style={{ flex: 1 }}>
           <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {row.name}
             {mineRow ? `  ·  ${t("scores.you")}` : ""}
           </Text>
+          <PlayerTitle title={row.title} />
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}
           </Text>

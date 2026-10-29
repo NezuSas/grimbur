@@ -12,9 +12,17 @@ service cloud.firestore {
     function isOwner(p) { return request.auth != null && request.auth.uid == p; }
     function validPid(p) { return p is string && p.matches('^[A-Za-z0-9]{10,64}$'); }
 
+    // A row may carry the player's equipped frame and title (looks only, never ranking power): optional, and only ids of the
+    // right shape (src/core/cosmetics/look.ts).
+    function validLook(d) {
+      return (!('frame' in d) || (d.frame is string && d.frame.matches('^frame_[a-z]{3,12}$')))
+        && (!('title' in d) || (d.title is string && d.title.matches('^title_[a-z]{3,12}$')));
+    }
+
     function validScore(d) {
-      return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
+      return d.keys().hasOnly(['level', 'score', 'name', 'coins', 'characterIndex', 'time', 'frame', 'title'])
         && d.keys().hasAll(['level', 'score', 'name', 'coins', 'characterIndex', 'time'])
+        && validLook(d)
         && isInt(d.level) && d.level >= 1 && d.level <= 10
         && isInt(d.score) && d.score >= 0 && d.score <= d.level * 20000
         && isInt(d.coins) && d.coins >= 0 && d.coins <= d.level * 8
@@ -74,8 +82,9 @@ service cloud.firestore {
     }
 
     function validDaily(d, id) {
-      return d.keys().hasOnly(['day', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+      return d.keys().hasOnly(['day', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time', 'frame', 'title'])
         && d.keys().hasAll(['day', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+        && validLook(d)
         && d.day is string && d.day.matches('^20[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$') && recentDay(d.day)
         && validPid(d.pid)
         && id == d.day + '_' + d.pid
@@ -99,8 +108,9 @@ service cloud.firestore {
     // Friend challenges: one document per player per challenge code (`<code>_<playerId>`); a replay can only raise the score.
     // Limits mirror src/core/challenge and src/core/leaderboard/daily.ts.
     function validChallenge(d, id) {
-      return d.keys().hasOnly(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+      return d.keys().hasOnly(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time', 'frame', 'title'])
         && d.keys().hasAll(['code', 'pid', 'name', 'level', 'score', 'coins', 'characterIndex', 'time'])
+        && validLook(d)
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
         && validPid(d.pid)
         && id == d.code + '_' + d.pid
@@ -142,8 +152,9 @@ service cloud.firestore {
     // `startedAt` is stamped with the server's time on every lobby/ready write and frozen once the run starts: a floor is only
     // believed when there has been time to reach it.
     function validDuel(d, id) {
-      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt', 'startedAt'])
+      return d.keys().hasOnly(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt', 'startedAt', 'frame', 'title'])
         && d.keys().hasAll(['code', 'pid', 'name', 'characterIndex', 'state', 'level', 'score', 'victory', 'time', 'stake', 'updatedAt', 'startedAt'])
+        && validLook(d)
         && d.code is string && d.code.matches('^[0-9A-HJKMNP-TV-Z]{8}$')
         && validPid(d.pid)
         && id == d.code + '_' + d.pid

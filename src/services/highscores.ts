@@ -4,6 +4,8 @@ import { ensureSignedIn } from "../lib/auth";
 import { checkName, validateSubmission } from "../core/leaderboard/validation";
 import { saveTop10Cache, loadTop10Cache } from "./highscoresCache";
 import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
+import { lookOf } from '../core/cosmetics/look';
+import { peekLocalStats } from './localStats';
 import {
   collection,
   doc,
@@ -24,6 +26,9 @@ export type HighscoreRow = {
   time: number; // Total seconds
   /** Set on rows of the daily and weekly boards: the phone that played it. */
   pid?: string;
+  /** The player's equipped frame and title (Collection), shown beside their name. */
+  frame?: string;
+  title?: string;
 };
 export type Doc = { id: string; data: () => HighscoreRow };
 
@@ -116,7 +121,7 @@ export async function addHighscore(row: HighscoreRow): Promise<void> {
   const ref = doc(db, "highscores", uid);
   const existing = await withTimeout(getDoc(ref), REQUEST_TIMEOUT_MS, "readOwnRow");
   if (existing.exists() && Number(existing.data()?.score) >= safeRow.score) return; // the player's best is already there
-  await withTimeout(setDoc(ref, safeRow), REQUEST_TIMEOUT_MS, "addHighscore");
+  await withTimeout(setDoc(ref, { ...safeRow, ...lookOf(peekLocalStats()) }), REQUEST_TIMEOUT_MS, "addHighscore");
 }
 
 /**

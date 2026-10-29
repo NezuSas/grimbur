@@ -5,6 +5,8 @@ import { checkName } from '../core/leaderboard/validation';
 import { CODE_PATTERN } from '../core/challenge/code';
 import { rankRows } from '../core/leaderboard/threshold';
 import { getPlayerId } from './playerProfile';
+import { lookOf } from '../core/cosmetics/look';
+import { peekLocalStats } from './localStats';
 
 /** The boards of friend challenges (see core/challenge/code.ts and firestore.rules) and the codes this phone has played. */
 const REQUEST_TIMEOUT_MS = 8000;
@@ -59,7 +61,7 @@ export async function submitChallengeScore(code: string, result: ChallengeResult
   const ref = doc(db, COLLECTION, `${code}_${pid}`);
   const existing = await withTimeout(getDoc(ref), 'read');
   if (existing.exists() && Number(existing.data()?.score) >= row.score) return 'not-better';
-  await withTimeout(setDoc(ref, row), 'write');
+  await withTimeout(setDoc(ref, { ...row, ...lookOf(peekLocalStats()) }), 'write');
   return 'saved';
 }
 

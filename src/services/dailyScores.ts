@@ -4,6 +4,8 @@ import { checkName } from '../core/leaderboard/validation';
 import { DailySubmission, dailyDocId, validateDaily, weekDays } from '../core/leaderboard/daily';
 import { rankRows } from '../core/leaderboard/threshold';
 import { getPlayerId } from './playerProfile';
+import { lookOf } from '../core/cosmetics/look';
+import { peekLocalStats } from './localStats';
 
 /** The daily challenge's board and the week's best results (see core/leaderboard/daily.ts and firestore.rules). */
 const REQUEST_TIMEOUT_MS = 8000;
@@ -52,7 +54,7 @@ export async function submitDailyScore(result: DailyResult, name: string): Promi
   const ref = doc(db, COLLECTION, dailyDocId(row.day, pid));
   const existing = await withTimeout(getDoc(ref), 'read');
   if (existing.exists() && Number(existing.data()?.score) >= row.score) return 'not-better';
-  await withTimeout(setDoc(ref, row), 'write');
+  await withTimeout(setDoc(ref, { ...row, ...lookOf(peekLocalStats()) }), 'write');
   return 'saved';
 }
 

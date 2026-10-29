@@ -21,6 +21,9 @@ export interface DuelPlayer {
   time: number;
   /** Embers each player puts in the pot (0: a friendly duel). Always the room's stake (`duels/<code>`), the one its creator chose. */
   stake: number;
+  /** The player's equipped frame and title (Collection), shown on their card. */
+  frame?: string;
+  title?: string;
 }
 
 /** A player whose last update is older than this (by the server's clock) shows as disconnected: closed the app, lost the connection. */

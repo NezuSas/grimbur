@@ -107,3 +107,27 @@ describe('daily shop', () => {
     expect(dailyDeals(owner, day).map(d => d.key)).not.toContain(first.key);
   });
 });
+
+describe('public look', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { lookOf, parseLook, lookProblems } = require('../../src/core/cosmetics/look');
+
+  it('carries only the filled slots of what the player wears', () => {
+    expect(lookOf(rich())).toEqual({});
+    const s = equipCosmetic(buyCosmetic(rich(), 'frame_gold')!, 'frame', 'frame_gold')!;
+    expect(lookOf(s)).toEqual({ frame: 'frame_gold' });
+    expect(lookOf(null)).toEqual({});
+  });
+
+  it('reads only known frames and titles off somebody else\'s row', () => {
+    expect(parseLook({ frame: 'frame_crown', title: 'title_bane' })).toEqual({ frame: 'frame_crown', title: 'title_bane' });
+    expect(parseLook({ frame: 'title_bane', title: 'frame_zzz' })).toEqual({});
+    expect(parseLook(undefined)).toEqual({});
+  });
+
+  it('flags look fields the server would refuse', () => {
+    expect(lookProblems({})).toEqual([]);
+    expect(lookProblems({ frame: 'frame_gold', title: 'title_slayer' })).toEqual([]);
+    expect(lookProblems({ frame: 'crown', title: 7 })).toEqual(['frame', 'title']);
+  });
+});
