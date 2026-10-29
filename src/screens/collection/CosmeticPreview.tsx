@@ -6,6 +6,7 @@ import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
 import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, TRAIL_LOOKS } from "../../ui/cosmeticArt";
 import GemShower from "../../ui/components/game/GemShower";
+import { PlayerPortrait } from "../../ui/components/PlayerPortrait";
 import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
 import { cosmeticText } from "../../i18n/keys";
@@ -21,6 +22,8 @@ type Props = {
   playerName?: string;
   /** Small previews (grid cards) skip the moving parts and the text. */
   small?: boolean;
+  /** The frame the player wears, drawn around the portrait of a title preview. */
+  frame?: CosmeticId;
 };
 
 /** A trail's arrow gliding back and forth with its wake (still when calm or small). */
@@ -58,7 +61,7 @@ const TrailPreview = ({ id, size, small }: { id: CosmeticId; size: number; small
 };
 
 /** What a cosmetic looks like, as the player will see it: an arrow in flight, a framed portrait, a title, a patch of floor. */
-const CosmeticPreview = ({ id, size, portrait, playerName, small }: Props) => {
+const CosmeticPreview = ({ id, size, portrait, playerName, small, frame }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const kind = cosmeticInfo(id).kind;
@@ -76,16 +79,20 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small }: Props) => {
   if (kind === "title") {
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center", gap: size * 0.04 }}>
-        <View style={{ width: size * (small ? 0.5 : 0.42), height: size * (small ? 0.5 : 0.42), borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
-          <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
-        </View>
+        {!small && frame ? (
+          <PlayerPortrait source={portrait} size={size * 0.56} frame={frame} />
+        ) : (
+          <View style={{ width: size * (small ? 0.5 : 0.42), height: size * (small ? 0.5 : 0.42), borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
+            <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
+          </View>
+        )}
         {!small && playerName ? (
-          <Text style={[styles.titleName, { fontSize: Math.max(12, size * 0.075) }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          <Text style={[styles.titleName, { fontSize: Math.max(14, size * 0.1) }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
             {playerName}
           </Text>
         ) : null}
         <View style={[styles.titlePlate, { paddingHorizontal: size * 0.05 }]}>
-          <Text style={[styles.titleText, { fontSize: Math.max(small ? 9 : 12, size * (small ? 0.09 : 0.07)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+          <Text style={[styles.titleText, { fontSize: Math.max(small ? 9 : 12, size * (small ? 0.09 : 0.07)), textAlign: "center" }]} numberOfLines={small ? 1 : 2} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
             {cosmeticText(t, id).toLocaleUpperCase()}
           </Text>
         </View>
