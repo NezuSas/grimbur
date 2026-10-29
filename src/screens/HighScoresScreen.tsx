@@ -8,7 +8,7 @@ import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
 import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
 import { getPlayerId } from "../services/playerProfile";
 import { dailyKey } from "../core/engine/seed";
-import { Segmented } from "../ui/components/settings/SettingsParts";
+
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { describeAge } from "../core/leaderboard/cache";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,6 +29,13 @@ import type { TranslationKey } from "../i18n/en";
 import { isReal } from "../config/isReal";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
+import PressScale from "../ui/components/PressScale";
+import Rise, { riseDelay } from "../ui/components/Rise";
+import { getPlayerName } from "../services/playerProfile";
+import { lookOf } from "../core/cosmetics/look";
+import { equippedSkin } from "../core/skins/ownership";
+import { skinArt } from "../data/skinArt";
+import { useSettingsStore } from "../state/settings/store";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
@@ -49,8 +56,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [board, setBoard] = useState<Board>("global");
   /** This phone's id on the daily and weekly boards, to mark the player's own row. */
   const [myId, setMyId] = useState<string | null>(null);
+  const [myName, setMyName] = useState<string | null>(null);
+  const lastHero = useSettingsStore(s => s.lastHero);
   useEffect(() => {
     void getPlayerId().then(setMyId);
+    void getPlayerName().then(setMyName);
   }, []);
 
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
@@ -82,11 +92,26 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     loadData();
   }, [loadData]);
 
-  const boardOptions: SegmentOption<Board>[] = [
-    { value: "global", label: t("scores.tab.global") },
-    { value: "today", label: t("scores.tab.today") },
-    { value: "week", label: t("scores.tab.week") },
+  const boardOptions: (SegmentOption<Board> & { icon: React.ComponentProps<typeof Ionicons>["name"] })[] = [
+    { value: "global", label: t("scores.tab.global"), icon: "earth" },
+    { value: "today", label: t("scores.tab.today"), icon: "today" },
+    { value: "week", label: t("scores.tab.week"), icon: "calendar" },
   ];
+  const tabs = (
+    <View style={styles.tabs} accessibilityRole="tablist" accessibilityLabel={t("scores.title")}>
+      {boardOptions.map(o => {
+        const on = board === o.value;
+        return (
+          <PressScale key={o.value} onPress={() => setBoard(o.value)} style={[styles.tab, on && styles.tabOn]} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={o.label}>
+            <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#FFD54F"} />
+            <Text style={[styles.tabText, on && { color: "#2A2016" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              {o.label.toLocaleUpperCase()}
+            </Text>
+          </PressScale>
+        );
+      })}
+    </View>
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -97,18 +122,29 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const tenth = board === "global" && data.length >= 10 ? Number(data[9].data().score) || 0 : 0;
 
   const record = (
-    <View style={styles.record}>
-      <Text style={styles.recordTitle} maxFontSizeMultiplier={1.2}>
-        {t("scores.yours").toLocaleUpperCase()}
-      </Text>
+    <Rise style={styles.record}>
+      <View style={styles.meRow}>
+        <PlayerPortrait source={skinArt(Math.max(0, lastHero ?? 0), equippedSkin(mine, Math.max(0, lastHero ?? 0))).scoreImage} size={58} frame={lookOf(mine).frame} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.recordTitle} maxFontSizeMultiplier={1.1}>
+            {t("scores.yours").toLocaleUpperCase()}
+          </Text>
+          <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            {myName ?? t("friends.noName")}
+          </Text>
+          <PlayerTitle title={lookOf(mine).title} />
+        </View>
+      </View>
       {mine.gamesPlayed > 0 ? (
         <>
-          <Text style={styles.recordScore} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-            {n(mine.bestScore)}
-          </Text>
-          <Text style={styles.recordCaption} maxFontSizeMultiplier={1.2}>
-            {t("scores.bestScore").toLocaleUpperCase()}
-          </Text>
+          <View style={styles.bestRow}>
+            <Text style={styles.recordScore} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+              {n(mine.bestScore)}
+            </Text>
+            <Text style={styles.recordCaption} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+              {t("scores.bestScore").toLocaleUpperCase()}
+            </Text>
+          </View>
           <View style={styles.recordGrid}>
             <View style={styles.recordCell}>
               <Text style={styles.recordCellValue}>{mine.bestLevel}</Text>
@@ -148,7 +184,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </View>
       )}
-    </View>
+    </Rise>
   );
 
   const age = offlineAt !== null ? describeAge(offlineAt) : null;
@@ -179,7 +215,38 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     setHidden([]);
   }, []);
 
-  const renderItem =({ item, index }: { item: Doc; index: number }) => {
+  const reportMenu = (item: Doc) => {
+    const row = item.data();
+    return (
+      <View style={styles.reportMenu}>
+        <Text style={styles.reportHint} maxFontSizeMultiplier={1.2}>
+          {t("scores.report.hint")}
+        </Text>
+        <View style={styles.reportButtons}>
+          <TouchableOpacity style={styles.reportButton} onPress={() => hide(item.id)} accessibilityRole="button" accessibilityLabel={t("scores.report.hide")}>
+            <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.hide").toLocaleUpperCase()}</Text>
+          </TouchableOpacity>
+          {isReal(GAME_CONFIG.support.email) ? (
+            <TouchableOpacity
+              style={styles.reportButton}
+              onPress={() => {
+                setMenuFor(null);
+                const entry = { id: item.id, name: String(row.name), score: Number(row.score) || 0, level: Number(row.level) || 0 };
+                void Linking.openURL(buildReportMailto(GAME_CONFIG.support.email, entry)).catch(() => {});
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={t("scores.report.send")}
+            >
+              <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.send").toLocaleUpperCase()}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
+      </View>
+    );
+  };
+
+  const renderItem = ({ item, index: at }: { item: Doc; index: number }) => {
+    const index = at + (status === "ready" && visible.length >= 3 ? 3 : 0);
     const row = item.data();
     const char = characters[row.characterIndex] || characters[0];
     const time = typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime");
@@ -225,35 +292,65 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           <Ionicons name="flag-outline" size={16} color="#C4AA91" />
         </TouchableOpacity>
       </View>
-      {menuFor === item.id && (
-        <View style={styles.reportMenu}>
-          <Text style={styles.reportHint} maxFontSizeMultiplier={1.2}>
-            {t("scores.report.hint")}
-          </Text>
-          <View style={styles.reportButtons}>
-            <TouchableOpacity style={styles.reportButton} onPress={() => hide(item.id)} accessibilityRole="button" accessibilityLabel={t("scores.report.hide")}>
-              <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.hide").toLocaleUpperCase()}</Text>
-            </TouchableOpacity>
-            {isReal(GAME_CONFIG.support.email) ? (
-            <TouchableOpacity
-              style={styles.reportButton}
-              onPress={() => {
-                setMenuFor(null);
-                const entry = { id: item.id, name: String(row.name), score: Number(row.score) || 0, level: Number(row.level) || 0 };
-                void Linking.openURL(buildReportMailto(GAME_CONFIG.support.email, entry)).catch(() => {});
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t("scores.report.send")}
-            >
-              <Text style={styles.reportButtonText} maxFontSizeMultiplier={1.2}>{t("scores.report.send").toLocaleUpperCase()}</Text>
-            </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-      )}
+      {menuFor === item.id && reportMenu(item)}
       </View>
     );
   };
+
+  // The three best stand on a podium (the first in the middle, the highest), the rest follow as rows.
+  const podium = status === "ready" && visible.length >= 3 ? visible.slice(0, 3) : [];
+  const rest = podium.length ? visible.slice(3) : visible;
+  const podiumView = podium.length ? (
+    <View style={{ gap: 6 }}>
+      <View style={styles.podium}>
+        {[1, 0, 2].map(place => {
+          const item = podium[place];
+          const row = item.data();
+          const char = characters[row.characterIndex] || characters[0];
+          const medal = MEDALS[place];
+          const mineRow = !!myId && row.pid === myId;
+          const first = place === 0;
+          return (
+            <Rise key={item.id} delay={riseDelay(place === 0 ? 2 : place - 1, 80)} style={[styles.podiumCol, first && { marginTop: 0 }]}>
+              <View
+                style={[styles.podiumCard, { borderColor: medal }, mineRow && styles.rowMine]}
+                accessible
+                accessibilityLabel={`#${place + 1} ${row.name}. ${t("scores.col.score")} ${row.score}. ${t("scores.col.floor")} ${row.level}`}
+              >
+                <PlayerPortrait source={char.scoreImage} size={first ? 64 : 52} frame={row.frame} />
+                <Text style={styles.podiumName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                  {row.name}
+                </Text>
+                <PlayerTitle title={row.title} />
+                <Text style={[styles.podiumScore, { color: medal }, first && { fontSize: 20 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+                  {n(Number(row.score) || 0)}
+                </Text>
+                <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                  {t("scores.floorShort", { n: row.level })} · {typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime")}
+                </Text>
+                <TouchableOpacity
+                  style={styles.podiumFlag}
+                  onPress={() => setMenuFor(menuFor === item.id ? null : item.id)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("scores.report.open")}
+                  accessibilityState={{ expanded: menuFor === item.id }}
+                >
+                  <Ionicons name="flag-outline" size={13} color="#C4AA91" />
+                </TouchableOpacity>
+              </View>
+              <View style={[styles.step, { height: first ? 30 : place === 1 ? 20 : 12, backgroundColor: medal }]}>
+                <Text style={styles.stepText} maxFontSizeMultiplier={1}>
+                  {place + 1}
+                </Text>
+              </View>
+            </Rise>
+          );
+        })}
+      </View>
+      {podium.map(item => (menuFor === item.id ? <View key={item.id}>{reportMenu(item)}</View> : null))}
+    </View>
+  ) : null;
 
   // Loading, error and empty states live inside the list, so the record above never pushes them off-screen.
   const placeholder =
@@ -288,25 +385,25 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const list = (
     <FlatList
       style={styles.listPane}
-      data={status === "ready" ? visible : []}
+      data={status === "ready" ? rest : []}
       showsVerticalScrollIndicator={false}
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
       ListHeaderComponent={
-        twoPanes && !offlineNotice && board === "global" ? undefined : (
-          <View style={{ marginBottom: 10, gap: 10 }}>
-            {twoPanes ? null : record}
-            {board !== "global" ? (
-              <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
-                {board === "today" ? t("scores.dailyNote") : t("scores.weekNote")}
-              </Text>
-            ) : null}
-            {status === "ready" ? offlineNotice : null}
-          </View>
-        )
+        <View style={{ marginBottom: 2, gap: 8 }}>
+          {twoPanes ? null : record}
+          {twoPanes ? null : tabs}
+          {board !== "global" ? (
+            <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
+              {board === "today" ? t("scores.dailyNote") : t("scores.weekNote")}
+            </Text>
+          ) : null}
+          {status === "ready" ? offlineNotice : null}
+          {podiumView}
+        </View>
       }
+      ListEmptyComponent={podium.length ? undefined : placeholder}
       contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
-      ListEmptyComponent={placeholder}
       ListFooterComponent={
         hidden.length > 0 && status === "ready" ? (
           <TouchableOpacity onPress={showHidden} style={styles.hiddenNote} accessibilityRole="button" accessibilityLabel={t("scores.hidden.show")}>
@@ -321,18 +418,18 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }} edges={["top", "left", "right"]}>
         <ScreenHeader title={t("scores.title")} onBack={() => navigation.goBack()} />
-        <View style={[styles.tabs, { width: cardWidth }]}>
-          <Segmented options={boardOptions} value={board} onChange={setBoard} accessibilityLabel={t("scores.title")} />
-        </View>
         <View style={[styles.layout, { width: cardWidth }, twoPanes ? styles.layoutRow : null]}>
           {twoPanes ? (
             <ScrollView style={styles.recordPane} showsVerticalScrollIndicator={false}>
               {record}
             </ScrollView>
           ) : null}
-          {list}
+          <View style={{ flex: 1, gap: 8 }}>
+            {twoPanes ? tabs : null}
+            {list}
+          </View>
         </View>
       </SafeAreaView>
     </ImageBackground>
@@ -341,7 +438,21 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  tabs: { alignSelf: "center", paddingHorizontal: 8, paddingTop: 6 },
+  tabs: { flexDirection: "row", gap: 6 },
+  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, minHeight: 36, paddingHorizontal: 8, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.35)", backgroundColor: "rgba(255,255,255,0.04)" },
+  tabOn: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
+  meRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
+  meName: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  bestRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  podium: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
+  podiumCol: { flex: 1, marginTop: 14 },
+  podiumCard: { alignItems: "center", gap: 2, paddingTop: 10, paddingBottom: 8, paddingHorizontal: 6, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderWidth: 1.5, borderBottomWidth: 0, backgroundColor: "rgba(36,28,19,0.9)" },
+  podiumName: { color: "#fff", fontWeight: "900", fontSize: 13, marginTop: 2 },
+  podiumScore: { fontWeight: "900", fontSize: 17 },
+  podiumFlag: { position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)" },
+  step: { alignItems: "center", justifyContent: "center", borderBottomLeftRadius: 8, borderBottomRightRadius: 8 },
+  stepText: { color: "#2A2016", fontWeight: "900", fontSize: 12 },
   boardNote: { color: "#C4AA91", fontSize: 12, textAlign: "center" },
   rowMine: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.1)" },
   layout: { flex: 1, alignSelf: "center", padding: 8, gap: 10 },
@@ -356,8 +467,8 @@ const styles = StyleSheet.create({
   },
   recordPane: { width: "34%", flexGrow: 0 },
   recordTitle: { color: "#FFD54F", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
-  recordScore: { color: "#fff", fontWeight: "900", fontSize: 40 },
-  recordCaption: { color: "#C1A68C", fontWeight: "800", fontSize: 11, letterSpacing: 1.5 },
+  recordScore: { color: "#fff", fontWeight: "900", fontSize: 34 },
+  recordCaption: { flex: 1, color: "#C1A68C", fontWeight: "800", fontSize: 10.5, letterSpacing: 1.2 },
   recordGrid: { flexDirection: "row", gap: 6, marginTop: 8 },
   recordCell: { flex: 1, backgroundColor: "rgba(255,255,255,0.07)", borderRadius: 12, paddingVertical: 8, alignItems: "center" },
   recordCellValue: { color: "#fff", fontWeight: "900", fontSize: 20 },
