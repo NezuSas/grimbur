@@ -3,6 +3,7 @@ import { EMPTY_MISSIONS, missionDef, syncMissions } from "../core/stats/missions
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { dailyKey } from "../core/engine/seed";
 import { setMonetizationOverride } from "../services/entitlements";
+import { makeChallengeCode } from "../core/challenge/code";
 
 /**
  * Development-only helper for the web build: open any screen directly, with a stats preset, so every screen can be
@@ -56,6 +57,7 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     dailyRuns: 9,
     dailyWins: 4,
     skins: { owned: ["0:ember", "0:royal", "1:frost"], equipped: { "0": "royal", "1": "frost" } },
+    cosmetics: { owned: ["frame_gold", "title_explorer"], equipped: { frame: "frame_gold", title: "title_explorer" }, deals: { date: null, bought: [] } },
     achievements: { first_blood: "2026-09-02", explorer: "2026-09-03", hoarder: "2026-09-10", grimbur_slayer: "2026-09-18" },
     history: Array.from({ length: 14 }, (_, i) => ({
       day: `2026-10-${String(i + 1).padStart(2, "0")}`,
@@ -88,6 +90,27 @@ export function readDevHarness(): DevLaunch | null {
       );
     }
     // ?monetization=on previews the locked states; &owned=1 pretends the full game was bought.
+    // The veteran also has a name, a few finished duels and some challenges, so Friends shows its lists.
+    if (preset === "veteran") {
+      const day = 86_400_000;
+      const now = Date.now();
+      window.localStorage.setItem("grimbur.player.name.v1", "Oscar");
+      window.localStorage.setItem(
+        "grimbur.duel.history.v1",
+        JSON.stringify([
+          { code: makeChallengeCode(11, 1), at: now - day, outcome: "won", placement: 1, total: 2, stake: 100, net: 80 },
+          { code: makeChallengeCode(22, 2), at: now - 2 * day, outcome: "lost", placement: 3, total: 4, stake: 50, net: -50 },
+          { code: makeChallengeCode(33, 0), at: now - 3 * day, outcome: "tie", placement: 1, total: 2, stake: 0, net: 0 },
+        ]),
+      );
+      window.localStorage.setItem(
+        "grimbur.challenges.recent.v1",
+        JSON.stringify([
+          { code: makeChallengeCode(44, 1), best: 8450, at: now - day },
+          { code: makeChallengeCode(55, 3), best: null, at: now - 4 * day },
+        ]),
+      );
+    }
     if (q.get("monetization") === "on") setMonetizationOverride({ enabled: true });
     if (preset || q.get("owned")) window.localStorage.setItem(ENTITLEMENTS_KEY, JSON.stringify({ state: { fullUnlocked: q.get("owned") === "1" }, version: 0 }));
     if (!screen) return {};
