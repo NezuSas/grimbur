@@ -12,19 +12,19 @@ import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin,
 import { JoystickPreview } from "../ui/components/JoystickBase";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { CategoryNav } from "../ui/components/CategoryNav";
-import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, SettingsColumns, ToggleSwitch } from "../ui/components/settings/SettingsParts";
+import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, ToggleSwitch } from "../ui/components/settings/SettingsParts";
+import { ControlsPreview, PaneHero, SETTINGS_ART } from "../ui/components/settings/SettingsHero";
 import SpriteImage from "../ui/components/SpriteImage";
 import PressScale from "../ui/components/PressScale";
 import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 import { EMPTY_STATS, type LocalStats } from "../core/stats/runStats";
-import { peekLocalStats } from "../services/localStats";
 import { lookOf } from "../core/cosmetics/look";
 import { equippedSkin } from "../core/skins/ownership";
 import { skinArt } from "../data/skinArt";
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { cancelReminders, remindersSupported, requestReminderPermission, syncReminders } from "../services/reminders";
-import { getLocalStats , resetLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats, resetLocalStats } from "../services/localStats";
 import { getPlayerName, setPlayerName } from "../services/playerProfile";
 import { emitSound } from "../audio/audioEventBus";
 import { copyBackupCode, readClipboard, restoreBackupCode } from "../services/backup";
@@ -45,17 +45,16 @@ import appJson from "../../app.json";
 type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
 
 type CategoryId = "sound" | "controls" | "access" | "language" | "data" | "about";
-const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: string; label: TranslationKey }[] = [
-  { id: "sound", icon: "volume-high", tint: "#4FC3F7", label: "settings.section.sound" },
-  { id: "controls", icon: "game-controller", tint: "#FFAB40", label: "settings.section.controls" },
-  { id: "access", icon: "eye", tint: "#9EE37D", label: "settings.section.accessibility" },
-  { id: "language", icon: "language", tint: "#CE93D8", label: "settings.section.language" },
-  { id: "data", icon: "save", tint: "#80CBC4", label: "settings.section.data" },
-  { id: "about", icon: "information-circle", tint: "#B0BEC5", label: "settings.section.about" },
+const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: string; label: TranslationKey; rail: TranslationKey; hint: TranslationKey }[] = [
+  { id: "sound", icon: "volume-high", tint: "#4FC3F7", label: "settings.section.sound", rail: "settings.section.sound", hint: "settings.hero.sound" },
+  { id: "controls", icon: "game-controller", tint: "#FFAB40", label: "settings.section.controls", rail: "settings.section.controls", hint: "settings.hero.controls" },
+  { id: "access", icon: "eye", tint: "#9EE37D", label: "settings.section.accessibility", rail: "settings.rail.access", hint: "settings.hero.access" },
+  { id: "language", icon: "language", tint: "#CE93D8", label: "settings.section.language", rail: "settings.section.language", hint: "settings.hero.language" },
+  { id: "data", icon: "save", tint: "#80CBC4", label: "settings.section.data", rail: "settings.rail.data", hint: "settings.hero.data" },
+  { id: "about", icon: "information-circle", tint: "#FFCC80", label: "settings.section.about", rail: "settings.section.about", hint: "settings.hero.about" },
 ];
 
-/** A link is shown only once it points to a real page (the shipped defaults are placeholders). */
-
+const LANGUAGE_BADGE: Record<LanguagePreference, string> = { auto: "A", en: "EN", es: "ES" };
 
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
@@ -299,13 +298,24 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   ];
 
   // ── Panes ───────────────────────────────────────────────────────────────────────────────────────────────
+  // A big switch for all the sound, under the showcase: the one setting most players come here for.
+  const soundSwitch = (
+    <PressScale
+      onPress={() => setSoundEnabled(!soundEnabled)}
+      style={[styles.master, soundEnabled ? styles.masterOn : styles.masterOff]}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: soundEnabled }}
+      accessibilityLabel={t("settings.sound")}
+    >
+      <Ionicons name={soundEnabled ? "volume-high" : "volume-mute"} size={22} color={soundEnabled ? "#1a1200" : "#FF8A80"} />
+      <Text style={[styles.masterText, !soundEnabled && { color: "#FF8A80" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+        {(soundEnabled ? t("settings.soundOn") : t("settings.soundOff")).toLocaleUpperCase()}
+      </Text>
+    </PressScale>
+  );
   const soundPane = (
     <>
       <SettingCard title={t("settings.volumes")} full>
-        <SettingRow label={t("settings.sound")} icon={soundEnabled ? "volume-high" : "volume-mute"} tint="#4FC3F7">
-          <ToggleSwitch value={soundEnabled} onValueChange={setSoundEnabled} accessibilityLabel={t("settings.sound")} />
-        </SettingRow>
-        <RowDivider />
         <SettingRow label={t("settings.music")} icon="musical-notes" tint="#B39DDB" stacked dimmed={!soundEnabled}>
           <LevelSlider
             value={musicVolume}
@@ -399,37 +409,76 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     </SettingCard>
   );
 
+  // One big tile per language, so the choice reads as a choice even to someone who cannot read the current one.
   const languagePane = (
-    <SettingCard>
-      <SettingRow label={t("settings.language")} icon="language" tint="#CE93D8" stacked>
-        <Segmented options={languageOptions} value={language} onChange={setLanguage} accessibilityLabel={t("settings.language")} />
-      </SettingRow>
-    </SettingCard>
+    <View style={styles.langList} accessibilityRole="radiogroup" accessibilityLabel={t("settings.language")}>
+      {languageOptions.map(option => {
+        const on = option.value === language;
+        return (
+          <PressScale
+            key={option.value}
+            onPress={() => setLanguage(option.value)}
+            style={[styles.langTile, on && styles.langTileOn]}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: on }}
+            accessibilityLabel={option.label}
+          >
+            <View style={[styles.langBadge, on && styles.langBadgeOn]}>
+              {option.value === "auto" ? (
+                <Ionicons name="phone-portrait-outline" size={20} color={on ? "#1a1200" : "#CE93D8"} />
+              ) : (
+                <Text style={[styles.langBadgeText, on && { color: "#1a1200" }]} maxFontSizeMultiplier={1.1}>
+                  {LANGUAGE_BADGE[option.value]}
+                </Text>
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.langName, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                {option.label}
+              </Text>
+              {option.value === "auto" ? (
+                <Text style={styles.langHint} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                  {t("settings.languageAutoHint")}
+                </Text>
+              ) : null}
+            </View>
+            {on ? <Ionicons name="checkmark-circle" size={26} color={GOLD} /> : <View style={styles.langEmpty} />}
+          </PressScale>
+        );
+      })}
+    </View>
   );
 
   const hero = Math.max(0, lastHero ?? 0);
+  const heroArt = skinArt(hero, equippedSkin(stats, hero)).scoreImage;
   const look = lookOf(stats);
+  // How your friends see you: the left column of "Progress and data".
+  const meCard = (
+    <View style={styles.me}>
+      <PlayerPortrait source={heroArt} size={76} frame={look.frame} />
+      <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+        {playerName ?? t("friends.noName")}
+      </Text>
+      <PlayerTitle title={look.title} />
+      <Text style={styles.meSub} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+        {t("friends.card")}
+      </Text>
+      <PressScale onPress={() => navigation.navigate("CollectionScreen", { category: look.frame ? "title" : "frame" })} style={styles.meButton} accessibilityRole="button" accessibilityLabel={t("friends.customize")}>
+        <Ionicons name="color-palette" size={16} color={GOLD} />
+        <Text style={styles.meButtonText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          {t("friends.customize").toLocaleUpperCase()}
+        </Text>
+      </PressScale>
+      <View style={styles.infoBox}>
+        <Ionicons name="checkmark-done" size={16} color="#9ee37d" />
+        <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
+          {t("settings.autosave")}
+        </Text>
+      </View>
+    </View>
+  );
   const dataPane = (
     <>
-      <View style={styles.me}>
-        <PlayerPortrait source={skinArt(hero, equippedSkin(stats, hero)).scoreImage} size={64} frame={look.frame} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-            {playerName ?? t("friends.noName")}
-          </Text>
-          <PlayerTitle title={look.title} />
-          <Text style={styles.meSub} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-            {t("friends.card")}
-          </Text>
-        </View>
-        <PressScale onPress={() => navigation.navigate("CollectionScreen", { category: look.frame ? "title" : "frame" })} style={styles.meButton} accessibilityRole="button" accessibilityLabel={t("friends.customize")}>
-          <Ionicons name="color-palette" size={16} color={GOLD} />
-          <Text style={styles.meButtonText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-            {t("friends.customize").toLocaleUpperCase()}
-          </Text>
-        </PressScale>
-      </View>
-
       <SettingCard title={t("profile.title")}>
         <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#FFD54F">
           <RoundAction icon={nameOpen ? "chevron-up" : "pencil"} label={t("profile.name")} onPress={() => setNameOpen(open => !open)} />
@@ -618,30 +667,34 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           />
         </SettingRow>
       </SettingCard>
-
-      <View style={styles.infoBox}>
-        <Ionicons name="information-circle-outline" size={18} color="#aaa" />
-        <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
-          {t("settings.autosave")}
-        </Text>
-      </View>
     </>
   );
 
   const version = (appJson as { expo?: { version?: string } }).expo?.version ?? "";
+  // The game's crest: the left column of "About".
+  const aboutCrest = (
+    <View style={styles.aboutHero}>
+      <SpriteImage source={require("../assets/sprites/ui/Logo_Grimbur.png")} style={styles.aboutLogo} resizeMode="contain" accessibilityLabel="Grimbur" />
+      <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
+        {t("cover.subtitle")}
+      </Text>
+      <View style={styles.versionPill}>
+        <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>
+          {t("settings.version", { v: version })}
+        </Text>
+      </View>
+    </View>
+  );
   const aboutPane = (
     <>
-      <View style={styles.aboutHero}>
-        <SpriteImage source={require("../assets/sprites/ui/Logo_Grimbur.png")} style={styles.aboutLogo} resizeMode="contain" accessibilityLabel="Grimbur" />
-        <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
-          {t("cover.subtitle")}
-        </Text>
-        <Text style={styles.aboutTag} maxFontSizeMultiplier={1.3}>
-          {t("cover.tagline")}
-        </Text>
-        <View style={styles.versionPill}>
-          <Text style={styles.versionText} maxFontSizeMultiplier={1.2}>
-            {t("settings.version", { v: version })}
+      <View style={styles.lair}>
+        <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.png")} style={styles.lairBoss} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text style={styles.lairKicker} maxFontSizeMultiplier={1.2}>
+            {t("settings.aboutKicker").toLocaleUpperCase()}
+          </Text>
+          <Text style={styles.aboutTag} maxFontSizeMultiplier={1.3}>
+            {t("cover.tagline")}
           </Text>
         </View>
       </View>
@@ -675,18 +728,57 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const panes: Record<CategoryId, React.ReactNode> = { sound: soundPane, controls: controlsPane, access: accessPane, language: languagePane, data: dataPane, about: aboutPane };
 
-  // Wide windows get a rail of categories on the left; narrow ones a row of chips on top.
+  // Wide windows get a slim rail of painted categories on the left; narrow ones a row of chips on top.
   const wide = width >= 640;
-  const railWidth = Math.min(230, Math.max(180, width * 0.24));
-  const navItems = CATEGORIES.map(c => ({ id: c.id, icon: c.icon, tint: c.tint, label: t(c.label) }));
-  // Two columns of cards once the pane is wide enough for two controls side by side.
+  const railWidth = 104;
+  const navItems = CATEGORIES.map(c => ({ id: c.id, icon: c.icon, tint: c.tint, art: SETTINGS_ART[c.id], label: t(wide ? c.rail : c.label) }));
+  // Each pane is a showcase on the left and its settings on the right; a narrow pane stacks them.
   const paneWidth = wide ? width - railWidth : width;
-  const twoColumns = paneWidth >= 600;
-  const paneBody = (
-    <ScrollView scrollEnabled={!tryingStick} contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
-      <SettingsColumns.Provider value={twoColumns}>
-        <View style={[styles.paneInner, twoColumns && styles.paneColumns]}>{panes[category]}</View>
-      </SettingsColumns.Provider>
+  const split = paneWidth >= 520;
+  const sideWidth = Math.round(Math.min(300, Math.max(210, paneWidth * 0.38)));
+  const current = CATEGORIES.find(c => c.id === category) ?? CATEGORIES[0];
+  const heroFor = (compact: boolean, children?: React.ReactNode) => (
+    <PaneHero art={SETTINGS_ART[current.id]} tint={current.tint} title={t(current.label)} hint={t(current.hint)} compact={compact}>
+      {children}
+    </PaneHero>
+  );
+  const sides: Record<CategoryId, (compact: boolean) => React.ReactNode> = {
+    sound: compact => heroFor(compact, soundSwitch),
+    controls: () => (
+      <>
+        {heroFor(true)}
+        <ControlsPreview
+          width={split ? sideWidth - 28 : Math.min(320, paneWidth - 28)}
+          position={controlPosition}
+          attack={attackButton}
+          size={controlSize}
+          pad={movePad}
+          skin={joystickSkin}
+          hero={heroArt}
+          caption={t("settings.preview")}
+        />
+      </>
+    ),
+    access: compact => heroFor(compact),
+    language: compact => heroFor(compact),
+    data: () => meCard,
+    about: () => aboutCrest,
+  };
+  const paneBody = split ? (
+    <View style={styles.split}>
+      <ScrollView key={`side-${category}`} style={{ width: sideWidth, flexGrow: 0 }} contentContainerStyle={styles.sideContent} showsVerticalScrollIndicator={false}>
+        {sides[category](false)}
+      </ScrollView>
+      <ScrollView key={`main-${category}`} scrollEnabled={!tryingStick} style={{ flex: 1 }} contentContainerStyle={styles.mainContent} showsVerticalScrollIndicator={false}>
+        {panes[category]}
+      </ScrollView>
+    </View>
+  ) : (
+    <ScrollView key={category} scrollEnabled={!tryingStick} contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.paneInner}>
+        {sides[category](true)}
+        {panes[category]}
+      </View>
     </ScrollView>
   );
 
@@ -697,7 +789,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
         {wide ? (
           <View style={styles.body}>
-            <CategoryNav items={navItems} value={category} onChange={setCategory} wide railWidth={railWidth} />
+            <CategoryNav items={navItems} value={category} onChange={setCategory} wide compact railWidth={railWidth} />
             <View style={{ flex: 1 }}>{paneBody}</View>
           </View>
         ) : (
@@ -716,13 +808,31 @@ const styles = StyleSheet.create({
   body: { flex: 1, flexDirection: "row" },
   paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
   paneInner: { width: "100%", maxWidth: 640, gap: 16 },
-  paneColumns: { maxWidth: 1000, flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: 12 },
-  me: { width: "100%", flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", backgroundColor: "rgba(48,36,22,0.9)" },
-  meName: { color: "#fff", fontWeight: "900", fontSize: 18 },
+  split: { flex: 1, flexDirection: "row" },
+  sideContent: { paddingLeft: 4, paddingRight: 8, paddingTop: 8, paddingBottom: 20, gap: 12 },
+  mainContent: { paddingLeft: 6, paddingRight: 14, paddingTop: 8, paddingBottom: 20, gap: 16 },
+  master: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 50, borderRadius: 25, paddingHorizontal: 16, borderWidth: 2 },
+  masterOn: { backgroundColor: GOLD, borderColor: "#FFE7A8" },
+  masterOff: { backgroundColor: "rgba(255,82,82,0.12)", borderColor: "rgba(255,138,128,0.7)" },
+  masterText: { color: "#1a1200", fontWeight: "900", fontSize: 15, letterSpacing: 1.6 },
+  langList: { gap: 10 },
+  langTile: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(34,26,18,0.9)" },
+  langTileOn: { borderColor: GOLD, backgroundColor: "rgba(72,54,24,0.95)" },
+  langBadge: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "rgba(206,147,216,0.6)", backgroundColor: "rgba(206,147,216,0.14)" },
+  langBadgeOn: { backgroundColor: GOLD, borderColor: "#FFE7A8" },
+  langBadgeText: { color: "#CE93D8", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
+  langName: { color: "#D6C4B2", fontWeight: "900", fontSize: 17 },
+  langHint: { color: "#B99A7C", fontSize: 12, fontWeight: "600", marginTop: 2 },
+  langEmpty: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)" },
+  me: { alignItems: "center", gap: 6, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", backgroundColor: "rgba(48,36,22,0.92)" },
+  meName: { color: "#fff", fontWeight: "900", fontSize: 18, marginTop: 4 },
   meSub: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
-  meButton: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
+  meButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 42, alignSelf: "stretch", paddingHorizontal: 12, marginTop: 4, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
   meButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
-  aboutLogo: { width: 260, height: 90 },
+  aboutLogo: { width: "100%", maxWidth: 260, height: 84 },
+  lair: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,204,128,0.4)", backgroundColor: "rgba(48,30,20,0.92)" },
+  lairBoss: { width: 96, height: 96 },
+  lairKicker: { color: "#FFCC80", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
   tryText: { flex: 1, color: "#D4C2B0", fontSize: 13, fontWeight: "700" },
   keyLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
@@ -745,12 +855,12 @@ const styles = StyleSheet.create({
   confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(255,82,82,0.1)", borderWidth: 1, borderColor: "rgba(255,82,82,0.4)" },
   confirmText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   confirmWarn: { color: "#FF8A80", fontSize: 12 },
-  infoBox: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 6 },
+  infoBox: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
   infoText: { color: "#b0b0b0", fontSize: 12, flexShrink: 1 },
-  aboutHero: { width: "100%", alignItems: "center", paddingVertical: 16, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
+  aboutHero: { alignItems: "center", paddingVertical: 16, paddingHorizontal: 10, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
   aboutName: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 6 },
-  aboutSub: { color: "#fff", fontWeight: "900", fontSize: 14, letterSpacing: 8 },
-  aboutTag: { color: "#CBB49E", fontSize: 13, fontWeight: "700", marginTop: 8, textAlign: "center", paddingHorizontal: 16 },
+  aboutSub: { color: "#fff", fontWeight: "900", fontSize: 13, letterSpacing: 3.5, textAlign: "center" },
+  aboutTag: { color: "#E8D8C6", fontSize: 14, lineHeight: 20, fontWeight: "700" },
   versionPill: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)" },
   versionText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12.5, letterSpacing: 0.6 },
 });
