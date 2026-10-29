@@ -19,6 +19,8 @@ import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from
 import { rankUp } from '../core/stats/rank';
 import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';
+import { buyCosmetic, equipCosmetic, type CosmeticId, type CosmeticKind } from '../core/cosmetics/cosmetics';
+import { buyDeal } from '../core/cosmetics/dailyShop';
 
 const STORAGE_KEY = 'grimbur.stats.v1';
 
@@ -234,6 +236,33 @@ export const creditEmbersFor = (amount: number): Promise<LocalStats | null> =>
 export const buySkinFor = (hero: number, skin: SkinId): Promise<LocalStats | null> =>
   serialized(async () => {
     const stats = buySkin(await getLocalStats(), hero, skin);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
+  });
+
+/** Buys a trail, frame, title or board theme at its full price; resolves with the new stats, or null. */
+export const buyCosmeticFor = (id: CosmeticId): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = buyCosmetic(await getLocalStats(), id);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
+  });
+
+/** Wears a cosmetic in its slot (or takes the slot off with null); resolves with the new stats, or null. */
+export const equipCosmeticFor = (kind: CosmeticKind, id: CosmeticId | null): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = equipCosmetic(await getLocalStats(), kind, id);
+    if (!stats) return null;
+    await save(stats);
+    return stats;
+  });
+
+/** Buys one of today's daily-shop deals; resolves with the new stats, or null. */
+export const buyDealFor = (key: string): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const stats = buyDeal(await getLocalStats(), dailyKey(), key);
     if (!stats) return null;
     await save(stats);
     return stats;
