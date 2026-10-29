@@ -252,7 +252,10 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           {/* Drawn only once the stage is measured, and out of its flow: a guessed size would show big for a frame and then shrink. */}
           {stage.h > 0 ? (
             <View style={styles.stageLayer} pointerEvents="none">
-              <View style={[styles.halo, { width: preview * 0.92, height: preview * 0.92, borderRadius: preview, backgroundColor: tierColor + "22", borderColor: tierColor + "55" }]} />
+              {/* A title is about the player wearing it: no rarity halo competes with the portrait. */}
+              {info?.kind !== "title" ? (
+                <View style={[styles.halo, { width: preview * 0.92, height: preview * 0.92, borderRadius: preview, backgroundColor: tierColor + "22", borderColor: tierColor + "55" }]} />
+              ) : null}
               <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
                 {skin ? (
                   <SpriteImage source={skinArt(skin.hero, skin.skin).playerImage} style={{ width: preview, height: preview }} resizeMode="contain" accessibilityIgnoresInvertColors />
@@ -288,7 +291,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             </View>
           ) : null}
         </View>
-        {info ? (
+        {/* A title's preview already shows where it appears: the line would only take room from the portrait. */}
+        {info && info.kind !== "title" ? (
           <Text style={styles.hint} numberOfLines={2} maxFontSizeMultiplier={1.15}>
             {t(`cosmetic.shown.${info.kind}` as TranslationKey)}
           </Text>
