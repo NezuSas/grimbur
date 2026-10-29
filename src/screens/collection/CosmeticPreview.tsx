@@ -4,7 +4,8 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
-import { BOARD_BIOME, FRAME_ART, TRAIL_LOOKS } from "../../ui/cosmeticArt";
+import { BOARD_BIOME, CELEBRATION_LOOKS, FRAME_ART, TRAIL_LOOKS } from "../../ui/cosmeticArt";
+import GemShower from "../../ui/components/game/GemShower";
 import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
 import { cosmeticText } from "../../i18n/keys";
@@ -59,6 +60,7 @@ const TrailPreview = ({ id, size, small }: { id: CosmeticId; size: number; small
 /** What a cosmetic looks like, as the player will see it: an arrow in flight, a framed portrait, a title, a patch of floor. */
 const CosmeticPreview = ({ id, size, portrait, playerName, small }: Props) => {
   const { t } = useT();
+  const calm = useSettingsStore(s => s.reduceFlash);
   const kind = cosmeticInfo(id).kind;
   if (kind === "trail") return <TrailPreview id={id} size={size} small={small} />;
   if (kind === "frame") {
@@ -88,6 +90,31 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small }: Props) => {
           </Text>
         </View>
       </View>
+    );
+  }
+  if (kind === "celebration") {
+    // The hero in the lair, with the celebration playing around them (a still scatter of its pieces on a small card).
+    const look = CELEBRATION_LOOKS[id]!;
+    return (
+      <ImageBackground source={require("../../assets/sprites/backgrounds/Bg_Lair.jpg")} style={{ width: size, height: size, alignItems: "center", justifyContent: "center", borderRadius: 16, overflow: "hidden" }} resizeMode="cover">
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(10,7,4,0.35)" }]} />
+        <View style={{ width: size * 0.42, height: size * 0.42, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
+          <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
+        </View>
+        {small || calm ? (
+          [0, 1, 2, 3, 4].map(i => (
+            <SpriteImage
+              key={i}
+              source={look.sprites[i % look.sprites.length]}
+              style={{ position: "absolute", left: size * [0.1, 0.7, 0.18, 0.66, 0.42][i], top: size * [0.12, 0.16, 0.66, 0.62, 0.04][i], width: size * 0.2, height: size * (look.motion === "volley" ? 0.08 : 0.2), transform: [{ rotate: `${[-20, 25, 10, -15, 0][i]}deg` }] }}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+            />
+          ))
+        ) : (
+          <GemShower look={look} width={size} height={size} count={18} loop />
+        )}
+      </ImageBackground>
     );
   }
   // A board theme: a two-by-two patch of its floor (unexplored and explored) on its backdrop.

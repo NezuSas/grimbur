@@ -11,7 +11,7 @@ export type ChallengeParam = { code: string; seed: number; depth: number };
 export type RootStackParamList = {
   CoverScreen: undefined;
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
-  CollectionScreen: { hero?: number; skin?: SkinId; category?: "deals" | "skins" | "trail" | "frame" | "title" | "board" } | undefined;
+  CollectionScreen: { hero?: number; skin?: SkinId; category?: "deals" | "rewards" | "skins" | "trail" | "frame" | "title" | "board" | "celebration" } | undefined;
   /** The opening story; `replay` returns to the previous screen instead of starting a run. */
   MissionsScreen: undefined;
   StoryScreen: { replay?: boolean } | undefined;

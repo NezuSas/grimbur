@@ -14,6 +14,8 @@ import ScreenHeader from "../ui/components/ScreenHeader";
 import PressScale from "../ui/components/PressScale";
 import Rise, { riseDelay } from "../ui/components/Rise";
 import CosmeticsBody, { type CosmeticCategory } from "./collection/CosmeticsBody";
+import CollectionRewards from "./collection/CollectionRewards";
+import { collectionProgress, type CosmeticId } from "../core/cosmetics/cosmetics";
 import { getPlayerName } from "../services/playerProfile";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
@@ -21,7 +23,7 @@ import characters from "../data/characters";
 import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
 import { SKINS, SKINS_BY_HERO } from "../core/skins/skins";
 import { equippedSkin, skinStatus } from "../core/skins/ownership";
-import { COLLECTION_FILTERS, CollectionFilter, collectionCount, heroCollectionCount, visibleSkins } from "../core/skins/collection";
+import { COLLECTION_FILTERS, CollectionFilter, heroCollectionCount, visibleSkins } from "../core/skins/collection";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { buySkinFor, equipSkinFor, getLocalStats, peekLocalStats } from "../services/localStats";
 import { analytics } from "../services/analytics";
@@ -35,15 +37,17 @@ import { heroAccent } from "../data/heroAccent";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 
-type Category = "skins" | CosmeticCategory;
+type Category = "skins" | "rewards" | CosmeticCategory;
 /** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
 const CATEGORIES: { id: Category; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
   { id: "deals", icon: "pricetag" },
+  { id: "rewards", icon: "trophy" },
   { id: "skins", icon: "shirt" },
   { id: "trail", icon: "flash" },
   { id: "frame", icon: "ellipse-outline" },
   { id: "title", icon: "ribbon" },
   { id: "board", icon: "grid" },
+  { id: "celebration", icon: "sparkles" },
 ];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
@@ -114,6 +118,8 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
   const [category, setCategory] = useState<Category>(route.params?.category ?? (route.params?.skin ? "skins" : "deals"));
   const [playerName, setPlayerName] = useState("");
+  // A reward opened from the Rewards tab is shown first in its own category.
+  const [openPick, setOpenPick] = useState<CosmeticId | null>(null);
   useEffect(() => {
     void getPlayerName().then(n => setPlayerName(n ?? ""));
   }, []);
@@ -190,7 +196,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const cols = Math.max(2, Math.floor((gridWidth + gap) / (minCard + gap)));
   const cardSize = gridWidth > 0 ? Math.floor((gridWidth - gap * (cols - 1)) / cols) : minCard;
 
-  const total = collectionCount(stats);
+  const progress = collectionProgress(stats);
   const list = visibleSkins(stats, hero, filter);
   const info = SKINS[shown];
   const state = skinStatus(stats, hero, shown);
@@ -218,7 +224,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
         <ScreenHeader
           title={t("collection.title")}
-          subtitle={t("collection.count", { owned: total.owned, total: total.total })}
+          subtitle={t("collection.progress", { pct: progress.pct, owned: progress.owned, total: progress.total })}
           onBack={() => navigation.goBack()}
           right={
             <View style={styles.balance} accessible accessibilityLabel={plural("forge.balance", stats.embers)}>
@@ -237,6 +243,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 onPress={() => {
                   haptic.impact();
                   setCategory(c.id);
+                  setOpenPick(null);
                 }}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: on }}
@@ -252,8 +259,19 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
           })}
         </ScrollView>
 
-        {category !== "skins" ? (
-          <CosmeticsBody category={category} stats={stats} onStats={setStats} hero={hero} playerName={playerName} cardSize={cardSize} onGridWidth={setGridWidth} />
+        {category === "rewards" ? (
+          <CollectionRewards
+            stats={stats}
+            portrait={skinArt(hero, "classic").scoreImage}
+            playerName={playerName}
+            onOpen={(kind, id) => {
+              haptic.impact();
+              setOpenPick(id);
+              setCategory(kind);
+            }}
+          />
+        ) : category !== "skins" ? (
+          <CosmeticsBody key={category} category={category} initialPick={openPick} stats={stats} onStats={setStats} hero={hero} playerName={playerName} cardSize={cardSize} onGridWidth={setGridWidth} />
         ) : (
         <View style={styles.body}>
           {/* ── Left: the chosen outfit, big, then what it takes to wear it ─────────────────────────── */}

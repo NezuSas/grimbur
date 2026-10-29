@@ -5,22 +5,31 @@ import { ownedSkins } from '../skins/ownership';
 
 /**
  * Cosmetics beyond outfits. All of them are looks only: an arrow trail, a frame and a title shown to other players
- * (rankings, duels) and a board theme. None of them changes the game, so none of them can buy ranking power.
+ * (rankings, duels), a board theme and the celebration that plays on a victory. None of them changes the game, so none
+ * of them can buy ranking power.
  */
-export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board';
-export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board'];
+export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'celebration';
+export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'celebration'];
 
 export type CosmeticId =
   | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars'
   | 'frame_bronze' | 'frame_silver' | 'frame_gold' | 'frame_frost' | 'frame_ember' | 'frame_abyss' | 'frame_crown' | 'frame_wardrobe'
   | 'title_explorer' | 'title_gemhunter' | 'title_tactician' | 'title_slayer' | 'title_bane' | 'title_abyss' | 'title_smith'
   | 'title_endless' | 'title_devoted' | 'title_wardrobe'
-  | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair';
+  | 'title_wanderer' | 'title_hawkeye' | 'title_sage' | 'title_shadow' | 'title_mythic'
+  | 'title_goldtouch' | 'title_reliclord' | 'title_tireless' | 'title_lightning' | 'title_champion'
+  | 'title_collector' | 'title_curator' | 'title_hoarder'
+  | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair'
+  | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
 
-/** A free way to earn it: an achievement, or every outfit of any one hero (a full wardrobe). */
-export type CosmeticUnlock = { kind: 'achievement'; id: AchievementId } | { kind: 'wardrobe' };
+/** A free way to earn it: an achievement, every outfit of any one hero (a full wardrobe) or a share of the whole collection. */
+export type CosmeticUnlock = { kind: 'achievement'; id: AchievementId } | { kind: 'wardrobe' } | { kind: 'collection'; pct: CollectionMilestone };
+
+/** The shares of the collection that each give a reward of their own. */
+export const COLLECTION_MILESTONES = [25, 50, 75, 100] as const;
+export type CollectionMilestone = (typeof COLLECTION_MILESTONES)[number];
 
 export interface CosmeticInfo {
   id: CosmeticId;
@@ -34,6 +43,7 @@ export interface CosmeticInfo {
 const item = (id: CosmeticId, kind: CosmeticKind, tier: CosmeticTier, price: number, unlock?: CosmeticUnlock): CosmeticInfo =>
   ({ id, kind, tier, price, ...(unlock ? { unlock } : {}) });
 const ach = (id: AchievementId): CosmeticUnlock => ({ kind: 'achievement', id });
+const share = (pct: CollectionMilestone): CosmeticUnlock => ({ kind: 'collection', pct });
 
 export const COSMETICS: readonly CosmeticInfo[] = [
   item('trail_fire', 'trail', 'rare', 400),
@@ -61,11 +71,32 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('title_endless', 'title', 'epic', 0, ach('deeper_still')),
   item('title_devoted', 'title', 'epic', 0, ach('fortnight_streak')),
   item('title_wardrobe', 'title', 'legendary', 0, { kind: 'wardrobe' }),
+  item('title_wanderer', 'title', 'rare', 300),
+  item('title_hawkeye', 'title', 'rare', 450),
+  item('title_sage', 'title', 'epic', 800),
+  item('title_shadow', 'title', 'epic', 900),
+  item('title_mythic', 'title', 'legendary', 1600),
+  item('title_goldtouch', 'title', 'epic', 0, ach('legendary_haul')),
+  item('title_reliclord', 'title', 'epic', 0, ach('relic_master')),
+  item('title_lightning', 'title', 'epic', 0, ach('lightning')),
+  item('title_tireless', 'title', 'legendary', 0, ach('five_hundred_runs')),
+  item('title_champion', 'title', 'legendary', 0, ach('all_hero_wins')),
+  item('title_collector', 'title', 'rare', 0, share(25)),
+  item('title_curator', 'title', 'epic', 0, share(75)),
+  item('title_hoarder', 'title', 'legendary', 0, share(100)),
 
   item('board_cave', 'board', 'rare', 350),
   item('board_crystal', 'board', 'rare', 350),
   item('board_magma', 'board', 'rare', 350),
   item('board_lair', 'board', 'epic', 600),
+
+  item('celeb_embers', 'celebration', 'rare', 400),
+  item('celeb_gems', 'celebration', 'rare', 450),
+  item('celeb_stars', 'celebration', 'epic', 700),
+  item('celeb_arrows', 'celebration', 'epic', 750),
+  item('celeb_relics', 'celebration', 'legendary', 1300),
+  item('celeb_skulls', 'celebration', 'epic', 0, ach('second_lair')),
+  item('celeb_hoard', 'celebration', 'legendary', 0, share(50)),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));
@@ -77,8 +108,38 @@ export const cosmeticsOf = (kind: CosmeticKind): CosmeticInfo[] => COSMETICS.fil
 export const hasFullWardrobe = (stats: LocalStats): boolean =>
   SKINS_BY_HERO.some((list, hero) => list.length > 1 && ownedSkins(stats, hero).length === list.length);
 
-const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean =>
-  !!unlock && (unlock.kind === 'wardrobe' ? hasFullWardrobe(stats) : !!stats.achievements[unlock.id]);
+/** Rewarded for owning a share of the collection (they are not counted in it, so the share never chases itself). */
+const isCollectionReward = (c: CosmeticInfo): boolean => c.unlock?.kind === 'collection';
+
+/**
+ * How much of the collection the player owns: every outfit beyond each hero's classic one, and every cosmetic that is
+ * not itself a collection reward. `pct` is rounded down, so 100 means everything.
+ */
+export function collectionProgress(stats: LocalStats): { owned: number; total: number; pct: number } {
+  let owned = 0;
+  let total = 0;
+  SKINS_BY_HERO.forEach((list, hero) => {
+    total += Math.max(0, list.length - 1);
+    owned += Math.max(0, ownedSkins(stats, hero).length - 1);
+  });
+  for (const c of COSMETICS) {
+    if (isCollectionReward(c)) continue;
+    total++;
+    if (ownsCosmetic(stats, c.id)) owned++;
+  }
+  return { owned, total, pct: total > 0 ? Math.floor((owned * 100) / total) : 0 };
+}
+
+/** The rewards a milestone of the collection gives. */
+export const collectionRewards = (pct: CollectionMilestone): CosmeticInfo[] =>
+  COSMETICS.filter(c => c.unlock?.kind === 'collection' && c.unlock.pct === pct);
+
+const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean => {
+  if (!unlock) return false;
+  if (unlock.kind === 'wardrobe') return hasFullWardrobe(stats);
+  if (unlock.kind === 'collection') return collectionProgress(stats).pct >= unlock.pct;
+  return !!stats.achievements[unlock.id];
+};
 
 /** Bought, or earned (its goal is met: earned items never need claiming). */
 export const ownsCosmetic = (stats: LocalStats, id: CosmeticId): boolean =>
