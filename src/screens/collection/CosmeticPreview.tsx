@@ -77,22 +77,29 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame }: Props
     );
   }
   if (kind === "title") {
+    // The portrait takes whatever the name and the plate leave, so the three always fit the box.
+    const nameFont = Math.min(22, Math.max(13, size * 0.1));
+    const plateFont = Math.min(18, Math.max(small ? 9 : 11, size * (small ? 0.09 : 0.07)));
+    const gap = Math.max(3, size * 0.03);
+    const lines = cosmeticText(t, id).length * plateFont * 0.72 > size * 0.85 ? 2 : 1;
+    const words = small ? 0 : (playerName ? nameFont * 1.3 + gap : 0) + plateFont * 1.35 * lines + 10 + gap;
+    const face = small ? size * 0.5 : Math.max(36, Math.min(size * 0.72, size - words));
     return (
-      <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center", gap: size * 0.04 }}>
+      <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center", gap }}>
         {!small && frame ? (
-          <PlayerPortrait source={portrait} size={size * 0.56} frame={frame} />
+          <PlayerPortrait source={portrait} size={face} frame={frame} />
         ) : (
-          <View style={{ width: size * (small ? 0.5 : 0.42), height: size * (small ? 0.5 : 0.42), borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
+          <View style={{ width: small ? size * 0.5 : face * 0.88, height: small ? size * 0.5 : face * 0.88, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
             <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
           </View>
         )}
         {!small && playerName ? (
-          <Text style={[styles.titleName, { fontSize: Math.max(14, size * 0.1) }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          <Text style={[styles.titleName, { fontSize: nameFont }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
             {playerName}
           </Text>
         ) : null}
         <View style={[styles.titlePlate, { paddingHorizontal: size * 0.05 }]}>
-          <Text style={[styles.titleText, { fontSize: Math.max(small ? 9 : 12, size * (small ? 0.09 : 0.07)), textAlign: "center" }]} numberOfLines={small ? 1 : 2} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+          <Text style={[styles.titleText, { fontSize: plateFont, textAlign: "center" }]} numberOfLines={small ? 1 : 2} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
             {cosmeticText(t, id).toLocaleUpperCase()}
           </Text>
         </View>
