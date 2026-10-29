@@ -1,6 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { CosmeticId } from '../core/cosmetics/cosmetics';
-import type { BiomeId } from '../core/engine/biomes';
+import type { ArtTheme } from './biomeArt';
 
 /** How a trail looks in flight: its painted arrow, and the two colours its sparks and wake alternate. */
 export interface TrailLook {
@@ -14,6 +14,9 @@ export const TRAIL_LOOKS: Partial<Record<CosmeticId, TrailLook>> = {
   trail_storm: { arrow: require('../assets/sprites/cosmetics/Arrow_Storm.png'), colors: ['#FFF59D', '#B3E5FC'] },
   trail_shadow: { arrow: require('../assets/sprites/cosmetics/Arrow_Shadow.png'), colors: ['#7E57C2', '#2A1A40'] },
   trail_stars: { arrow: require('../assets/sprites/cosmetics/Arrow_Stars.png'), colors: ['#FFD54F', '#FFFFFF'] },
+  trail_venom: { arrow: require('../assets/sprites/cosmetics/Arrow_Venom.png'), colors: ['#7CFF4F', '#2E7D32'] },
+  trail_void: { arrow: require('../assets/sprites/cosmetics/Arrow_Void.png'), colors: ['#4DD0E1', '#311B92'] },
+  trail_royal: { arrow: require('../assets/sprites/cosmetics/Arrow_Royal.png'), colors: ['#FFD54F', '#BA68C8'] },
 };
 
 /** The painted ring drawn around a player's portrait (in rankings, duels and the collection). */
@@ -26,14 +29,40 @@ export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_abyss: require('../assets/sprites/cosmetics/Frame_Abyss.png'),
   frame_crown: require('../assets/sprites/cosmetics/Frame_Crown.png'),
   frame_wardrobe: require('../assets/sprites/cosmetics/Frame_Wardrobe.png'),
+  frame_jade: require('../assets/sprites/cosmetics/Frame_Jade.png'),
+  frame_bone: require('../assets/sprites/cosmetics/Frame_Bone.png'),
+  frame_storm: require('../assets/sprites/cosmetics/Frame_Storm.png'),
+  frame_royal: require('../assets/sprites/cosmetics/Frame_Royal.png'),
+  frame_hoard: require('../assets/sprites/cosmetics/Frame_Hoard.png'),
 };
 
-/** The biome whose tiles and backdrop a board theme paints the floor with. */
-export const BOARD_BIOME: Partial<Record<CosmeticId, BiomeId>> = {
+/** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */
+export const ATTACK_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
+  attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.png'),
+  attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom.png'),
+  attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal.png'),
+  attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow.png'),
+};
+
+/** The flag planted on a tile the player marks as dangerous. */
+export const FLAG_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
+  flag_skull: require('../assets/sprites/cosmetics/Flag_Skull.png'),
+  flag_crystal: require('../assets/sprites/cosmetics/Flag_Crystal.png'),
+  flag_ember: require('../assets/sprites/cosmetics/Flag_Ember.png'),
+  flag_royal: require('../assets/sprites/cosmetics/Flag_Royal.png'),
+  flag_frost: require('../assets/sprites/cosmetics/Flag_Frost.png'),
+  flag_gold: require('../assets/sprites/cosmetics/Flag_Gold.png'),
+};
+
+/** The tiles and backdrop a board theme paints the floor with. */
+export const BOARD_BIOME: Partial<Record<CosmeticId, ArtTheme>> = {
   board_cave: 'cave',
   board_crystal: 'crystal',
   board_magma: 'magma',
   board_lair: 'lair',
+  board_frost: 'frost',
+  board_moss: 'moss',
+  board_vault: 'vault',
 };
 
 /** How a victory is celebrated: which pieces of the game's art, how they move, how big they are, whether they spin. */
@@ -78,4 +107,9 @@ export const CELEBRATION_LOOKS: Partial<Record<CosmeticId, CelebrationLook>> = {
   celeb_hoard: { sprites: [GEM, EMBER, STAR, require('../assets/sprites/relics/lucky_coin.png'), GEM, STAR], motion: 'burst', size: [20, 44], spin: true },
 };
 
-export const allCosmeticImages =(): ImageSourcePropType[] => [...Object.values(TRAIL_LOOKS).map(t => t!.arrow), ...Object.values(FRAME_ART) as ImageSourcePropType[]];
+export const allCosmeticImages = (): ImageSourcePropType[] => [
+  ...Object.values(TRAIL_LOOKS).map(t => t!.arrow),
+  ...(Object.values(FRAME_ART) as ImageSourcePropType[]),
+  ...(Object.values(FLAG_ART) as ImageSourcePropType[]),
+  ...(Object.values(ATTACK_ART) as ImageSourcePropType[]),
+];

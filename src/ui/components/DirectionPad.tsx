@@ -9,6 +9,9 @@ import { dpadDirection } from "../../core/input/dpad";
 import { aimFromDrag } from "../../core/input/swipe";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
+import { ATTACK_ART as ATTACK_SKINS } from "../cosmeticArt";
+import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
+import { peekLocalStats } from "../../services/localStats";
 
 type Props = {
   onMove: (direction: Direction) => void;
@@ -49,6 +52,12 @@ const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT
  * and a painted arrow turns to show the way.
  */
 export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: AttackButtonProps) => {
+  // The attack button worn in the Collection, read once (an empty quiver always shows the dull stone).
+  const [readyArt] = useState(() => {
+    const saved = peekLocalStats();
+    const id = saved ? equippedCosmetic(saved, "attack") : null;
+    return (id && ATTACK_SKINS[id]) || ATTACK_ART.ready;
+  });
   const { t } = useT();
   const scale = useRef(new Animated.Value(1)).current;
   const empty = arrows <= 0;
@@ -115,7 +124,7 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
         onAccessibilityAction={e => onAttack(e.nativeEvent.actionName as Direction)}
         style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, !empty && styles.attackReady]}
       >
-        <SpriteImage source={empty ? ATTACK_ART.empty : ATTACK_ART.ready} style={{ width: size, height: size }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={empty ? ATTACK_ART.empty : readyArt} style={{ width: size, height: size }} resizeMode="contain" accessibilityIgnoresInvertColors />
         {aim ? (
           <View style={[StyleSheet.absoluteFill, styles.aimLayer, { borderRadius: size / 2 }]}>
             <SpriteImage source={ATTACK_ART.arrow} style={{ width: size * 0.92, height: size * 0.92, transform: [{ rotate: AIM_TURN[aim] }] }} resizeMode="contain" accessibilityIgnoresInvertColors />

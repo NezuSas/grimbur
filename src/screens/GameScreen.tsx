@@ -75,7 +75,7 @@ import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../services/localStats";
-import { BOARD_BIOME, TRAIL_LOOKS } from "../ui/cosmeticArt";
+import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS } from "../ui/cosmeticArt";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
@@ -151,7 +151,8 @@ export default function GameScreen({ navigation, route }: Props) {
     const saved = peekLocalStats();
     const trail = saved ? equippedCosmetic(saved, "trail") : null;
     const board = saved ? equippedCosmetic(saved, "board") : null;
-    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null };
+    const flag = saved ? equippedCosmetic(saved, "flag") : null;
+    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null, flag: flag ? FLAG_ART[flag] ?? null : null };
   });
   const artBiome = looks.board ?? floorBiome;
   // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
@@ -751,6 +752,7 @@ export default function GameScreen({ navigation, route }: Props) {
             skin={skin}
             biome={artBiome}
             trail={looks.trail}
+            flag={looks.flag}
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}

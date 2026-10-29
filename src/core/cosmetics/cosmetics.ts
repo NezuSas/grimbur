@@ -5,21 +5,24 @@ import { ownedSkins } from '../skins/ownership';
 
 /**
  * Cosmetics beyond outfits. All of them are looks only: an arrow trail, a frame and a title shown to other players
- * (rankings, duels), a board theme and the celebration that plays on a victory. None of them changes the game, so none
- * of them can buy ranking power.
+ * (rankings, duels), a board theme, the flag that marks a tile, the attack button and the celebration that plays on a
+ * victory. None of them changes the game, so none of them can buy ranking power.
  */
-export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'celebration';
-export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'celebration'];
+export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'flag' | 'attack' | 'celebration';
+export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'flag', 'attack', 'celebration'];
 
 export type CosmeticId =
-  | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars'
+  | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars' | 'trail_venom' | 'trail_void' | 'trail_royal'
+  | 'frame_jade' | 'frame_bone' | 'frame_storm' | 'frame_royal' | 'frame_hoard'
+  | 'flag_skull' | 'flag_crystal' | 'flag_ember' | 'flag_royal' | 'flag_frost' | 'flag_gold'
+  | 'attack_frost' | 'attack_venom' | 'attack_royal' | 'attack_shadow'
   | 'frame_bronze' | 'frame_silver' | 'frame_gold' | 'frame_frost' | 'frame_ember' | 'frame_abyss' | 'frame_crown' | 'frame_wardrobe'
   | 'title_explorer' | 'title_gemhunter' | 'title_tactician' | 'title_slayer' | 'title_bane' | 'title_abyss' | 'title_smith'
   | 'title_endless' | 'title_devoted' | 'title_wardrobe'
   | 'title_wanderer' | 'title_hawkeye' | 'title_sage' | 'title_shadow' | 'title_mythic'
   | 'title_goldtouch' | 'title_reliclord' | 'title_tireless' | 'title_lightning' | 'title_champion'
   | 'title_collector' | 'title_curator' | 'title_hoarder'
-  | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair'
+  | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair' | 'board_frost' | 'board_moss' | 'board_vault'
   | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
@@ -51,6 +54,9 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('trail_storm', 'trail', 'epic', 650),
   item('trail_shadow', 'trail', 'epic', 800, ach('veteran_slayer')),
   item('trail_stars', 'trail', 'legendary', 1200),
+  item('trail_venom', 'trail', 'rare', 450),
+  item('trail_void', 'trail', 'epic', 850),
+  item('trail_royal', 'trail', 'legendary', 1300),
 
   item('frame_bronze', 'frame', 'rare', 250),
   item('frame_silver', 'frame', 'rare', 500),
@@ -60,6 +66,11 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('frame_abyss', 'frame', 'legendary', 0, ach('abyssal')),
   item('frame_crown', 'frame', 'legendary', 0, ach('grimbur_bane')),
   item('frame_wardrobe', 'frame', 'legendary', 0, { kind: 'wardrobe' }),
+  item('frame_jade', 'frame', 'rare', 450),
+  item('frame_storm', 'frame', 'epic', 750),
+  item('frame_royal', 'frame', 'legendary', 1400),
+  item('frame_bone', 'frame', 'epic', 0, ach('bottomless')),
+  item('frame_hoard', 'frame', 'legendary', 0, share(100)),
 
   item('title_explorer', 'title', 'rare', 300),
   item('title_gemhunter', 'title', 'rare', 450),
@@ -89,6 +100,21 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('board_crystal', 'board', 'rare', 350),
   item('board_magma', 'board', 'rare', 350),
   item('board_lair', 'board', 'epic', 600),
+  item('board_moss', 'board', 'rare', 450),
+  item('board_frost', 'board', 'epic', 650),
+  item('board_vault', 'board', 'legendary', 1100),
+
+  item('flag_crystal', 'flag', 'rare', 300),
+  item('flag_ember', 'flag', 'rare', 300),
+  item('flag_frost', 'flag', 'rare', 350),
+  item('flag_royal', 'flag', 'epic', 700),
+  item('flag_skull', 'flag', 'epic', 0, ach('grimbur_slayer')),
+  item('flag_gold', 'flag', 'legendary', 0, share(75)),
+
+  item('attack_frost', 'attack', 'rare', 400),
+  item('attack_venom', 'attack', 'rare', 400),
+  item('attack_royal', 'attack', 'epic', 800),
+  item('attack_shadow', 'attack', 'epic', 900),
 
   item('celeb_embers', 'celebration', 'rare', 400),
   item('celeb_gems', 'celebration', 'rare', 450),
