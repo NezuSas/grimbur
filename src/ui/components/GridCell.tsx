@@ -3,7 +3,7 @@ import { StyleSheet, View, Animated, Easing, ImageSourcePropType } from "react-n
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { BIOME_ART } from "../biomeArt";
-import type { BiomeId } from "../../core/engine/biomes";
+import type { ArtTheme } from "../biomeArt";
 import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
@@ -162,7 +162,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt
 }: {
   index: number;
   tileSize: number;
@@ -196,11 +196,13 @@ const GridCell = memo(({
   /** Changes every time a step onto this flagged tile is refused (0 = never). */
   flagPing: number;
   /** The cave type of the floor: it decides which pair of tiles is drawn. */
-  biome: BiomeId;
+  biome: ArtTheme;
   /** Reduced motion: the vortex does not spin and the gems do not glint. */
   calm: boolean;
   /** A trap went off here: the sprung jaws stay on the ground as a mark. */
   sprung?: boolean;
+  /** The flag worn in the Collection (the painted default when none). */
+  flagArt?: ImageSourcePropType | null;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   // On a new floor the tiles already lit wait for their delay too, so the floor opens in a cascade from the start.
@@ -443,7 +445,7 @@ const GridCell = memo(({
       {flagged && (
         <Animated.View style={[styles.pickup, { transform: [{ translateX: flagShake }] }]} pointerEvents="none">
           <Animated.View style={[styles.flagBlink, { opacity: flagBlink }]} />
-          <GlyphIcon name="flag" size={tileSize * 0.58} />
+          {flagArt ? <SpriteImage source={flagArt} style={{ width: tileSize * 0.62, height: tileSize * 0.62 }} resizeMode="contain" /> : <GlyphIcon name="flag" size={tileSize * 0.58} />}
         </Animated.View>
       )}
 

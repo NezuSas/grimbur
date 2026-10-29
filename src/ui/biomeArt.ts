@@ -8,7 +8,10 @@ export interface BiomeArt {
   tileRevealed: ImageSourcePropType;
 }
 
-export const BIOME_ART: Record<BiomeId, BiomeArt> = {
+/** A look the floor can be painted with: every cave type, plus the board themes that are looks only (Collection). */
+export type ArtTheme = BiomeId | 'frost' | 'moss' | 'vault';
+
+export const BIOME_ART: Record<ArtTheme, BiomeArt> = {
   cave: {
     background: require('../assets/sprites/backgrounds/Cover_Background.png'),
     tileHidden: require('../assets/sprites/tiles/Tile_Hidden.png'),
@@ -28,6 +31,22 @@ export const BIOME_ART: Record<BiomeId, BiomeArt> = {
     background: require('../assets/sprites/backgrounds/Bg_Lair.jpg'),
     tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Lair.png'),
     tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Lair.png'),
+  },
+  // Board themes with tiles of their own, over the backdrop of the cave they suit best.
+  frost: {
+    background: require('../assets/sprites/backgrounds/Bg_Crystal.jpg'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Frost.png'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Frost.png'),
+  },
+  moss: {
+    background: require('../assets/sprites/backgrounds/Cover_Background.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Moss.png'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Moss.png'),
+  },
+  vault: {
+    background: require('../assets/sprites/backgrounds/Bg_Magma.jpg'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Vault.png'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Vault.png'),
   },
 };
 

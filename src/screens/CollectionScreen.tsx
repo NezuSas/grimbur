@@ -47,6 +47,8 @@ const CATEGORIES: { id: Category; icon: React.ComponentProps<typeof Ionicons>["n
   { id: "frame", icon: "ellipse-outline" },
   { id: "title", icon: "ribbon" },
   { id: "board", icon: "grid" },
+  { id: "flag", icon: "flag" },
+  { id: "attack", icon: "locate" },
   { id: "celebration", icon: "sparkles" },
 ];
 

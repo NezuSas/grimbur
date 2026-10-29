@@ -4,7 +4,7 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
-import { BOARD_BIOME, CELEBRATION_LOOKS, FRAME_ART, TRAIL_LOOKS } from "../../ui/cosmeticArt";
+import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, TRAIL_LOOKS } from "../../ui/cosmeticArt";
 import GemShower from "../../ui/components/game/GemShower";
 import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
@@ -89,6 +89,23 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small }: Props) => {
             {cosmeticText(t, id).toLocaleUpperCase()}
           </Text>
         </View>
+      </View>
+    );
+  }
+  if (kind === "flag") {
+    // The flag planted on a fogged tile, as it marks danger on the board.
+    const tile = size * 0.72;
+    return (
+      <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+        <SpriteImage source={BIOME_ART.cave.tileHidden} style={{ width: tile, height: tile }} resizeMode="stretch" accessibilityIgnoresInvertColors />
+        <SpriteImage source={FLAG_ART[id]!} style={{ position: "absolute", width: tile * 0.98, height: tile * 0.98 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      </View>
+    );
+  }
+  if (kind === "attack") {
+    return (
+      <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+        <SpriteImage source={ATTACK_ART[id]!} style={{ width: size * 0.82, height: size * 0.82 }} resizeMode="contain" accessibilityIgnoresInvertColors />
       </View>
     );
   }

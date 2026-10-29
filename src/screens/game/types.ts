@@ -2,14 +2,17 @@ import type { PopupType } from "../../ui/components/game/ScorePopup";
 import type { RunPayout } from "../../core/stats/runStats";
 import type { Goal } from "../../core/stats/goals";
 import type { Unlocks } from "../../core/stats/unlocks";
-import type { biomeFor } from "../../core/engine/biomes";
+import type { ArtTheme } from "../../ui/biomeArt";
 
 /** The dark wash over the cave picture: each cave type has its own picture (ui/biomeArt.ts); this layer only keeps the board readable. */
-export const BIOME_TINT: Record<ReturnType<typeof biomeFor>, string> = {
+export const BIOME_TINT: Record<ArtTheme, string> = {
   cave: "rgba(0,0,0,0.55)",
   crystal: "rgba(0,0,0,0.5)",
   magma: "rgba(0,0,0,0.5)",
   lair: "rgba(0,0,0,0.5)",
+  frost: "rgba(10,30,50,0.5)",
+  moss: "rgba(8,24,8,0.55)",
+  vault: "rgba(30,18,0,0.55)",
 };
 
 /** How long the board stays on screen after a death (the red edge, the shake and the killer in view) before the defeat card covers it. */

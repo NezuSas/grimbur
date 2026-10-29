@@ -1,8 +1,9 @@
 import React, { memo, useCallback, useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, Easing } from "react-native";
+import type { ImageSourcePropType } from "react-native";
 import { characterWithSkin } from "../../data/characterSkins";
 import type { SkinId } from "../../data/skinArt";
-import type { BiomeId } from "../../core/engine/biomes";
+import type { ArtTheme } from "../biomeArt";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
@@ -113,13 +114,15 @@ type Props = {
   /** The outfit the hero wears (classic when omitted). */
   skin?: SkinId;
   /** The cave type of this floor (the plain cave when omitted). */
-  biome?: BiomeId;
+  biome?: ArtTheme;
   /** The equipped arrow trail, if any. */
   trail?: TrailLook | null;
+  /** The equipped flag, if any. */
+  flag?: ImageSourcePropType | null;
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -470,6 +473,7 @@ const BoardView: React.FC<Props> = memo(
                   killer={killerTile === i}
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
+                  flagArt={flag}
                   calm={!!calm}
                   sprung={sprung.has(i)}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}
