@@ -219,7 +219,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   // Six tabs: when each gets less than ~78 px the portrait goes over the count instead of beside it.
   const tight = tabsWidth > 0 && (tabsWidth - 8 * (characters.length - 1)) / characters.length < 78;
   // The showcase stage grows into whatever height the name, tags and action leave (measured, never guessed).
-  const detailImage = Math.max(90, stageSize.h > 0 ? Math.min(stageSize.h, stageSize.w) : height * 0.45);
+  const detailImage = Math.max(60, Math.min(stageSize.h, stageSize.w));
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
@@ -279,10 +279,15 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* ── Left: the chosen outfit, big, then what it takes to wear it ─────────────────────────── */}
           <View style={styles.showcase}>
             <View style={styles.stage} onLayout={e => setStageSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-              <View style={[styles.halo, { width: detailImage * 0.92, height: detailImage * 0.92, borderRadius: detailImage, backgroundColor: accent + "2E", borderColor: accent + "55" }]} />
-              <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
-                <SpriteImage source={skinArt(hero, shown).playerImage} style={{ width: detailImage, height: detailImage }} resizeMode="contain" accessibilityIgnoresInvertColors />
-              </Animated.View>
+              {/* Drawn only once the stage is measured, and out of its flow: a guessed size would show big for a frame and then shrink. */}
+              {stageSize.h > 0 ? (
+                <View style={styles.stageLayer} pointerEvents="none">
+                  <View style={[styles.halo, { width: detailImage * 0.92, height: detailImage * 0.92, borderRadius: detailImage, backgroundColor: accent + "2E", borderColor: accent + "55" }]} />
+                  <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
+                    <SpriteImage source={skinArt(hero, shown).playerImage} style={{ width: detailImage, height: detailImage }} resizeMode="contain" accessibilityIgnoresInvertColors />
+                  </Animated.View>
+                </View>
+              ) : null}
               {!owned ? (
                 <View style={styles.stageLock}>
                   <Ionicons name="lock-closed" size={14} color="#fff" />
@@ -460,6 +465,7 @@ const styles = StyleSheet.create({
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
 
   stage: { flex: 1, minHeight: 90, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
+  stageLayer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   halo: { position: "absolute", borderWidth: 2 },
   stageLock: { position: "absolute", top: 4, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
   outfitName: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
