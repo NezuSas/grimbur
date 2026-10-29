@@ -1,10 +1,12 @@
 import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import type { ImageSourcePropType } from "react-native";
+import SpriteImage from "./SpriteImage";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 
-export type NavItem<Id extends string> = { id: Id; label: string; icon: keyof typeof Ionicons.glyphMap; tint: string };
+export type NavItem<Id extends string> = { id: Id; label: string; icon: keyof typeof Ionicons.glyphMap; tint: string; /** Painted art shown instead of the icon. */ art?: ImageSourcePropType };
 
 type Props<Id extends string> = {
   items: NavItem<Id>[];
@@ -34,9 +36,13 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
               accessibilityState={{ selected: on }}
               style={[styles.railItem, on && { backgroundColor: c.tint + "1F", borderColor: c.tint + "88" }]}
             >
-              <View style={[styles.railChip, { backgroundColor: c.tint + (on ? "40" : "22") }]}>
-                <Ionicons name={c.icon} size={20} color={c.tint} />
-              </View>
+              {c.art ? (
+                <SpriteImage source={c.art} style={[styles.railArt, !on && { opacity: 0.8 }]} resizeMode="contain" accessibilityIgnoresInvertColors />
+              ) : (
+                <View style={[styles.railChip, { backgroundColor: c.tint + (on ? "40" : "22") }]}>
+                  <Ionicons name={c.icon} size={20} color={c.tint} />
+                </View>
+              )}
               <Text style={[styles.railLabel, on && { color: "#fff" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                 {c.label}
               </Text>
@@ -61,7 +67,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
               accessibilityState={{ selected: on }}
               style={[styles.topChip, on && { backgroundColor: c.tint + "26", borderColor: c.tint }]}
             >
-              <Ionicons name={c.icon} size={18} color={c.tint} />
+              {c.art ? <SpriteImage source={c.art} style={styles.chipArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : <Ionicons name={c.icon} size={18} color={c.tint} />}
               <Text style={[styles.topChipText, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                 {c.label}
               </Text>
@@ -77,6 +83,8 @@ const styles = StyleSheet.create({
   rail: { padding: 12, gap: 8 },
   railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
   railChip: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  railArt: { width: 38, height: 38 },
+  chipArt: { width: 26, height: 26 },
   railLabel: { flex: 1, color: "#D6C4B2", fontWeight: "800", fontSize: 14 },
   railBar: { position: "absolute", left: 0, top: 10, bottom: 10, width: 4, borderTopRightRadius: 4, borderBottomRightRadius: 4 },
   chipsWrap: { height: 62, flexShrink: 0 },
