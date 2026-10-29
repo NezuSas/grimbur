@@ -11,6 +11,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../navigation/types";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import ScreenHeader from "../ui/components/ScreenHeader";
+import PressScale from "../ui/components/PressScale";
+import Rise, { riseDelay } from "../ui/components/Rise";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
 import characters from "../data/characters";
@@ -34,34 +36,43 @@ type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
 const RARITY_COLOR = { free: "#9FA8DA", rare: "#4FC3F7", legendary: "#FFD54F" } as const;
 
-type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; onPress: (skin: SkinId) => void };
+type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; price: number; onPress: (skin: SkinId) => void };
 
-/** One outfit in the grid: the hero wearing it, dim with a lock when it is not owned yet, ringed in its rarity colour. */
-const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, onPress }: CardProps) => {
+/**
+ * One outfit in the grid: the hero wearing it in full colour (an outfit must be seen to be wanted), ringed in its rarity
+ * colour; one not owned yet carries a small lock and its price instead of being dimmed.
+ */
+const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, price, onPress }: CardProps) => {
   const { t } = useT();
   const info = SKINS[skin];
   const rarity = RARITY_COLOR[info.tier];
   return (
-    <TouchableOpacity
+    <PressScale
       onPress={() => onPress(skin)}
-      activeOpacity={0.85}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={`${skinText(t, skin)}. ${t(`skin.tier.${info.tier}` as TranslationKey)}${info.premium ? `. ${t("skin.premium")}` : ""}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
       style={[
         styles.card,
-        { width: size, height: size * 1.18, borderColor: selected ? "#fff" : rarity + "99", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accentOf(hero, skin) + "30" : "rgba(18,12,36,0.82)" },
+        { width: size, height: size * 1.22, borderColor: selected ? "#FFE3A0" : rarity + "88", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accentOf(hero, skin) + "33" : "rgba(30, 22, 16, 0.85)" },
       ]}
     >
-      <SpriteImage
-        source={skinArt(hero, skin).playerImage}
-        style={{ width: size * 0.86, height: size * 0.86, opacity: owned ? 1 : 0.42 }}
-        resizeMode="contain"
-        accessibilityIgnoresInvertColors
-      />
-      <Text style={styles.cardName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-        {skinText(t, skin)}
-      </Text>
+      <View style={[styles.cardGlow, { backgroundColor: accentOf(hero, skin) + (selected ? "40" : "22") }]} />
+      <SpriteImage source={skinArt(hero, skin).playerImage} style={{ width: size * 0.92, height: size * 0.92 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <View style={styles.cardFoot}>
+        {owned ? (
+          <Text style={styles.cardName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {skinText(t, skin)}
+          </Text>
+        ) : (
+          <View style={styles.cardPrice}>
+            <EmberIcon size={11} />
+            <Text style={styles.cardPriceText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              {price}
+            </Text>
+          </View>
+        )}
+      </View>
       {info.premium ? <Ionicons name="star" size={15} color="#FFD54F" style={styles.cardStar} /> : null}
       {equipped ? (
         <View style={styles.cardCheck}>
@@ -69,10 +80,10 @@ const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, onPress 
         </View>
       ) : !owned ? (
         <View style={styles.cardLock}>
-          <Ionicons name="lock-closed" size={14} color="#fff" />
+          <Ionicons name="lock-closed" size={12} color="#fff" />
         </View>
       ) : null}
-    </TouchableOpacity>
+    </PressScale>
   );
 });
 
@@ -87,6 +98,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [picked, setPicked] = useState<SkinId | null>(route.params?.skin ?? null);
   const [gridWidth, setGridWidth] = useState(0);
   const [tabsWidth, setTabsWidth] = useState(0);
+  const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
   const heroRef = useRef(hero);
   heroRef.current = hero;
 
@@ -156,7 +168,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   // ── Sizes ────────────────────────────────────────────────────────────────────────────────────
   const ui = Math.max(0.85, Math.min(1.5, width / 900, height / 540));
   const gap = 10;
-  const minCard = Math.round(96 * Math.min(height >= 600 ? Math.max(ui, 1.4) : ui, 1.5));
+  const minCard = Math.round(112 * Math.min(height >= 600 ? Math.max(ui, 1.3) : ui, 1.5));
   const cols = Math.max(2, Math.floor((gridWidth + gap) / (minCard + gap)));
   const cardSize = gridWidth > 0 ? Math.floor((gridWidth - gap * (cols - 1)) / cols) : minCard;
 
@@ -178,10 +190,10 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
       ? t("skin.buy", { price: state.price })
       : t("skin.needEmbers", { n: Math.max(0, state.price - stats.embers) });
 
-  // The hero image gives way to the price and progress of an outfit that is not owned yet.
   // Six tabs: when each gets less than ~78 px the portrait goes over the count instead of beside it.
   const tight = tabsWidth > 0 && (tabsWidth - 8 * (characters.length - 1)) / characters.length < 78;
-  const detailImage = Math.max(90, Math.min(height >= 600 ? Math.round(height * 0.46) : 260, height - (owned ? 240 : 310)));
+  // The showcase stage grows into whatever height the name, tags and action leave (measured, never guessed).
+  const detailImage = Math.max(90, stageSize.h > 0 ? Math.min(stageSize.h, stageSize.w) : height * 0.45);
 
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
@@ -199,8 +211,84 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
         />
 
         <View style={styles.body}>
-          {/* ── Left: the hero tabs, the filters and the grid of outfits ───────────────────────────── */}
-          <View style={styles.left}>
+          {/* ── Left: the chosen outfit, big, then what it takes to wear it ─────────────────────────── */}
+          <View style={styles.showcase}>
+            <View style={styles.stage} onLayout={e => setStageSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+              <View style={[styles.halo, { width: detailImage * 0.92, height: detailImage * 0.92, borderRadius: detailImage, backgroundColor: accent + "2E", borderColor: accent + "55" }]} />
+              <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
+                <SpriteImage source={skinArt(hero, shown).playerImage} style={{ width: detailImage, height: detailImage }} resizeMode="contain" accessibilityIgnoresInvertColors />
+              </Animated.View>
+              {!owned ? (
+                <View style={styles.stageLock}>
+                  <Ionicons name="lock-closed" size={14} color="#fff" />
+                </View>
+              ) : null}
+            </View>
+
+            <Text style={[styles.outfitName, { textShadowColor: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2} accessibilityRole="header">
+              {`${heroText(t, hero, "name")} · ${skinText(t, shown)}`.toLocaleUpperCase()}
+            </Text>
+            <View style={styles.chips}>
+              <View style={[styles.tag, { borderColor: rarity }]}>
+                <Text style={[styles.tagText, { color: rarity }]} maxFontSizeMultiplier={1.2}>
+                  {t(`skin.tier.${info.tier}` as TranslationKey).toLocaleUpperCase()}
+                </Text>
+              </View>
+              {info.premium ? (
+                <View style={[styles.tag, { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.14)" }]}>
+                  <Ionicons name="star" size={10} color="#FFD54F" />
+                  <Text style={[styles.tagText, { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
+                    {t("skin.premium").toLocaleUpperCase()}
+                  </Text>
+                </View>
+              ) : null}
+              {owned ? (
+                <View style={[styles.tag, { borderColor: "#9EE37D", backgroundColor: equipped ? "rgba(158,227,125,0.14)" : undefined }]}>
+                  {equipped ? <Ionicons name="checkmark" size={11} color="#9EE37D" /> : null}
+                  <Text style={[styles.tagText, { color: "#9EE37D" }]} maxFontSizeMultiplier={1.2}>
+                    {(equipped ? t("skin.equipped") : t("skin.owned")).toLocaleUpperCase()}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
+            {/* The big button only when there is something to do; an outfit still out of reach shows a quiet progress line. */}
+            {canAct ? (
+              <PressScale
+                onPress={() => (owned ? void wear(shown) : void buy(shown))}
+                accessibilityRole="button"
+                accessibilityLabel={`${skinText(t, shown)}. ${actionLabel}`}
+                style={[styles.cta, { backgroundColor: accent, shadowColor: accent }]}
+              >
+                {owned ? <Ionicons name="shirt" size={18} color="#111" /> : <EmberIcon size={18} />}
+                <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                  {actionLabel.toLocaleUpperCase()}
+                </Text>
+              </PressScale>
+            ) : !owned ? (
+              <View style={styles.lockInfo} accessible accessibilityLabel={`${actionLabel}. ${stats.embers} / ${state.price}`}>
+                <View style={styles.lockRow}>
+                  <EmberIcon size={13} />
+                  <Text style={styles.lockTitle} maxFontSizeMultiplier={1.2}>{`${stats.embers} / ${state.price}`}</Text>
+                  <Text style={styles.lockNeed} numberOfLines={1} maxFontSizeMultiplier={1.1}>{actionLabel}</Text>
+                </View>
+                <View style={styles.lockTrack}>
+                  <View style={[styles.lockFill, { width: `${Math.min(100, Math.round((stats.embers / Math.max(1, state.price)) * 100))}%`, backgroundColor: accent }]} />
+                </View>
+                {info.unlock ? (
+                  <Text style={styles.lockSub} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                    {info.unlock.kind === "wins"
+                      ? t("skin.unlock.wins", { count: info.unlock.count })
+                      : t("skin.unlock.depth", { depth: t(`ascension.label.${info.unlock.depth}` as TranslationKey) })}
+                    {state.progress ? `  ·  ${t("skin.progress", { have: state.progress.have, need: state.progress.need })}` : ""}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+          </View>
+
+          {/* ── Right: the hero tabs, the filters and the grid of outfits ───────────────────────────── */}
+          <View style={styles.browse}>
             <View style={styles.tabs} onLayout={e => setTabsWidth(e.nativeEvent.layout.width)}>
               {characters.map((_, i) => {
                 const count = heroCollectionCount(stats, i);
@@ -252,89 +340,14 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                   {t("collection.empty")}
                 </Text>
               ) : null}
-              {list.map(id => (
-                <OutfitCard key={id} hero={hero} skin={id} size={cardSize} owned={skinStatus(stats, hero, id).owned} equipped={id === wornSkin} selected={id === shown} onPress={setPicked} />
+              {list.map((id, i) => (
+                <Rise key={id} delay={riseDelay(i)}>
+                  <OutfitCard hero={hero} skin={id} size={cardSize} owned={skinStatus(stats, hero, id).owned} equipped={id === wornSkin} selected={id === shown} price={skinStatus(stats, hero, id).price} onPress={setPicked} />
+                </Rise>
               ))}
             </ScrollView>
           </View>
 
-          {/* ── Right: the chosen outfit, big, with what it takes to have it ───────────────────────── */}
-          <View style={styles.detail}>
-            <ScrollView contentContainerStyle={styles.detailContent} showsVerticalScrollIndicator={false}>
-              <View style={[styles.stage, { height: detailImage }]}>
-                <View style={[styles.halo, { width: detailImage * 0.95, height: detailImage * 0.95, borderRadius: detailImage, backgroundColor: accent + (owned ? "26" : "14") }]} />
-                <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
-                  <SpriteImage
-                    source={skinArt(hero, shown).playerImage}
-                    style={{ width: detailImage, height: detailImage, ...(owned ? null : { opacity: 0.55 }) }}
-                    resizeMode="contain"
-                    accessibilityIgnoresInvertColors
-                  />
-                </Animated.View>
-              </View>
-
-              <Text style={[styles.outfitName, { textShadowColor: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2} accessibilityRole="header">
-                {`${heroText(t, hero, "name")} · ${skinText(t, shown)}`.toLocaleUpperCase()}
-              </Text>
-              <View style={styles.chips}>
-                <View style={[styles.tag, { borderColor: rarity }]}>
-                  <Text style={[styles.tagText, { color: rarity }]} maxFontSizeMultiplier={1.2}>
-                    {t(`skin.tier.${info.tier}` as TranslationKey).toLocaleUpperCase()}
-                  </Text>
-                </View>
-                {info.premium ? (
-                  <View style={[styles.tag, { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.14)" }]}>
-                    <Ionicons name="star" size={10} color="#FFD54F" />
-                    <Text style={[styles.tagText, { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
-                      {t("skin.premium").toLocaleUpperCase()}
-                    </Text>
-                  </View>
-                ) : null}
-                {owned ? (
-                  <View style={[styles.tag, { borderColor: "#9EE37D" }]}>
-                    <Text style={[styles.tagText, { color: "#9EE37D" }]} maxFontSizeMultiplier={1.2}>
-                      {(equipped ? t("skin.equipped") : t("skin.owned")).toLocaleUpperCase()}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
-
-              {!owned ? (
-                <View style={styles.lockInfo} accessible>
-                  <Text style={styles.lockTitle} maxFontSizeMultiplier={1.2}>
-                    <EmberIcon size={13} />
-                    {` ${stats.embers} / ${state.price}`}
-                  </Text>
-                  <View style={styles.lockTrack}>
-                    <View style={[styles.lockFill, { width: `${Math.min(100, Math.round((stats.embers / Math.max(1, state.price)) * 100))}%`, backgroundColor: accent }]} />
-                  </View>
-                  {info.unlock ? (
-                    <Text style={styles.lockSub} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                      {info.unlock.kind === "wins"
-                        ? t("skin.unlock.wins", { count: info.unlock.count })
-                        : t("skin.unlock.depth", { depth: t(`ascension.label.${info.unlock.depth}` as TranslationKey) })}
-                      {state.progress ? `  ·  ${t("skin.progress", { have: state.progress.have, need: state.progress.need })}` : ""}
-                    </Text>
-                  ) : null}
-                </View>
-              ) : null}
-            </ScrollView>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              disabled={!canAct}
-              onPress={() => (owned ? void wear(shown) : void buy(shown))}
-              accessibilityRole="button"
-              accessibilityState={{ disabled: !canAct }}
-              accessibilityLabel={`${skinText(t, shown)}. ${actionLabel}`}
-              style={[styles.cta, { backgroundColor: canAct ? accent : "rgba(255,255,255,0.14)" }, canAct && { shadowColor: accent }]}
-            >
-              <Text style={[styles.ctaText, !canAct && { color: "#EAE1D8" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-                {actionLabel.toLocaleUpperCase()}
-              </Text>
-              {canAct ? <Ionicons name={owned ? "shirt" : "flame"} size={20} color="#111" /> : equipped ? <Ionicons name="checkmark-circle" size={20} color="#9EE37D" /> : null}
-            </TouchableOpacity>
-          </View>
         </View>
       </SafeAreaView>
     </ImageBackground>
@@ -347,7 +360,8 @@ const styles = StyleSheet.create({
   balanceValue: { color: "#FFAB40", fontSize: 20, fontWeight: "900" },
 
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10 },
-  left: { flex: 1.2, gap: 8 },
+  showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
+  browse: { flex: 1, gap: 8 },
   tabs: { flexDirection: "row", gap: 8 },
   tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: MIN_TOUCH - 4, borderRadius: 14, borderWidth: 1.5, paddingHorizontal: 6 },
   tabTight: { flexDirection: "column", gap: 1, paddingHorizontal: 2, paddingVertical: 3 },
@@ -363,25 +377,30 @@ const styles = StyleSheet.create({
   empty: { color: "#CAB39C", fontSize: 13, padding: 12 },
 
   card: { borderRadius: 16, alignItems: "center", justifyContent: "flex-start", paddingTop: 4, overflow: "hidden" },
-  cardName: { color: "#fff", fontWeight: "900", fontSize: 12, marginTop: -2, paddingHorizontal: 4 },
+  cardGlow: { position: "absolute", left: "12%", right: "12%", top: "8%", aspectRatio: 1, borderRadius: 999 },
+  cardFoot: { position: "absolute", bottom: 6, left: 4, right: 4, alignItems: "center" },
+  cardName: { color: "#fff", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
+  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(255,171,64,0.6)" },
+  cardPriceText: { color: "#FFCC80", fontWeight: "900", fontSize: 12 },
   cardStar: { position: "absolute", top: 4, left: 5 },
   cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#9EE37D", alignItems: "center", justifyContent: "center" },
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
 
-  detail: { flex: 1, gap: 8 },
-  detailContent: { gap: 8, paddingBottom: 4 },
-  stage: { alignItems: "center", justifyContent: "center" },
-  halo: { position: "absolute" },
+  stage: { flex: 1, minHeight: 90, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
+  halo: { position: "absolute", borderWidth: 2 },
+  stageLock: { position: "absolute", top: 4, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
   outfitName: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" },
   tag: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9, borderWidth: 1 },
   tagText: { fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
-  lockInfo: { gap: 4, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
+  lockInfo: { alignSelf: "stretch", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.28)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
+  lockRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
+  lockNeed: { flex: 1, textAlign: "right", color: "#CAB39C", fontWeight: "700", fontSize: 12 },
   lockSub: { color: "#E1D4C8", fontSize: 12 },
   lockTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   lockFill: { height: "100%", borderRadius: 3 },
-  cta: { minHeight: MIN_TOUCH + 4, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 14, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)", shadowOpacity: 0.7, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 },
+  cta: { alignSelf: "stretch", minHeight: MIN_TOUCH + 4, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 14, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)", shadowOpacity: 0.7, shadowRadius: 12, shadowOffset: { width: 0, height: 0 }, elevation: 8 },
   ctaText: { color: "#111", fontWeight: "900", letterSpacing: 1.2, fontSize: 15, flexShrink: 1 },
 });
 
