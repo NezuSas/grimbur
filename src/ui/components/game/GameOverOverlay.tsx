@@ -156,6 +156,12 @@ const GameOverOverlay = ({
   const cardAnim = useRef(new Animated.Value(0.9)).current;
   const fade = useRef(new Animated.Value(0)).current;
   const calm = useSettingsStore(st => st.reduceFlash);
+  // The celebration worn in the Collection, read once.
+  const [celebration] = useState(() => {
+    const saved = peekLocalStats();
+    const id = saved ? equippedCosmetic(saved, 'celebration') : null;
+    return id ? CELEBRATION_LOOKS[id] : undefined;
+  });
 
   useEffect(() => {
     if (visible) {
@@ -586,12 +592,6 @@ const GameOverOverlay = ({
   // Only a victory is celebrated, with the game's own gems and arrows raining over the cave and embers rising.
   // A defeat gets a quieter mood: a few embers drifting up from the dark.
   const celebrate = !calm && victory;
-  // The celebration worn in the Collection, read when the victory is shown.
-  const [celebration] = useState(() => {
-    const saved = peekLocalStats();
-    const id = saved ? equippedCosmetic(saved, 'celebration') : null;
-    return id ? CELEBRATION_LOOKS[id] : undefined;
-  });
 
   return (
     <OverlayContainer>
