@@ -1,4 +1,5 @@
 jest.mock('react-native', () => ({ Animated: {}, View: 'View' }));
+jest.mock('../../src/ui/components/SpriteImage', () => 'SpriteImage');
 import { flightMs, landMs } from '../../src/ui/components/game/ArrowFlight';
 
 const shot = (tiles: number) => ({ key: 1, dir: 'RIGHT' as const, tiles, hit: true });
