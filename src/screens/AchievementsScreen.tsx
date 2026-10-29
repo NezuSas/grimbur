@@ -237,10 +237,11 @@ const styles = StyleSheet.create({
   },
   cardUnlocked: { backgroundColor: "rgba(255, 213, 79, 0.1)", borderColor: "rgba(255, 213, 79, 0.55)" },
   cardLocked: { backgroundColor: "rgba(36, 28, 19, 0.8)", borderColor: "rgba(255,255,255,0.1)" },
-  badge: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  badgeUnlocked: { backgroundColor: "rgba(255,213,79,0.18)", borderColor: GOLD },
-  badgeLocked: { backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.16)" },
-  icon: { width: 44, height: 44 },
+  // The painted emblem is a medallion already: no circle of its own around it.
+  badge: { width: 58, height: 58, alignItems: "center", justifyContent: "center" },
+  badgeUnlocked: {},
+  badgeLocked: {},
+  icon: { width: 58, height: 58 },
   // Not earned yet: the emblem is there but dim, so the goal is visible without looking unlocked.
   iconLocked: { opacity: 0.35 },
   lock: {
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   goals: { gap: 6 },
   goalsTitle: { color: "#F2C14E", fontWeight: "800", letterSpacing: 2, fontSize: 12 },
   goalsRow: { gap: 6 },
-  goal: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(144,202,249,0.1)", borderWidth: 1, borderColor: "rgba(144,202,249,0.4)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
+  goal: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(255,213,79,0.08)", borderWidth: 1, borderColor: "rgba(255,213,79,0.35)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
   goalIcon: { width: 34, height: 34 },
   goalName: { color: "#fff", fontWeight: "700", fontSize: 13 },
   goalCount: { color: "#DDCFC1", fontWeight: "800", fontSize: 12 },
