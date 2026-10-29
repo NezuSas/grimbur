@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, { createContext, memo, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, PanResponder, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
@@ -9,17 +9,23 @@ export const CARD_BORDER = "rgba(255,255,255,0.09)";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
-/** A panel that groups related rows. */
-export const SettingCard = ({ children, title }: { children: React.ReactNode; title?: string }) => (
-  <View style={styles.cardWrap}>
-    {title ? (
-      <Text style={styles.cardTitle} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
-        {title.toLocaleUpperCase()}
-      </Text>
-    ) : null}
-    <View style={styles.card}>{children}</View>
-  </View>
-);
+/** True when the pane lays its cards out in two columns (a phone on its side has the width for it). */
+export const SettingsColumns = createContext(false);
+
+/** A panel that groups related rows. `full` keeps it across both columns. */
+export const SettingCard = ({ children, title, full }: { children: React.ReactNode; title?: string; full?: boolean }) => {
+  const columns = useContext(SettingsColumns);
+  return (
+    <View style={[styles.cardWrap, columns && (full ? styles.cardFull : styles.cardHalf)]}>
+      {title ? (
+        <Text style={styles.cardTitle} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+          {title.toLocaleUpperCase()}
+        </Text>
+      ) : null}
+      <View style={styles.card}>{children}</View>
+    </View>
+  );
+};
 
 export const RowDivider = () => <View style={styles.divider} />;
 
@@ -194,6 +200,8 @@ export const RoundAction = ({ icon, onPress, label, tone = "gold", disabled }: {
 
 const styles = StyleSheet.create({
   cardWrap: { gap: 8 },
+  cardHalf: { flexBasis: "46%", flexGrow: 1, minWidth: 220 },
+  cardFull: { width: "100%" },
   cardTitle: { color: GOLD, fontWeight: "900", fontSize: 12, letterSpacing: 2.2, marginLeft: 6 },
   card: { backgroundColor: CARD_BG, borderRadius: 18, borderWidth: 1, borderColor: CARD_BORDER, paddingHorizontal: 14, paddingVertical: 4, overflow: "hidden" },
   divider: { height: 1, backgroundColor: "rgba(255,255,255,0.07)" },

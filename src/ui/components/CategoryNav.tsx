@@ -82,7 +82,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
 const styles = StyleSheet.create({
   rail: { padding: 12, gap: 8 },
   railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
-  railChip: { width: 36, height: 36, borderRadius: 11, alignItems: "center", justifyContent: "center" },
+  railChip: { width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
   railArt: { width: 38, height: 38 },
   chipArt: { width: 26, height: 26 },
   railLabel: { flex: 1, color: "#D6C4B2", fontWeight: "800", fontSize: 14 },

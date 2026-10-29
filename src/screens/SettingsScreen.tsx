@@ -12,7 +12,15 @@ import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin,
 import { JoystickPreview } from "../ui/components/JoystickBase";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import { CategoryNav } from "../ui/components/CategoryNav";
-import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, ToggleSwitch } from "../ui/components/settings/SettingsParts";
+import { GOLD, LevelSlider, RoundAction, RowDivider, Segmented, SettingCard, SettingRow, SettingsColumns, ToggleSwitch } from "../ui/components/settings/SettingsParts";
+import SpriteImage from "../ui/components/SpriteImage";
+import PressScale from "../ui/components/PressScale";
+import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
+import { EMPTY_STATS, type LocalStats } from "../core/stats/runStats";
+import { peekLocalStats } from "../services/localStats";
+import { lookOf } from "../core/cosmetics/look";
+import { equippedSkin } from "../core/skins/ownership";
+import { skinArt } from "../data/skinArt";
 import type { SegmentOption } from "../ui/components/settings/SettingsParts";
 import { getAudioLog } from "../audio/audioDiagnostics";
 import { cancelReminders, remindersSupported, requestReminderPermission, syncReminders } from "../services/reminders";
@@ -84,6 +92,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
   const setControlPosition = useSettingsStore(s => s.setControlPosition);
   const setLanguage = useSettingsStore(s => s.setLanguage);
+  const lastHero = useSettingsStore(s => s.lastHero);
+  const [stats, setStats] = React.useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
+  React.useEffect(() => {
+    void getLocalStats().then(setStats).catch(() => {});
+  }, []);
   const remindersEnabled = useSettingsStore(s => s.remindersEnabled);
   const setRemindersEnabled = useSettingsStore(s => s.setRemindersEnabled);
   const [reminderDenied, setReminderDenied] = React.useState(false);
@@ -288,12 +301,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   // ── Panes ───────────────────────────────────────────────────────────────────────────────────────────────
   const soundPane = (
     <>
-      <SettingCard>
+      <SettingCard title={t("settings.volumes")} full>
         <SettingRow label={t("settings.sound")} icon={soundEnabled ? "volume-high" : "volume-mute"} tint="#4FC3F7">
           <ToggleSwitch value={soundEnabled} onValueChange={setSoundEnabled} accessibilityLabel={t("settings.sound")} />
         </SettingRow>
-      </SettingCard>
-      <SettingCard title={t("settings.volumes")}>
+        <RowDivider />
         <SettingRow label={t("settings.music")} icon="musical-notes" tint="#B39DDB" stacked dimmed={!soundEnabled}>
           <LevelSlider
             value={musicVolume}
@@ -321,7 +333,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const controlsPane = (
     <>
-      <SettingCard title={t("settings.group.move")}>
+      <SettingCard title={t("settings.group.move")} full>
         <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#FFAB40" stacked>
           <Segmented options={padOptions} value={movePad} onChange={setMovePad} accessibilityLabel={t("settings.movePad")} />
         </SettingRow>
@@ -345,7 +357,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </SettingRow>
       </SettingCard>
 
-      <SettingCard title={t("settings.group.attack")}>
+      <SettingCard title={t("settings.group.attack")} full>
         <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#FF7043" stacked>
           <Segmented options={attackOptions} value={attackButton} onChange={setAttackButton} accessibilityLabel={t("settings.attackButton")} />
         </SettingRow>
@@ -355,7 +367,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </SettingRow>
       </SettingCard>
 
-      <SettingCard title={t("settings.group.layout")}>
+      <SettingCard title={t("settings.group.layout")} full>
         <SettingRow label={t("settings.controls")} icon="game-controller" tint="#FFD54F" stacked>
           <Segmented options={controlOptions} value={controlPosition} onChange={setControlPosition} accessibilityLabel={t("settings.controls")} />
         </SettingRow>
@@ -395,8 +407,29 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     </SettingCard>
   );
 
+  const hero = Math.max(0, lastHero ?? 0);
+  const look = lookOf(stats);
   const dataPane = (
     <>
+      <View style={styles.me}>
+        <PlayerPortrait source={skinArt(hero, equippedSkin(stats, hero)).scoreImage} size={64} frame={look.frame} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {playerName ?? t("friends.noName")}
+          </Text>
+          <PlayerTitle title={look.title} />
+          <Text style={styles.meSub} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {t("friends.card")}
+          </Text>
+        </View>
+        <PressScale onPress={() => navigation.navigate("CollectionScreen", { category: look.frame ? "title" : "frame" })} style={styles.meButton} accessibilityRole="button" accessibilityLabel={t("friends.customize")}>
+          <Ionicons name="color-palette" size={16} color={GOLD} />
+          <Text style={styles.meButtonText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            {t("friends.customize").toLocaleUpperCase()}
+          </Text>
+        </PressScale>
+      </View>
+
       <SettingCard title={t("profile.title")}>
         <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#FFD54F">
           <RoundAction icon={nameOpen ? "chevron-up" : "pencil"} label={t("profile.name")} onPress={() => setNameOpen(open => !open)} />
@@ -569,7 +602,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </SettingCard>
       ) : null}
 
-      <SettingCard title={t("settings.group.danger")}>
+      <SettingCard title={t("settings.group.danger")} full>
         <SettingRow
           label={t("settings.delete")}
           hint={deleteStep === 2 ? t("settings.deleteDone") : deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.deleteHint")}
@@ -599,9 +632,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const aboutPane = (
     <>
       <View style={styles.aboutHero}>
-        <Text style={styles.aboutName} maxFontSizeMultiplier={1.2}>
-          GRIMBUR
-        </Text>
+        <SpriteImage source={require("../assets/sprites/ui/Logo_Grimbur.png")} style={styles.aboutLogo} resizeMode="contain" accessibilityLabel="Grimbur" />
         <Text style={styles.aboutSub} maxFontSizeMultiplier={1.2}>
           {t("cover.subtitle")}
         </Text>
@@ -648,9 +679,14 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const wide = width >= 640;
   const railWidth = Math.min(230, Math.max(180, width * 0.24));
   const navItems = CATEGORIES.map(c => ({ id: c.id, icon: c.icon, tint: c.tint, label: t(c.label) }));
+  // Two columns of cards once the pane is wide enough for two controls side by side.
+  const paneWidth = wide ? width - railWidth : width;
+  const twoColumns = paneWidth >= 600;
   const paneBody = (
     <ScrollView scrollEnabled={!tryingStick} contentContainerStyle={styles.paneContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.paneInner}>{panes[category]}</View>
+      <SettingsColumns.Provider value={twoColumns}>
+        <View style={[styles.paneInner, twoColumns && styles.paneColumns]}>{panes[category]}</View>
+      </SettingsColumns.Provider>
     </ScrollView>
   );
 
@@ -678,8 +714,15 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
-  paneContent: { paddingHorizontal: 14, paddingVertical: 14, alignItems: "center" },
+  paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
   paneInner: { width: "100%", maxWidth: 640, gap: 16 },
+  paneColumns: { maxWidth: 1000, flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: 12 },
+  me: { width: "100%", flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", backgroundColor: "rgba(48,36,22,0.9)" },
+  meName: { color: "#fff", fontWeight: "900", fontSize: 18 },
+  meSub: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
+  meButton: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 40, paddingHorizontal: 12, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
+  meButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
+  aboutLogo: { width: 260, height: 90 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
   tryText: { flex: 1, color: "#D4C2B0", fontSize: 13, fontWeight: "700" },
   keyLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
@@ -702,9 +745,9 @@ const styles = StyleSheet.create({
   confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(255,82,82,0.1)", borderWidth: 1, borderColor: "rgba(255,82,82,0.4)" },
   confirmText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   confirmWarn: { color: "#FF8A80", fontSize: 12 },
-  infoBox: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 6 },
+  infoBox: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 6 },
   infoText: { color: "#b0b0b0", fontSize: 12, flexShrink: 1 },
-  aboutHero: { alignItems: "center", paddingVertical: 20, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
+  aboutHero: { width: "100%", alignItems: "center", paddingVertical: 16, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
   aboutName: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 6 },
   aboutSub: { color: "#fff", fontWeight: "900", fontSize: 14, letterSpacing: 8 },
   aboutTag: { color: "#CBB49E", fontSize: 13, fontWeight: "700", marginTop: 8, textAlign: "center", paddingHorizontal: 16 },
