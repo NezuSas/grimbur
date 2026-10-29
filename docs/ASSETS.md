@@ -45,6 +45,7 @@ sliceIconGrid, buildAppIcons), so every sprite can be rebuilt from its master.
 | tools/*.png (tools, abilities, shop) | tools_v1.png |
 | items/Icon_{Gem,Shield,Arrows,Ember,EmberPile}.png, ui/Icon_*.png (glyphs) | glyphs_v1.png |
 | ui/Attack_{Ready,Empty,Arrow}.png | attack_v1.png |
+| achievements/Ach_*.png (16 emblems; hero-win achievements use the hero portraits) | achievements_v1.png |
 
 No Figma-generated art remains in use; earlier versions were generated with
 Figma's AI image generation (2026-10-25/26, owner's Figma Pro plan). Keep the generation records with the release

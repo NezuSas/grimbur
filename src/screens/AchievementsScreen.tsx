@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, ImageBackground, StyleSheet, TouchableOpacity, View } from "react-native";
+import { achievementArt } from "../ui/achievementArt";
+import SpriteImage from "../ui/components/SpriteImage";
 import Rise, { riseDelay } from "../ui/components/Rise";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
@@ -115,7 +117,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                   <View style={styles.goalsRow}>
                     {nextGoals.map(({ a: g, p }) => (
                       <View key={g.id} style={styles.goal} accessible accessibilityLabel={`${achievementText(t, g.id, "name")}. ${p.current}/${p.target}`}>
-                        <Text style={styles.goalIcon}>{g.icon}</Text>
+                        <SpriteImage source={achievementArt(g)} style={styles.goalIcon} resizeMode="contain" accessibilityIgnoresInvertColors />
                         <View style={{ flex: 1, gap: 3 }}>
                           <Text style={styles.goalName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                             {achievementText(t, g.id, "name")}
@@ -164,7 +166,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                 accessibilityLabel={`${name}. ${description}. ${unlockedOn ? t("ach.unlockedOn", { date: unlockedOn }) : t("ach.locked")}`}
               >
                 <View style={[styles.badge, unlockedOn ? styles.badgeUnlocked : styles.badgeLocked]}>
-                  <Text style={[styles.icon, !unlockedOn && { opacity: 0.4 }]}>{item.icon}</Text>
+                  <SpriteImage source={achievementArt(item)} style={[styles.icon, !unlockedOn && styles.iconLocked]} resizeMode="contain" accessibilityIgnoresInvertColors />
                   {!unlockedOn && (
                     <View style={styles.lock}>
                       <Ionicons name="lock-closed" size={13} color="#EAE1D8" />
@@ -238,7 +240,9 @@ const styles = StyleSheet.create({
   badge: { width: 58, height: 58, borderRadius: 29, alignItems: "center", justifyContent: "center", borderWidth: 2 },
   badgeUnlocked: { backgroundColor: "rgba(255,213,79,0.18)", borderColor: GOLD },
   badgeLocked: { backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.16)" },
-  icon: { fontSize: 28 },
+  icon: { width: 44, height: 44 },
+  // Not earned yet: the emblem is there but dim, so the goal is visible without looking unlocked.
+  iconLocked: { opacity: 0.35 },
   lock: {
     position: "absolute",
     right: -2,
@@ -257,7 +261,7 @@ const styles = StyleSheet.create({
   goalsTitle: { color: "#F2C14E", fontWeight: "800", letterSpacing: 2, fontSize: 12 },
   goalsRow: { gap: 6 },
   goal: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: "rgba(144,202,249,0.1)", borderWidth: 1, borderColor: "rgba(144,202,249,0.4)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6 },
-  goalIcon: { fontSize: 22 },
+  goalIcon: { width: 34, height: 34 },
   goalName: { color: "#fff", fontWeight: "700", fontSize: 13 },
   goalCount: { color: "#DDCFC1", fontWeight: "800", fontSize: 12 },
   chips: { flexDirection: "row", gap: 8, justifyContent: "center" },
