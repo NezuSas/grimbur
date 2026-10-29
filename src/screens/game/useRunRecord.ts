@@ -3,7 +3,7 @@ import { Animated } from "react-native";
 import type { MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
 import { analytics } from "../../services/analytics";
-import { addHighscore, isTopTenScore } from "../../services/highscores";
+import { addHighscore, isTopTenScore, prefetchLeaderboardThreshold } from "../../services/highscores";
 import { recordDailyRun, recordRun } from "../../services/localStats";
 import { queueCloudSync } from "../../services/cloudBackup";
 import { getPlayerName, setPlayerName } from "../../services/playerProfile";
@@ -47,6 +47,12 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
   const gameOverTriggered = useRef(false); // prevents the end-of-run flow from running twice
   const runRecorded = useRef(false); //       the run is saved to local stats exactly once
   const mounted = useRef(true);
+
+  // The top-10 line is fetched when the run starts, so that the end of the run does not have to wait for the network
+  // (which, on a phone, often took longer than the check is willing to wait).
+  useEffect(() => {
+    if (!isDaily && !challengeCode && mode !== "endless") void prefetchLeaderboardThreshold();
+  }, [isDaily, challengeCode, mode]);
 
   /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
   const recordCurrentRun = useCallback(async (): Promise<RunResult | null> => {
@@ -167,11 +173,14 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       }
       // Endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
       if (mode === "endless") return;
+      // null: the board could not be read in time. A new personal best is then offered the name anyway: saving it
+      // checks the player's own row and only ever raises it, so asking can never post a worse score.
       const qualifies = await Promise.race([
-        isTopTenScore(s.score, time).catch(() => false),
-        new Promise<boolean>(resolve => setTimeout(() => resolve(false), TOP_TEN_CHECK_TIMEOUT_MS)),
+        isTopTenScore(s.score, time).catch(() => null),
+        new Promise<null>(resolve => setTimeout(() => resolve(null), TOP_TEN_CHECK_TIMEOUT_MS)),
       ]);
-      if (!cancelled && mounted.current && qualifies) setShowHighScoreEntry(true);
+      const ask = qualifies === true || (qualifies === null && !!result?.isNewBest && s.score > 0);
+      if (!cancelled && mounted.current && ask) setShowHighScoreEntry(true);
     }, s.isVictory ? VICTORY_CARD_DELAY_MS : GAME_OVER_CARD_DELAY_MS);
 
     return () => {
