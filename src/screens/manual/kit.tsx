@@ -94,7 +94,7 @@ type Frame = {
   wide: boolean;
   navigation: Kit["navigation"];
   /** The topic being shown: its icon and colour. */
-  current: { icon: keyof typeof Ionicons.glyphMap; color: string };
+  current: { icon: keyof typeof Ionicons.glyphMap; color: string; art?: ImageSourcePropType };
   /** Its place in the guide (0-based) and how many topics there are. */
   index: number;
   total: number;
@@ -108,9 +108,16 @@ export function buildKit({ t, wide, navigation, current, index, total }: Frame):
   };
   const heading: Kit["heading"] = title => (
     <View style={frame.heading}>
-      <View style={[frame.headingChip, { backgroundColor: current.color + "26", borderColor: current.color + "77" }]}>
-        <Ionicons name={current.icon} size={30} color={current.color} />
-      </View>
+      {current.art ? (
+        <View style={frame.headingArt}>
+          <View style={[frame.headingGlow, { backgroundColor: current.color }]} />
+          <SpriteImage source={current.art} style={{ width: 56, height: 56 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        </View>
+      ) : (
+        <View style={[frame.headingChip, { backgroundColor: current.color + "26", borderColor: current.color + "77" }]}>
+          <Ionicons name={current.icon} size={30} color={current.color} />
+        </View>
+      )}
       <View style={{ flex: 1 }}>
         <Text style={[frame.headingTitle, { color: current.color }]} accessibilityRole="header" numberOfLines={2} maxFontSizeMultiplier={1.3}>
           {title.toLocaleUpperCase()}
@@ -139,6 +146,8 @@ export function buildKit({ t, wide, navigation, current, index, total }: Frame):
 const frame = StyleSheet.create({
   heading: { flexDirection: "row", alignItems: "center", gap: 14 },
   headingChip: { width: 60, height: 60, borderRadius: 18, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
+  headingArt: { width: 60, height: 60, alignItems: "center", justifyContent: "center" },
+  headingGlow: { position: "absolute", width: 56, height: 56, borderRadius: 28, opacity: 0.16 },
   headingTitle: { fontWeight: "900", fontSize: 22, letterSpacing: 1.5 },
   headingCount: { color: "#B99A7C", fontWeight: "800", fontSize: 12, letterSpacing: 1.5, marginTop: 2 },
 });

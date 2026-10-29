@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from "react-native";
+import type { ImageSourcePropType } from "react-native";
+import characters from "../data/characters";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -9,6 +11,7 @@ import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useT } from "../i18n/useT";
 import ScreenHeader from "../ui/components/ScreenHeader";
+import SpriteImage from "../ui/components/SpriteImage";
 import { CategoryNav } from "../ui/components/CategoryNav";
 import type { NavItem } from "../ui/components/CategoryNav";
 import { BORDER, CARD } from "../ui/components/manual/ManualParts";
@@ -21,22 +24,23 @@ import { ForgePane, ModesPane, ScoringPane, TipsPane, WorldsPane } from "./manua
 
 type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 
-const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string }[] = [
-  { id: "start", icon: "rocket", color: "#FFD54F" },
-  { id: "mission", icon: "flag", color: "#ff5252" },
-  { id: "controls", icon: "game-controller", color: "#ffd54f" },
-  { id: "explore", icon: "map", color: "#4fc3f7" },
-  { id: "hazards", icon: "warning", color: "#ffa726" },
-  { id: "combat", icon: "flash", color: "#ff5252" },
-  { id: "powerups", icon: "shield", color: "#4fc3f7" },
-  { id: "heroes", icon: "people", color: "#f48fb1" },
-  { id: "relics", icon: "sparkles", color: "#ce93d8" },
-  { id: "tools", icon: "construct", color: "#ffd54f" },
-  { id: "worlds", icon: "planet", color: "#80cbc4" },
-  { id: "modes", icon: "layers", color: "#7986cb" },
-  { id: "forge", icon: "flame", color: "#ffab40" },
-  { id: "scoring", icon: "trophy", color: "#81c784" },
-  { id: "tips", icon: "bulb", color: "#4db6ac" },
+/** Every topic wears a piece of the game's own painted art, so the guide looks like the game it explains. */
+const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string; art: ImageSourcePropType }[] = [
+  { id: "start", icon: "rocket", color: "#FFD54F", art: require("../assets/sprites/ui/Icon_Flag.png") },
+  { id: "mission", icon: "flag", color: "#ff5252", art: require("../assets/sprites/enemies/Grimbur_Boss.png") },
+  { id: "controls", icon: "game-controller", color: "#ffd54f", art: require("../assets/sprites/ui/Attack_Ready.png") },
+  { id: "explore", icon: "map", color: "#4fc3f7", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
+  { id: "hazards", icon: "warning", color: "#ffa726", art: require("../assets/sprites/tiles/Danger_Vortex.png") },
+  { id: "combat", icon: "flash", color: "#ff5252", art: require("../assets/sprites/items/Icon_Arrows.png") },
+  { id: "powerups", icon: "shield", color: "#4fc3f7", art: require("../assets/sprites/items/Icon_Shield.png") },
+  { id: "heroes", icon: "people", color: "#f48fb1", art: characters[0].scoreImage },
+  { id: "relics", icon: "sparkles", color: "#ce93d8", art: require("../assets/sprites/relics/phoenix.png") },
+  { id: "tools", icon: "construct", color: "#ffd54f", art: require("../assets/sprites/tools/Tool_Bomb.png") },
+  { id: "worlds", icon: "planet", color: "#80cbc4", art: require("../assets/sprites/achievements/Ach_Depth.png") },
+  { id: "modes", icon: "layers", color: "#7986cb", art: require("../assets/sprites/achievements/Ach_Endless.png") },
+  { id: "forge", icon: "flame", color: "#ffab40", art: require("../assets/sprites/ui/Icon_Hammer.png") },
+  { id: "scoring", icon: "trophy", color: "#81c784", art: require("../assets/sprites/ui/Icon_Trophy.png") },
+  { id: "tips", icon: "bulb", color: "#4db6ac", art: require("../assets/sprites/ui/Icon_Star.png") },
 ];
 
 const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
@@ -53,6 +57,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     id: x.id,
     icon: x.icon,
     tint: x.color,
+    art: x.art,
     label: x.id === "start" ? t("manual.nav.start") : t(asKey(`manual.${x.id}.title`)),
   }));
   const index = topics.findIndex(x => x.id === topic);
@@ -88,6 +93,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
           {prev ? (
             <TouchableOpacity style={styles.pagerButton} onPress={() => setTopic(prev.id)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={`${t("manual.prev")}: ${prev.label}`}>
               <Ionicons name="chevron-back" size={18} color={prev.tint} />
+              {prev.art ? <SpriteImage source={prev.art} style={styles.pagerArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : null}
               <View style={{ flex: 1 }}>
                 <Text style={styles.pagerHint} maxFontSizeMultiplier={1.2}>
                   {t("manual.prev").toLocaleUpperCase()}
@@ -110,6 +116,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
                   {next.label}
                 </Text>
               </View>
+              {next.art ? <SpriteImage source={next.art} style={styles.pagerArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : null}
               <Ionicons name="chevron-forward" size={18} color={next.tint} />
             </TouchableOpacity>
           ) : (
@@ -143,11 +150,12 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
-  paneContent: { paddingHorizontal: 14, paddingVertical: 14, alignItems: "center" },
+  paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
   paneInner: { width: "100%", maxWidth: 720, gap: 14 },
   pager: { flexDirection: "row", gap: 10, marginTop: 6 },
   pagerButton: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, minHeight: MIN_TOUCH + 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD },
   pagerNext: { justifyContent: "flex-end" },
+  pagerArt: { width: 30, height: 30 },
   pagerHint: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.5 },
   pagerLabel: { color: "#fff", fontWeight: "800", fontSize: 14 },
 });

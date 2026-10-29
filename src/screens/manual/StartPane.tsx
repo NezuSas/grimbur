@@ -11,7 +11,7 @@ import { manualStyles as styles, START_COLOR } from "./styles";
 
 const QUICK_STEPS: { image?: ImageSourcePropType; icon?: React.ComponentProps<typeof Ionicons>["name"]; tint?: string }[] = [
   { image: require("../../assets/sprites/tiles/Tile_Hidden.png") },
-  { icon: "volume-high", tint: "#ffcc80" },
+  { image: require("../../assets/sprites/ui/Clue_Guardian.png") },
   { image: require("../../assets/sprites/items/Icon_Gem.png") },
   { image: require("../../assets/sprites/enemies/Grimbur_Boss.png") },
 ];
