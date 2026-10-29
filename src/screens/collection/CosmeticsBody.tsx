@@ -70,7 +70,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
   }, [shown?.key, pop, calm]);
 
   const portrait = skinArt(hero, "classic").scoreImage;
-  const preview = Math.max(90, stage.h > 0 ? Math.min(stage.h, stage.w) : 200);
+  const preview = Math.max(60, Math.min(stage.h, stage.w));
 
   if (!shown) return null;
 
@@ -134,7 +134,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
 
   // Titles are words, not pictures: each one is a ribbon with its whole name, a medal in a grid, grouped by what the
   // player can do with it.
-  const titleCols = gridW >= 520 ? 3 : gridW >= 330 ? 2 : 1;
+  const titleCols = gridW >= 560 ? 4 : gridW >= 380 ? 3 : 2;
   const plateW = gridW > 0 ? Math.floor((gridW - 10 * (titleCols - 1)) / titleCols) : 160;
   const shortHow = (unlock: CosmeticInfo["unlock"]): string | null =>
     !unlock ? null : unlock.kind === "achievement" ? achievementText(t, unlock.id, "name") : howToEarn(unlock);
@@ -151,7 +151,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           accessibilityRole="button"
           accessibilityState={{ selected: on }}
           accessibilityLabel={`${cosmeticText(t, c.id)}. ${t(`cosmetic.tier.${c.tier}` as TranslationKey)}${how ? `. ${howToEarn(c.unlock)}` : ""}`}
-          style={[styles.medal, { width: plateW, borderColor: on ? "#FFE3A0" : color + (has ? "99" : "44") }, on && { borderWidth: 2.5, backgroundColor: color + "1F" }]}
+          style={[styles.medal, { width: plateW }, on && { borderColor: "#FFE3A0", backgroundColor: color + "1F" }]}
         >
           <View style={styles.ribbonRow}>
             <View style={[styles.gem, { backgroundColor: color, opacity: has ? 1 : 0.45 }]} />
@@ -271,14 +271,19 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
     <View style={styles.body}>
       <View style={styles.showcase}>
         <View style={styles.stage} onLayout={ev => setStage({ w: ev.nativeEvent.layout.width, h: ev.nativeEvent.layout.height })}>
-          <View style={[styles.halo, { width: preview * 0.92, height: preview * 0.92, borderRadius: preview, backgroundColor: tierColor + "22", borderColor: tierColor + "55" }]} />
-          <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
-            {skin ? (
-              <SpriteImage source={skinArt(skin.hero, skin.skin).playerImage} style={{ width: preview, height: preview }} resizeMode="contain" accessibilityIgnoresInvertColors />
-            ) : (
-              <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} frame={equippedCosmetic(stats, "frame") ?? undefined} />
-            )}
-          </Animated.View>
+          {/* Drawn only once the stage is measured, and out of its flow: a guessed size would show big for a frame and then shrink. */}
+          {stage.h > 0 ? (
+            <View style={styles.stageLayer} pointerEvents="none">
+              <View style={[styles.halo, { width: preview * 0.92, height: preview * 0.92, borderRadius: preview, backgroundColor: tierColor + "22", borderColor: tierColor + "55" }]} />
+              <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) }] }}>
+                {skin ? (
+                  <SpriteImage source={skinArt(skin.hero, skin.skin).playerImage} style={{ width: preview, height: preview }} resizeMode="contain" accessibilityIgnoresInvertColors />
+                ) : (
+                  <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} frame={equippedCosmetic(stats, "frame") ?? undefined} />
+                )}
+              </Animated.View>
+            </View>
+          ) : null}
         </View>
 
         {/* A title is already written under the portrait: its name is not repeated. */}
@@ -386,6 +391,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   stage: { flex: 1, minHeight: 90, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
+  stageLayer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   halo: { position: "absolute", borderWidth: 2 },
   name: { color: "#fff", fontWeight: "900", fontSize: 20, letterSpacing: 2, textAlign: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" },
@@ -418,12 +424,12 @@ const styles = StyleSheet.create({
   groupHead: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   groupTitle: { color: "#FFD54F", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
   groupCount: { color: "#1a0f00", backgroundColor: "#E8B04A", fontWeight: "900", fontSize: 11, paddingHorizontal: 7, borderRadius: 8, overflow: "hidden" },
-  medal: { alignItems: "center", justifyContent: "center", gap: 6, minHeight: 104, paddingHorizontal: 8, paddingVertical: 10, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(30, 22, 16, 0.88)" },
-  ribbonRow: { flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "stretch", justifyContent: "center" },
-  gem: { width: 8, height: 8, transform: [{ rotate: "45deg" }], borderRadius: 1.5 },
-  ribbon: { flexShrink: 1, minHeight: 38, justifyContent: "center", paddingHorizontal: 9, paddingVertical: 5, borderRadius: 8, borderWidth: 1.5, backgroundColor: "rgba(40, 26, 10, 0.95)" },
+  medal: { alignItems: "center", justifyContent: "flex-start", gap: 4, paddingHorizontal: 4, paddingVertical: 6, borderRadius: 12, borderWidth: 1.5, borderColor: "transparent" },
+  ribbonRow: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "stretch", justifyContent: "center" },
+  gem: { width: 6, height: 6, transform: [{ rotate: "45deg" }], borderRadius: 1.5 },
+  ribbon: { flexShrink: 1, minHeight: 32, justifyContent: "center", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 7, borderWidth: 1.5, backgroundColor: "rgba(40, 26, 10, 0.95)" },
   ribbonGlow: { shadowColor: "#FFD54F", shadowOpacity: 0.8, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 6 },
-  ribbonText: { color: "#FFD54F", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8, textAlign: "center" },
+  ribbonText: { color: "#FFD54F", fontWeight: "900", fontSize: 11.5, letterSpacing: 0.6, textAlign: "center" },
   ribbonTextLocked: { color: "#CDBBA8" },
   medalTier: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1.4 },
   medalState: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(158,227,125,0.12)" },
