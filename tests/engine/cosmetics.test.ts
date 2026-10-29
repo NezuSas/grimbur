@@ -1,5 +1,5 @@
 import { EMPTY_STATS, LocalStats, parseStats } from '../../src/core/stats/runStats';
-import { COSMETICS, buyCosmetic, equipCosmetic, equippedCosmetic, hasFullWardrobe, ownsCosmetic, parseCosmetics } from '../../src/core/cosmetics/cosmetics';
+import { COLLECTION_MILESTONES, COSMETICS, buyCosmetic, collectionProgress, collectionRewards, equipCosmetic, equippedCosmetic, hasFullWardrobe, ownsCosmetic, parseCosmetics } from '../../src/core/cosmetics/cosmetics';
 import { DEAL_DISCOUNT, buyDeal, dailyDeals, dealPrice } from '../../src/core/cosmetics/dailyShop';
 import { SKINS_BY_HERO, skinKey } from '../../src/core/skins/skins';
 
@@ -129,5 +129,45 @@ describe('public look', () => {
     expect(lookProblems({})).toEqual([]);
     expect(lookProblems({ frame: 'frame_gold', title: 'title_slayer' })).toEqual([]);
     expect(lookProblems({ frame: 'crown', title: 7 })).toEqual(['frame', 'title']);
+  });
+
+  describe('collection rewards', () => {
+    const everything = (): LocalStats => {
+      const owned = SKINS_BY_HERO.flatMap((list, hero) => list.filter(s => s !== 'classic').map(s => skinKey(hero, s)));
+      const achievements = Object.fromEntries(
+        COSMETICS.flatMap(c => (c.unlock?.kind === 'achievement' ? [[c.unlock.id, '2026-10-29']] : [])),
+      );
+      return { ...rich(), achievements, skins: { owned, equipped: {} }, cosmetics: { ...EMPTY_STATS.cosmetics, owned: COSMETICS.filter(c => c.price > 0).map(c => c.id) } };
+    };
+
+    it('starts at nothing: the classic outfits do not count, and no reward is owned', () => {
+      const p = collectionProgress(rich());
+      expect(p.owned).toBe(0);
+      expect(p.total).toBeGreaterThan(40);
+      for (const m of COLLECTION_MILESTONES) for (const r of collectionRewards(m)) expect(ownsCosmetic(rich(), r.id)).toBe(false);
+    });
+
+    it('every milestone has a reward, and rewards are not counted in the share they need', () => {
+      for (const m of COLLECTION_MILESTONES) expect(collectionRewards(m).length).toBeGreaterThan(0);
+      const all = collectionProgress(everything());
+      expect(all.pct).toBe(100);
+      expect(all.owned).toBe(all.total);
+      for (const m of COLLECTION_MILESTONES) for (const r of collectionRewards(m)) expect(ownsCosmetic(everything(), r.id)).toBe(true);
+    });
+
+    it('a reward arrives exactly when its share is reached', () => {
+      const total = collectionProgress(rich()).total;
+      const forSale = COSMETICS.filter(c => c.price > 0).map(c => c.id);
+      const quarter = Math.ceil(total / 4);
+      const at = (n: number): LocalStats => ({ ...rich(), cosmetics: { ...EMPTY_STATS.cosmetics, owned: forSale.slice(0, n) } });
+      expect(quarter).toBeLessThanOrEqual(forSale.length);
+      expect(ownsCosmetic(at(quarter - 1), 'title_collector')).toBe(false);
+      expect(ownsCosmetic(at(quarter), 'title_collector')).toBe(true);
+      expect(ownsCosmetic(at(quarter), 'celeb_hoard')).toBe(false);
+    });
+
+    it('a collection reward can never be bought', () => {
+      for (const m of COLLECTION_MILESTONES) for (const r of collectionRewards(m)) expect(buyCosmetic(rich(), r.id)).toBeNull();
+    });
   });
 });

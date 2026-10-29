@@ -36,4 +36,46 @@ export const BOARD_BIOME: Partial<Record<CosmeticId, BiomeId>> = {
   board_lair: 'lair',
 };
 
-export const allCosmeticImages = (): ImageSourcePropType[] => [...Object.values(TRAIL_LOOKS).map(t => t!.arrow), ...Object.values(FRAME_ART) as ImageSourcePropType[]];
+/** How a victory is celebrated: which pieces of the game's art, how they move, how big they are, whether they spin. */
+export interface CelebrationLook {
+  sprites: readonly ImageSourcePropType[];
+  motion: 'fall' | 'rise' | 'burst' | 'volley';
+  size: readonly [number, number];
+  spin: boolean;
+}
+
+const GEM = require('../assets/sprites/items/Icon_Gem.png');
+const EMBER = require('../assets/sprites/items/Icon_Ember.png');
+const STAR = require('../assets/sprites/ui/Icon_Star.png');
+
+/** No celebration worn: the gems and arrows every victory has always rained. */
+export const DEFAULT_CELEBRATION: CelebrationLook = { sprites: [GEM, GEM, GEM, require('../assets/sprites/items/Icon_Arrows.png'), GEM, GEM, GEM], motion: 'fall', size: [18, 39], spin: true };
+
+export const CELEBRATION_LOOKS: Partial<Record<CosmeticId, CelebrationLook>> = {
+  celeb_embers: { sprites: [EMBER, EMBER, require('../assets/sprites/items/Icon_EmberPile.png')], motion: 'rise', size: [16, 34], spin: false },
+  celeb_gems: { sprites: [GEM], motion: 'fall', size: [22, 48], spin: true },
+  celeb_stars: { sprites: [STAR], motion: 'burst', size: [18, 40], spin: true },
+  celeb_arrows: {
+    sprites: [TRAIL_LOOKS.trail_fire!.arrow, TRAIL_LOOKS.trail_frost!.arrow, TRAIL_LOOKS.trail_storm!.arrow, TRAIL_LOOKS.trail_stars!.arrow],
+    motion: 'volley',
+    size: [22, 34],
+    spin: false,
+  },
+  celeb_relics: {
+    sprites: [
+      require('../assets/sprites/relics/phoenix.png'),
+      require('../assets/sprites/relics/lantern.png'),
+      require('../assets/sprites/relics/lucky_coin.png'),
+      require('../assets/sprites/relics/quiver.png'),
+      require('../assets/sprites/relics/frost.png'),
+      require('../assets/sprites/relics/greed.png'),
+    ],
+    motion: 'fall',
+    size: [28, 50],
+    spin: false,
+  },
+  celeb_skulls: { sprites: [require('../assets/sprites/ui/Icon_Skull.png'), require('../assets/sprites/ui/Icon_Monster.png')], motion: 'fall', size: [24, 44], spin: true },
+  celeb_hoard: { sprites: [GEM, EMBER, STAR, require('../assets/sprites/relics/lucky_coin.png'), GEM, STAR], motion: 'burst', size: [20, 44], spin: true },
+};
+
+export const allCosmeticImages =(): ImageSourcePropType[] => [...Object.values(TRAIL_LOOKS).map(t => t!.arrow), ...Object.values(FRAME_ART) as ImageSourcePropType[]];

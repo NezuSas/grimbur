@@ -22,6 +22,9 @@ import type { Unlocks } from '../../../core/stats/unlocks';
 import GoalLine from '../GoalLine';
 import SpriteImage from '../SpriteImage';
 import GemShower from './GemShower';
+import { CELEBRATION_LOOKS } from '../../cosmeticArt';
+import { equippedCosmetic } from '../../../core/cosmetics/cosmetics';
+import { peekLocalStats } from '../../../services/localStats';
 import EmberParticles from '../EmberParticles';
 import { useSettingsStore } from '../../../state/settings/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -583,6 +586,12 @@ const GameOverOverlay = ({
   // Only a victory is celebrated, with the game's own gems and arrows raining over the cave and embers rising.
   // A defeat gets a quieter mood: a few embers drifting up from the dark.
   const celebrate = !calm && victory;
+  // The celebration worn in the Collection, read when the victory is shown.
+  const [celebration] = useState(() => {
+    const saved = peekLocalStats();
+    const id = saved ? equippedCosmetic(saved, 'celebration') : null;
+    return id ? CELEBRATION_LOOKS[id] : undefined;
+  });
 
   return (
     <OverlayContainer>
@@ -597,7 +606,7 @@ const GameOverOverlay = ({
         {left}
         {right}
       </Animated.View>
-      {celebrate && <GemShower count={width >= 900 ? 38 : 26} />}
+      {celebrate && <GemShower count={width >= 900 ? 38 : 26} look={celebration} />}
     </OverlayContainer>
   );
 };

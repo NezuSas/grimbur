@@ -38,6 +38,8 @@ type Props = {
   playerName: string;
   cardSize: number;
   onGridWidth: (w: number) => void;
+  /** The entry shown first (a reward opened from the Rewards tab). */
+  initialPick?: string | null;
 };
 
 /** One entry of the grid: a catalog item, or one of today's deals. */
@@ -47,14 +49,14 @@ type Entry = { key: string; id?: CosmeticId; deal?: Deal };
  * The cosmetic categories of the Collection (trails, frames, titles, boards) and today's deals: the chosen item big on the
  * left, with what it takes to have it, and the grid on the right. Mirrors the outfit view so the screen reads as one.
  */
-const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, onGridWidth }: Props) => {
+const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, onGridWidth, initialPick }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const today = dailyKey();
   const entries: Entry[] = category === "deals"
     ? dailyDeals(stats, today).map(d => ({ key: d.key, deal: d }))
     : cosmeticsOf(category).map(c => ({ key: c.id, id: c.id }));
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(initialPick ?? null);
   const shown = entries.find(e => e.key === picked) ?? entries.find(e => e.id && equippedCosmetic(stats, cosmeticInfo(e.id).kind) === e.id) ?? entries[0];
   const [stage, setStage] = useState({ w: 0, h: 0 });
   const busy = useRef(false);
@@ -122,7 +124,9 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
   const unlockLine = info?.unlock
     ? info.unlock.kind === "wardrobe"
       ? t("cosmetic.unlock.wardrobe")
-      : t("cosmetic.unlock.achievement", { name: achievementText(t, info.unlock.id, "name") })
+      : info.unlock.kind === "collection"
+        ? t("cosmetic.unlock.collection", { pct: info.unlock.pct })
+        : t("cosmetic.unlock.achievement", { name: achievementText(t, info.unlock.id, "name") })
     : null;
 
   const card = (e: Entry, i: number) => {
