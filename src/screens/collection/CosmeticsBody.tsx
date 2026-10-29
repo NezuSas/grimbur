@@ -12,7 +12,7 @@ import { useT } from "../../i18n/useT";
 import { achievementText, cosmeticText, heroText, skinText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
 import type { LocalStats } from "../../core/stats/runStats";
-import { cosmeticInfo, cosmeticsOf, equippedCosmetic, ownsCosmetic, type CosmeticId, type CosmeticKind } from "../../core/cosmetics/cosmetics";
+import { cosmeticInfo, cosmeticsOf, equippedCosmetic, ownsCosmetic, type CosmeticId, type CosmeticInfo, type CosmeticKind } from "../../core/cosmetics/cosmetics";
 import { dailyDeals, type Deal } from "../../core/cosmetics/dailyShop";
 import { dailyKey, msUntilNextDay } from "../../core/engine/seed";
 import { formatCountdown } from "../../core/stats/countdown";
@@ -59,6 +59,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
   const [picked, setPicked] = useState<string | null>(initialPick ?? null);
   const shown = entries.find(e => e.key === picked) ?? entries.find(e => e.id && equippedCosmetic(stats, cosmeticInfo(e.id).kind) === e.id) ?? entries[0];
   const [stage, setStage] = useState({ w: 0, h: 0 });
+  const [gridW, setGridW] = useState(0);
   const busy = useRef(false);
 
   const pop = useRef(new Animated.Value(1)).current;
@@ -121,13 +122,77 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
     }, true);
   const toggle = () => run(() => equipCosmeticFor(info!.kind, equipped ? null : cosmeticId!), false);
 
-  const unlockLine = info?.unlock
-    ? info.unlock.kind === "wardrobe"
-      ? t("cosmetic.unlock.wardrobe")
-      : info.unlock.kind === "collection"
-        ? t("cosmetic.unlock.collection", { pct: info.unlock.pct })
-        : t("cosmetic.unlock.achievement", { name: achievementText(t, info.unlock.id, "name") })
-    : null;
+  const howToEarn = (unlock: CosmeticInfo["unlock"]): string | null =>
+    !unlock
+      ? null
+      : unlock.kind === "wardrobe"
+        ? t("cosmetic.unlock.wardrobe")
+        : unlock.kind === "collection"
+          ? t("cosmetic.unlock.collection", { pct: unlock.pct })
+          : t("cosmetic.unlock.achievement", { name: achievementText(t, unlock.id, "name") });
+  const unlockLine = howToEarn(info?.unlock);
+
+  // Titles are words, not pictures: wide plates with the whole name, grouped by what the player can do with them.
+  const titleCols = gridW >= 380 ? 2 : 1;
+  const plateW = gridW > 0 ? Math.floor((gridW - 10 * (titleCols - 1)) / titleCols) : 200;
+  const plate = (c: CosmeticInfo, i: number) => {
+    const has = ownsCosmetic(stats, c.id);
+    const worn = equippedCosmetic(stats, "title") === c.id;
+    const on = c.id === shown.key;
+    const color = TIER_COLOR[c.tier];
+    const how = !has && c.price <= 0 ? howToEarn(c.unlock) : null;
+    return (
+      <Rise key={c.id} delay={riseDelay(i)}>
+        <PressScale
+          onPress={() => setPicked(c.id)}
+          accessibilityRole="button"
+          accessibilityState={{ selected: on }}
+          accessibilityLabel={`${cosmeticText(t, c.id)}. ${t(`cosmetic.tier.${c.tier}` as TranslationKey)}${how ? `. ${how}` : ""}`}
+          style={[styles.plate, { width: plateW, borderColor: on ? "#FFE3A0" : color + (has ? "AA" : "55") }, on && { borderWidth: 2.5, backgroundColor: color + "22" }]}
+        >
+          <View style={[styles.plateBar, { backgroundColor: color, opacity: has ? 1 : 0.5 }]} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[styles.plateName, !has && styles.plateNameLocked]} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+              {cosmeticText(t, c.id).toLocaleUpperCase()}
+            </Text>
+            <Text style={[styles.plateTier, { color }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              {t(`cosmetic.tier.${c.tier}` as TranslationKey).toLocaleUpperCase()}
+            </Text>
+            {how ? (
+              <Text style={styles.plateHow} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                {how}
+              </Text>
+            ) : null}
+          </View>
+          {worn ? (
+            <View style={styles.plateWorn}>
+              <Ionicons name="checkmark" size={15} color="#111" />
+            </View>
+          ) : has ? (
+            <Ionicons name="checkmark-circle-outline" size={22} color="#9EE37D" />
+          ) : c.price > 0 ? (
+            <View style={styles.cardPrice}>
+              <EmberIcon size={11} />
+              <Text style={styles.cardPriceText} maxFontSizeMultiplier={1.1}>{c.price}</Text>
+            </View>
+          ) : (
+            <Ionicons name="trophy" size={18} color="#FFD54F" style={{ opacity: 0.8 }} />
+          )}
+        </PressScale>
+      </Rise>
+    );
+  };
+  const titleGroups = (() => {
+    const all = cosmeticsOf("title");
+    const mine = all.filter(c => ownsCosmetic(stats, c.id)).sort((a, b) => Number(equippedCosmetic(stats, "title") === b.id) - Number(equippedCosmetic(stats, "title") === a.id));
+    const sale = all.filter(c => !ownsCosmetic(stats, c.id) && c.price > 0).sort((a, b) => a.price - b.price);
+    const earn = all.filter(c => !ownsCosmetic(stats, c.id) && c.price <= 0);
+    return [
+      { key: "mine", label: t("collection.titles.mine"), list: mine },
+      { key: "sale", label: t("collection.titles.sale"), list: sale },
+      { key: "earn", label: t("collection.titles.earn"), list: earn },
+    ].filter(g => g.list.length > 0);
+  })();
 
   const card = (e: Entry, i: number) => {
     const eId = e.id ?? (e.deal?.item.kind === "cosmetic" ? e.deal.item.id : undefined);
@@ -203,7 +268,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             {skin ? (
               <SpriteImage source={skinArt(skin.hero, skin.skin).playerImage} style={{ width: preview, height: preview }} resizeMode="contain" accessibilityIgnoresInvertColors />
             ) : (
-              <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} />
+              <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} frame={equippedCosmetic(stats, "frame") ?? undefined} />
             )}
           </Animated.View>
         </View>
@@ -278,8 +343,26 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             <Text style={styles.dealsTime} maxFontSizeMultiplier={1.2}>{t("collection.deals.refresh", { time: formatCountdown(msUntilNextDay()) })}</Text>
           </View>
         ) : null}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false} onLayout={ev => onGridWidth(ev.nativeEvent.layout.width)}>
-          {entries.map(card)}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+          onLayout={ev => {
+            onGridWidth(ev.nativeEvent.layout.width);
+            setGridW(ev.nativeEvent.layout.width);
+          }}
+        >
+          {category === "title"
+            ? titleGroups.map(g => (
+                <React.Fragment key={g.key}>
+                  <View style={styles.groupHead}>
+                    <Text style={styles.groupTitle} maxFontSizeMultiplier={1.15}>{g.label.toLocaleUpperCase()}</Text>
+                    <Text style={styles.groupCount} maxFontSizeMultiplier={1.1}>{g.list.length}</Text>
+                  </View>
+                  {g.list.map(plate)}
+                </React.Fragment>
+              ))
+            : entries.map(card)}
         </ScrollView>
       </View>
     </View>
@@ -321,6 +404,16 @@ const styles = StyleSheet.create({
   cardPriceText: { color: "#FFCC80", fontWeight: "900", fontSize: 12 },
   cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#9EE37D", alignItems: "center", justifyContent: "center" },
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
+  groupHead: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
+  groupTitle: { color: "#FFD54F", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
+  groupCount: { color: "#1a0f00", backgroundColor: "#E8B04A", fontWeight: "900", fontSize: 11, paddingHorizontal: 7, borderRadius: 8, overflow: "hidden" },
+  plate: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 58, paddingVertical: 8, paddingRight: 10, paddingLeft: 14, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(30, 22, 16, 0.88)", overflow: "hidden" },
+  plateBar: { position: "absolute", left: 0, top: 0, bottom: 0, width: 5 },
+  plateName: { color: "#FFD54F", fontWeight: "900", fontSize: 14, letterSpacing: 1 },
+  plateNameLocked: { color: "#CDBBA8" },
+  plateTier: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1.2 },
+  plateHow: { color: "#B99A7C", fontSize: 11, fontWeight: "600" },
+  plateWorn: { width: 24, height: 24, borderRadius: 12, backgroundColor: "#9EE37D", alignItems: "center", justifyContent: "center" },
   dealBadge: { position: "absolute", top: 4, left: 4, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "#FF7043" },
   dealBadgeText: { color: "#fff", fontWeight: "900", fontSize: 11 },
 });
