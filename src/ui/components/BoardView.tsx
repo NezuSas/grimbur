@@ -6,6 +6,7 @@ import type { BiomeId } from "../../core/engine/biomes";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import BoardTouchLayer from "./BoardTouchLayer";
+import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
 import { getNearbyHazards } from "../../core/engine/proximity";
@@ -113,10 +114,12 @@ type Props = {
   skin?: SkinId;
   /** The cave type of this floor (the plain cave when omitted). */
   biome?: BiomeId;
+  /** The equipped arrow trail, if any. */
+  trail?: TrailLook | null;
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave" }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -554,7 +557,7 @@ const BoardView: React.FC<Props> = memo(
             />
           ))}
 
-          {flying && <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} />}
+          {flying && <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} trail={trail} />}
 
           {/* A spotlight on the killer: the rest of the board dims so nothing competes with it */}
           {dying && killerTile != null && killerEntityType && (
