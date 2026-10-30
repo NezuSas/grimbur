@@ -298,7 +298,8 @@ const GridCell = memo(({
   const hazard = !!entity && (entity.type === 'enemy' || entity.type === 'pit' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'trap' || entity.type === 'boss');
 
   // Background priority: visited block > fog
-  const backgroundAsset = (isVisited || isPlayerHere) ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
+  // An unveiled floor is shown as explored ground: the creatures stand on it as they would have when found.
+  const backgroundAsset = (isVisited || isPlayerHere || unveiled) ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
 
   const row = Math.floor(index / cols);
   const col = index % cols;
@@ -334,7 +335,7 @@ const GridCell = memo(({
         style={[
           styles.tileTone,
           { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * 0.09 },
-          isVisited || isPlayerHere ? styles.toneLit : styles.toneDark,
+          isVisited || isPlayerHere || unveiled ? styles.toneLit : styles.toneDark,
         ]}
       />
 

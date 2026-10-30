@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } fr
 import {
   StyleSheet,
   View,
+  Pressable,
   StatusBar,
   Animated,
   AppState,
@@ -160,6 +161,16 @@ export default function GameScreen({ navigation, route }: Props) {
   const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+  // The floor banner holds the board until it has gone (or is tapped away), so no step is taken under it.
+  const bannerKey = `${runNumber}-${state.runSeed}-${state.level}`;
+  const [bannerDone, setBannerDone] = useState<string | null>(null);
+  const [bannerSkipped, setBannerSkipped] = useState<string | null>(null);
+  const bannerUp = bannerDone !== bannerKey && !runEnded;
+  useEffect(() => {
+    // Never hold the board for good if the banner cannot finish (it is hidden behind something else).
+    const timer = setTimeout(() => setBannerDone(bannerKey), 9000);
+    return () => clearTimeout(timer);
+  }, [bannerKey]);
   // Who waits in this floor's fog, shown on the floor banner: the creatures are met by name before they are deduced.
   const floorRoster = useMemo(() => {
     const kinds = [
@@ -725,15 +736,20 @@ export default function GameScreen({ navigation, route }: Props) {
         calm={reduceFlash}
         beat={heartbeat}
       />
+      {/* While the floor banner is up the board waits: a tap anywhere closes it and play begins. */}
+      {bannerUp && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
+        <Pressable style={[StyleSheet.absoluteFill, { zIndex: 39 }]} onPress={() => setBannerSkipped(bannerKey)} accessibilityRole="button" accessibilityLabel={t("floor.bannerSkip")} />
+      )}
       {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
         <FloorBanner
-          floorKey={`${runNumber}-${state.runSeed}-${state.level}`}
+          floorKey={bannerKey}
+          onDone={() => setBannerDone(bannerKey)}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : undefined}
           omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : undefined}
           story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
-          dismiss={state.turn > 0}
+          dismiss={bannerSkipped === bannerKey}
           minTop={insets.top + hudHeight + 6}
           calm={reduceFlash}
           roster={floorRoster}

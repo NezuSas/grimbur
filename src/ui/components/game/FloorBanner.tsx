@@ -22,12 +22,16 @@ type Props = {
   dismiss?: boolean;
   /** Lowest the banner may start (just under the HUD); it sits at 14% of the window otherwise. */
   minTop?: number;
+  /** Called once the banner has gone (shown in full, or dismissed). */
+  onDone?: () => void;
   /** Who waits in the fog of this floor: each kind of creature with how many there are. */
   roster?: { key: string; art: ImageSourcePropType; count: number; label: string }[];
 };
 
 /** Brief "Floor N" announcement that also names the floor's omen. Never blocks touches. */
-const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0, roster }) => {
+const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0, roster, onDone }) => {
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
   const opacity = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(calm ? 0 : 12)).current;
   const { height: windowHeight } = useWindowDimensions();
@@ -44,7 +48,9 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
       Animated.delay(hold),
       Animated.timing(opacity, { toValue: 0, duration: 320, useNativeDriver: true }),
     ]);
-    run.start();
+    run.start(({ finished }) => {
+      if (finished) doneRef.current?.();
+    });
     return () => run.stop();
   }, [floorKey, omenName, story, calm, long, opacity, lift]);
 
@@ -52,7 +58,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
   useEffect(() => {
     if (!dismiss) return;
     const fade = Animated.timing(opacity, { toValue: 0, duration: 160, useNativeDriver: true });
-    fade.start();
+    fade.start(() => doneRef.current?.());
     return () => fade.stop();
   }, [dismiss, opacity]);
 

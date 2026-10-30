@@ -1159,6 +1159,7 @@ export const en = {
   'roster.stalker': 'stalkers',
   'roster.sleeper': 'sleeping beasts',
   'roster.pit': 'vortexes',
+  'floor.bannerSkip': 'Tap to start',
   'rank.1': "Novice",
   'rank.2': "Apprentice",
   'rank.3': "Explorer",

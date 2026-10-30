@@ -1163,6 +1163,7 @@ export const es: Record<TranslationKey, string> = {
   'roster.stalker': 'acechadores',
   'roster.sleeper': 'bestias dormidas',
   'roster.pit': 'vórtices',
+  'floor.bannerSkip': 'Toca para empezar',
   'rank.1': "Novato",
   'rank.2': "Aprendiz",
   'rank.3': "Explorador",
