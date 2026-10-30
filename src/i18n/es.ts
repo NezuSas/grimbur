@@ -423,6 +423,8 @@ export const es: Record<TranslationKey, string> = {
   'collection.cat.rewards': 'Premios',
   'collection.cat.celebration': 'Celebraciones',
   'collection.progress': '{pct}% de la colección · {owned}/{total}',
+  'collection.rewards.banner': '¡Ganaste un premio de colección!',
+  'collection.rewards.see': 'Ver',
   'collection.rewards.title': 'Tu colección',
   'collection.rewards.count': '{owned} de {total} piezas',
   'collection.rewards.next': 'Próximo premio al {pct}%: faltan {n}',

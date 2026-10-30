@@ -37,6 +37,8 @@ export interface SettingsState {
   remindersEnabled: boolean;
   /** Achievements unlocked when the player last opened the achievements screen (drives the red dot on the cover). */
   achievementsSeen: number;
+  /** Collection milestones (25/50/75/100 %) the player has already been told about (drives the reward banner and dots). */
+  collectionRewardsSeen: number;
   /** One-time in-game hints the player has already read (ability, undo, items). */
   hintsSeen: string[];
   /** Epoch ms of the last store-rating request (0 = never asked). */
@@ -60,6 +62,7 @@ export interface SettingsState {
   setStorySeen: (seen: boolean) => void;
   setRemindersEnabled: (enabled: boolean) => void;
   setAchievementsSeen: (count: number) => void;
+  setCollectionRewardsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
   markReviewAsked: (at: number) => void;
   setLastHero: (heroIndex: number) => void;

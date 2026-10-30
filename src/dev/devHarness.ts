@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import { COSMETICS } from "../core/cosmetics/cosmetics";
 import { EMPTY_MISSIONS, missionDef, syncMissions } from "../core/stats/missions";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { dailyKey } from "../core/engine/seed";
@@ -88,6 +89,12 @@ export function readDevHarness(): DevLaunch | null {
         SETTINGS_KEY,
         JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: [], reduceFlash: q.get("calm") === "1", ...(q.get("pad") === "floating" ? { movePad: "floating" } : {}), ...(q.get("skin") ? { joystickSkin: q.get("skin") } : {}) }, version: 0 }),
       );
+    }
+    // ?collector=1 owns every cosmetic for sale, so the collection rewards (and their banner) can be reviewed.
+    if (q.get("collector") === "1") {
+      const saved = JSON.parse(window.localStorage.getItem(STATS_KEY) ?? "{}");
+      const owned = COSMETICS.filter(c => c.price > 0).map(c => c.id);
+      window.localStorage.setItem(STATS_KEY, JSON.stringify({ ...EMPTY_STATS, ...saved, cosmetics: { ...EMPTY_STATS.cosmetics, ...saved.cosmetics, owned } }));
     }
     // ?monetization=on previews the locked states; &owned=1 pretends the full game was bought.
     // The veteran also has a name, a few finished duels and some challenges, so Friends shows its lists.

@@ -15,7 +15,7 @@ import PressScale from "../ui/components/PressScale";
 import Rise, { riseDelay } from "../ui/components/Rise";
 import CosmeticsBody, { type CosmeticCategory } from "./collection/CosmeticsBody";
 import CollectionRewards from "./collection/CollectionRewards";
-import { collectionProgress, type CosmeticId } from "../core/cosmetics/cosmetics";
+import { collectionMilestonesReached, collectionProgress, type CosmeticId } from "../core/cosmetics/cosmetics";
 import { getPlayerName } from "../services/playerProfile";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
@@ -199,6 +199,14 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const cardSize = gridWidth > 0 ? Math.floor((gridWidth - gap * (cols - 1)) / cols) : minCard;
 
   const progress = collectionProgress(stats);
+  // A collection milestone reached and not yet seen: a banner and a dot on Rewards until the player opens that tab.
+  const rewardsSeen = useSettingsStore(s => s.collectionRewardsSeen);
+  const setRewardsSeen = useSettingsStore(s => s.setCollectionRewardsSeen);
+  const milestones = collectionMilestonesReached(stats);
+  const newReward = loaded && milestones > rewardsSeen;
+  useEffect(() => {
+    if (category === "rewards" && milestones > rewardsSeen) setRewardsSeen(milestones);
+  }, [category, milestones, rewardsSeen, setRewardsSeen]);
   const list = visibleSkins(stats, hero, filter);
   const info = SKINS[shown];
   const state = skinStatus(stats, hero, shown);
@@ -255,11 +263,29 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={[styles.catText, on && styles.catTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
                   {t(`collection.cat.${c.id}` as TranslationKey)}
                 </Text>
-                {c.id === "deals" ? <View style={[styles.catDot, on && { backgroundColor: "#1a0f00" }]} /> : null}
+                {c.id === "deals" || (c.id === "rewards" && newReward) ? <View style={[styles.catDot, on && { backgroundColor: "#1a0f00" }]} /> : null}
               </PressScale>
             );
           })}
         </ScrollView>
+
+        {newReward && category !== "rewards" ? (
+          <PressScale
+            onPress={() => {
+              haptic.impact();
+              setCategory("rewards");
+            }}
+            accessibilityRole="button"
+            style={styles.rewardBanner}
+          >
+            <Ionicons name="trophy" size={18} color="#1a0f00" />
+            <Text style={styles.rewardBannerText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {t("collection.rewards.banner")}
+            </Text>
+            <Text style={styles.rewardBannerCta} maxFontSizeMultiplier={1.1}>{t("collection.rewards.see").toLocaleUpperCase()}</Text>
+            <Ionicons name="chevron-forward" size={16} color="#1a0f00" />
+          </PressScale>
+        ) : null}
 
         {category === "rewards" ? (
           <CollectionRewards
@@ -437,6 +463,9 @@ const styles = StyleSheet.create({
   catOn: { backgroundColor: "#E8B04A", borderColor: "#E8B04A" },
   catText: { color: "#EAE1D8", fontWeight: "900", fontSize: 13 },
   catTextOn: { color: "#1a0f00" },
+  rewardBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 10, marginBottom: 8, paddingHorizontal: 14, minHeight: 40, borderRadius: 14, backgroundColor: "#E8B04A", borderBottomWidth: 3, borderBottomColor: "rgba(0,0,0,0.3)" },
+  rewardBannerText: { flex: 1, color: "#1a0f00", fontWeight: "900", fontSize: 13.5 },
+  rewardBannerCta: { color: "#1a0f00", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#FF7043" },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   browse: { flex: 1, gap: 8 },

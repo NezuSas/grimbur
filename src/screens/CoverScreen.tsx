@@ -17,6 +17,7 @@ import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { UPGRADES, canAfford } from "../core/stats/forge";
 import { useSettingsStore } from "../state/settings/store";
 import { collectionBadge } from "../core/skins/collection";
+import { collectionMilestonesReached } from "../core/cosmetics/cosmetics";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { loadSavedRun, SavedRun } from "../services/savedRun";
 import { flushPendingSubmits } from "../services/pendingSubmits";
@@ -81,6 +82,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
   const streak = useMemo(() => streakStatus(stats, today), [stats, today]);
   const goal = useMemo(() => nextGoals(stats, 1)[0] ?? null, [stats]);
   const achievementsSeen = useSettingsStore(st => st.achievementsSeen);
+  const collectionRewardsSeen = useSettingsStore(st => st.collectionRewardsSeen);
   const unlocked = Object.keys(stats.achievements).length;
   // Endless is part of the paid full game (only when monetisation is on and the unlock is not owned).
   const { modeLocked } = useEntitlements();
@@ -132,7 +134,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
           tutorialPending={!tutorialSeen}
           forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
           achievementsBadge={unlocked > achievementsSeen}
-          collectionBadge={collectionBadge(stats)}
+          collectionBadge={collectionBadge(stats) || collectionMilestonesReached(stats) > collectionRewardsSeen}
           missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0}
           onPressMissions={() => navigation.navigate("MissionsScreen")}
           onPressCollection={() => navigation.navigate("CollectionScreen")}

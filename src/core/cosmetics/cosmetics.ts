@@ -156,6 +156,12 @@ export function collectionProgress(stats: LocalStats): { owned: number; total: n
   return { owned, total, pct: total > 0 ? Math.floor((owned * 100) / total) : 0 };
 }
 
+/** How many collection milestones the player has reached. */
+export const collectionMilestonesReached = (stats: LocalStats): number => {
+  const pct = collectionProgress(stats).pct;
+  return COLLECTION_MILESTONES.filter(m => pct >= m).length;
+};
+
 /** The rewards a milestone of the collection gives. */
 export const collectionRewards = (pct: CollectionMilestone): CosmeticInfo[] =>
   COSMETICS.filter(c => c.unlock?.kind === 'collection' && c.unlock.pct === pct);
