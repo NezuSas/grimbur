@@ -505,6 +505,17 @@ export default function GameScreen({ navigation, route }: Props) {
     }
   }, [dailyDate, runResult, t, plural, ascension, selectedCharacter, sessionTimeRef, routeOf]);
 
+  // Between floors the old board stays hidden under a dark cover, which lifts once the next floor is there.
+  const [floorCovered, setFloorCovered] = useState(false);
+  const coverOpacity = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (floorCovered && !state.isLevelUp) {
+      Animated.timing(coverOpacity, { toValue: 0, duration: reduceFlash ? 0 : 260, useNativeDriver: true }).start(() => setFloorCovered(false));
+    } else if (floorCovered) {
+      coverOpacity.setValue(1);
+    }
+  }, [floorCovered, state.isLevelUp, coverOpacity, reduceFlash]);
+
   // ── Floor cleared → level-complete screen → next floor ────────────────────
   useEffect(() => {
     if (!levelUpWindow) return;
@@ -516,6 +527,9 @@ export default function GameScreen({ navigation, route }: Props) {
       if (leaving.current || !mounted.current) return;
       const now = stateRef.current;
       const enemiesLeft = countGuardians(now);
+      // The cleared floor is covered from here on: coming back, only the next floor (or its relic draft) is ever seen.
+      coverOpacity.setValue(1);
+      setFloorCovered(true);
       navigation.navigate("LevelCompleteScreen", {
         characterIndex,
         skin,
@@ -841,6 +855,8 @@ export default function GameScreen({ navigation, route }: Props) {
         </View>
       </View>
 
+      {floorCovered ? <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.floorCover, { opacity: coverOpacity }]} /> : null}
+
       {popups.map(p => (
         <ScorePopup
           key={p.id}
@@ -937,6 +953,7 @@ export default function GameScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
+  floorCover: { backgroundColor: "#0A0704", zIndex: 20 },
   container: {
     flex: 1,
     backgroundColor: "#000",
