@@ -754,10 +754,10 @@ export const en = {
   'complete.floor': 'Floor {n}',
   'complete.score': 'Score',
   'complete.gems': 'Gems',
-  'complete.kills': 'Guardians',
+  'complete.kills': 'Monsters',
   'complete.time': 'Time',
   'complete.next': 'Next floor',
-  'complete.starHint': 'Slay every guardian on the floor for all three stars.',
+  'complete.starHint': 'Slay every monster on the floor (guardians, stalkers and beasts) for all three stars. Exploring everything is not needed.',
   'complete.track': 'Floor {n} of {total} · the Grimbur waits at the bottom',
 
   'over.victory': 'Expedition complete',
