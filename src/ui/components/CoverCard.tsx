@@ -8,6 +8,7 @@ import PlayButton from "./PlayButton";
 import EmberParticles from "./EmberParticles";
 import { useSettingsStore } from "../../state/settings/store";
 import StreakBadge from "./StreakBadge";
+import { LinearGradient } from "expo-linear-gradient";
 import SpriteImage from "./SpriteImage";
 import PressScale from "./PressScale";
 import { BOSS_FRAMES } from "./BossSprite";
@@ -95,7 +96,17 @@ const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolea
 };
 
 /** A round icon button with its name underneath: the menu dock. */
-const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string; size: number }) => (
+const DOCK_ART = {
+  forge: require("../../assets/sprites/ui/Icon_Hammer.png"),
+  missions: require("../../assets/sprites/ui/Icon_Flag.png"),
+  rankings: require("../../assets/sprites/ui/Icon_Trophy.png"),
+  friends: require("../../assets/sprites/ui/Icon_Swords.png"),
+  collection: require("../../assets/sprites/cosmetics/Frame_Gold.png"),
+  achievements: require("../../assets/sprites/ui/Icon_Medal.png"),
+  manual: require("../../assets/sprites/ui/Icon_Puzzle.png"),
+} as const;
+
+const DockButton = ({ art, label, onPress, ui, dot, dotLabel, size }: { art: keyof typeof DOCK_ART; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string; size: number }) => (
   <PressScale
     onPress={() => {
       haptic.impact();
@@ -107,10 +118,10 @@ const DockButton = ({ icon, label, onPress, ui, dot, dotLabel, size }: { icon: k
     accessibilityLabel={dot && dotLabel ? `${label}. ${dotLabel}` : label}
   >
     <View style={[styles.dockCircle, { width: size, height: size, borderRadius: size / 2 }]}>
-      <Ionicons name={icon} size={Math.round(size * 0.46)} color="#F2C14E" />
+      <SpriteImage source={DOCK_ART[art]} style={{ width: size * 0.72, height: size * 0.72 }} resizeMode="contain" accessibilityIgnoresInvertColors />
       {dot ? <View style={styles.dot} /> : null}
     </View>
-    <Text style={[styles.dockLabel, { fontSize: Math.min(11 * ui, Math.max(8.5, size / 4.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+    <Text style={[styles.dockLabel, { fontSize: Math.min(11.5 * ui, Math.max(10, size / 4)) }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
       {label}
     </Text>
   </PressScale>
@@ -189,9 +200,9 @@ const CoverCard: React.FC<Props> = ({
   const wide = width >= 640 && width > height;
   // Phones keep the base sizes; roomier screens grow the cards, icons and text up to 1.5x.
   const ui = Math.max(1, Math.min(1.5, width / 900, height / 540));
-  const menuWidth = wide ? Math.min(520 * ui, width * 0.5) : Math.min(width - 32, 560 * Math.min(ui, 1.25));
+  const menuWidth = wide ? Math.min(540 * ui, width * 0.54) : Math.min(width - 32, 560 * Math.min(ui, 1.25));
   // Seven round buttons share the dock: they shrink on a narrow menu instead of touching each other.
-  const dockSize = Math.max(34, Math.min(52 * ui, Math.floor((menuWidth - 16) / 7) - 4));
+  const dockSize = Math.max(38, Math.min(54 * ui, Math.floor((menuWidth - 16) / 7) - 6));
   // Room left for the title once the menu has taken its share (side margins and the gap between them included).
   // Wide screens keep clear of the torches that frame the cave on both sides.
   const sideMargin = wide ? Math.max(16, width * (width >= 1000 ? 0.12 : 0.07)) : 16;
@@ -199,8 +210,8 @@ const CoverCard: React.FC<Props> = ({
   const titleSize = wide
     ? Math.max(28, Math.min(72, height * 0.17, leftWidth / 5.4))
     : Math.max(34, Math.min(56, width * 0.13, leftWidth / 5.4));
-  const showArt = height >= 400 && (wide ? width >= 760 : height >= 700);
-  const artSize = Math.min(wide ? height * 0.3 : 150, 210);
+  const showArt = wide ? height >= 330 : height >= 700;
+  const artSize = Math.min(wide ? height * 0.42 : 150, 260);
   const short = height < 420;
   const sideRow = menuWidth >= (short ? 300 : 480);
   // On short wide windows the menu's right edge can reach the settings button: keep the ember chip clear of it.
@@ -219,8 +230,14 @@ const CoverCard: React.FC<Props> = ({
     ? t("cover.streak.lost", { best: bestStreak })
     : t("cover.daily.todayIn", { time });
 
+  const shade = Math.min(leftWidth * 1.1, 620);
   const title = (
     <View style={[styles.titleBlock, wide ? { flex: 1 } : { marginBottom: 6 }]}>
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { alignItems: "center", justifyContent: "center" }]}>
+        {[1, 0.8, 0.6].map((k, i) => (
+          <View key={i} style={{ position: "absolute", width: shade * k, height: shade * k * 0.75, borderRadius: shade, backgroundColor: "rgba(8,5,2,0.28)" }} />
+        ))}
+      </View>
       <SpriteImage
         source={LOGO}
         style={{ width: Math.min(leftWidth, titleSize * 5.6), height: Math.min(leftWidth, titleSize * 5.6) / LOGO_RATIO }}
@@ -236,13 +253,11 @@ const CoverCard: React.FC<Props> = ({
         {t("cover.tagline")}
       </Text>
       {showArt && (
-        <View
-          style={[
-            styles.medallion,
-            { width: artSize * 1.3, height: artSize * 1.3, borderRadius: artSize * 0.65, marginTop: 14 },
-          ]}
-        >
-          <View style={[styles.medallionGlow, { width: artSize * 1.05, height: artSize * 1.05, borderRadius: artSize * 0.525 }]} />
+        <View style={{ width: artSize * 1.2, height: artSize * 0.92, alignItems: "center", justifyContent: "flex-end", marginTop: 2 }}>
+          {/* A pool of firelight under the beast lifts it off the dark cave */}
+          {[1, 0.75, 0.5].map((k, i) => (
+            <View key={i} style={[styles.floorLight, { width: artSize * 1.1 * k, height: artSize * 0.22 * k, borderRadius: artSize, bottom: artSize * 0.02 * (1 - k) }]} />
+          ))}
           <Breathing calm={calm}>
             <SpriteImage
               source={blink ? BOSS_FRAMES.breathe : BOSS_FRAMES.idle}
@@ -331,20 +346,22 @@ const CoverCard: React.FC<Props> = ({
 
       {/* A lone manual button gets no box around it: a panel for one icon looks like a mistake. */}
       <View style={firstRun ? styles.dockSolo : styles.dock}>
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="hammer" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="flag" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="podium" label={t("cover.rankings")} onPress={onPressScores} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} art="forge" label={t("cover.forge")} onPress={onPressForge} dot={forgeBadge} dotLabel={t("a11y.badgeForge")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} art="missions" label={t("cover.missions")} onPress={onPressMissions} dot={missionsBadge} dotLabel={t("a11y.badgeMissions")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} art="rankings" label={t("cover.rankings")} onPress={onPressScores} />}
         {/* Friends stays reachable on a fresh install: a player invited with a challenge code must be able to enter it. */}
-        <DockButton ui={ui} size={dockSize} icon="people" label={t("cover.friends")} onPress={onPressFriends} />
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="shirt" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
-        {!firstRun && <DockButton ui={ui} size={dockSize} icon="ribbon" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
-        <DockButton ui={ui} size={dockSize} icon="help-circle" label={t("cover.manual")} onPress={onPressInstructions} />
+        <DockButton ui={ui} size={dockSize} art="friends" label={t("cover.friends")} onPress={onPressFriends} />
+        {!firstRun && <DockButton ui={ui} size={dockSize} art="collection" label={t("cover.collection")} onPress={onPressCollection} dot={collectionBadge} dotLabel={t("a11y.badgeCollection")} />}
+        {!firstRun && <DockButton ui={ui} size={dockSize} art="achievements" label={t("cover.achievements")} onPress={onPressAchievements} dot={achievementsBadge} dotLabel={t("a11y.badgeAchievements")} />}
+        <DockButton ui={ui} size={dockSize} art="manual" label={t("cover.manual")} onPress={onPressInstructions} />
       </View>
     </View>
   );
 
   return (
     <View style={styles.root}>
+      <LinearGradient pointerEvents="none" colors={["rgba(8,5,2,0.62)", "rgba(8,5,2,0.15)", "rgba(8,5,2,0.6)"]} locations={[0, 0.48, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient pointerEvents="none" colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.5)"]} start={{ x: 0.5, y: 0.55 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
       {!calm && <EmberParticles count={width >= 900 ? 18 : 12} />}
       <ScrollView
         style={styles.scroll}
@@ -405,6 +422,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
+  floorLight: { position: "absolute", bottom: 0, backgroundColor: "rgba(255,150,50,0.1)" },
   medallion: {
     alignItems: "center",
     justifyContent: "center",
@@ -429,9 +447,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 24,
-    backgroundColor: "rgba(10, 7, 24, 0.72)",
+    backgroundColor: "rgba(16, 10, 5, 0.82)",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
+    borderColor: "rgba(242,193,78,0.25)",
   },
   dockSolo: { flexDirection: "row", justifyContent: "center", marginTop: 2 },
   dockItem: { flex: 1, alignItems: "center", gap: 4, minHeight: MIN_TOUCH + 18 },
@@ -441,9 +459,9 @@ const styles = StyleSheet.create({
     borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(242,193,78,0.12)",
+    backgroundColor: "rgba(40,26,12,0.9)",
     borderWidth: 1.5,
-    borderColor: "rgba(242,193,78,0.55)",
+    borderColor: "rgba(242,193,78,0.6)",
   },
   chips: { flexDirection: "row", justifyContent: "flex-end" },
   chip: {
