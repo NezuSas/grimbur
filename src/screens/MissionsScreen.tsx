@@ -23,6 +23,7 @@ import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { RANK_THRESHOLDS, rankOf } from "../core/stats/rank";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
+import { weeklyChallenge } from "../core/challenge/weekly";
 import { haptic } from "../shared/haptics";
 import { themeArt, type AchievementTheme } from "../ui/achievementArt";
 
@@ -63,9 +64,11 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
     return { ...known, missions: syncMissions(known.missions, dailyKey(), HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, known)).length) };
   });
   const [now, setNow] = useState(() => new Date());
+  const weekly = weeklyChallenge(dailyKey(now));
   // Development only (web): `?ladder=1` opens the rank ladder, for screenshots.
   const [ladder, setLadder] = useState(() => __DEV__ && typeof location !== "undefined" && new URLSearchParams(location.search).get("ladder") === "1");
-  const [tab, setTab] = useState<"daily" | "weekly">("daily");
+  // Development only (web): `?tab=weekly` opens the week, for screenshots.
+  const [tab, setTab] = useState<"daily" | "weekly">(() => (__DEV__ && typeof location !== "undefined" && new URLSearchParams(location.search).get("tab") === "weekly" ? "weekly" : "daily"));
 
   useFocusEffect(
     useCallback(() => {
@@ -290,10 +293,28 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                     {rewardButton(m.bonusClaimed, bonusReady(m), DAILY_BONUS, () => void claim("bonus"))}
                   </Rise>
                 </>
-              ) : m.weekly.length === 0 ? (
-                <Text style={styles.empty}>{t("missions.empty")}</Text>
               ) : (
-                m.weekly.map(card)
+                <>
+                  {/* The challenge of the week: one cave for everyone, at this week's depth, on its own board. */}
+                  <Rise delay={0}>
+                    <PressScale onPress={() => navigation.navigate("ChallengeScreen", { code: weekly.code })} accessibilityRole="button" style={styles.weekly}>
+                      <SpriteImage source={require("../assets/sprites/ui/Icon_Swords.png")} style={styles.weeklyArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text style={styles.weeklyKicker} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                          {`${t("weekly.title")} · ${t(`ascension.label.${weekly.depth}` as TranslationKey)}`.toLocaleUpperCase()}
+                        </Text>
+                        <Text style={styles.weeklyText} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+                          {t("weekly.rule")}
+                        </Text>
+                      </View>
+                      <View style={styles.weeklyPlay}>
+                        <Text style={styles.weeklyPlayText} maxFontSizeMultiplier={1.1}>{t("weekly.play").toLocaleUpperCase()}</Text>
+                        <Ionicons name="chevron-forward" size={14} color="#1a1200" />
+                      </View>
+                    </PressScale>
+                  </Rise>
+                  {m.weekly.length === 0 ? <Text style={styles.empty}>{t("missions.empty")}</Text> : m.weekly.map(card)}
+                </>
               )}
             </ScrollView>
           </View>
@@ -347,6 +368,12 @@ const styles = StyleSheet.create({
   refreshBox: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 },
   refresh: { color: "#B99A7C", fontWeight: "700", fontSize: 11.5, flexShrink: 1 },
   list: { gap: 8, paddingBottom: 16 },
+  weekly: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,138,101,0.7)", backgroundColor: "rgba(70,30,20,0.9)" },
+  weeklyArt: { width: 48, height: 48 },
+  weeklyKicker: { color: "#FF8A65", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
+  weeklyText: { color: "#F1E4D6", fontWeight: "700", fontSize: 12.5 },
+  weeklyPlay: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 12, minHeight: 38, borderRadius: 19, backgroundColor: "#FF8A65" },
+  weeklyPlayText: { color: "#1a1200", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   empty: { color: "#B99A7C", fontStyle: "italic", paddingHorizontal: 4 },
 
   mission: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: CARD, borderRadius: 16, borderWidth: 1.5, borderColor: BORDER, overflow: "hidden", paddingRight: 10, minHeight: 66 },
