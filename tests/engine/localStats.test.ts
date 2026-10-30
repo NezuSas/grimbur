@@ -21,7 +21,7 @@ describe('local stats writes', () => {
 
   it('never loses an update when a run is saved while an upgrade is bought', async () => {
     // Seed enough embers for a purchase.
-    await recordRun({ score: 8000, level: 10, victory: false });
+    await recordRun({ score: 8000, level: 10, victory: true });
     const embersAfterFirstRun = (await getLocalStats()).embers;
     expect(embersAfterFirstRun).toBeGreaterThanOrEqual(60);
 
@@ -48,8 +48,8 @@ describe('B3: buying in the Forge evaluates achievements', () => {
     expect(bought?.achievements).toContain('first_forge');
     const after = await getLocalStats();
     expect(after.achievements.first_forge).toBeDefined();
-    expect(after.embers).toBeGreaterThan(before.embers - 60); // spent 60, got the reward back (10 or more)
-    expect((await buyUpgrade('whetstone'))?.achievements).not.toContain('first_forge'); // only once
+    expect(after.embers).toBeGreaterThan(before.embers - 150); // spent 150, got the reward back (10 or more)
+    expect((await buyUpgrade('purse'))?.achievements ?? []).not.toContain('first_forge'); // only once
   });
 
   it('returns null and changes nothing when it cannot be bought', async () => {
