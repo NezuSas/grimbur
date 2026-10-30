@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView from "../ui/components/BoardView";
+import { ASSETS } from "../ui/components/GridCell";
 import ScreenFlashes from "../ui/components/game/ScreenFlashes";
 import GameOverlays from "./game/GameOverlays";
 import RunLoadingCover from "../ui/components/game/RunLoadingCover";
@@ -159,6 +160,20 @@ export default function GameScreen({ navigation, route }: Props) {
   const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+  // Who waits in this floor's fog, shown on the floor banner: the creatures are met by name before they are deduced.
+  const floorRoster = useMemo(() => {
+    const kinds = [
+      { key: "enemy", art: ASSETS.enemy, label: t("roster.enemy") },
+      { key: "stalker", art: ASSETS.stalker, label: t("roster.stalker") },
+      { key: "sleeper", art: ASSETS.sleeper, label: t("roster.sleeper") },
+      { key: "pit", art: ASSETS.pit, label: t("roster.pit") },
+    ] as const;
+    return kinds
+      .map(k => ({ ...k, count: state.entities.filter(e => e.type === k.key).length }))
+      .filter(k => k.count > 0);
+    // Counted when the floor starts; kills during the floor do not rewrite the banner.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.level, state.runSeed, runNumber, t]);
   // A new cave type is announced on its first floor (the omen, when there is one, takes the banner).
   const biomeAnnounce = isNewBiome(state.level, state.mode) && floorBiome !== "cave" && floorBiome !== "lair";
   const doors = useMemo(
@@ -721,6 +736,7 @@ export default function GameScreen({ navigation, route }: Props) {
           dismiss={state.turn > 0}
           minTop={insets.top + hudHeight + 6}
           calm={reduceFlash}
+          roster={floorRoster}
         />
       )}
 

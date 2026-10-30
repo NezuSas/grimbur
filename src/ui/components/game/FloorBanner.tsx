@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Text from "../Text";
+import SpriteImage from "../SpriteImage";
+import type { ImageSourcePropType } from "react-native";
 
 type Props = {
   /** Changes whenever a new floor starts; replays the banner. */
@@ -20,10 +22,12 @@ type Props = {
   dismiss?: boolean;
   /** Lowest the banner may start (just under the HUD); it sits at 14% of the window otherwise. */
   minTop?: number;
+  /** Who waits in the fog of this floor: each kind of creature with how many there are. */
+  roster?: { key: string; art: ImageSourcePropType; count: number; label: string }[];
 };
 
 /** Brief "Floor N" announcement that also names the floor's omen. Never blocks touches. */
-const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0 }) => {
+const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0, roster }) => {
   const opacity = useRef(new Animated.Value(0)).current;
   const lift = useRef(new Animated.Value(calm ? 0 : 12)).current;
   const { height: windowHeight } = useWindowDimensions();
@@ -31,7 +35,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
   useEffect(() => {
     opacity.setValue(0);
     lift.setValue(calm ? 0 : 12);
-    const hold = long ? 4200 : story ? 2600 : omenName ? 1400 : 1100;
+    const hold = (long ? 4200 : story ? 2600 : omenName ? 1400 : 1100) + (roster && roster.length > 0 ? 900 : 0);
     const run = Animated.sequence([
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
@@ -83,6 +87,16 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
             {story}
           </Text>
         ) : null}
+        {roster && roster.length > 0 ? (
+          <View style={styles.roster} accessible accessibilityLabel={roster.map(r => `${r.count} ${r.label}`).join(', ')}>
+            {roster.map(r => (
+              <View key={r.key} style={styles.rosterItem}>
+                <SpriteImage source={r.art} style={styles.rosterArt} resizeMode="contain" />
+                <Text style={styles.rosterCount} maxFontSizeMultiplier={1.1}>{`×${r.count}`}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </LinearGradient>
     </Animated.View>
   );
@@ -118,6 +132,10 @@ const styles = StyleSheet.create({
   omen: { color: '#FFD54F', fontWeight: '900', fontSize: 13, letterSpacing: 2, marginTop: 2 },
   story: { color: '#cdb8ff', fontSize: 12.5, fontStyle: 'italic', textAlign: 'center', marginTop: 5 },
   rule: { color: '#e0e0e0', fontSize: 12, textAlign: 'center', marginTop: 1 },
+  roster: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,213,79,0.25)' },
+  rosterItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  rosterArt: { width: 34, height: 34 },
+  rosterCount: { color: '#FFE7A8', fontWeight: '900', fontSize: 14 },
 });
 
 export default FloorBanner;

@@ -477,6 +477,7 @@ const BoardView: React.FC<Props> = memo(
                   biome={biome}
                   flagArt={flag}
                   unveiled={unveil}
+                  lurking={shown[i]?.type === "stalker" && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) <= 2}
                   calm={!!calm}
                   sprung={sprung.has(i)}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}
