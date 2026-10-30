@@ -17,6 +17,8 @@ export interface SoundState {
   cover:      LegacySoundHandle | null;
   selection:  LegacySoundHandle | null;
   gameplay:   LegacySoundHandle | null;
+  /** The Grimbur fight in the lair. */
+  boss:       LegacySoundHandle | null;
   death:      LegacySoundHandle | null;
   coin:       LegacySoundHandle | null;
   victory:    LegacySoundHandle | null;
