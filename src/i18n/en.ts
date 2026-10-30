@@ -760,7 +760,7 @@ export const en = {
   'complete.track': 'Floor {n} of {total} · the Grimbur waits at the bottom',
 
   'over.victory': 'Expedition complete',
-  'over.defeat': 'Game over',
+  'over.defeat': 'Defeat',
   'over.daily': 'Daily {date}',
   'over.streak_one': '{count}-day streak',
   'over.streak_other': '{count}-day streak',
@@ -772,6 +772,9 @@ export const en = {
   'over.unlocked_other': 'Unlocked: {names}',
   'over.floor': 'Floor',
   'over.score': 'Score',
+  'over.fellEndless': 'You fell on endless floor {floor}',
+  'over.floorLabel': 'Floor',
+  'over.win': 'Victory!',
   'over.killedBy': 'Struck down by',
   'over.gems': 'Gems',
   'over.time': 'Time',
