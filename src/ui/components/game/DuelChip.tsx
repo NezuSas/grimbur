@@ -1,4 +1,5 @@
 import React from "react";
+import GlyphIcon from '../GlyphIcon';
 import { StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
@@ -31,7 +32,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
     return (
       <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.waiting")}>
         <View style={[styles.chip, { borderColor: "#b9b4d4AA" }]}>
-          <Ionicons name="flash" size={14} color="#D6C4B2" />
+          <GlyphIcon name="bolt" size={15} />
           <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("duel.chip.waiting")}</Text>
         </View>
       </View>

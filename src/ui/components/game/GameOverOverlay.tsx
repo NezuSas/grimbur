@@ -502,7 +502,7 @@ const GameOverOverlay = ({
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
-            <Ionicons name="hammer" size={18} color={canBuyNow ? '#1a0f00' : '#FFAB40'} />
+            <GlyphIcon name="hammer" size={20} />
             {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}

@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useRef } from "react";
+import GlyphIcon from "./GlyphIcon";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import { haptic } from "../../shared/haptics";
 import { emitSound } from "../../audio/audioEventBus";
@@ -70,7 +70,7 @@ const PlayButton: React.FC<Props> = memo(({ title, subtitle, footnote, onPress, 
             style={[styles.button, { minHeight: (compact ? 62 : 76) * ui, borderRadius: 22 * ui, paddingHorizontal: 18 * ui }]}
           >
             <View style={[styles.playIcon, { width: 46 * ui, height: 46 * ui, borderRadius: 23 * ui }]}>
-              <Ionicons name="play" size={26 * ui} color="#E8A93A" style={{ marginLeft: 3 * ui }} />
+              <GlyphIcon name="play" size={30 * ui} style={{ marginLeft: 3 * ui }} />
             </View>
             <View style={styles.texts}>
               <Text style={[styles.title, { fontSize: (compact ? 24 : 28) * ui }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>

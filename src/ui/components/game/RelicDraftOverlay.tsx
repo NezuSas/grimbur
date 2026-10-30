@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
+import GlyphIcon from '../GlyphIcon';
 import { Animated, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from '@expo/vector-icons';
 import Text from "../Text";
 
 import { RelicId, RELICS } from '../../../core/engine/relics';
@@ -58,7 +58,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
   return (
     <OverlayContainer>
       <View style={styles.header} accessibilityRole="header">
-        <Ionicons name="sparkles" size={tight ? 18 : 22} color={GOLD} />
+        <GlyphIcon name="sparkles" size={tight ? 22 : 26} />
         <Text style={[styles.title, tight && { fontSize: 17 }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
           {t('relic.title').toLocaleUpperCase()}
         </Text>

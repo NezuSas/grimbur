@@ -1,4 +1,6 @@
 import React, { memo, useRef } from "react";
+import GlyphIcon from "./GlyphIcon";
+import type { GlyphName } from "../glyphArt";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,7 +12,8 @@ type Props = {
   title: string;
   /** One short line saying what makes this mode different. */
   subtitle: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  /** The painted glyph of the mode. */
+  icon: GlyphName;
   tint: string;
   onPress: () => void;
   /** Locked modes show the lock and say how to open them. */
@@ -50,7 +53,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
       >
         {leading ?? (
           <View style={[styles.iconWrap, { width: (compactCard ? 38 : 46) * ui, height: (compactCard ? 38 : 46) * ui, borderRadius: (compactCard ? 19 : 23) * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
-            <Ionicons name={locked ? "lock-closed" : icon} size={(featured ? 26 : 22) * ui} color={locked ? "#b8b3d0" : tint} />
+            {locked ? <Ionicons name="lock-closed" size={(featured ? 26 : 22) * ui} color="#b8b3d0" /> : <GlyphIcon name={icon} size={(featured ? 30 : 28) * ui} />}
           </View>
         )}
         <View style={styles.text}>

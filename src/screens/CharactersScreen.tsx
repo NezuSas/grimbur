@@ -1,4 +1,5 @@
 // src/screens/CharactersScreen.tsx
+import GlyphIcon from "../ui/components/GlyphIcon";
 import FramedHero from "../ui/components/FramedHero";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
 import { MASTERY_PERKS, MAX_MASTERY, masteryOf, withMastery, type MasteryPerk } from "../core/stats/mastery";
@@ -416,7 +417,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityRole="button"
                       accessibilityLabel={t("collection.view")}
                     >
-                      <Ionicons name="albums" size={16} color={accent} />
+                      <GlyphIcon name="frame" size={18} />
                       <Text style={[styles.collectionText, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                         {t("collection.view").toLocaleUpperCase()}
                       </Text>

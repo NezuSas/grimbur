@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import GlyphIcon from "../../ui/components/GlyphIcon";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
@@ -44,7 +45,7 @@ export const ControlsPane = ({ kit }: { kit: Kit }) => {
         "#ff7043",
         <Art tint="#ff7043">
           <View style={styles.attackDot}>
-            <Ionicons name="flash" size={22} color="#fff" />
+            <GlyphIcon name="bolt" size={24} />
           </View>
         </Art>,
       )}

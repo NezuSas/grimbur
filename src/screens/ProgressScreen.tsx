@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import { achievementArt } from "../ui/achievementArt";
 import Rise, { riseDelay } from "../ui/components/Rise";
@@ -267,7 +268,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                         {r.day}
                       </Text>
                       <View style={{ flex: 1 }} />
-                      {r.best && <Ionicons name="star" size={16} color={GOLD} />}
+                      {r.best && <GlyphIcon name="star" size={18} />}
                       <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
                         {r.mode === "endless" ? "∞" : n(r.score)}
                       </Text>
