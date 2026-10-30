@@ -142,17 +142,18 @@ describe('parseMissions', () => {
 describe('rank', () => {
   it('starts at 1 and climbs with embers earned', () => {
     expect(rankOf(0).level).toBe(1);
-    expect(rankOf(39).level).toBe(1);
-    expect(rankOf(40).level).toBe(2);
-    expect(rankOf(8500).level).toBe(MAX_RANK);
+    expect(rankOf(99).level).toBe(1);
+    expect(rankOf(100).level).toBe(2);
+    expect(rankOf(49999).level).toBe(MAX_RANK - 1);
+    expect(rankOf(50000).level).toBe(MAX_RANK);
     expect(rankOf(999999).level).toBe(MAX_RANK);
   });
 
   it('reports progress and the embers still missing', () => {
-    const r = rankOf(60);
-    expect(r.from).toBe(40);
-    expect(r.to).toBe(120);
-    expect(r.remaining).toBe(60);
+    const r = rankOf(150);
+    expect(r.from).toBe(100);
+    expect(r.to).toBe(300);
+    expect(r.remaining).toBe(150);
     expect(r.progress).toBeCloseTo(0.25);
     expect(rankOf(999999).progress).toBe(1);
     expect(rankOf(999999).remaining).toBe(0);
@@ -165,9 +166,9 @@ describe('rank', () => {
   });
 
   it('says when a run raised the rank', () => {
-    expect(rankUp(30, 50)).toBe(2);
-    expect(rankUp(50, 60)).toBeNull();
-    expect(rankUp(30, 500)).toBe(5);
+    expect(rankUp(50, 150)).toBe(2);
+    expect(rankUp(150, 200)).toBeNull();
+    expect(rankUp(50, 1200)).toBe(5);
   });
 });
 

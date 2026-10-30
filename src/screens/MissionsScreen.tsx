@@ -63,7 +63,8 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
     return { ...known, missions: syncMissions(known.missions, dailyKey(), HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, known)).length) };
   });
   const [now, setNow] = useState(() => new Date());
-  const [ladder, setLadder] = useState(false);
+  // Development only (web): `?ladder=1` opens the rank ladder, for screenshots.
+  const [ladder, setLadder] = useState(() => __DEV__ && typeof location !== "undefined" && new URLSearchParams(location.search).get("ladder") === "1");
   const [tab, setTab] = useState<"daily" | "weekly">("daily");
 
   useFocusEffect(
@@ -213,12 +214,15 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                       <View style={[styles.ladderBadge, reached && styles.ladderBadgeOn]}>
                         <Text style={[styles.ladderNumber, reached && { color: GOLD }]}>{level}</Text>
                       </View>
-                      <Text style={[styles.ladderName, !reached && { color: "#B99A7C" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                        {t(`rank.${level}` as TranslationKey)}
-                      </Text>
-                      <Text style={styles.ladderFrom} maxFontSizeMultiplier={1.1}>
-                        {t("missions.rankFrom", { n: from })}
-                      </Text>
+                      {/* The name gets the whole line (the longest ones do not fit beside the number); the threshold goes under it. */}
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.ladderName, !reached && { color: "#B99A7C" }]} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                          {t(`rank.${level}` as TranslationKey)}
+                        </Text>
+                        <Text style={styles.ladderFrom} maxFontSizeMultiplier={1.1}>
+                          {t("missions.rankFrom", { n: from })}
+                        </Text>
+                      </View>
                       {reached ? <Ionicons name={current ? "location" : "checkmark"} size={14} color={current ? GOLD : "#9EE37D"} /> : <View style={{ width: 14 }} />}
                     </View>
                   );
@@ -331,7 +335,7 @@ const styles = StyleSheet.create({
   ladderBadge: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
   ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.14)" },
   ladderNumber: { color: "#B99A7C", fontWeight: "900", fontSize: 11 },
-  ladderName: { flex: 1, color: "#fff", fontWeight: "900", fontSize: 13 },
+  ladderName: { color: "#fff", fontWeight: "900", fontSize: 13 },
   ladderFrom: { color: "#B99A7C", fontSize: 11, fontWeight: "700" },
 
   tabs: { flexDirection: "row", alignItems: "center", gap: 6 },

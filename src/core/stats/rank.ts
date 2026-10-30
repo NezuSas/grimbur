@@ -3,7 +3,10 @@
  * when embers are spent). Nothing extra is stored: the rank is derived, so it can never get out of step with the rest of the
  * progress, and a restored backup restores it too.
  */
-export const RANK_THRESHOLDS: readonly number[] = [0, 40, 120, 260, 480, 800, 1250, 1900, 2800, 4000, 5800, 8500];
+// Tuned against the economy: a player who plays most days earns some 400-500 embers a day (runs, missions, daily
+// bonus), so the first ranks come within days, the middle ones over weeks and the last ones over months; the ladder
+// tops out well past the ~53,000 embers everything for sale costs, so it keeps meaning something after the shop is done.
+export const RANK_THRESHOLDS: readonly number[] = [0, 100, 300, 600, 1000, 1600, 2400, 3500, 5000, 7000, 10000, 14000, 20000, 30000, 50000];
 
 export const MAX_RANK = RANK_THRESHOLDS.length;
 
