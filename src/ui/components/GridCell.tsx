@@ -162,7 +162,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false
 }: {
   index: number;
   tileSize: number;
@@ -205,6 +205,8 @@ const GridCell = memo(({
   flagArt?: ImageSourcePropType | null;
   /** The floor is over (cleared or lost): the fog gives up what it hid, and each flag shows whether it was right. */
   unveiled?: boolean;
+  /** A stalker in the fog close to the hero: its shadow shows through, so the hunt is felt before it strikes. */
+  lurking?: boolean;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   // On a new floor the tiles already lit wait for their delay too, so the floor opens in a cascade from the start.
@@ -357,7 +359,7 @@ const GridCell = memo(({
       )}
 
       {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
-      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && { opacity: killer ? 1 : unveil }]}>
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }]}>
       {entity?.type === 'stalker' && seen && (
         <Animated.View
           style={[
@@ -403,6 +405,9 @@ const GridCell = memo(({
         </>
       )}
 
+      {lurking && !seen && (
+        <SpriteImage source={ASSETS.stalker} style={{ width: tileSize * 0.9, height: tileSize * 0.9, tintColor: "#0B0705", opacity: 0.6 }} resizeMode="contain" />
+      )}
       {entity?.type === 'trap' && unveiled && !lit && (
         <GlyphIcon name="trap" size={tileSize * 0.6} />
       )}
