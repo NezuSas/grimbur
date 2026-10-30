@@ -36,8 +36,9 @@ import { lookOf } from "../core/cosmetics/look";
 import { equippedSkin } from "../core/skins/ownership";
 import { skinArt } from "../data/skinArt";
 import { useSettingsStore } from "../state/settings/store";
-import SpriteImage from "../ui/components/SpriteImage";
-import { LinearGradient } from "expo-linear-gradient";
+import FramedHero from "../ui/components/FramedHero";
+import { parseLook } from "../core/cosmetics/look";
+import type { CosmeticId } from "../core/cosmetics/cosmetics";
 
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
@@ -45,10 +46,12 @@ type Status = "loading" | "ready" | "error";
 type Board = "global" | "today" | "week";
 
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
+/** The frame a podium place stands in when the player wears none: its medal's own. */
+const PODIUM_FRAMES: readonly CosmeticId[] = ["frame_gold", "frame_silver", "frame_bronze"];
 
 const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const { t, n } = useT();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { insets } = useGameLayout();
   const [data, setData] = useState<Doc[]>([]);
   const [status, setStatus] = useState<Status>("loading");
@@ -312,10 +315,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           const medal = MEDALS[place];
           const mineRow = !!myId && row.pid === myId;
           const first = place === 0;
-          const portrait = first ? 72 : 58;
+          // Each of the three stands full-body in their own frame (or, without one, in the frame of their medal), celebrating.
+          const worn = parseLook({ frame: row.frame }).frame ?? PODIUM_FRAMES[place];
+          // Sized to the window, so name and score always show under the frames without scrolling.
+          const tall = Math.round(Math.min(first ? 176 : 146, height * (first ? 0.38 : 0.31)));
           return (
             <Rise key={item.id} delay={riseDelay(place === 0 ? 2 : place - 1, 80)} style={styles.podiumCol}>
-              {/* The player stands on their step: crowned and raised for the first, the medal's colour for all three. */}
               <PressScale
                 onLongPress={() => setMenuFor(menuFor === item.id ? null : item.id)}
                 delayLongPress={400}
@@ -326,32 +331,23 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
                 onAccessibilityAction={() => setMenuFor(menuFor === item.id ? null : item.id)}
                 style={styles.podiumPress}
               >
-                <View style={{ alignItems: "center", marginBottom: -portrait * 0.32, zIndex: 2 }}>
-                  {first ? <SpriteImage source={require("../assets/sprites/ui/Icon_Trophy.png")} style={styles.podiumCrown} resizeMode="contain" /> : null}
-                  <View style={[styles.podiumRing, { width: portrait + 10, height: portrait + 10, borderRadius: (portrait + 10) / 2, borderColor: medal, shadowColor: medal }]}>
-                    <PlayerPortrait source={char.scoreImage} size={portrait} frame={row.frame} />
-                  </View>
+                <View style={[styles.podiumGlow, { width: tall * 0.9, height: tall * 0.9, borderRadius: tall, backgroundColor: medal, top: tall * 0.08 }]} />
+                <FramedHero source={char.winImage} height={tall} frame={worn} tint={medal} />
+                <View style={[styles.podiumBadge, { backgroundColor: medal, marginTop: -16 }]}>
+                  <Text style={styles.podiumBadgeText} maxFontSizeMultiplier={1}>{place + 1}</Text>
                 </View>
-                <LinearGradient
-                  colors={[medal + "40", "rgba(30,22,14,0.96)"]}
-                  start={{ x: 0.5, y: 0 }}
-                  end={{ x: 0.5, y: 1 }}
-                  style={[styles.podiumCard, { borderColor: medal + (mineRow ? "" : "AA"), paddingTop: portrait * 0.32 + 6, minHeight: first ? 132 : place === 1 ? 118 : 108 }, mineRow && styles.podiumMine]}
-                >
+                <View style={[styles.podiumPlate, mineRow && { borderColor: medal }]}>
                   <Text style={styles.podiumName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {row.name}
                   </Text>
                   <PlayerTitle title={row.title} />
-                  <Text style={[styles.podiumScore, { color: medal }, first && { fontSize: 22 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+                  <Text style={[styles.podiumScore, { color: medal }, first && { fontSize: 21 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
                     {n(Number(row.score) || 0)}
                   </Text>
                   <Text style={styles.podiumMeta} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {t("scores.floorShort", { n: row.level })} · {typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime")}
                   </Text>
-                  <View style={[styles.podiumPlace, { backgroundColor: medal }]}>
-                    <Text style={styles.podiumPlaceText} maxFontSizeMultiplier={1}>{place + 1}</Text>
-                  </View>
-                </LinearGradient>
+                </View>
               </PressScale>
             </Rise>
           );
@@ -454,18 +450,16 @@ const styles = StyleSheet.create({
   meRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
   meName: { color: "#fff", fontWeight: "900", fontSize: 16 },
   bestRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  podium: { flexDirection: "row", alignItems: "flex-end", gap: 10, paddingTop: 4 },
+  podium: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingTop: 6, paddingBottom: 4 },
   podiumCol: { flex: 1 },
-  podiumPress: { alignItems: "stretch" },
-  podiumCrown: { width: 30, height: 30, marginBottom: -4 },
-  podiumRing: { alignItems: "center", justifyContent: "center", borderWidth: 2.5, backgroundColor: "rgba(16,10,5,0.9)", shadowOpacity: 0.7, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, elevation: 8 },
-  podiumCard: { alignItems: "center", gap: 2, paddingBottom: 26, paddingHorizontal: 6, borderTopLeftRadius: 18, borderTopRightRadius: 18, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, borderWidth: 1.5, overflow: "hidden" },
-  podiumMine: { borderWidth: 2.5 },
-  podiumName: { color: "#fff", fontWeight: "900", fontSize: 13 },
-  podiumScore: { fontWeight: "900", fontSize: 18, marginTop: 2 },
+  podiumPress: { alignItems: "center" },
+  podiumGlow: { position: "absolute", opacity: 0.14 },
+  podiumBadge: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", borderWidth: 2.5, borderColor: "#1A120B", zIndex: 3 },
+  podiumBadgeText: { color: "#1A0F04", fontWeight: "900", fontSize: 15 },
+  podiumPlate: { alignSelf: "stretch", alignItems: "center", gap: 1, marginTop: 4, paddingVertical: 6, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,14,9,0.85)" },
+  podiumName: { color: "#fff", fontWeight: "900", fontSize: 13.5 },
+  podiumScore: { fontWeight: "900", fontSize: 18, marginTop: 1 },
   podiumMeta: { color: "#C4AA91", fontSize: 11, fontWeight: "700" },
-  podiumPlace: { position: "absolute", bottom: 0, left: 0, right: 0, height: 20, alignItems: "center", justifyContent: "center" },
-  podiumPlaceText: { color: "#2A2016", fontWeight: "900", fontSize: 13 },
   boardNote: { color: "#C4AA91", fontSize: 12, textAlign: "center" },
   rowMine: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.1)" },
   layout: { flex: 1, alignSelf: "center", padding: 8, gap: 10 },
