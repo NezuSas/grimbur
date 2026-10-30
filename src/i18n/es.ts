@@ -755,10 +755,10 @@ export const es: Record<TranslationKey, string> = {
   'complete.floor': 'Piso {n}',
   'complete.score': 'Puntos',
   'complete.gems': 'Gemas',
-  'complete.kills': 'Guardianes',
+  'complete.kills': 'Monstruos',
   'complete.time': 'Tiempo',
   'complete.next': 'Siguiente piso',
-  'complete.starHint': 'Derrota a todos los guardianes del piso para las tres estrellas.',
+  'complete.starHint': 'Derrota a todos los monstruos del piso (guardianes, acechadores y bestias) para las tres estrellas. Explorar todo no hace falta.',
   'complete.track': 'Piso {n} de {total} · el Grimbur espera al fondo',
 
   'over.victory': 'Expedición completada',

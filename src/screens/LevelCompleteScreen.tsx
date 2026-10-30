@@ -125,7 +125,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
               })}
             </View>
             {starsEarned < 3 ? (
-              <Text style={styles.starHint} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+              <Text style={styles.starHint} numberOfLines={3} maxFontSizeMultiplier={1.15}>
                 {t("complete.starHint")}
               </Text>
             ) : null}
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   glow: { position: "absolute", top: 0, opacity: 0.16 },
   pedestal: { position: "absolute", bottom: 0, height: 12, borderRadius: 50 },
   stars: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
-  starHint: { color: "#CAB39C", fontSize: 11.5, fontWeight: "700", textAlign: "center", maxWidth: 260 },
+  starHint: { color: "#CAB39C", fontSize: 11.5, fontWeight: "700", textAlign: "center", maxWidth: 300 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tile: { flexBasis: "47%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(0,0,0,0.35)" },
   tileArt: { width: 36, height: 36 },
