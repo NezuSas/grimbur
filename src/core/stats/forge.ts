@@ -26,31 +26,33 @@ export interface UpgradeInfo {
   relic?: RelicId;
 }
 
+// Prices tuned so the whole Forge takes a player who plays most days about six weeks (some 400-500 embers a day):
+// power that keeps arriving for a month and a half instead of being all bought in the first two weeks.
 export const UPGRADES: readonly UpgradeInfo[] = [
   // Power
-  { id: 'whetstone', icon: '🏹', category: 'power', costs: [60, 160], params: { arrows: 1 } },
-  { id: 'ward', icon: '🛡️', category: 'power', costs: [80], params: {} },
-  { id: 'explorer', icon: '🧭', category: 'power', costs: [70, 200], params: { percent: 25 } },
-  { id: 'scribe', icon: '📜', category: 'power', costs: [250], params: { extra: 1 } },
-  { id: 'eagle_eye', icon: '🦅', category: 'power', costs: [500], params: { tiles: 1 } },
-  { id: 'satchel', icon: '🎒', category: 'power', costs: [220, 420], params: {} },
-  { id: 'swift', icon: '⚡', category: 'power', costs: [350, 650], params: { n: 1 } },
-  { id: 'second_wind', icon: '💖', category: 'power', costs: [450], params: {} },
+  { id: 'whetstone', icon: '🏹', category: 'power', costs: [150, 400], params: { arrows: 1 } },
+  { id: 'ward', icon: '🛡️', category: 'power', costs: [200], params: {} },
+  { id: 'explorer', icon: '🧭', category: 'power', costs: [180, 500], params: { percent: 25 } },
+  { id: 'scribe', icon: '📜', category: 'power', costs: [620], params: { extra: 1 } },
+  { id: 'eagle_eye', icon: '🦅', category: 'power', costs: [1250], params: { tiles: 1 } },
+  { id: 'satchel', icon: '🎒', category: 'power', costs: [550, 1050], params: {} },
+  { id: 'swift', icon: '⚡', category: 'power', costs: [880, 1620], params: { n: 1 } },
+  { id: 'second_wind', icon: '💖', category: 'power', costs: [1120], params: {} },
   // Economy
-  { id: 'purse', icon: '👛', category: 'economy', costs: [40, 90, 160], params: { percent: 10 } },
-  { id: 'fortune', icon: '🍀', category: 'economy', costs: [120, 240], params: { percent: 15 } },
+  { id: 'purse', icon: '👛', category: 'economy', costs: [100, 220, 400], params: { percent: 10 } },
+  { id: 'fortune', icon: '🍀', category: 'economy', costs: [300, 600], params: { percent: 15 } },
   // Relics you begin every expedition with
-  { id: 'start_lantern', icon: '🏮', category: 'relics', costs: [150], params: {}, relic: 'lantern' },
-  { id: 'start_trap_sense', icon: '🪤', category: 'relics', costs: [180], params: {}, relic: 'trap_sense' },
-  { id: 'start_iron_boots', icon: '👢', category: 'relics', costs: [200], params: {}, relic: 'iron_boots' },
-  { id: 'start_frost', icon: '❄️', category: 'relics', costs: [220], params: {}, relic: 'frost' },
-  { id: 'start_lucky_coin', icon: '🪙', category: 'relics', costs: [260], params: {}, relic: 'lucky_coin' },
-  { id: 'feather', icon: '🪶', category: 'relics', costs: [300], params: {}, relic: 'phoenix' },
-  { id: 'start_long_bow', icon: '🌠', category: 'relics', costs: [320], params: {}, relic: 'long_bow' },
-  { id: 'start_hunter', icon: '🎯', category: 'relics', costs: [350], params: {}, relic: 'hunter' },
-  { id: 'start_greed', icon: '💰', category: 'relics', costs: [400], params: {}, relic: 'greed' },
-  { id: 'start_quiver', icon: '🏹', category: 'relics', costs: [450], params: {}, relic: 'quiver' },
-  { id: 'start_bulwark', icon: '🛡️', category: 'relics', costs: [600], params: {}, relic: 'bulwark' },
+  { id: 'start_lantern', icon: '🏮', category: 'relics', costs: [380], params: {}, relic: 'lantern' },
+  { id: 'start_trap_sense', icon: '🪤', category: 'relics', costs: [450], params: {}, relic: 'trap_sense' },
+  { id: 'start_iron_boots', icon: '👢', category: 'relics', costs: [500], params: {}, relic: 'iron_boots' },
+  { id: 'start_frost', icon: '❄️', category: 'relics', costs: [550], params: {}, relic: 'frost' },
+  { id: 'start_lucky_coin', icon: '🪙', category: 'relics', costs: [650], params: {}, relic: 'lucky_coin' },
+  { id: 'feather', icon: '🪶', category: 'relics', costs: [750], params: {}, relic: 'phoenix' },
+  { id: 'start_long_bow', icon: '🌠', category: 'relics', costs: [800], params: {}, relic: 'long_bow' },
+  { id: 'start_hunter', icon: '🎯', category: 'relics', costs: [880], params: {}, relic: 'hunter' },
+  { id: 'start_greed', icon: '💰', category: 'relics', costs: [1000], params: {}, relic: 'greed' },
+  { id: 'start_quiver', icon: '🏹', category: 'relics', costs: [1120], params: {}, relic: 'quiver' },
+  { id: 'start_bulwark', icon: '🛡️', category: 'relics', costs: [1500], params: {}, relic: 'bulwark' },
 ];
 
 export const UPGRADE_CATEGORIES: readonly UpgradeCategory[] = ['power', 'economy', 'relics'];

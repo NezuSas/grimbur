@@ -54,8 +54,8 @@ describe('buying upgrades', () => {
     expect(nextCost(first, 'whetstone')).toBe(UPGRADES[0].costs[1]);
 
     expect(purchase(EMPTY_STATS, 'whetstone')).toBeNull(); // no embers
-    expect(canAfford({ ...EMPTY_STATS, embers: 59 }, 'whetstone')).toBe(false);
-    expect(canAfford({ ...EMPTY_STATS, embers: 60 }, 'whetstone')).toBe(true);
+    expect(canAfford({ ...EMPTY_STATS, embers: UPGRADES[0].costs[0] - 1 }, 'whetstone')).toBe(false);
+    expect(canAfford({ ...EMPTY_STATS, embers: UPGRADES[0].costs[0] }, 'whetstone')).toBe(true);
   });
 
   it('stops at the maximum level', () => {

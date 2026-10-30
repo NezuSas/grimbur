@@ -298,9 +298,9 @@ describe('G/B8: new unlocks', () => {
 
 describe('B: next goals', () => {
   it('recommends the cheapest forge item with the missing embers', () => {
-    const g = forgeGoal({ ...EMPTY_STATS, embers: 20 });
-    expect(g).toMatchObject({ kind: 'forge', affordable: false, cost: 40 });
-    expect(g?.remaining).toBe(20);
+    const g = forgeGoal({ ...EMPTY_STATS, embers: 50 });
+    expect(g).toMatchObject({ kind: 'forge', affordable: false, cost: 100 });
+    expect(g?.remaining).toBe(50);
     expect(g?.progress).toBeCloseTo(0.5);
   });
 
@@ -341,8 +341,8 @@ describe('B: next goals', () => {
   });
 
   it('detects what a run made newly affordable', () => {
-    const before: LocalStats = { ...EMPTY_STATS, embers: 30 };
-    const after: LocalStats = { ...before, embers: 70 };
+    const before: LocalStats = { ...EMPTY_STATS, embers: 50 };
+    const after: LocalStats = { ...before, embers: 160 };
     expect(newlyAffordable(before, after)).toEqual(expect.arrayContaining(['purse', 'whetstone']));
     expect(newlyAffordable(after, after)).toEqual([]);
   });
