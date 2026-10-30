@@ -761,7 +761,7 @@ export const es: Record<TranslationKey, string> = {
   'complete.track': 'Piso {n} de {total} · el Grimbur espera al fondo',
 
   'over.victory': 'Expedición completada',
-  'over.defeat': 'Fin del juego',
+  'over.defeat': 'Derrota',
   'over.daily': 'Reto {date}',
   'over.streak_one': 'Racha de {count} día',
   'over.streak_other': 'Racha de {count} días',
@@ -773,6 +773,9 @@ export const es: Record<TranslationKey, string> = {
   'over.unlocked_other': 'Desbloqueados: {names}',
   'over.floor': 'Piso',
   'over.score': 'Puntos',
+  'over.fellEndless': 'Caíste en el piso {floor} sin fin',
+  'over.floorLabel': 'Piso',
+  'over.win': '¡Victoria!',
   'over.killedBy': 'Te derrotó',
   'over.gems': 'Gemas',
   'over.time': 'Tiempo',

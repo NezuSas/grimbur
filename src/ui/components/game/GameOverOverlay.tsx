@@ -283,61 +283,41 @@ const GameOverOverlay = ({
     ...(dailyLabel && freezeEarned ? [{ key: 'fearn', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeEarned') }] : []),
   ];
 
-  // The run's own numbers (gems, time): under the portrait in landscape, where they balance the two columns.
-  const statChips = stats.map(s => (
-    <View key={s.label} style={[styles.stat, snug && styles.statSnug]} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
-      <SpriteImage source={s.art} style={{ width: 20, height: 20 }} resizeMode="contain" />
-      <Text style={[styles.statValue, { color: s.color }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-        {s.value}
-      </Text>
-    </View>
-  ));
-
+  // The left column, like the floor-cleared card: what happened in a few big words, the hero, and who struck.
+  const kicker = demo
+    ? t('complete.floor', { n: level })
+    : victory
+      ? t('over.victory')
+      : endless
+        ? t('over.fellEndless', { floor: level })
+        : t('over.fell', { floor: level });
+  const headline = demo ? t('over.demo.title') : victory ? t('over.win') : t('over.defeat');
+  const glow = Math.round(spriteSize * 0.95);
   const left = (
-    <View style={[styles.left, wide && { width: '36%' }]}>
-      <View style={{ width: haloSize, height: haloSize, alignItems: 'center', justifyContent: 'center' }}>
-        {/* A halo of light in the colour of the moment (gold for a win, red for a defeat) instead of a frame */}
-        <View pointerEvents="none" style={[styles.halo, { width: haloSize, height: haloSize, borderRadius: haloSize / 2, backgroundColor: accent + '14' }]} />
-        <View pointerEvents="none" style={[styles.halo, { width: haloSize * 0.78, height: haloSize * 0.78, borderRadius: haloSize, backgroundColor: accent + '22' }]} />
-        <View pointerEvents="none" style={[styles.halo, { width: haloSize * 0.56, height: haloSize * 0.56, borderRadius: haloSize, backgroundColor: accent + '30' }]} />
-        <Animated.View
-          style={{
-            transform: [
-              { scale: heroPop },
-              { translateY: heroFloat.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) },
-            ],
-          }}
-        >
-          <SpriteImage source={sprite} style={{ width: killerSprite ? spriteSize * 0.86 : spriteSize, height: killerSprite ? spriteSize * 0.86 : spriteSize, marginLeft: killerSprite ? -spriteSize * 0.34 : 0 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+    <View style={[styles.left, wide && { width: '38%' }]}>
+      <Text style={[styles.kickerText, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+        {kicker.toLocaleUpperCase()}
+      </Text>
+      <Text style={[styles.headline2, short && { fontSize: 22 }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+        {headline.toLocaleUpperCase()}
+      </Text>
+      <View style={{ width: glow * 1.15, height: spriteSize, alignItems: 'center', justifyContent: 'center' }}>
+        <View pointerEvents="none" style={[styles.glowOne, { width: glow, height: glow, borderRadius: glow / 2, backgroundColor: accent }]} />
+        <Animated.View style={{ transform: [{ scale: heroPop }, { translateY: heroFloat.interpolate({ inputRange: [0, 1], outputRange: [0, -4] }) }] }}>
+          <SpriteImage source={sprite} style={{ width: spriteSize * 1.12, height: spriteSize * 1.12 }} resizeMode="contain" accessibilityIgnoresInvertColors />
         </Animated.View>
-        {/* Whoever struck stands over the fallen hero, as big as a creature on the board */}
-        {killerSprite ? (
-          <View pointerEvents="none" style={[styles.killerStand, { right: -haloSize * 0.06, bottom: haloSize * 0.04, width: spriteSize * 0.7, height: spriteSize * 0.7 }]}>
-            <View style={[styles.killerGlow, { width: spriteSize * 0.6, height: spriteSize * 0.6, borderRadius: spriteSize, backgroundColor: accent + '33' }]} />
-            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.7, height: spriteSize * 0.7 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-          </View>
-        ) : null}
       </View>
-      {killerName && (
-        <View style={{ alignItems: 'center' }}>
-          <Text style={styles.killerKicker} maxFontSizeMultiplier={1.1}>{t('over.killedBy').toLocaleUpperCase()}</Text>
-          <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-            {killerName.toLocaleUpperCase()}
-          </Text>
+      {killerSprite && killerName ? (
+        <View style={[styles.killerPill, { borderColor: accent + '88' }]} accessible accessibilityLabel={`${t('over.killedBy')}: ${killerName}`}>
+          <SpriteImage source={killerSprite} style={styles.killerArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <View style={{ flexShrink: 1 }}>
+            <Text style={styles.killerKicker} maxFontSizeMultiplier={1.1}>{t('over.killedBy').toLocaleUpperCase()}</Text>
+            <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+              {killerName}
+            </Text>
+          </View>
         </View>
-      )}
-      {/* Landscape: the hero's line sits under the portrait (room to spare there), so the right column keeps its height. */}
-      {wide && quote ? (
-        <Text style={[styles.quote, styles.quoteLeft, { color: accent }]} numberOfLines={3} maxFontSizeMultiplier={1.2}>
-          {"“"}{quote}{"”"}
-        </Text>
       ) : null}
-      {wide ? <View style={[styles.statsRow, styles.statsLeft]}>{statChips}</View> : null}
-      {depth > 0 && (
-        <Text style={styles.depth} maxFontSizeMultiplier={1.2}>
-          <EmberIcon size={12} /> {t('over.depth', { name: t(`ascension.label.${depth}` as TranslationKey) }).toLocaleUpperCase()}
-        </Text>
-      )}
       {duelResult ? (
         <View style={styles.duelBox} accessible accessibilityLabel={`${duelResult.headline}. ${duelResult.line}`}>
           <Text style={[styles.duelHeadline, { color: duelResult.color }]} maxFontSizeMultiplier={1.2}>
@@ -359,7 +339,7 @@ const GameOverOverlay = ({
         </Text>
       ) : null}
       {dailyLabel && (
-        <Text style={styles.daily} maxFontSizeMultiplier={1.2}>
+        <Text style={styles.daily} numberOfLines={2} maxFontSizeMultiplier={1.2}>
           <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
           {streak ? <>{'  ·  '}<EmberIcon size={13} /> {plural('over.streak', streak)}</> : ''}
         </Text>
@@ -367,88 +347,82 @@ const GameOverOverlay = ({
     </View>
   );
 
-  // What a run ended with, always in full view: title, floors, score and the run's numbers. Never cut or scrolled away.
+  // The right column, top: a record ribbon, four painted tiles and the way down. Always in full view, never scrolled away.
+  const tile = (key: string, art: number, value: React.ReactNode, label: string, color: string, onPress?: () => void) => (
+    <TouchableOpacity
+      key={key}
+      disabled={!onPress}
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={[styles.tile2, snug && styles.tile2Snug]}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={label}
+    >
+      <SpriteImage source={art} style={styles.tile2Art} resizeMode="contain" />
+      <View style={{ flex: 1 }}>
+        {typeof value === 'string' ? (
+          <Text style={[styles.tile2Value, { color }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>{value}</Text>
+        ) : (
+          value
+        )}
+        <Text style={styles.tile2Label} numberOfLines={1} maxFontSizeMultiplier={1.1}>{label.toLocaleUpperCase()}</Text>
+      </View>
+      {onPress ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#FFAB40" /> : null}
+    </TouchableOpacity>
+  );
   const essentials = (
     <>
-      <Text style={[styles.title, { color: accent }, victory && width >= 760 && height >= 380 && { fontSize: 30 }, snug && styles.titleSnug, short && { fontSize: 20, letterSpacing: 1 }]} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-        {title.toLocaleUpperCase()}
-      </Text>
-
-      {/* The hero speaks: a line in their own voice for the win or the fall (under the portrait in landscape) */}
-      {quote && !wide ? (
-        <Text style={[styles.quote, { color: accent }]} maxFontSizeMultiplier={1.3}>
-          {"“"}{quote}{"”"}
-        </Text>
-      ) : null}
-
-      {/* How far the run got: one pip per floor */}
-      {!endless && height >= 340 && (
-      <View style={[styles.track, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
-        {Array.from({ length: floors }, (_, i) => {
-          const floor = i + 1;
-          const fell = !victory && floor === level;
-          return (
-            <React.Fragment key={i}>
-              {i > 0 ? <View style={[styles.trackLine, floor <= level && { backgroundColor: accent }]} /> : null}
-              {fell ? (
-                <View style={[styles.trackFall, { backgroundColor: accent }]}>
-                  <Ionicons name="close" size={11} color="#fff" />
-                </View>
-              ) : floor === floors ? (
-                <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.png')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
-              ) : (
-                <View style={[styles.trackDot, floor <= level && { backgroundColor: accent, borderColor: accent }]} />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </View>
-      )}
-
-      <View style={styles.scoreRow} accessible accessibilityLabel={`${t('over.score')}: ${score}`}>
-        <Text style={styles.scoreLabel} maxFontSizeMultiplier={1.2}>{t('over.score').toLocaleUpperCase()}</Text>
-        <CountedScore score={score} active={visible} calm={calm} style={[styles.scoreValue, snug && styles.scoreSnug]} />
-        {isNewBest ? (
-          <Text style={styles.newBest} maxFontSizeMultiplier={1.2}>
-            <GlyphIcon name="medal" size={13} /> {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
+      {isNewBest ? (
+        <View style={styles.ribbon} accessibilityLiveRegion="polite">
+          <GlyphIcon name="medal" size={16} />
+          <Text style={styles.ribbonText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
           </Text>
-        ) : bestScore ? (
-          <Text style={styles.best} maxFontSizeMultiplier={1.2}>
-            {(endless
-              ? t('over.bestFloor', { floor: bestScore })
-              : dailyLabel
-              ? t('over.bestToday', { score: bestScore })
-              : t('over.best', { score: bestScore })
-            ).toLocaleUpperCase()}
-          </Text>
-        ) : null}
-      </View>
-
-      {!wide || (embers && embers > 0) ? (
-      <View style={styles.statsRow}>
-        {wide ? null : statChips}
-        {embers && embers > 0 ? (
-          <TouchableOpacity
-            style={[styles.stat, snug && styles.statSnug, styles.embersPill]}
-            onPress={breakdown ? () => setShowBreakdown(v => !v) : undefined}
-            disabled={!breakdown}
-            activeOpacity={0.8}
-            accessibilityRole={breakdown ? 'button' : 'text'}
-            accessibilityState={breakdown ? { expanded: showBreakdown } : undefined}
-            accessibilityLabel={`${plural('over.embers', embers)}${breakdown ? `. ${breakdown}` : ''}`}
-          >
-            <Text style={styles.embersText} maxFontSizeMultiplier={1.2}><EmberIcon size={14} /> {plural('over.embers', embers).toLocaleUpperCase()}</Text>
-            {breakdown ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#FFAB40" /> : null}
-          </TouchableOpacity>
-        ) : null}
-      </View>
+        </View>
       ) : null}
-
+      <View style={styles.tiles2}>
+        {tile(
+          'score',
+          require('../../../assets/sprites/ui/Icon_Trophy.png'),
+          <CountedScore score={score} active={visible} calm={calm} style={[styles.tile2Value, { color: '#FFE7A8' }]} />,
+          bestScore && !isNewBest
+            ? `${t('over.score')} · ${(endless ? t('over.bestFloor', { floor: bestScore }) : t('over.best', { score: bestScore }))}`
+            : t('over.score'),
+          '#FFE7A8',
+        )}
+        {tile('gems', stats[0].art, stats[0].value, stats[0].label, stats[0].color)}
+        {tile('time', stats[1].art, stats[1].value, stats[1].label, stats[1].color)}
+        {embers && embers > 0
+          ? tile('embers', require('../../../assets/sprites/items/Icon_Ember.png'), `+${embers}`, t('cover.embers'), '#FFAB40', breakdown ? () => setShowBreakdown(v => !v) : undefined)
+          : tile('floor', require('../../../assets/sprites/ui/Icon_Flag.png'), endless ? String(level) : `${level}/${floors}`, t('over.floorLabel'), '#9EE37D')}
+      </View>
       {breakdown && showBreakdown ? (
         <Text style={styles.breakdown} maxFontSizeMultiplier={1.2}>
           {breakdown}
         </Text>
       ) : null}
+      {!endless && height >= 340 && (
+        <View style={[styles.track, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
+          {Array.from({ length: floors }, (_, i) => {
+            const floor = i + 1;
+            const fell = !victory && floor === level;
+            return (
+              <React.Fragment key={i}>
+                {i > 0 ? <View style={[styles.trackLine, floor <= level && { backgroundColor: accent }]} /> : null}
+                {fell ? (
+                  <View style={[styles.trackFall, { backgroundColor: accent }]}>
+                    <Ionicons name="close" size={11} color="#fff" />
+                  </View>
+                ) : floor === floors ? (
+                  <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.png')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
+                ) : (
+                  <View style={[styles.trackDot, floor <= level && { backgroundColor: accent, borderColor: accent }]} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </View>
+      )}
     </>
   );
 
@@ -664,8 +638,19 @@ const styles = StyleSheet.create({
   moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
   headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
-  killerStand: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-  killerGlow: { position: 'absolute' },
+  kickerText: { fontWeight: '900', fontSize: 12.5, letterSpacing: 2.5, textAlign: 'center' },
+  headline2: { color: '#fff', fontWeight: '900', fontSize: 28, letterSpacing: 3, textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
+  glowOne: { position: 'absolute', opacity: 0.15 },
+  killerPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, paddingLeft: 4, paddingRight: 12, borderRadius: 22, borderWidth: 1.5, backgroundColor: 'rgba(0,0,0,0.35)', maxWidth: '100%' },
+  killerArt: { width: 38, height: 38 },
+  ribbon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(255,213,79,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,213,79,0.6)' },
+  ribbonText: { color: '#FFD54F', fontWeight: '900', fontSize: 12.5, letterSpacing: 1.5 },
+  tiles2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignSelf: 'stretch' },
+  tile2: { flexBasis: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(0,0,0,0.35)' },
+  tile2Snug: { paddingVertical: 5 },
+  tile2Art: { width: 32, height: 32 },
+  tile2Value: { fontWeight: '900', fontSize: 19 },
+  tile2Label: { color: '#B99A7C', fontWeight: '900', fontSize: 11, letterSpacing: 0.8 },
   killerKicker: { color: '#B99A7C', fontWeight: '900', fontSize: 11, letterSpacing: 2 },
   track: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' },
   trackLine: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)' },
