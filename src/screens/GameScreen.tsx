@@ -497,6 +497,7 @@ export default function GameScreen({ navigation, route }: Props) {
         playerName: name ?? undefined,
         playerTitle: worn ? cosmeticText(t, worn) : undefined,
         playerRank: rank ? t("share.rank", { n: rank.level, name: t(`rank.${rank.level}` as TranslationKey) }) : undefined,
+        frame: saved ? lookOf(saved).frame ?? null : null,
       };
       // The card is captured once every picture in it has drawn (or after a while, so sharing never hangs).
       await new Promise<void>(resolve => {

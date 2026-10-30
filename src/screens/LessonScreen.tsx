@@ -275,6 +275,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             playerName="Difdesork"
             playerTitle="Explorador"
             playerRank="Rango 6 · Veterano"
+            frame={route.params.devShare.victory ? "frame_crown" : "frame_gold"}
           />
         </View>
       ) : null}

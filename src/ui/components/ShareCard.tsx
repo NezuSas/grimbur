@@ -6,6 +6,8 @@ import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import type { Character } from "../../data/characters";
 import { formatNumberNow } from "../../i18n/useT";
+import FramedHero from "./FramedHero";
+import type { CosmeticId } from "../../core/cosmetics/cosmetics";
 
 /** The shared picture's shape: the 1.91:1 that social apps show. Captured at the phone's own resolution (see shareResult). */
 export const SHARE_CARD_WIDTH = 1200;
@@ -34,6 +36,8 @@ export type ShareCardData = {
   playerName?: string;
   playerTitle?: string;
   playerRank?: string;
+  /** The frame the player wears: the hero stands in its full-body version. */
+  frame?: CosmeticId | null;
 };
 
 const GOLD = "#FFD54F";
@@ -56,7 +60,7 @@ const ART = {
  * design and text ignores the system font scale, so the picture is the same on every phone. Pictures are decoded at full size
  * (SpriteImage) so nothing is softened, and `onReady` fires once every one of them has loaded.
  */
-const ShareCard = ({ width, onReady, character, heroName, headline, score, level, floors, victory, gems, time, depth, daily, streak, invite, scoreLabel, playerName, playerTitle, playerRank }: ShareCardData & { width: number; onReady?: () => void }) => {
+const ShareCard = ({ width, onReady, character, heroName, headline, score, level, floors, victory, gems, time, depth, daily, streak, invite, scoreLabel, playerName, playerTitle, playerRank, frame }: ShareCardData & { width: number; onReady?: () => void }) => {
   const u = width / SHARE_CARD_WIDTH;
   const s = useMemo(() => makeStyles(u), [u]);
   const accent = victory ? GOLD : RED;
@@ -95,7 +99,11 @@ const ShareCard = ({ width, onReady, character, heroName, headline, score, level
           {[1, 0.78, 0.58, 0.4].map((k, i) => (
             <View key={i} style={[s.light, { width: 460 * u * k, height: 460 * u * k, borderRadius: 230 * u * k, top: (40 + 230 * (1 - k)) * u, backgroundColor: accent }]} />
           ))}
-          <SpriteImage source={heroArt} style={s.hero} resizeMode="contain" onLoadEnd={onLoaded} />
+          {frame ? (
+            <FramedHero source={heroArt} height={400 * u} frame={frame} tint={accent} onLoadEnd={onLoaded} style={{ marginBottom: -10 * u }} />
+          ) : (
+            <SpriteImage source={heroArt} style={s.hero} resizeMode="contain" onLoadEnd={onLoaded} />
+          )}
           <View style={[s.nameplate, { borderColor: accent + "CC" }]}>
             <Text style={s.playerName} numberOfLines={1} allowFontScaling={false}>
               {(playerName || heroName).toLocaleUpperCase()}
