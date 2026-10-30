@@ -773,6 +773,7 @@ export const es: Record<TranslationKey, string> = {
   'over.unlocked_other': 'Desbloqueados: {names}',
   'over.floor': 'Piso',
   'over.score': 'Puntos',
+  'over.killedBy': 'Te derrotó',
   'over.gems': 'Gemas',
   'over.time': 'Tiempo',
   'manual.lessons': 'Lecciones de práctica',
