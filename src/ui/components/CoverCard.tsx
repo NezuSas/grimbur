@@ -17,7 +17,6 @@ import { haptic } from "../../shared/haptics";
 import { emitSound } from "../../audio/audioEventBus";
 import EmberIcon from "./EmberIcon";
 import { useT } from "../../i18n/useT";
-import GoalLine from "./GoalLine";
 import type { Goal } from "../../core/stats/goals";
 import { formatCountdown } from "../../core/stats/countdown";
 
@@ -301,8 +300,6 @@ const CoverCard: React.FC<Props> = ({
         footnote={bestScore > 0 ? t("cover.best", { score: bestScore, floor: bestFloor }) : undefined}
         onPress={onPressPlay}
       />
-      {/* On very short windows the goal line would push the dock off the screen: it waits for more room. */}
-      {!firstRun && goal && height >= 340 ? <GoalLine goal={goal} small scale={ui} /> : null}
       {/* The first time only the play button and the manual are offered; the rest appears after the first run. */}
       {!firstRun && (
       <View style={[styles.modeRow, !sideRow && { flexDirection: "column" }]}>
