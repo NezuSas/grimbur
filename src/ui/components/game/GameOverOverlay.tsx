@@ -19,7 +19,6 @@ import { missionDef } from '../../../core/stats/missions';
 import type { RunPayout } from '../../../core/stats/runStats';
 import type { Goal } from '../../../core/stats/goals';
 import type { Unlocks } from '../../../core/stats/unlocks';
-import GoalLine from '../GoalLine';
 import SpriteImage from '../SpriteImage';
 import GemShower from './GemShower';
 import { CELEBRATION_LOOKS } from '../../cosmeticArt';
@@ -217,20 +216,14 @@ const GameOverOverlay = ({
   const accent = victory || demo ? '#FFD54F' : '#FF5252';
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
-  // The hero's own defeat pose is the picture; whoever struck is a small badge beside it (and named under it).
   const sprite = heroSprite;
   const spriteSize = height < 330 ? 104 : compact ? 132 : 196;
-  const haloSize = Math.round(spriteSize * 1.2);
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
 
-  const heroNo = character.id - 1;
-  const quote = demo ? null : t(`story.${victory ? 'win' : 'lose'}.${heroNo}` as TranslationKey);
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
-  const tip = !victory && deathCause ? t(`over.tip.${deathCause}` as TranslationKey) : null;
 
-  const title = demo ? t('over.demo.title') : victory ? t('over.victory') : t('over.fell', { floor: level });
   const nearGems = !victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2;
   const nearBest = !endless && !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
@@ -467,25 +460,10 @@ const GameOverOverlay = ({
         </View>
         </Reveal>
       )}
-      {!demo && goals && goals.length > 0 && (
-        <Reveal delay={1300} calm={calm}>
-          <View style={styles.goals} accessible accessibilityLabel={t('over.goalTitle')}>
-            {goals.map((g, i) => (
-              <GoalLine key={`${g.kind}${i}`} goal={g} highlight={!!canBuyNow && g.kind === 'forge' && g.affordable} />
-            ))}
-          </View>
-        </Reveal>
-      )}
       {demo && (
         <Text style={styles.demoBody} maxFontSizeMultiplier={1.2}>
           {t('over.demo.body', { floor: level })}
         </Text>
-      )}
-      {tip && height >= 340 && (
-        <View style={styles.tip}>
-          <Ionicons name="bulb" size={16} color="#FFD54F" />
-          <Text style={styles.tipText} maxFontSizeMultiplier={1.2}>{tip}</Text>
-        </View>
       )}
 
     </>
