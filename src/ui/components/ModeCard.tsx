@@ -45,7 +45,8 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
         accessibilityRole="button"
         accessibilityLabel={`${title}. ${subtitle}`}
         accessibilityState={{ disabled: locked }}
-        style={[styles.card, { borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : compactCard ? 60 : 70) * ui, gap: (compactCard ? 8 : 12) * ui, paddingHorizontal: (compactCard ? 10 : 12) * ui }]}
+        // flexGrow: cards side by side take the height of the tallest, so a row always lines up.
+        style={[styles.card, { flexGrow: 1, borderColor: locked ? "rgba(255,255,255,0.14)" : tint + "AA", minHeight: (featured ? 78 : compactCard ? 60 : 70) * ui, gap: (compactCard ? 8 : 12) * ui, paddingHorizontal: (compactCard ? 10 : 12) * ui }]}
       >
         {leading ?? (
           <View style={[styles.iconWrap, { width: (compactCard ? 38 : 46) * ui, height: (compactCard ? 38 : 46) * ui, borderRadius: (compactCard ? 19 : 23) * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
