@@ -240,6 +240,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const { runResult, setRunResult, showGameOver, setShowGameOver, showHighScoreEntry, setShowHighScoreEntry, recordCurrentRun, handleHighScoreSubmit, rearm, runRecorded, mounted } = useRunRecord({
     stateRef,
     runEnded: runEnded && !second.holdEnd,
+    afterQuestion: second.declined,
     characterIndex,
     ascension,
     mode,

@@ -20,6 +20,8 @@ type Params = {
   stateRef: MutableRefObject<GameState>;
   /** The run is over (the hero died or the Grimbur fell). */
   runEnded: boolean;
+  /** The end was held by the second-chance question and the answer was no: the card comes at once. */
+  afterQuestion?: boolean;
   characterIndex: number;
   ascension: number;
   mode: GameMode;
@@ -40,7 +42,7 @@ type Params = {
  * The end of a run: saving it once to the local stats, the result the card shows, the card itself and the high-score entry. It
  * keeps the guards that make each of those happen exactly once (a retry, leaving the screen and the card may all try to save).
  */
-export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, sessionTimeRef, deathFlash, reduceFlash }: Params) {
+export function useRunRecord({ stateRef, runEnded, afterQuestion = false, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, sessionTimeRef, deathFlash, reduceFlash }: Params) {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -152,7 +154,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
     // played and still finishes well before the card appears. (Leaving the screen records the run on its own.)
     let recordTimer: ReturnType<typeof setTimeout> | undefined;
     const resultPromise = new Promise<RunResult | null>(resolve => {
-      recordTimer = setTimeout(() => resolve(recordCurrentRun()), s.isVictory ? 0 : RECORD_AFTER_STRIKE_MS);
+      recordTimer = setTimeout(() => resolve(recordCurrentRun()), s.isVictory || afterQuestion ? 0 : RECORD_AFTER_STRIKE_MS);
     });
 
     // The card appears right away; nothing here waits for the network.
@@ -181,7 +183,7 @@ export function useRunRecord({ stateRef, runEnded, characterIndex, ascension, mo
       ]);
       const ask = qualifies === true || (qualifies === null && !!result?.isNewBest && s.score > 0);
       if (!cancelled && mounted.current && ask) setShowHighScoreEntry(true);
-    }, s.isVictory ? VICTORY_CARD_DELAY_MS : GAME_OVER_CARD_DELAY_MS);
+    }, s.isVictory ? VICTORY_CARD_DELAY_MS : afterQuestion ? 120 : GAME_OVER_CARD_DELAY_MS);
 
     return () => {
       cancelled = true;

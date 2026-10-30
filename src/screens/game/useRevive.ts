@@ -92,5 +92,7 @@ export function useRevive({ state, isDaily, runNumber, revive, onRevived, freeFi
 
   // The record of the run waits while the question is open (and for the moment it takes to read the purse).
   const holdEnd = eligible && (gate?.key !== key || gate.result === "offer");
-  return { visible, price, embers, used, busy, accept, decline, holdEnd };
+  /** The player said no to the second chance: the death has been on screen all along, so the result card need not wait again. */
+  const declined = eligible && gate?.key === key && gate.result === "declined";
+  return { visible, price, embers, used, busy, accept, decline, holdEnd, declined };
 }
