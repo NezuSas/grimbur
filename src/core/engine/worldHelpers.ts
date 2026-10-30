@@ -175,7 +175,10 @@ export const hunterAct = (
   const hunter = world.entityMap[hunterIndex];
   if (!hunter) return { world, hit: false };
 
-  const step = bossStep(hunter.index, playerIndex, rows, cols, world.entityMap);
+  // A stalker finds its way around whatever stands between it and the player; the Grimbur keeps its straight charge.
+  const step = hunter.type === 'stalker'
+    ? stalkerStep(hunter.index, playerIndex, rows, cols, world.entityMap)
+    : bossStep(hunter.index, playerIndex, rows, cols, world.entityMap);
   if (step.kind === 'move') {
     return { world: replaceEntityAt(world, hunter.index, { ...hunter, index: step.to, charge: 0 }), hit: false };
   }
@@ -246,6 +249,38 @@ export const bossStep = (
     if (!entityMap[target]) return { kind: 'move', to: target };
   }
   return { kind: 'stay' };
+};
+
+/**
+ * A stalker's move: the first step of a shortest path to the player over empty tiles (breadth-first, neighbours tried in
+ * a fixed order so the same cave always plays the same). Without it, a crowded floor walls stalkers in behind guardians
+ * and vortexes, and the deeper, denser depths ended up safer than the shallow ones. With no way through at all it falls
+ * back to the straight step.
+ */
+export const stalkerStep = (
+  from: number,
+  playerIndex: number,
+  rows: number,
+  cols: number,
+  entityMap: Record<number, GameEntity>,
+): { kind: 'attack' } | { kind: 'move'; to: number } | { kind: 'stay' } => {
+  const ORDER: Direction[] = ['UP', 'RIGHT', 'DOWN', 'LEFT'];
+  for (const d of ORDER) if (neighbour(from, d, rows, cols) === playerIndex) return { kind: 'attack' };
+  const firstStep = new Map<number, number>([[from, -1]]);
+  const queue: number[] = [from];
+  for (let head = 0; head < queue.length; head++) {
+    const at = queue[head];
+    for (const d of ORDER) {
+      const next = neighbour(at, d, rows, cols);
+      if (next === -1 || firstStep.has(next)) continue;
+      const first = at === from ? next : (firstStep.get(at) as number);
+      if (next === playerIndex) return first === playerIndex ? { kind: 'attack' } : { kind: 'move', to: first };
+      if (entityMap[next]) continue;
+      firstStep.set(next, first);
+      queue.push(next);
+    }
+  }
+  return bossStep(from, playerIndex, rows, cols, entityMap);
 };
 
 /** Hunters wait longer with a Frost Charm and act sooner in Hasty Boots. */

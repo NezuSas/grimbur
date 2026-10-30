@@ -14,7 +14,7 @@ describe('modifiers', () => {
     expect(modifiersFor(1).arrowPenalty).toBe(1);
     expect(modifiersFor(2).stalkerFloor).toBe(5);
     expect(modifiersFor(3).bossHpBonus).toBe(1);
-    expect(modifiersFor(4)).toMatchObject({ trapPenaltyMultiplier: 2, extraTraps: 1, arrowPenalty: 3, bossHpBonus: 1 });
+    expect(modifiersFor(4)).toMatchObject({ trapPenaltyMultiplier: 2, extraTraps: 1, arrowPenalty: 2, bossHpBonus: 1, stalkerFloor: 4 });
     expect(modifiersFor(5).draftSize).toBe(2);
   });
 
@@ -27,9 +27,9 @@ describe('modifiers', () => {
 });
 
 describe('generation at depth', () => {
-  it('depth 2 always puts a stalker on floor 5 (depth 0 only sometimes; never before floor 4)', () => {
+  it('depth 2 always puts a stalker on floor 5 (depth 0 only sometimes; never before floor 3)', () => {
     for (let seed = 1; seed <= 20; seed++) {
-      expect(count(generateBoard(3, seed * 13).entities, 'stalker')).toBe(0);
+      expect(count(generateBoard(2, seed * 13).entities, 'stalker')).toBe(0);
       expect(count(generateBoard(5, seed * 13).entities, 'stalker')).toBeLessThanOrEqual(1);
       expect(count(generateBoard(5, seed * 13, { ascension: 2 }).entities, 'stalker')).toBeGreaterThanOrEqual(1);
     }

@@ -297,7 +297,7 @@ describe('abilities', () => {
   });
 });
 
-describe('the first close call arrives around floor 4', () => {
+describe('the first close call arrives around floor 3', () => {
   const stalkerShare = (level: number) => {
     let withOne = 0;
     const runs = 300;
@@ -309,9 +309,11 @@ describe('the first close call arrives around floor 4', () => {
     return withOne / runs;
   };
 
-  it('floors 4 and 5 get a single stalker about half of the time, never before and not on 6', () => {
+  it('floors 3 to 5 get a single stalker about half of the time, never before and not on 6', () => {
     expect(stalkerShare(1)).toBe(0);
-    expect(stalkerShare(3)).toBe(0);
+    expect(stalkerShare(2)).toBe(0);
+    expect(stalkerShare(3)).toBeGreaterThan(0.38);
+    expect(stalkerShare(3)).toBeLessThan(0.62);
     expect(stalkerShare(4)).toBeGreaterThan(0.38);
     expect(stalkerShare(4)).toBeLessThan(0.62);
     expect(stalkerShare(5)).toBeGreaterThan(0.38);

@@ -6,9 +6,13 @@ import { GAME_CONFIG } from '../../config/gameConfig';
  *
  *   1  one arrow fewer on every floor, one more guardian
  *   2  stalkers already from floor 5, one more vortex
- *   3  two arrows fewer, the Grimbur has one more heart, two more guardians and vortexes, stalkers act sooner
- *   4  traps hurt twice as much and each floor has one more, another vortex, one more stalker
- *   5  relic drafts offer only 2 choices, one more guardian and vortex, one more stalker, the Grimbur has another heart
+ *   3  two arrows fewer, the Grimbur has one more heart, two more guardians and vortexes, one more stalker
+ *   4  stalkers from floor 4, traps hurt twice as much and each floor has one more, another guardian
+ *   5  relic drafts offer only 2 choices, one arrow fewer, another guardian, vortex and stalker, the Grimbur has another heart
+ *
+ * Tuned with scripts/simulate.ts so each depth is a step, not a wall: a bare careful bot wins a whole expedition about
+ * 9%, 8%, 7%, 3%, 2% and 0.6% of the time from depth 0 to 5. (Stalkers no longer act sooner on deep depths: with the
+ * wind-up before each strike, a faster rhythm made them easier to step away from, and depth 3 played easier than 0.)
  */
 export const MAX_ASCENSION = 5;
 
@@ -42,15 +46,15 @@ export function clampAscension(value: number): number {
 export function modifiersFor(ascension: number): AscensionModifiers {
   const a = clampAscension(ascension);
   return {
-    arrowPenalty: [0, 1, 1, 2, 3, 4][a],
-    stalkerFloor: a >= 5 ? 3 : a >= 4 ? 4 : a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
+    arrowPenalty: [0, 1, 1, 2, 2, 3][a],
+    stalkerFloor: a >= 4 ? 4 : a >= 2 ? 5 : GAME_CONFIG.stalker.minFloor,
     bossHpBonus: a >= 5 ? 2 : a >= 3 ? 1 : 0,
-    enemyBonus: [0, 1, 1, 2, 4, 6][a],
-    pitBonus: [0, 0, 1, 2, 3, 4][a],
+    enemyBonus: [0, 1, 1, 2, 3, 4][a],
+    pitBonus: [0, 0, 1, 2, 2, 3][a],
     trapPenaltyMultiplier: a >= 4 ? 2 : 1,
     extraTraps: a >= 4 ? 1 : 0,
-    stalkerBonus: [0, 0, 0, 0, 1, 2][a],
-    hunterHaste: a >= 5 ? 2 : a >= 3 ? 1 : 0,
+    stalkerBonus: [0, 0, 0, 1, 1, 2][a],
+    hunterHaste: 0,
     draftSize: a >= 5 ? 2 : 3,
   };
 }
