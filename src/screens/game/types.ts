@@ -16,7 +16,7 @@ export const BIOME_TINT: Record<ArtTheme, string> = {
 };
 
 /** How long the board stays on screen after a death (the red edge, the shake and the killer in view) before the defeat card covers it. */
-export const GAME_OVER_CARD_DELAY_MS = 1100;
+export const GAME_OVER_CARD_DELAY_MS = 1800;
 /**
  * How long the board stays after the Grimbur falls: the arrow lands, the Grimbur crumbles (BOSS_FALL_MS) and the cave holds
  * its breath a moment before the victory card.

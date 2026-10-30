@@ -505,7 +505,7 @@ export default function GameScreen({ navigation, route }: Props) {
       if (shouldGateDescentNow(now.level, mode)) gateStage.current = "level";
       else if (shouldShowShop(now.level + 1, now)) setIntermission(true);
       else descendOnFocus.current = true; // the first floors go straight to the relic draft
-    }, 800);
+    }, 2200); // long enough to see the floor unveiled (its creatures and whether each flag was right)
 
     return () => clearTimeout(timer);
   }, [levelUpWindow]);
@@ -753,6 +753,8 @@ export default function GameScreen({ navigation, route }: Props) {
             biome={artBiome}
             trail={looks.trail}
             flag={looks.flag}
+            // A cleared or lost floor shows what the fog hid: the creatures finally seen, the deductions checked.
+            unveil={state.isLevelUp || (state.isGameOver && !state.isVictory) || (__DEV__ && !!route.params?.devUnveil)}
             isAttacking={isAttacking}
             guardianCount={countGuardians(state)}
             onTilePress={travelTo}

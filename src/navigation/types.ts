@@ -25,7 +25,7 @@ export type RootStackParamList = {
   LessonScreen: { lesson: LessonId; devMoves?: ("UP" | "DOWN" | "LEFT" | "RIGHT")[]; devEntities?: { index: number; type: string }[]; devBiome?: "cave" | "crystal" | "magma" | "lair"; devHideBanner?: boolean; devAim?: Direction; devHoldDeath?: boolean; devShoot?: number; devDraft?: RelicId[]; devGameOver?: { hero: number; skin?: SkinId; cause: "enemy" | "stalker" | "sleeper" | "boss" | "pit"; victory?: boolean; full?: boolean } };
   /** `devBiome`: development only, draws the floor as that cave type (for screenshots). */
   /** `resume`: continue the expedition saved on disk instead of starting a new run (see services/savedRun.ts). */
-  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; resume?: boolean; challenge?: ChallengeParam; duel?: { code: string; name: string; stake: number; members: string[]; matchId: string }; devBiome?: "cave" | "crystal" | "magma" | "lair"; devReveal?: boolean } | undefined;
+  GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; resume?: boolean; challenge?: ChallengeParam; duel?: { code: string; name: string; stake: number; members: string[]; matchId: string }; devBiome?: "cave" | "crystal" | "magma" | "lair"; devReveal?: boolean; devUnveil?: boolean } | undefined;
   HighScoresScreen: undefined;
   ProgressScreen: undefined;
   LevelCompleteScreen: {
