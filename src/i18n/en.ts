@@ -422,6 +422,8 @@ export const en = {
   'collection.cat.rewards': 'Rewards',
   'collection.cat.celebration': 'Celebrations',
   'collection.progress': '{pct}% of the collection · {owned}/{total}',
+  'collection.rewards.banner': 'You earned a collection reward!',
+  'collection.rewards.see': 'See',
   'collection.rewards.title': 'Your collection',
   'collection.rewards.count': '{owned} of {total} pieces',
   'collection.rewards.next': 'Next reward at {pct}%: {n} to go',
