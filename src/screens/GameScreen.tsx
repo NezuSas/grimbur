@@ -168,9 +168,10 @@ export default function GameScreen({ navigation, route }: Props) {
   const bannerUp = bannerDone !== bannerKey && !runEnded;
   useEffect(() => {
     // Never hold the board for good if the banner cannot finish (it is hidden behind something else).
+    if (!isFocused) return;
     const timer = setTimeout(() => setBannerDone(bannerKey), 9000);
     return () => clearTimeout(timer);
-  }, [bannerKey]);
+  }, [bannerKey, isFocused]);
   // Who waits in this floor's fog, shown on the floor banner: the creatures are met by name before they are deduced.
   const floorRoster = useMemo(() => {
     const kinds = [
@@ -225,7 +226,7 @@ export default function GameScreen({ navigation, route }: Props) {
     bootCover,
   });
   // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
-  const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft);
+  const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft && isFocused);
   const resetTimer = useCallback(() => clock.reset(), [clock]);
 
   const sessionTimeRef = useMemo(() => ({ get current() { return clock.get(); } }), [clock]);
@@ -267,7 +268,6 @@ export default function GameScreen({ navigation, route }: Props) {
   busyRef.current = levelUpWindow || !!state.pendingDraft || second.visible; // the second-chance question is answered with its buttons
 
   // Guards / bookkeeping refs
-  const descendOnFocus = useRef(false); //    the next floor opens as soon as the level-complete card closes
   const leaving = useRef(false); //           blocks timers from navigating after we left
   const floorStart = useRef({ enemies: 0, gems: 0 });
 
@@ -510,7 +510,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const coverOpacity = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (floorCovered && !state.isLevelUp) {
-      Animated.timing(coverOpacity, { toValue: 0, duration: reduceFlash ? 0 : 260, useNativeDriver: true }).start(() => setFloorCovered(false));
+      Animated.timing(coverOpacity, { toValue: 0, duration: reduceFlash ? 0 : 180, useNativeDriver: true }).start(() => setFloorCovered(false));
     } else if (floorCovered) {
       coverOpacity.setValue(1);
     }
@@ -544,7 +544,15 @@ export default function GameScreen({ navigation, route }: Props) {
       setDoor(0);
       if (shouldGateDescentNow(now.level, mode)) gateStage.current = "level";
       else if (shouldShowShop(now.level + 1, now)) setIntermission(true);
-      else descendOnFocus.current = true; // the first floors go straight to the relic draft
+      else {
+        // The first floors skip the shop and the fork: the next floor is built while the card is on screen (behind it), so
+        // "Next floor" lands straight on it, with nothing old or black in between.
+        setTimeout(() => {
+          const later = stateRef.current;
+          if (!mounted.current || leaving.current || !later.isLevelUp || later.isVictory) return;
+          levelUp(undefined);
+        }, 400);
+      }
     }, 2200); // long enough to see the floor unveiled (its creatures and whether each flag was right)
 
     return () => clearTimeout(timer);
@@ -577,15 +585,6 @@ export default function GameScreen({ navigation, route }: Props) {
         })
         .catch(() => {});
     }
-  }, [isFocused]);
-
-  // First floors skip the shop and the fork: the next floor opens when the level-complete card closes.
-  useEffect(() => {
-    if (!isFocused || !descendOnFocus.current || leaving.current || !mounted.current) return;
-    descendOnFocus.current = false;
-    const s = stateRef.current;
-    if (!s.isLevelUp || s.isVictory) return;
-    levelUp(undefined);
   }, [isFocused]);
 
   const handleUnlock = useCallback(() => {
@@ -751,10 +750,10 @@ export default function GameScreen({ navigation, route }: Props) {
         beat={heartbeat}
       />
       {/* While the floor banner is up the board waits: a tap anywhere closes it and play begins. */}
-      {bannerUp && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
+      {bannerUp && isFocused && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
         <Pressable style={[StyleSheet.absoluteFill, { zIndex: 39 }]} onPress={() => setBannerSkipped(bannerKey)} accessibilityRole="button" accessibilityLabel={t("floor.bannerSkip")} />
       )}
-      {!runEnded && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
+      {!runEnded && isFocused && !levelUpWindow && !state.pendingDraft && !bootCover && !bossIntro && (
         <FloorBanner
           floorKey={bannerKey}
           onDone={() => setBannerDone(bannerKey)}
