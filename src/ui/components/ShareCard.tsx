@@ -89,16 +89,11 @@ const ShareCard = ({ width, onReady, character, heroName, headline, score, level
       <View style={[s.frame, { borderColor: accent + "B3" }]} />
       <View style={[s.frameInner, { borderColor: accent + "40" }]} />
 
-      {/* The game's name, centred on top */}
-      <View style={s.top}>
-        <SpriteImage source={ART.logo} style={s.logo} resizeMode="contain" onLoadEnd={onLoaded} />
-      </View>
-
       <View style={s.body}>
         {/* ── The hero and who played it ─────────────────────────────────────── */}
         <View style={s.left}>
           {[1, 0.78, 0.58, 0.4].map((k, i) => (
-            <View key={i} style={[s.light, { width: 420 * u * k, height: 420 * u * k, borderRadius: 210 * u * k, top: (10 + 210 * (1 - k)) * u, backgroundColor: accent }]} />
+            <View key={i} style={[s.light, { width: 460 * u * k, height: 460 * u * k, borderRadius: 230 * u * k, top: (40 + 230 * (1 - k)) * u, backgroundColor: accent }]} />
           ))}
           <SpriteImage source={heroArt} style={s.hero} resizeMode="contain" onLoadEnd={onLoaded} />
           <View style={[s.nameplate, { borderColor: accent + "CC" }]}>
@@ -122,6 +117,8 @@ const ShareCard = ({ width, onReady, character, heroName, headline, score, level
 
         {/* ── The result ─────────────────────────────────────────────────────── */}
         <View style={s.right}>
+          {/* The game's name heads the result, on the same centre line */}
+          <SpriteImage source={ART.logo} style={s.logo} resizeMode="contain" onLoadEnd={onLoaded} />
           <View style={[s.ribbon, { backgroundColor: accent }]}>
             <Text style={s.ribbonText} numberOfLines={1} allowFontScaling={false}>
               {(daily ? `${daily} · ${headline}` : headline).toLocaleUpperCase()}
@@ -186,32 +183,31 @@ const makeStyles = (u: number) =>
     card: { width: SHARE_CARD_WIDTH * u, height: SHARE_CARD_HEIGHT * u, backgroundColor: "#1A120B", overflow: "hidden" },
     frame: { position: "absolute", left: 16 * u, top: 16 * u, right: 16 * u, bottom: 16 * u, borderWidth: 3 * u, borderRadius: 28 * u },
     frameInner: { position: "absolute", left: 26 * u, top: 26 * u, right: 26 * u, bottom: 26 * u, borderWidth: 1.5 * u, borderRadius: 20 * u },
-    top: { height: 120 * u, alignItems: "center", justifyContent: "flex-end" },
-    logo: { width: 260 * u, height: 96 * u },
-    body: { flex: 1, flexDirection: "row", paddingBottom: 104 * u },
-    left: { width: 480 * u, paddingLeft: 48 * u, paddingRight: 8 * u, alignItems: "center", justifyContent: "flex-end" },
+    logo: { width: 300 * u, height: 112 * u, marginBottom: -2 * u },
+    body: { flex: 1, flexDirection: "row", paddingBottom: 100 * u },
+    left: { width: 470 * u, paddingLeft: 44 * u, paddingTop: 34 * u, alignItems: "center", justifyContent: "flex-end" },
     light: { position: "absolute", opacity: 0.05 },
-    hero: { width: 320 * u, height: 280 * u, marginBottom: -4 * u },
+    hero: { width: 420 * u, height: 390 * u, marginBottom: -18 * u },
     nameplate: { alignItems: "center", gap: 6 * u, minWidth: 280 * u, maxWidth: 400 * u, paddingHorizontal: 22 * u, paddingVertical: 10 * u, borderRadius: 16 * u, borderWidth: 2.5 * u, backgroundColor: "rgba(16,10,5,0.88)" },
     playerName: { color: "#FFF4DE", fontSize: 32 * u, fontWeight: "900", letterSpacing: 4 * u },
     plateRow: { flexDirection: "row", alignItems: "center", gap: 12 * u },
     titleTag: { paddingHorizontal: 12 * u, paddingVertical: 3 * u, borderRadius: 8 * u, borderWidth: 2 * u, borderColor: "#E8B04A", backgroundColor: "rgba(40,26,10,0.9)" },
     titleTagText: { color: GOLD, fontSize: 19 * u, fontWeight: "900", letterSpacing: 1.5 * u },
     rank: { fontSize: 20 * u, fontWeight: "900", letterSpacing: 1 * u },
-    right: { flex: 1, justifyContent: "center", paddingRight: 70 * u, gap: 16 * u },
-    ribbon: { alignSelf: "flex-start", paddingHorizontal: 22 * u, paddingVertical: 8 * u, borderRadius: 10 * u },
+    right: { flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 34 * u, paddingRight: 60 * u, paddingLeft: 10 * u, gap: 14 * u },
+    ribbon: { alignSelf: "center", paddingHorizontal: 22 * u, paddingVertical: 8 * u, borderRadius: 10 * u },
     ribbonText: { color: "#1A0F04", fontSize: 26 * u, fontWeight: "900", letterSpacing: 3 * u },
     scoreRow: { flexDirection: "row", alignItems: "baseline", gap: 16 * u, marginTop: -6 * u },
     score: { fontSize: 120 * u, lineHeight: 132 * u, fontWeight: "900", letterSpacing: 1 * u, textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 4 * u }, textShadowRadius: 10 * u },
     scoreLabel: { color: "#CDB49A", fontSize: 28 * u, fontWeight: "900", letterSpacing: 6 * u },
-    track: { flexDirection: "row", alignItems: "center", marginRight: 10 * u },
+    track: { flexDirection: "row", alignItems: "center", alignSelf: "stretch" },
     trackLine: { flex: 1, height: 5 * u, borderRadius: 3 * u, backgroundColor: "rgba(255,255,255,0.16)" },
     trackDot: { width: 22 * u, height: 22 * u, borderRadius: 11 * u, borderWidth: 3 * u, borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(0,0,0,0.5)" },
     fallWrap: { width: 40 * u, height: 40 * u, alignItems: "center", justifyContent: "center" },
     fallGlow: { position: "absolute", width: 40 * u, height: 40 * u, borderRadius: 20 * u, opacity: 0.3 },
     fallDot: { width: 26 * u, height: 26 * u, borderRadius: 13 * u, borderWidth: 4 * u, borderColor: "#FFE1DC" },
     trackEnd: { width: 44 * u, height: 44 * u },
-    tiles: { flexDirection: "row", flexWrap: "wrap", gap: 12 * u },
+    tiles: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 12 * u },
     tile: { flexDirection: "row", alignItems: "center", gap: 10 * u, paddingVertical: 8 * u, paddingLeft: 10 * u, paddingRight: 20 * u, borderRadius: 16 * u, borderWidth: 2 * u, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(0,0,0,0.45)" },
     tileArt: { width: 40 * u, height: 40 * u },
     tileText: { color: "#FFF4DE", fontSize: 28 * u, fontWeight: "900" },
