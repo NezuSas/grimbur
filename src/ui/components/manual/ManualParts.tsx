@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   factLabel: { flex: 1, color: "#fff", fontWeight: "900", fontSize: 16 },
   factDetail: { color: "#DCCCBD", fontSize: 14.5, lineHeight: 21 },
   tag: { maxWidth: 140, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
-  tagText: { fontWeight: "900", fontSize: 10.5, letterSpacing: 0.8, textAlign: "center" },
+  tagText: { fontWeight: "900", fontSize: 11, letterSpacing: 0.8, textAlign: "center" },
   sub: { fontWeight: "900", fontSize: 13, letterSpacing: 2, marginTop: 6 },
   example: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 14 },
   exampleText: { flex: 1, color: "#DCCCBD", fontSize: 14, lineHeight: 20 },

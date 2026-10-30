@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   rewards: { flex: 1, gap: 6 },
   reward: { flexDirection: "row", alignItems: "center", gap: 10, padding: 4, paddingRight: 10, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.22)" },
   rewardName: { color: "#fff", fontWeight: "900", fontSize: 14 },
-  rewardKind: { fontWeight: "900", fontSize: 10, letterSpacing: 1.1 },
+  rewardKind: { fontWeight: "900", fontSize: 11, letterSpacing: 1.1 },
   state: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.35)", maxWidth: 140 },
   stateDone: { backgroundColor: "#9EE37D" },
   stateNext: { backgroundColor: "rgba(255,213,79,0.14)", borderWidth: 1, borderColor: "rgba(255,213,79,0.6)" },

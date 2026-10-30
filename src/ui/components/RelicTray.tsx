@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FFD54F',
   },
-  countText: { color: '#FFD54F', fontSize: 10, fontWeight: '900' },
+  countText: { color: '#FFD54F', fontSize: 11, fontWeight: '900' },
 });
 
 export default RelicTray;

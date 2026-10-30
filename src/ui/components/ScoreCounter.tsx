@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   suffix: { fontSize: 12, color: "rgba(255,255,255,0.7)" },
   label: {
     color: "rgba(255, 255, 255, 0.6)",
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: "600",
     textTransform: "uppercase",
     includeFontPadding: false,

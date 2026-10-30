@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
   name: { color: "#fff", fontWeight: "900", fontSize: 20, letterSpacing: 2, textAlign: "center" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" },
   tag: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9, borderWidth: 1 },
-  tagText: { fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
+  tagText: { fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   hint: { color: "#CAB39C", fontSize: 12, textAlign: "center" },
   cta: { alignSelf: "stretch", minHeight: MIN_TOUCH + 4, borderRadius: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 14, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   ctaQuiet: { backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)", borderBottomWidth: 1.5 },

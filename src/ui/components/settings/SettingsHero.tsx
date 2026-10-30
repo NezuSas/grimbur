@@ -213,5 +213,5 @@ const styles = StyleSheet.create({
   crossMid: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(60,45,28,0.92)" },
   captionRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#9EE37D" },
-  caption: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.4 },
+  caption: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.4 },
 });

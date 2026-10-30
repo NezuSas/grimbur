@@ -782,7 +782,7 @@ const styles = StyleSheet.create({
   themeTag: {
     color: GOLD,
     fontWeight: "900",
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 1.2,
   },
   tier: {
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 0,
   },
-  tierText: { fontSize: 9, fontWeight: "900", letterSpacing: 1 },
+  tierText: { fontSize: 11, fontWeight: "900", letterSpacing: 1 },
   showName: { color: "#fff", fontWeight: "900", fontSize: 18 },
   showDesc: { color: "#DCCEBF", fontSize: 13 },
   showProgress: { flexDirection: "row", alignItems: "center", gap: 8 },

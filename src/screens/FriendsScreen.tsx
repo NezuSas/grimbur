@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   record: { flexDirection: "row", gap: 6 },
   recordCell: { flex: 1, alignItems: "center", paddingVertical: 6, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.28)" },
   recordValue: { fontWeight: "900", fontSize: 20 },
-  recordLabel: { color: "#C4AA91", fontWeight: "800", fontSize: 9.5, letterSpacing: 0.8 },
+  recordLabel: { color: "#C4AA91", fontWeight: "800", fontSize: 11, letterSpacing: 0.8 },
   netRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4 },
   netLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 13, flex: 1 },
   netValue: { fontWeight: "900", fontSize: 16 },
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   code: { color: "#fff", fontWeight: "900", fontSize: 17, letterSpacing: 3 },
   rowSub: { color: "#C4AA91", fontWeight: "800", fontSize: 12 },
   rowValue: { color: "#9EE37D", fontWeight: "900", fontSize: 17 },
-  bestLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 10, letterSpacing: 1.5 },
+  bestLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
 
   empty: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(36,28,19,0.6)", flexWrap: "wrap" },
   emptyArt: { width: 48, height: 48, opacity: 0.55 },

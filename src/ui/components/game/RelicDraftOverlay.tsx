@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   lit: { position: 'absolute', top: 0, left: 18, right: 18, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.22)' },
   // Fixed slots, the same on every card, so icons, names and descriptions start at the same height on all of them.
   tagSlot: { height: 13, justifyContent: 'center' },
-  cursedTag: { color: '#FF8A80', fontWeight: '900', fontSize: 10, letterSpacing: 2 },
+  cursedTag: { color: '#FF8A80', fontWeight: '900', fontSize: 11, letterSpacing: 1.2 },
   iconWell: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   nameSlot: { alignSelf: 'stretch', height: 34, justifyContent: 'center' },
   name: { color: '#fff', fontWeight: '900', fontSize: 13, lineHeight: 16, letterSpacing: 1, textAlign: 'center' },

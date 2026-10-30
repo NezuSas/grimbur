@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   tierText: { color: "#EAE1D8", fontSize: 12, fontWeight: "800" },
   next: { flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(144,202,249,0.45)", backgroundColor: "rgba(144,202,249,0.1)", padding: 12 },
   nextIcon: { width: 40, height: 40 },
-  nextKicker: { color: "#90CAF9", fontWeight: "800", letterSpacing: 2, fontSize: 10 },
+  nextKicker: { color: "#90CAF9", fontWeight: "800", letterSpacing: 1.2, fontSize: 11 },
   nextName: { color: "#fff", fontWeight: "800", fontSize: 15 },
   nextCount: { color: "#DDCFC1", fontWeight: "800", fontSize: 13 },
   // Fourteen even slots in one row, whatever the card width.

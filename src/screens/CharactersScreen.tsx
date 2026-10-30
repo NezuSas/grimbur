@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 2,
   },
-  cardLabel: { fontWeight: "900", letterSpacing: 1.5, fontSize: 10 },
+  cardLabel: { fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   cardName: { color: "#fff", fontWeight: "900" },
   cardDesc: { color: "#E7DCD2" },
   abilityHead: { flexDirection: "row", alignItems: "center", gap: 10 },

@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   glow: { position: "absolute", top: -40, left: -40, width: 140, height: 140, borderRadius: 70, opacity: 0.1 },
   top: { flexDirection: "row", alignItems: "center", gap: 10 },
   art: { width: 46, height: 46 },
-  kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 2 },
+  kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   codeBox: { alignItems: "center", paddingHorizontal: 8, paddingVertical: 6, borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", backgroundColor: "rgba(0,0,0,0.3)" },
   code: { alignSelf: "stretch", textAlign: "center", color: "#FFD54F", fontWeight: "900", fontSize: 28, letterSpacing: 3 },
   tools: { flexDirection: "row", gap: 6 },
@@ -121,5 +121,5 @@ const styles = StyleSheet.create({
   depth: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1 },
   pips: { flexDirection: "row", gap: 2 },
   pip: { width: 5, height: 5, borderRadius: 3 },
-  depthText: { fontWeight: "900", fontSize: 10.5, letterSpacing: 1 },
+  depthText: { fontWeight: "900", fontSize: 11, letterSpacing: 1 },
 });

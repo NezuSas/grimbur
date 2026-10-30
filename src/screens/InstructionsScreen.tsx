@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   pagerButton: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, minHeight: MIN_TOUCH + 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: BORDER, backgroundColor: CARD },
   pagerNext: { justifyContent: "flex-end" },
   pagerArt: { width: 30, height: 30 },
-  pagerHint: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.5 },
+  pagerHint: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   pagerLabel: { color: "#fff", fontWeight: "800", fontSize: 14 },
 });
 
