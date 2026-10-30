@@ -116,7 +116,8 @@ export default function GameScreen({ navigation, route }: Props) {
   // Expeditions and endless runs can be left and continued later; the daily is tied to its date, challenges and duels are live.
   const resumable = !challenge && !duelParam && !isDaily;
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
-  const [intermission, setIntermission] = useState(false);
+  // Development only: `devIntermission` opens the between-floors screen, for screenshots.
+  const [intermission, setIntermission] = useState(() => __DEV__ && !!route.params?.devIntermission);
   const [door, setDoor] = useState<0 | 1>(0);
   // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
   const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
@@ -193,7 +194,7 @@ export default function GameScreen({ navigation, route }: Props) {
     [intermission, state.runSeed, state.level, state.mode],
   );
   useEffect(() => {
-    if (!levelUpWindow) setIntermission(false);
+    if (!levelUpWindow && !(__DEV__ && route.params?.devIntermission)) setIntermission(false);
   }, [levelUpWindow]);
 
   // Latest values for listeners and timers (so effects do not need volatile dependencies).
@@ -917,7 +918,7 @@ export default function GameScreen({ navigation, route }: Props) {
         character={selectedCharacter}
         time={clock.get()}
         bootCover={bootCover}
-        shop={{ visible: intermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
+        shop={{ visible: intermission, preview: __DEV__ && !!route.params?.devIntermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
         onPickRelic={handlePickRelic}
         pause={{ visible: paused, saveOnExit: resumable, canRestart: !duelParam, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{
