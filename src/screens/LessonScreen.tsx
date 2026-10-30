@@ -29,6 +29,7 @@ import { analytics } from "../services/analytics";
 import { relicText } from "../i18n/keys";
 import GameOverOverlay from "../ui/components/game/GameOverOverlay";
 import { characterWithSkin } from "../data/characterSkins";
+import ShareCard from "../ui/components/ShareCard";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LessonScreen">;
 
@@ -252,6 +253,28 @@ export default function LessonScreen({ navigation, route }: Props) {
       {__DEV__ && route.params.devHideBanner ? null : banner}
       {/* Development only: the relic draft as the game shows it, with these relics, to check how it fits a window. */}
       {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} onPick={() => {}} /> : null}
+      {/* Development only: the shared picture, full width, to review its design. */}
+      {__DEV__ && route.params.devShare ? (
+        <View style={[StyleSheet.absoluteFill, { zIndex: 2000, backgroundColor: "#000", alignItems: "center", justifyContent: "center" }]}>
+          <ShareCard
+            width={winWidth}
+            character={characterWithSkin(route.params.devShare.hero)}
+            heroName="Oscar"
+            headline={route.params.devShare.victory ? "Venció al Grimbur" : "Llegó al piso 7"}
+            score={route.params.devShare.victory ? 18450 : 4381}
+            level={route.params.devShare.victory ? 10 : 7}
+            floors={10}
+            victory={!!route.params.devShare.victory}
+            gems="19 gemas"
+            time="06:52"
+            depth="Pesadilla"
+            daily={route.params.devShare.daily ? "Reto diario #16" : undefined}
+            streak={route.params.devShare.daily ? "Racha de 7 días" : undefined}
+            invite="¿Puedes superarlo? Grimbur: cueva de pistas"
+            scoreLabel="puntos"
+          />
+        </View>
+      ) : null}
       {__DEV__ && route.params.devGameOver ? (
         <GameOverOverlay
           visible

@@ -474,6 +474,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const [shareCard, setShareCard] = useState<ShareCardData | null>(null);
   const shareCardRef = useRef<React.ComponentRef<typeof View>>(null);
   const sharing = useRef(false);
+  const shareReady = useRef<(() => void) | null>(null);
   const handleShare = useCallback(async () => {
     if (sharing.current) return; // a second tap while the picture is being made
     sharing.current = true;
@@ -483,14 +484,23 @@ export default function GameScreen({ navigation, route }: Props) {
       const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code, route: isDaily ? routeOf() : undefined };
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
-      setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
-      await new Promise<void>(resolve => setTimeout(resolve, 500)); // the card lays out and its pictures (background, hero, logo) decode
-      await shareResult(shareCardRef, message, t("share.dialog"));
+      // The card is captured once every picture in it has drawn (or after a while, so sharing never hangs).
+      await new Promise<void>(resolve => {
+        const done = () => {
+          clearTimeout(timer);
+          shareReady.current = null;
+          setTimeout(resolve, 120); // one more frame for the last picture to reach the screen
+        };
+        const timer = setTimeout(done, 2500);
+        shareReady.current = done;
+        setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
+      });
+      await shareResult(shareCardRef, message, t("share.dialog"), Math.min(windowWidth, SHARE_CARD_WIDTH));
     } finally {
       setShareCard(null);
       sharing.current = false;
     }
-  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, challenge, selectedCharacter, sessionTimeRef, routeOf]);
+  }, [dailyDate, runResult, t, plural, isDaily, ascension, mode, challenge, selectedCharacter, sessionTimeRef, routeOf, windowWidth]);
 
   // The daily as plain text (its route in squares), ready to paste in a chat; the picture keeps its own button.
   const handleCopyText = useCallback(async () => {
@@ -703,7 +713,7 @@ export default function GameScreen({ navigation, route }: Props) {
       // Drawn inside the window (Android does not draw what lies outside it) but under the opaque game screen, so the player
       // never sees it; it is only on screen while a result is being shared.
       <View ref={shareCardRef} collapsable={false} pointerEvents="none" style={{ position: "absolute", left: 0, top: 0 }}>
-        <ShareCard {...shareCard} width={Math.min(windowWidth, SHARE_CARD_WIDTH)} />
+        <ShareCard {...shareCard} width={Math.min(windowWidth, SHARE_CARD_WIDTH)} onReady={() => shareReady.current?.()} />
       </View>
     ) : null}
     <ImageBackground
