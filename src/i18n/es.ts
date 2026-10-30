@@ -867,6 +867,7 @@ export const es: Record<TranslationKey, string> = {
   'share.line': "{result} · {score} pts · {gems} · ⏱ {time}",
   'share.invite': "¿Te atreves a superarme?",
   'share.endless': "Descenso sin fin · piso {floor}",
+  'share.rank': 'Rango {n} · {name}',
   'share.score': "puntos",
   'share.daily.label': "Reto #{n}",
   'share.dialog': "Comparte tu resultado",
