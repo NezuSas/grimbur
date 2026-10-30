@@ -299,7 +299,9 @@ const GridCell = memo(({
 
   // Background priority: visited block > fog
   // On an unveiled floor only the tiles that hid something open up: each creature stands on explored ground, the rest stays fogged.
-  const opened = isVisited || isPlayerHere || (unveiled && hazard);
+  // The explored ground under an unveiled creature fades in with it (same timing), never before it.
+  const opened = isVisited || isPlayerHere;
+  const unveiling = unveiled && hazard && !opened;
   const backgroundAsset = opened ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
 
   const row = Math.floor(index / cols);
@@ -339,6 +341,13 @@ const GridCell = memo(({
           opened ? styles.toneLit : styles.toneDark,
         ]}
       />
+
+      {unveiling && (
+        <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: unveil }]}>
+          <SpriteImage source={BIOME_ART[biome].tileRevealed} style={{ width: tileSize, height: tileSize }} resizeMode="contain" />
+          <View style={[styles.tileTone, styles.toneLit, { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * 0.09 }]} />
+        </Animated.View>
+      )}
 
       {rippled.current && (
         <Animated.View
