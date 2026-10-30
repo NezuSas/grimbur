@@ -62,6 +62,7 @@ export type RunResult = {
   /** Missions this run completed, and the new rank when it was raised. */
   missionsDone?: string[];
   rankUp?: number | null;
+  masteryUp?: { hero: number; level: number } | null;
   /** One of the first runs: the game over explains gems versus embers. */
   early?: boolean;
 };

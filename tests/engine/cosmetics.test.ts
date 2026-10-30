@@ -137,7 +137,7 @@ describe('public look', () => {
       const achievements = Object.fromEntries(
         COSMETICS.flatMap(c => (c.unlock?.kind === 'achievement' ? [[c.unlock.id, '2026-10-29']] : [])),
       );
-      return { ...rich(), achievements, skins: { owned, equipped: {} }, cosmetics: { ...EMPTY_STATS.cosmetics, owned: COSMETICS.filter(c => c.price > 0).map(c => c.id) } };
+      return { ...rich(), achievements, heroXp: EMPTY_STATS.heroXp.map(() => 99_999), skins: { owned, equipped: {} }, cosmetics: { ...EMPTY_STATS.cosmetics, owned: COSMETICS.filter(c => c.price > 0).map(c => c.id) } };
     };
 
     it('starts at nothing: the classic outfits do not count, and no reward is owned', () => {

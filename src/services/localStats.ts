@@ -17,6 +17,14 @@ import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership'
 import { spendEmbers } from '../core/stats/spend';
 import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from '../core/stats/missions';
 import { rankUp } from '../core/stats/rank';
+import { masteryUp } from '../core/stats/mastery';
+
+/** The hero and its new mastery level when a run raised it. */
+const masteryRaised = (before: LocalStats, after: LocalStats, hero: number | undefined): { hero: number; level: number } | null => {
+  if (hero === undefined) return null;
+  const level = masteryUp(before.heroXp[hero] ?? 0, after.heroXp[hero] ?? 0);
+  return level ? { hero, level } : null;
+};
 import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';
 import { buyCosmetic, equipCosmetic, type CosmeticId, type CosmeticKind } from '../core/cosmetics/cosmetics';
@@ -130,6 +138,7 @@ async function recordRunNow(run: RunResult) {
     missionsDone: missioned.done,
     /** The new rank when this run raised it. */
     rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
+    masteryUp: masteryRaised(before, stats, run.heroIndex),
     /** Skins unlocked by playing (their goal was just met). */
     newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
@@ -163,6 +172,7 @@ async function recordDailyRunNow(run: RunResult, key: string) {
     stats,
     missionsDone: missioned.done,
     rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
+    masteryUp: masteryRaised(before, stats, run.heroIndex),
     newSkins: claim.claimed,
     achievements,
     payout,

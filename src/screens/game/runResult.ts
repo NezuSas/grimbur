@@ -24,6 +24,7 @@ export function dailyRunResult(r: Settled<typeof recordDailyRun>): RunResult {
     canBuyNow: r.affordableNow.length > 0,
     missionsDone: r.missionsDone,
     rankUp: r.rankUp,
+    masteryUp: r.masteryUp,
     early: r.stats.gamesPlayed <= 2,
   };
 }
@@ -43,6 +44,7 @@ export function runResultOf(r: Settled<typeof recordRun>, mode: GameMode): RunRe
     canBuyNow: r.affordableNow.length > 0,
     missionsDone: r.missionsDone,
     rankUp: r.rankUp,
+    masteryUp: r.masteryUp,
     early: r.stats.gamesPlayed <= 2,
   };
 }
