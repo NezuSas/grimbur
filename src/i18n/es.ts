@@ -753,12 +753,13 @@ export const es: Record<TranslationKey, string> = {
   // ── level complete / game over / pause / entry ────────────────────────
   'complete.title': 'Piso superado',
   'complete.floor': 'Piso {n}',
-  'complete.skip': 'Toca en cualquier lugar para continuar',
   'complete.score': 'Puntos',
   'complete.gems': 'Gemas',
-  'complete.kills': 'Bajas',
+  'complete.kills': 'Guardianes',
   'complete.time': 'Tiempo',
   'complete.next': 'Siguiente piso',
+  'complete.starHint': 'Derrota a todos los guardianes del piso para las tres estrellas.',
+  'complete.track': 'Piso {n} de {total} · el Grimbur espera al fondo',
 
   'over.victory': 'Expedición completada',
   'over.defeat': 'Fin del juego',
