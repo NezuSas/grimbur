@@ -224,8 +224,6 @@ const GameOverOverlay = ({
 
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
 
-  const nearGems = !victory && gemsLeft !== undefined && gemsLeft > 0 && gemsLeft <= 2;
-  const nearBest = !endless && !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
   const stats = [
     { art: require('../../../assets/sprites/items/Icon_Gem.png'), label: t('over.gems'), value: String(totalCoins), color: '#7FE3FF' },
@@ -265,7 +263,6 @@ const GameOverOverlay = ({
   };
 
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
-    ...(explainEmbers && embers && embers > 0 ? [{ key: 'explain', icon: 'information-circle' as const, color: '#FFCC80', text: t('over.explainEmbers') }] : []),
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
     ...(rankUp ? [{ key: 'rank', icon: 'medal' as const, color: '#FFD54F', text: t('over.rankUp', { name: t(`rank.${rankUp}` as TranslationKey) }) }] : []),
     ...(masteryUp ? [{ key: 'mastery', icon: 'star' as const, color: '#FFB74D', text: t('mastery.up', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }) }] : []),
@@ -423,14 +420,6 @@ const GameOverOverlay = ({
   // Everything else the run produced (a near miss, notes, unlocks, goals, a tip): in landscape it scrolls under the essentials.
   const extras = (
     <>
-      {(nearGems || nearBest) && (
-        <View style={styles.headline} accessibilityLiveRegion="polite">
-          <Ionicons name="flag" size={18} color="#FFD54F" />
-          <Text style={styles.headlineText} maxFontSizeMultiplier={1.2}>
-            {nearGems ? plural('over.gemsLeft', gemsLeft as number, { floor: level }) : t('over.shortOfBest', { points: (bestScore ?? 0) - score })}
-          </Text>
-        </View>
-      )}
 
       {notes.length > 0 && (
         <View style={styles.notes}>
