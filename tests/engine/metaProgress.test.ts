@@ -162,8 +162,8 @@ describe('E: welcome back', () => {
     expect(r.payout.total).toBe(r.payout.run + r.payout.daily + r.payout.welcomeBack);
   });
 
-  it('is capped at +100 and not paid after only 2 days or on the same day twice', () => {
-    expect(mergeRun(base, { score: 0, level: 10, victory: true, ascension: 4, day: '2026-10-09' }).payout.welcomeBack).toBe(100);
+  it('is capped at +200 and not paid after only 2 days or on the same day twice', () => {
+    expect(mergeRun(base, { score: 8000, level: 10, victory: true, ascension: 4, day: '2026-10-09' }).payout.welcomeBack).toBe(200);
     expect(mergeRun(base, { score: 1000, level: 4, day: '2026-10-03' }).payout.welcomeBack).toBe(0);
     const once = mergeRun(base, { score: 1000, level: 4, day: '2026-10-09' }).stats;
     expect(mergeRun(once, { score: 1000, level: 4, day: '2026-10-09' }).payout.welcomeBack).toBe(0);

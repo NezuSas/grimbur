@@ -84,7 +84,7 @@ export const FREEZE_EVERY_DAYS = 7;
 export const MAX_FREEZES = 2;
 /** Days away after which the next run pays the welcome-back gift (its size is capped). */
 export const WELCOME_BACK_DAYS = 3;
-export const WELCOME_BACK_CAP = 100;
+export const WELCOME_BACK_CAP = 200;
 
 /** Where a finished run's embers came from. `total` is the whole amount the balance grew by (the caller adds the achievement rewards). */
 export interface RunPayout {

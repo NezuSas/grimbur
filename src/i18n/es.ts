@@ -465,7 +465,7 @@ export const es: Record<TranslationKey, string> = {
   'difficulty.hint': 'Las cuevas más duras dan más brasas. Ganar desbloquea el siguiente nivel.',
   'ascension.0': 'Reglas normales.',
   'ascension.1': "Una flecha menos en cada piso y un guardián más.",
-  'ascension.2': "Acechadores ya desde el piso 5 y un vórtice más.",
+  'ascension.2': "Acechadores ya desde el piso 5, un guardián más y un vórtice más.",
   'ascension.3': "Dos flechas menos que lo normal, el Grimbur tiene un corazón más y un acechador más desde el piso 5. Dos guardianes y dos vórtices más por piso.",
   'ascension.4': "Acechadores desde el piso 4 (uno más por piso), las trampas duelen el doble y cada piso tiene una más, además de tres guardianes y dos vórtices más.",
   'ascension.5': "Lo más duro: tres flechas menos, dos acechadores más desde el piso 4, cuatro guardianes y tres vórtices más, las elecciones de reliquia ofrecen solo 2 y el Grimbur gana otro corazón. Las mejoras de la Forja son casi obligatorias.",
