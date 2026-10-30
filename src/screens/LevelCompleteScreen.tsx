@@ -73,8 +73,9 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const cardW = Math.min(avail.w * 0.94, 820);
   const cardH = Math.min(avail.h * 0.92, 420);
   const stacked = avail.w < 520;
-  const hero = Math.min(cardH * 0.52, 200);
-  const star = Math.max(30, Math.min(46, cardH * 0.12));
+  // The hero leaves room for the stars, which are the result of the floor: they must read at a glance.
+  const hero = Math.min(cardH * 0.46, 190);
+  const star = Math.max(36, Math.min(54, cardH * 0.15));
 
   const stats = [
     { key: "score" as const, label: t("complete.score"), value: n(score), color: "#FFE7A8" },
@@ -110,7 +111,6 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
             </Text>
             <View style={{ width: hero * 1.2, height: hero, alignItems: "center", justifyContent: "flex-end" }}>
               <View style={[styles.glow, { width: hero, height: hero, borderRadius: hero / 2, backgroundColor: accent }]} />
-              <View style={[styles.pedestal, { width: hero * 0.7, backgroundColor: accent + "66" }]} />
               <SpriteImage source={character.winImage} style={{ width: hero * 1.1, height: hero }} resizeMode="contain" accessibilityIgnoresInvertColors />
             </View>
             <View style={styles.stars} accessible accessibilityLabel={`${t("complete.title")} ${starsEarned}/3`}>
@@ -118,7 +118,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
                 const won = i < starsEarned;
                 const size = i === 1 ? star * 1.3 : star;
                 return (
-                  <Animated.View key={i} style={{ transform: [{ scale: s }], marginTop: i === 1 ? -10 : 0 }}>
+                  <Animated.View key={i} style={{ transform: [{ scale: s }] }}>
                     <SpriteImage source={STAR} style={{ width: size, height: size, opacity: won ? 1 : 0.22 }} resizeMode="contain" />
                   </Animated.View>
                 );
@@ -191,8 +191,7 @@ const styles = StyleSheet.create({
   kicker: { fontWeight: "900", fontSize: 13, letterSpacing: 3 },
   title: { color: "#fff", fontWeight: "900", fontSize: 26, letterSpacing: 2, textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   glow: { position: "absolute", top: 0, opacity: 0.16 },
-  pedestal: { position: "absolute", bottom: 0, height: 12, borderRadius: 50 },
-  stars: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 },
+  stars: { flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tile: { flexBasis: "47%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(0,0,0,0.35)" },
   tileArt: { width: 36, height: 36 },
