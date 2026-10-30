@@ -87,7 +87,7 @@ export const GAME_CONFIG = {
     /** From this floor on there is always at least one stalker. */
     minFloor: 7,
     /** From this floor a single stalker appears with `earlyChance` (decided by the floor seed): the first close call. */
-    earlyFloor: 4,
+    earlyFloor: 3,
     /** The last floor of that early window (floor 6 already has the sleeper, 7 the guaranteed stalker). */
     earlyLastFloor: 5,
     earlyChance: 0.5,
