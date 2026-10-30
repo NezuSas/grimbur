@@ -757,7 +757,6 @@ export const en = {
   'complete.kills': 'Monsters',
   'complete.time': 'Time',
   'complete.next': 'Next floor',
-  'complete.starHint': 'Slay every monster on the floor (guardians, stalkers and beasts) for all three stars. Exploring everything is not needed.',
   'complete.track': 'Floor {n} of {total} · the Grimbur waits at the bottom',
 
   'over.victory': 'Expedition complete',
@@ -1402,6 +1401,8 @@ export const en = {
   'manual.scoring.title': 'Score and ranking',
   'manual.scoring.points.label': 'Scoring',
   'manual.scoring.points.detail': "Everything you do is worth points, or costs them. This is the whole table.",
+  'manual.scoring.stars.label': 'Floor stars',
+  'manual.scoring.stars.detail': 'When you clear a floor: three stars for slaying all its monsters, two for half, one for just crossing it. Exploring everything is not needed.',
   'manual.scoring.board.label': 'Leaderboard',
   'manual.scoring.board.detail': 'The global top 10 ranks by score. Ties go to the faster run.',
   'manual.scoring.daily.label': 'Daily challenge',
