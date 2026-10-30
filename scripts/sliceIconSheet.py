@@ -18,7 +18,9 @@ from sliceHeroSheet import blobs  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, 'src', 'assets')
-SIZE = 256
+# SLICE_SIZE sets the output size; SLICE_TIGHT=1 keeps each piece's own shape (tall frames) instead of a square canvas.
+SIZE = int(os.environ.get('SLICE_SIZE', '256'))
+TIGHT = os.environ.get('SLICE_TIGHT') == '1'
 PADDING = 0.04
 BIG_SHARE = 0.12
 
@@ -61,8 +63,11 @@ def main(sheet_path: str, cols: int, rows: int, names: list[str], holes: int = 6
         icon = Image.fromarray(part, 'RGBA').crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
         s = inner / max(icon.size)
         icon = icon.resize((max(1, round(icon.width * s)), max(1, round(icon.height * s))), Image.LANCZOS)
-        canvas = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
-        canvas.paste(icon, ((SIZE - icon.width) // 2, (SIZE - icon.height) // 2), icon)
+        if TIGHT:
+            canvas = icon
+        else:
+            canvas = Image.new('RGBA', (SIZE, SIZE), (0, 0, 0, 0))
+            canvas.paste(icon, ((SIZE - icon.width) // 2, (SIZE - icon.height) // 2), icon)
         path = os.path.join(ASSETS, name)
         canvas.save(path, optimize=True)
         print(f'{name}: {icon.width}x{icon.height}')

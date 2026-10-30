@@ -1,4 +1,6 @@
 // src/screens/CharactersScreen.tsx
+import FramedHero from "../ui/components/FramedHero";
+import { equippedCosmetic } from "../core/cosmetics/cosmetics";
 import { MASTERY_PERKS, MAX_MASTERY, masteryOf, withMastery, type MasteryPerk } from "../core/stats/mastery";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -212,6 +214,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const wornSkin = equippedSkin(stats, selected);
   const shownSkin: SkinId = wornSkin;
   const art = skinArt(selected, shownSkin);
+  const wornFrame = equippedCosmetic(stats, "frame");
+  // The framed hero fits the box it is given (measured: the stage's own sizes are scaled for small windows).
+  const [frameBox, setFrameBox] = useState({ w: 0, h: 0 });
   const accent = shownSkin === "classic" ? accentOf(selected) : SKIN_ACCENT[shownSkin];
   const ctaDisabled = locked;
   const perks = HEROES[selected]?.perks;
@@ -303,12 +308,21 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 {/* The hero itself. A locked hero is a dark silhouette: it asks to be unlocked. */}
                 <Animated.View pointerEvents="none" style={[styles.heroBox, { height: heroH, width: heroW, bottom: rosterH + 6 }, heroMotion]}>
-                  <SpriteImage
-                    source={art.playerImage}
-                    style={{ width: "100%", height: "100%", ...(locked ? { tintColor: "#0C0906", opacity: 0.92 } : null) }}
-                    resizeMode="contain"
-                    accessibilityIgnoresInvertColors
-                  />
+                  {/* The hero stands in the full-body version of the frame the player wears (a locked hero stays a bare silhouette). */}
+                  {!locked && wornFrame ? (
+                    <View style={{ flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" }} onLayout={e => setFrameBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+                      {frameBox.h > 0 ? (
+                        <FramedHero source={art.playerImage} height={Math.min(frameBox.h, (frameBox.w * 0.92) / 0.75)} frame={wornFrame} tint={accent} />
+                      ) : null}
+                    </View>
+                  ) : (
+                    <SpriteImage
+                      source={art.playerImage}
+                      style={{ width: "100%", height: "100%", ...(locked ? { tintColor: "#0C0906", opacity: 0.92 } : null) }}
+                      resizeMode="contain"
+                      accessibilityIgnoresInvertColors
+                    />
+                  )}
                   {locked && (
                     <View style={styles.silhouetteLock}>
                       <Ionicons name="lock-closed" size={Math.round(40 * ui)} color="#fff" />

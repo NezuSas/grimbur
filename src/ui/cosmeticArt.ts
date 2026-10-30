@@ -36,6 +36,23 @@ export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_hoard: require('../assets/sprites/cosmetics/Frame_Hoard.png'),
 };
 
+/** The same frames, drawn as a tall arch around the hero's whole figure (hero picker, shared picture). 3 wide by 4 tall. */
+export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
+  frame_bronze: require('../assets/sprites/cosmetics/FrameBody_Bronze.png'),
+  frame_silver: require('../assets/sprites/cosmetics/FrameBody_Silver.png'),
+  frame_gold: require('../assets/sprites/cosmetics/FrameBody_Gold.png'),
+  frame_frost: require('../assets/sprites/cosmetics/FrameBody_Frost.png'),
+  frame_ember: require('../assets/sprites/cosmetics/FrameBody_Ember.png'),
+  frame_abyss: require('../assets/sprites/cosmetics/FrameBody_Abyss.png'),
+  frame_crown: require('../assets/sprites/cosmetics/FrameBody_Crown.png'),
+  frame_wardrobe: require('../assets/sprites/cosmetics/FrameBody_Wardrobe.png'),
+  frame_jade: require('../assets/sprites/cosmetics/FrameBody_Jade.png'),
+  frame_bone: require('../assets/sprites/cosmetics/FrameBody_Bone.png'),
+  frame_storm: require('../assets/sprites/cosmetics/FrameBody_Storm.png'),
+  frame_royal: require('../assets/sprites/cosmetics/FrameBody_Royal.png'),
+  frame_hoard: require('../assets/sprites/cosmetics/FrameBody_Hoard.png'),
+};
+
 /** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */
 export const ATTACK_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.png'),
