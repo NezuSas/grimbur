@@ -119,10 +119,12 @@ type Props = {
   trail?: TrailLook | null;
   /** The equipped flag, if any. */
   flag?: ImageSourcePropType | null;
+  /** The floor is over: every hidden creature, vortex and trap shows where it was. */
+  unveil?: boolean;
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -474,6 +476,7 @@ const BoardView: React.FC<Props> = memo(
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
                   flagArt={flag}
+                  unveiled={unveil}
                   calm={!!calm}
                   sprung={sprung.has(i)}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}

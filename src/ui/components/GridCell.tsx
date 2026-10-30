@@ -162,7 +162,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false
 }: {
   index: number;
   tileSize: number;
@@ -203,6 +203,8 @@ const GridCell = memo(({
   sprung?: boolean;
   /** The flag worn in the Collection (the painted default when none). */
   flagArt?: ImageSourcePropType | null;
+  /** The floor is over (cleared or lost): the fog gives up what it hid, and each flag shows whether it was right. */
+  unveiled?: boolean;
 }) => {
   // A tile shows as explored only after its ripple delay, so a relic uncovering a whole area opens it outward.
   // On a new floor the tiles already lit wait for their delay too, so the floor opens in a cascade from the start.
@@ -283,6 +285,16 @@ const GridCell = memo(({
     wasVisited.current = isVisited;
   }, [isVisited]);
 
+  // The end of a floor lifts the fog off its creatures: they fade in where they stood, the flags say if they were right.
+  const unveil = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (unveiled) Animated.timing(unveil, { toValue: 1, duration: calm ? 0 : 450, delay: calm ? 0 : 120 + ((index * 37) % 260), useNativeDriver: true }).start();
+    else unveil.setValue(0);
+  }, [unveiled, unveil, calm, index]);
+  const lit = isVisited || isPlayerHere;
+  const seen = lit || unveiled;
+  const hazard = !!entity && (entity.type === 'enemy' || entity.type === 'pit' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'trap' || entity.type === 'boss');
+
   // Background priority: visited block > fog
   const backgroundAsset = (isVisited || isPlayerHere) ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
 
@@ -344,8 +356,9 @@ const GridCell = memo(({
         />
       )}
 
-      {/* Pit / Enemy revealed when visited */}
-      {entity?.type === 'stalker' && (isVisited || isPlayerHere) && (
+      {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && { opacity: killer ? 1 : unveil }]}>
+      {entity?.type === 'stalker' && seen && (
         <Animated.View
           style={[
             styles.stalkerAura,
@@ -357,18 +370,18 @@ const GridCell = memo(({
         />
       )}
 
-      {entity?.type === 'pit' && (isVisited || isPlayerHere || killer) && (
+      {entity?.type === 'pit' && (seen || killer) && (
         <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
       )}
-      {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (isVisited || isPlayerHere || killer) && (
+      {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (seen || killer) && (
         <EnemySprite type={entity.type} size={tileSize * 0.98} calm={calm} />
       )}
-      {entity?.type === 'sleeper' && (isVisited || isPlayerHere) && (
+      {entity?.type === 'sleeper' && seen && (
         <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
       )}
 
       {/* The Grimbur: shown on explored tiles, with its remaining hearts */}
-      {entity?.type === 'boss' && (isVisited || isPlayerHere) && (
+      {entity?.type === 'boss' && seen && (
         <>
           <Animated.View
             style={[
@@ -389,6 +402,11 @@ const GridCell = memo(({
           </View>
         </>
       )}
+
+      {entity?.type === 'trap' && unveiled && !lit && (
+        <GlyphIcon name="trap" size={tileSize * 0.6} />
+      )}
+      </Animated.View>
 
       {/* Wind-up warning: an icon too, so the danger never depends on colour alone. Drawn in the fog as well: a hunter only winds
           up beside the hero, and a strike from an unexplored tile must never come without warning. */}
@@ -445,6 +463,7 @@ const GridCell = memo(({
       {flagged && (
         <Animated.View style={[styles.pickup, { transform: [{ translateX: flagShake }] }]} pointerEvents="none">
           <Animated.View style={[styles.flagBlink, { opacity: flagBlink }]} />
+          {unveiled ? <View style={[styles.flagVerdict, hazard ? styles.flagRight : styles.flagWrong, { width: tileSize * 0.86, height: tileSize * 0.86, borderRadius: tileSize * 0.2 }]} /> : null}
           {flagArt ? <SpriteImage source={flagArt} style={{ width: tileSize * 0.62, height: tileSize * 0.62 }} resizeMode="contain" /> : <GlyphIcon name="flag" size={tileSize * 0.58} />}
         </Animated.View>
       )}
@@ -490,6 +509,9 @@ const styles = StyleSheet.create({
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
+  flagVerdict: { position: "absolute", borderWidth: 3 },
+  flagRight: { borderColor: "#9EE37D", backgroundColor: "rgba(158,227,125,0.18)" },
+  flagWrong: { borderColor: "#FF6E6E", backgroundColor: "rgba(255,82,82,0.16)" },
   playerHighlight: {
     position: "absolute",
     backgroundColor: "rgba(255,255,255,0.08)",
