@@ -18,6 +18,7 @@ export type SoundEvent =
   | 'TRAP_TRIGGERED'    // Player steps on a hidden trap
   | 'RELIC_PICKED'      // Player takes a relic after clearing a floor
   | 'BOSS_ROAR'         // The Grimbur lair begins
+  | 'BOSS_MUSIC_START'  // The lair's own music takes over from the gameplay loop (after the roar)
   | 'LEVEL_UP'          // All coins collected — level progression starts
   | 'LEVEL_RESUME'      // Level Up modal closes — in-game music resumes
   | 'GAME_OVER'         // Player collides with enemy or pit

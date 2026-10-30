@@ -63,7 +63,7 @@ export function useSoundManager(): void {
     // Tracks that are already sounding follow the new level right away.
     const s = soundsRef.current;
     if (!s) return;
-    for (const track of [s.cover, s.selection, s.gameplay]) track?.setVolume(scaledVolume(MUSIC_VOL, musicVolume)).catch(() => {});
+    for (const track of [s.cover, s.selection, s.gameplay, s.boss]) track?.setVolume(scaledVolume(MUSIC_VOL, musicVolume)).catch(() => {});
     for (const track of [s.monster, s.vortex]) track?.setVolume(scaledVolume(HAZARD_VOL, sfxVolume)).catch(() => {});
   }, [musicVolume, sfxVolume]);
 
@@ -120,6 +120,7 @@ export function useSoundManager(): void {
     stopTrack(s.cover);
     stopTrack(s.selection);
     stopTrack(s.gameplay);
+    stopTrack(s.boss);
     stopTrack(s.monster);
     stopTrack(s.vortex);
     stopTrack(s.victory);
@@ -144,7 +145,7 @@ export function useSoundManager(): void {
     if (event === 'LEVEL_RESUME') lastMusicIntent.current = 'GAME_MUSIC_START';
 
     // Update intent for global BGM tracks
-    if (['COVER_SCREEN_START', 'GAME_MUSIC_START', 'SELECTION_SCREEN_START'].includes(event)) {
+    if (['COVER_SCREEN_START', 'GAME_MUSIC_START', 'SELECTION_SCREEN_START', 'BOSS_MUSIC_START'].includes(event)) {
       lastMusicIntent.current = event;
     }
 
@@ -153,7 +154,21 @@ export function useSoundManager(): void {
       case 'COIN_COLLECTED': playSfx(sounds.coin, mixVolume('coin'), rate); break;
       case 'POWERUP':        playSfx(sounds.coin, mixVolume('powerup')); break;
       case 'RELIC_PICKED':   playSfx(sounds.relic, mixVolume('relic')); break;
-      case 'BOSS_ROAR':      playOnce(sounds.roar, mixVolume('roar')); break;
+      case 'BOSS_ROAR':
+        playOnce(sounds.roar, mixVolume('roar'));
+        // The roar first, then the fight's own music takes over.
+        // Only if the run is still on (a quick death or leaving must not start it over the result screen).
+        setTimeout(() => {
+          if (activeMusic.current === 'GAME_MUSIC_START') processEvent('BOSS_MUSIC_START');
+        }, 1400);
+        break;
+
+      case 'BOSS_MUSIC_START':
+        if (activeMusic.current === event) break;
+        stopTrack(sounds.gameplay);
+        startLoopingTrack(sounds.boss, MUSIC_VOL);
+        activeMusic.current = event;
+        break;
       // The same recordings, played at different speeds and levels, so a hit, a miss, a kill and a trap all sound apart.
       case 'TRAP_TRIGGERED': playSfx(sounds.attack, mixVolume('trap'), 0.55); break;
       case 'ATTACK':         playSfx(sounds.attack, mixVolume('miss'), 0.92); break;
@@ -204,8 +219,9 @@ export function useSoundManager(): void {
 
       case 'GAME_MUSIC_STOP':
         // Only stop gameplay-specific loops to prevent killing victory/death SFX
-        if (activeMusic.current === 'GAME_MUSIC_START') activeMusic.current = null;
+        if (activeMusic.current === 'GAME_MUSIC_START' || activeMusic.current === 'BOSS_MUSIC_START') activeMusic.current = null;
         stopTrack(sounds.gameplay);
+        stopTrack(sounds.boss);
         stopTrack(sounds.monster);
         stopTrack(sounds.vortex);
         break;

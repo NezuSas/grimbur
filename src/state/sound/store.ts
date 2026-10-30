@@ -325,6 +325,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     cover:      null,
     selection:  null,
     gameplay:   null,
+    boss:       null,
     death:      null,
     coin:       null,
     victory:    null,
@@ -348,6 +349,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
     TARGET_VOLUMES['cover'] = 0.3;
     TARGET_VOLUMES['selection'] = 0.3;
     TARGET_VOLUMES['gameplay'] = 0.3;
+    TARGET_VOLUMES['boss'] = 0.3;
     TARGET_VOLUMES['death'] = 0.7;
     TARGET_VOLUMES['coin'] = 0.7;
     TARGET_VOLUMES['victory'] = 0.30;
@@ -391,6 +393,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["cover", require("../../assets/music/cover.ogg")],
         ["selection", require("../../assets/music/selection.ogg")],
         ["gameplay", require("../../assets/music/gameplay.ogg")],
+        ["boss", require("../../assets/music/boss.ogg")],
         ["death", require("../../assets/sfx/death.wav")],
         ["coin", require("../../assets/sfx/coin.wav")],
         ["victory", require("../../assets/music/victory.ogg")],
@@ -415,7 +418,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
       // it is needed.
       const CRITICAL = ['move', 'coin', 'attack', 'cover'];
-      const LATER = ['ui', 'gameplay', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember'];
+      const LATER = ['ui', 'gameplay', 'boss', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember'];
       await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
       audioLog('init', 'ready (first sounds loaded, the rest follows)');
