@@ -464,7 +464,7 @@ export const en = {
   'difficulty.hint': 'Harder caves earn more embers. Winning unlocks the next level.',
   'ascension.0': 'Normal rules.',
   'ascension.1': "One arrow fewer on every floor, and one more guardian.",
-  'ascension.2': "Stalkers already from floor 5, and one more vortex.",
+  'ascension.2': "Stalkers already from floor 5, one more guardian and one more vortex.",
   'ascension.3': "Two arrows fewer than normal, the Grimbur has one more heart, and one more stalker from floor 5. Two more guardians and vortexes per floor.",
   'ascension.4': "Stalkers from floor 4 (one more per floor), traps hurt twice as much and each floor has one more, plus three more guardians and two more vortexes.",
   'ascension.5': "The harshest: three arrows fewer, two more stalkers from floor 4, four more guardians and three more vortexes, relic drafts offer only 2 choices and the Grimbur gains another heart. Forge upgrades are practically required.",
