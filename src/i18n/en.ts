@@ -752,12 +752,13 @@ export const en = {
   // ── level complete / game over / pause / entry ────────────────────────
   'complete.title': 'Floor cleared',
   'complete.floor': 'Floor {n}',
-  'complete.skip': 'Tap anywhere to continue',
   'complete.score': 'Score',
   'complete.gems': 'Gems',
-  'complete.kills': 'Kills',
+  'complete.kills': 'Guardians',
   'complete.time': 'Time',
   'complete.next': 'Next floor',
+  'complete.starHint': 'Slay every guardian on the floor for all three stars.',
+  'complete.track': 'Floor {n} of {total} · the Grimbur waits at the bottom',
 
   'over.victory': 'Expedition complete',
   'over.defeat': 'Game over',
