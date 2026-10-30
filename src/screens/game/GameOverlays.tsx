@@ -26,6 +26,8 @@ type Props = {
   /** Between two floors: the shop and the fork. */
   shop: {
     visible: boolean;
+    /** Development only: shown without a cleared floor, for screenshots. */
+    preview?: boolean;
     doors: [Door, Door] | null;
     chosen: 0 | 1;
     onChoose: (door: 0 | 1) => void;
@@ -72,7 +74,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
   return (
     <>
       <IntermissionOverlay
-        visible={shop.visible && levelUpWindow}
+        visible={shop.visible && (levelUpWindow || !!shop.preview)}
         nextFloor={state.level + 1}
         nextIsLair={isLairFloor(state.mode, state.level + 1)}
         newBiome={isNewBiome(state.level + 1, state.mode) ? biomeFor(state.level + 1, state.mode) : null}
