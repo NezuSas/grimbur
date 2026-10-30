@@ -772,6 +772,7 @@ export const en = {
   'over.unlocked_other': 'Unlocked: {names}',
   'over.floor': 'Floor',
   'over.score': 'Score',
+  'over.killedBy': 'Struck down by',
   'over.gems': 'Gems',
   'over.time': 'Time',
   'over.retry': 'Retry',

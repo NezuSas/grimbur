@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
 import EmberIcon from "../EmberIcon";
 import GlyphIcon from "../GlyphIcon";
@@ -235,8 +235,8 @@ const GameOverOverlay = ({
   const nearBest = !endless && !victory && !isNewBest && !!bestScore && score >= bestScore * 0.75 && score < bestScore;
 
   const stats = [
-    { icon: 'diamond' as const, label: t('over.gems'), value: String(totalCoins), color: '#4FC3F7' },
-    { icon: 'time' as const, label: t('over.time'), value: formatTime(time), color: '#B39DDB' },
+    { art: require('../../../assets/sprites/items/Icon_Gem.png'), label: t('over.gems'), value: String(totalCoins), color: '#7FE3FF' },
+    { art: require('../../../assets/sprites/tools/Tool_Undo.png'), label: t('over.time'), value: formatTime(time), color: '#C8B6FF' },
   ];
 
   const parts = payout
@@ -286,7 +286,7 @@ const GameOverOverlay = ({
   // The run's own numbers (gems, time): under the portrait in landscape, where they balance the two columns.
   const statChips = stats.map(s => (
     <View key={s.label} style={[styles.stat, snug && styles.statSnug]} accessible accessibilityLabel={`${s.label}: ${s.value}`}>
-      <Ionicons name={s.icon} size={16} color={s.color} />
+      <SpriteImage source={s.art} style={{ width: 20, height: 20 }} resizeMode="contain" />
       <Text style={[styles.statValue, { color: s.color }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
         {s.value}
       </Text>
@@ -308,18 +308,23 @@ const GameOverOverlay = ({
             ],
           }}
         >
-          <SpriteImage source={sprite} style={{ width: spriteSize, height: spriteSize }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <SpriteImage source={sprite} style={{ width: killerSprite ? spriteSize * 0.86 : spriteSize, height: killerSprite ? spriteSize * 0.86 : spriteSize, marginLeft: killerSprite ? -spriteSize * 0.34 : 0 }} resizeMode="contain" accessibilityIgnoresInvertColors />
         </Animated.View>
+        {/* Whoever struck stands over the fallen hero, as big as a creature on the board */}
         {killerSprite ? (
-          <View style={[styles.killerBadge, { borderColor: accent, width: spriteSize * 0.36, height: spriteSize * 0.36, borderRadius: spriteSize * 0.18, right: haloSize * 0.04, bottom: haloSize * 0.05 }]}>
-            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.3, height: spriteSize * 0.3 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <View pointerEvents="none" style={[styles.killerStand, { right: -haloSize * 0.06, bottom: haloSize * 0.04, width: spriteSize * 0.7, height: spriteSize * 0.7 }]}>
+            <View style={[styles.killerGlow, { width: spriteSize * 0.6, height: spriteSize * 0.6, borderRadius: spriteSize, backgroundColor: accent + '33' }]} />
+            <SpriteImage source={killerSprite} style={{ width: spriteSize * 0.7, height: spriteSize * 0.7 }} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
         ) : null}
       </View>
       {killerName && (
-        <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-          {killerName.toLocaleUpperCase()}
-        </Text>
+        <View style={{ alignItems: 'center' }}>
+          <Text style={styles.killerKicker} maxFontSizeMultiplier={1.1}>{t('over.killedBy').toLocaleUpperCase()}</Text>
+          <Text style={[styles.killer, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+            {killerName.toLocaleUpperCase()}
+          </Text>
+        </View>
       )}
       {/* Landscape: the hero's line sits under the portrait (room to spare there), so the right column keeps its height. */}
       {wide && quote ? (
@@ -378,10 +383,25 @@ const GameOverOverlay = ({
 
       {/* How far the run got: one pip per floor */}
       {!endless && height >= 340 && (
-      <View style={[styles.pips, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
-        {Array.from({ length: floors }, (_, i) => (
-          <View key={i} style={[styles.pip, i < level && { backgroundColor: accent }, i === level - 1 && !victory && styles.pipLast]} />
-        ))}
+      <View style={[styles.track, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
+        {Array.from({ length: floors }, (_, i) => {
+          const floor = i + 1;
+          const fell = !victory && floor === level;
+          return (
+            <React.Fragment key={i}>
+              {i > 0 ? <View style={[styles.trackLine, floor <= level && { backgroundColor: accent }]} /> : null}
+              {fell ? (
+                <View style={[styles.trackFall, { backgroundColor: accent }]}>
+                  <Ionicons name="close" size={11} color="#fff" />
+                </View>
+              ) : floor === floors ? (
+                <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.png')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
+              ) : (
+                <View style={[styles.trackDot, floor <= level && { backgroundColor: accent, borderColor: accent }]} />
+              )}
+            </React.Fragment>
+          );
+        })}
       </View>
       )}
 
@@ -579,7 +599,7 @@ const GameOverOverlay = ({
         </ScrollView>
         {/* More below: a fade says so, instead of a row cut in half at the edge. */}
         {extrasContent > extrasBox + 4 && !extrasAtEnd ? (
-          <LinearGradient pointerEvents="none" colors={['rgba(16,12,30,0)', 'rgba(16,12,30,0.95)']} style={styles.moreFade} />
+          <LinearGradient pointerEvents="none" colors={['rgba(24,17,11,0)', 'rgba(24,17,11,0.95)']} style={styles.moreFade} />
         ) : null}
       </View>
       <View style={[styles.actions, short && styles.actionsShort]}>{actions}</View>
@@ -606,6 +626,8 @@ const GameOverOverlay = ({
           wide && styles.cardRow,
         ]}
       >
+        <ImageBackground source={require('../../../assets/sprites/backgrounds/Cover_Background.png')} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.28 }} />
+        <LinearGradient colors={['rgba(44,30,18,0.82)', 'rgba(18,12,8,0.97)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
         {left}
         {right}
       </Animated.View>
@@ -621,7 +643,8 @@ const styles = StyleSheet.create({
   duelHeadline: { fontWeight: '900', fontSize: 15, letterSpacing: 1.5, textAlign: 'center' },
   duelLine: { color: '#E9E0D7', fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
   card: {
-    backgroundColor: 'rgba(16, 12, 30, 0.97)',
+    backgroundColor: 'rgba(24, 17, 11, 0.97)',
+    overflow: 'hidden',
     borderRadius: 26,
     borderWidth: 2,
     padding: 16,
@@ -641,7 +664,14 @@ const styles = StyleSheet.create({
   moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,213,79,0.12)', borderWidth: 1, borderColor: 'rgba(255,213,79,0.5)' },
   headlineText: { flex: 1, color: '#FFD54F', fontWeight: '900', fontSize: 14 },
-  killerBadge: { position: 'absolute', backgroundColor: '#2A2016', borderWidth: 2.5, alignItems: 'center', justifyContent: 'center' },
+  killerStand: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+  killerGlow: { position: 'absolute' },
+  killerKicker: { color: '#B99A7C', fontWeight: '900', fontSize: 11, letterSpacing: 2 },
+  track: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' },
+  trackLine: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)' },
+  trackDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(0,0,0,0.4)' },
+  trackFall: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  trackLair: { width: 22, height: 22, opacity: 0.7 },
   killer: { fontWeight: '900', fontSize: 14, letterSpacing: 2, textAlign: 'center', maxWidth: '100%' },
   depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#4FC3F7', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
