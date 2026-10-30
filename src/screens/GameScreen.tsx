@@ -77,6 +77,10 @@ import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../services/localStats";
+import { getPlayerName } from "../services/playerProfile";
+import { lookOf } from "../core/cosmetics/look";
+import { rankOf } from "../core/stats/rank";
+import { cosmeticText } from "../i18n/keys";
 import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS } from "../ui/cosmeticArt";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
@@ -484,6 +488,16 @@ export default function GameScreen({ navigation, route }: Props) {
       const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code, route: isDaily ? routeOf() : undefined };
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
+      // Who played: the public name, the title worn and the rank, on the hero's nameplate.
+      const saved = peekLocalStats();
+      const name = await getPlayerName().catch(() => null);
+      const worn = saved ? lookOf(saved).title : undefined;
+      const rank = saved ? rankOf(saved.lifetimeEmbers) : null;
+      const player = {
+        playerName: name ?? undefined,
+        playerTitle: worn ? cosmeticText(t, worn) : undefined,
+        playerRank: rank ? t("share.rank", { n: rank.level, name: t(`rank.${rank.level}` as TranslationKey) }) : undefined,
+      };
       // The card is captured once every picture in it has drawn (or after a while, so sharing never hangs).
       await new Promise<void>(resolve => {
         const done = () => {
@@ -493,7 +507,7 @@ export default function GameScreen({ navigation, route }: Props) {
         };
         const timer = setTimeout(done, 2500);
         shareReady.current = done;
-        setShareCard(buildShareCard(run, opts, { t, plural }, selectedCharacter));
+        setShareCard({ ...buildShareCard(run, opts, { t, plural }, selectedCharacter), ...player });
       });
       await shareResult(shareCardRef, message, t("share.dialog"), Math.min(windowWidth, SHARE_CARD_WIDTH));
     } finally {

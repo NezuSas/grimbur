@@ -272,6 +272,9 @@ export default function LessonScreen({ navigation, route }: Props) {
             streak={route.params.devShare.daily ? "Racha de 7 días" : undefined}
             invite="¿Puedes superarlo? Grimbur: cueva de pistas"
             scoreLabel="puntos"
+            playerName="Difdesork"
+            playerTitle="Explorador"
+            playerRank="Rango 6 · Veterano"
           />
         </View>
       ) : null}

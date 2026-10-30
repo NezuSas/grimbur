@@ -403,8 +403,9 @@ const GameOverOverlay = ({
               <React.Fragment key={i}>
                 {i > 0 ? <View style={[styles.trackLine, floor <= level && { backgroundColor: accent }]} /> : null}
                 {fell ? (
-                  <View style={[styles.trackFall, { backgroundColor: accent }]}>
-                    <Ionicons name="close" size={11} color="#fff" />
+                  <View style={styles.fallWrap}>
+                    <View style={[styles.fallGlow, { backgroundColor: accent }]} />
+                    <View style={[styles.trackFall, { backgroundColor: accent }]} />
                   </View>
                 ) : floor === floors ? (
                   <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.png')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
@@ -633,7 +634,9 @@ const styles = StyleSheet.create({
   track: { flexDirection: 'row', alignItems: 'center', alignSelf: 'stretch' },
   trackLine: { flex: 1, height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)' },
   trackDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(255,255,255,0.35)', backgroundColor: 'rgba(0,0,0,0.4)' },
-  trackFall: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#fff' },
+  trackFall: { width: 14, height: 14, borderRadius: 7, borderWidth: 2.5, borderColor: '#FFE1DC' },
+  fallWrap: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
+  fallGlow: { position: 'absolute', width: 22, height: 22, borderRadius: 11, opacity: 0.3 },
   trackLair: { width: 22, height: 22, opacity: 0.7 },
   killer: { fontWeight: '900', fontSize: 14, letterSpacing: 2, textAlign: 'center', maxWidth: '100%' },
   depth: { color: '#FF7043', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },

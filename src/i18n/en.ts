@@ -866,6 +866,7 @@ export const en = {
   'share.line': "{result} · {score} pts · {gems} · ⏱ {time}",
   'share.invite': "Can you go deeper?",
   'share.endless': "Endless descent · floor {floor}",
+  'share.rank': 'Rank {n} · {name}',
   'share.score': "points",
   'share.daily.label': "Daily #{n}",
   'share.dialog': "Share your result",
