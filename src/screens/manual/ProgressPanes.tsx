@@ -131,6 +131,7 @@ export const ScoringPane = ({ kit }: { kit: Kit }) => {
           { label: t("manual.score.trap"), value: `${S.trapPenalty}`, good: false },
         ]}
       />
+      {fact("manual.scoring.stars", "#ffd54f", icon("star", "#ffd54f"))}
       {fact("manual.scoring.board", "#ffd54f", icon("podium", "#ffd54f"))}
       {fact("manual.scoring.pause", "#90a4ae", icon("pause-circle", "#90a4ae"))}
     </>

@@ -758,7 +758,6 @@ export const es: Record<TranslationKey, string> = {
   'complete.kills': 'Monstruos',
   'complete.time': 'Tiempo',
   'complete.next': 'Siguiente piso',
-  'complete.starHint': 'Derrota a todos los monstruos del piso (guardianes, acechadores y bestias) para las tres estrellas. Explorar todo no hace falta.',
   'complete.track': 'Piso {n} de {total} · el Grimbur espera al fondo',
 
   'over.victory': 'Expedición completada',
@@ -1403,6 +1402,8 @@ export const es: Record<TranslationKey, string> = {
   'manual.scoring.title': 'Puntos y clasificación',
   'manual.scoring.points.label': 'Puntuación',
   'manual.scoring.points.detail': "Todo lo que haces da puntos o los cuesta. Esta es la tabla completa.",
+  'manual.scoring.stars.label': 'Estrellas del piso',
+  'manual.scoring.stars.detail': 'Al superar un piso: tres estrellas si derrotaste a todos sus monstruos, dos si a la mitad, una si solo lo cruzaste. No hace falta explorarlo todo.',
   'manual.scoring.board.label': 'Clasificación',
   'manual.scoring.board.detail': 'El top 10 global se ordena por puntos. Los empates los gana la partida más rápida.',
   'manual.scoring.daily.label': 'Reto diario',
