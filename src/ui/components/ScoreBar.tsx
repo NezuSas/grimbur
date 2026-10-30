@@ -1,4 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from "react";
+import GlyphIcon from "./GlyphIcon";
 import { StyleSheet, View, TouchableOpacity, Animated } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
@@ -167,7 +168,7 @@ const ScoreBar: React.FC<Props> = memo(
           <ShieldBadge shield={shield} breakKey={shieldBreakKey} calm={calm} label={t("a11y.shieldActive")} />
           {combo >= 2 && (
             <View style={[styles.comboPip, combo >= comboMax && styles.comboPipMax]} accessible accessibilityLabel={`x${combo} combo`}>
-              <Ionicons name="flame" size={14} color={combo >= comboMax ? "#3b2600" : "#FFB300"} />
+              <GlyphIcon name="flame" size={15} />
               <Text style={[styles.comboText, combo >= comboMax && { color: "#3b2600" }]} maxFontSizeMultiplier={HUD_FONT_CAP} numberOfLines={1}>
                 x{combo}
               </Text>
@@ -208,7 +209,7 @@ const ScoreBar: React.FC<Props> = memo(
             a11yLabel={t("a11y.arrowsLeft", { count: attackValue })}
           />
           <ScoreCounter
-            iconNode={<Ionicons name="trophy" size={Math.round(statIconSize * 0.78)} color="#FFD54F" />}
+            iconNode={<GlyphIcon name="trophy" size={Math.round(statIconSize * 0.9)} />}
             value={score}
             iconDim={statIconSize}
             compact={compact}

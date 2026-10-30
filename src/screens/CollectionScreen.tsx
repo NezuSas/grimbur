@@ -1,4 +1,5 @@
 // src/screens/CollectionScreen.tsx
+import GlyphIcon from "../ui/components/GlyphIcon";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
@@ -92,7 +93,7 @@ const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, price, o
           </View>
         )}
       </View>
-      {info.premium ? <Ionicons name="star" size={15} color="#FFD54F" style={styles.cardStar} /> : null}
+      {info.premium ? <GlyphIcon name="star" size={17} style={styles.cardStar} /> : null}
       {equipped ? (
         <View style={styles.cardCheck}>
           <Ionicons name="checkmark" size={14} color="#111" />
@@ -332,7 +333,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
               {info.premium ? (
                 <View style={[styles.tag, { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.14)" }]}>
-                  <Ionicons name="star" size={10} color="#FFD54F" />
+                  <GlyphIcon name="star" size={12} />
                   <Text style={[styles.tagText, { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
                     {t("skin.premium").toLocaleUpperCase()}
                   </Text>
@@ -356,7 +357,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 accessibilityLabel={`${skinText(t, shown)}. ${actionLabel}`}
                 style={[styles.cta, { backgroundColor: accent, shadowColor: accent }]}
               >
-                {owned ? <Ionicons name="shirt" size={18} color="#111" /> : <EmberIcon size={18} />}
+                {owned ? <GlyphIcon name="tunic" size={22} /> : <EmberIcon size={18} />}
                 <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                   {actionLabel.toLocaleUpperCase()}
                 </Text>

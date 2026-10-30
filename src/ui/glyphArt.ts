@@ -21,6 +21,16 @@ export const GLYPHS = {
   gem: require('../assets/sprites/items/Icon_Gem.png'),
   shield: require('../assets/sprites/items/Icon_Shield.png'),
   arrows: require('../assets/sprites/items/Icon_Arrows.png'),
+  play: require('../assets/sprites/ui/Icon_Play.png'),
+  infinity: require('../assets/sprites/ui/Icon_Infinity.png'),
+  flame: require('../assets/sprites/ui/Icon_Flame.png'),
+  bolt: require('../assets/sprites/ui/Icon_Bolt.png'),
+  sparkles: require('../assets/sprites/ui/Icon_Sparkles.png'),
+  brush: require('../assets/sprites/ui/Icon_Brush.png'),
+  tunic: require('../assets/sprites/ui/Icon_Tunic.png'),
+  book: require('../assets/sprites/ui/Icon_Book.png'),
+  lantern: require('../assets/sprites/relics/lantern.png'),
+  frame: require('../assets/sprites/cosmetics/Frame_Gold.png'),
 } satisfies Record<string, ImageSourcePropType>;
 
 export type GlyphName = keyof typeof GLYPHS;

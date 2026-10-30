@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import GlyphIcon from "../../ui/components/GlyphIcon";
 import { Animated, ScrollView, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../../ui/components/Text";
@@ -164,7 +165,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
               <Text style={styles.cardPriceText} maxFontSizeMultiplier={1.1}>{c.price}</Text>
             </View>
           ) : (
-            <Ionicons name="trophy" size={13} color="#FFD54F" style={{ opacity: 0.85 }} />
+            <GlyphIcon name="trophy" size={15} />
           )}
         </PressScale>
       </Rise>
@@ -224,7 +225,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
               </View>
             ) : (
               <View style={styles.cardPrice}>
-                <Ionicons name="trophy" size={11} color="#FFD54F" />
+                <GlyphIcon name="trophy" size={13} />
               </View>
             )}
           </View>
@@ -322,7 +323,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
         ) : earnOnly && unlockLine ? (
           <View style={styles.lockInfo}>
             <View style={styles.lockRow}>
-              <Ionicons name="trophy" size={14} color="#FFD54F" />
+              <GlyphIcon name="trophy" size={16} />
               <Text style={styles.lockSub} numberOfLines={2} maxFontSizeMultiplier={1.15}>{unlockLine}</Text>
             </View>
           </View>

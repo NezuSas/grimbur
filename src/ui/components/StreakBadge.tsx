@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import GlyphIcon from "./GlyphIcon";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
@@ -31,7 +32,7 @@ const StreakBadge: React.FC<Props> = ({ days, doneToday }) => {
   const lit = days > 0;
   return (
     <Animated.View style={[styles.wrap, lit ? styles.lit : styles.cold, { transform: [{ scale: pulse }] }]}>
-      <Ionicons name="flame" size={lit ? 22 : 26} color={lit ? "#FF9A3C" : "#8d87a8"} />
+      <GlyphIcon name="flame" size={lit ? 24 : 26} style={!lit && { opacity: 0.35 }} />
       {lit ? (
         <Text style={styles.days} allowFontScaling={false}>
           {days}

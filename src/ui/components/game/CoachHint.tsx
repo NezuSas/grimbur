@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
+import GlyphIcon from '../GlyphIcon';
 import { Animated, Pressable, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
 
 type Props = {
@@ -42,7 +42,7 @@ const CoachHint: React.FC<Props> = ({ hintKey, text, place, onDone, duration = 7
   return (
     <Animated.View style={[styles.wrap, { ...place, opacity, transform: [{ translateY: lift }] }]} accessibilityLiveRegion="polite">
       <Pressable onPress={() => doneRef.current()} style={styles.pill} accessibilityRole="button" accessibilityLabel={text}>
-        <Ionicons name="bulb" size={16} color="#FFD54F" />
+        <GlyphIcon name="lantern" size={20} />
         <Text style={styles.text} maxFontSizeMultiplier={1.2}>
           {text}
         </Text>

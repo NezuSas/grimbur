@@ -1,6 +1,6 @@
 import { View } from "react-native";
+import GlyphIcon from "../../ui/components/GlyphIcon";
 import Text from "../../ui/components/Text";
-import { Ionicons } from "@expo/vector-icons";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import { MAX_ASCENSION } from "../../core/engine/ascension";
 import { coinValue, levelClearBonus } from "../../core/engine/scoring";
@@ -146,7 +146,7 @@ export const TipsPane = ({ kit }: { kit: Kit }) => {
       {TIPS.map(tip => (
         <View key={tip} style={styles.tip}>
           <View style={styles.tipIcon}>
-            <Ionicons name="bulb" size={18} color="#4db6ac" />
+            <GlyphIcon name="lantern" size={22} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.tipTitle} maxFontSizeMultiplier={1.3}>

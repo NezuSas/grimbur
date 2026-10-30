@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -162,7 +163,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
         accessibilityRole="button"
         accessibilityLabel={t("friends.customize")}
       >
-        <Ionicons name="color-palette" size={16} color={GOLD} />
+        <GlyphIcon name="brush" size={18} />
         <Text style={styles.customizeText} maxFontSizeMultiplier={1.1}>
           {t("friends.customize").toLocaleUpperCase()}
         </Text>
@@ -237,7 +238,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
                 {c.best !== null ? n(c.best) : t("friends.notPlayed")}
               </Text>
             </View>
-            <Ionicons name="play-circle" size={26} color={CHALLENGE} />
+            <GlyphIcon name="play" size={26} />
           </PressScale>
         </Rise>
       );

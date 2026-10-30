@@ -316,7 +316,7 @@ const CoverCard: React.FC<Props> = ({
         <ModeCard
           ui={ui}
           compactCard={short}
-          icon="infinite"
+          icon="infinity"
           tint="#B39DDB"
           title={t("cover.mode.endless")}
           subtitle={

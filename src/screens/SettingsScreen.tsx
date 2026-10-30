@@ -1,4 +1,5 @@
 import React from "react";
+import GlyphIcon from "../ui/components/GlyphIcon";
 import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
@@ -464,7 +465,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         {t("friends.card")}
       </Text>
       <PressScale onPress={() => navigation.navigate("CollectionScreen", { category: look.frame ? "title" : "frame" })} style={styles.meButton} accessibilityRole="button" accessibilityLabel={t("friends.customize")}>
-        <Ionicons name="color-palette" size={16} color={GOLD} />
+        <GlyphIcon name="brush" size={18} />
         <Text style={styles.meButtonText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
           {t("friends.customize").toLocaleUpperCase()}
         </Text>
