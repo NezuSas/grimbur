@@ -3,6 +3,7 @@ import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
+import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
@@ -58,6 +59,8 @@ export interface LocalStats {
   history: RunRecord[];
   /** Deepest depth (ascension) won in an expedition with each hero (0 when none). */
   heroBestDepth: number[];
+  /** Mastery experience of each hero (see mastery.ts): every finished run with a hero adds to it. */
+  heroXp: number[];
   /** Hero outfits: `owned` holds `heroIndex:skinId` keys (classic is implicit); `equipped` maps hero index to skin. */
   skins: { owned: string[]; equipped: Record<string, SkinId> };
   /**
@@ -149,6 +152,7 @@ export const EMPTY_STATS: LocalStats = {
   lastBonusDate: null,
   history: [],
   heroBestDepth: Array.from({ length: HERO_COUNT }, () => 0),
+  heroXp: Array.from({ length: HERO_COUNT }, () => 0),
   skins: { owned: [], equipped: {} },
   cosmetics: { owned: [], equipped: {}, deals: { date: null, bought: [] } },
   missions: EMPTY_MISSIONS,
@@ -180,6 +184,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
+    heroXp: stats.heroXp.map((n, i) => n + (run.heroIndex === i ? masteryXpFor(run, progressed) : 0)),
     heroBestDepth: stats.heroBestDepth.map((n, i) =>
       run.victory && run.heroIndex === i && (run.mode ?? 'expedition') === 'expedition' ? Math.max(n, clampAscension(run.ascension ?? 0)) : n),
     embers: stats.embers + total,
@@ -421,6 +426,9 @@ export function parseStats(raw: string | null): LocalStats {
       lastBonusDate: str(data.lastBonusDate),
       history: parseHistory(data.history),
       heroBestDepth: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroBestDepth) ? Math.min(MAX_ASCENSION, Math.trunc(num(data.heroBestDepth[i]))) : 0)),
+      // Saves from before mastery existed start each hero from its victories, so a veteran is not sent back to level 1.
+      heroXp: Array.from({ length: HERO_COUNT }, (_, i) =>
+        Array.isArray(data.heroXp) ? Math.trunc(num(data.heroXp[i])) : Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) * (10 * XP_PER_FLOOR + XP_VICTORY) : 0),
       skins: parseSkins(data.skins),
       cosmetics: parseCosmetics(data.cosmetics),
       missions: parseMissions(data.missions),

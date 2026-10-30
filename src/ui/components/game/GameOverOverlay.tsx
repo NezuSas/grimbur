@@ -82,6 +82,7 @@ type Props = {
   /** Missions this run completed (their ids) and the new rank when the run raised it. */
   missionsDone?: string[];
   rankUp?: number | null;
+  masteryUp?: { hero: number; level: number } | null;
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
   explainEmbers?: boolean;
   /** Gems still on the floor when the run ended (for the near-miss line). */
@@ -132,6 +133,7 @@ const GameOverOverlay = ({
   canBuyNow,
   missionsDone,
   rankUp,
+  masteryUp,
   gemsLeft,
   onShare,
   onCopyText,
@@ -273,6 +275,7 @@ const GameOverOverlay = ({
     ...(explainEmbers && embers && embers > 0 ? [{ key: 'explain', icon: 'information-circle' as const, color: '#FFCC80', text: t('over.explainEmbers') }] : []),
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
     ...(rankUp ? [{ key: 'rank', icon: 'medal' as const, color: '#FFD54F', text: t('over.rankUp', { name: t(`rank.${rankUp}` as TranslationKey) }) }] : []),
+    ...(masteryUp ? [{ key: 'mastery', icon: 'star' as const, color: '#FFB74D', text: t('mastery.up', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }) }] : []),
     ...(missionsDone ?? []).map(id => ({ key: `m-${id}`, icon: 'flag' as const, color: '#4FC3F7', text: t('over.mission', { name: missionLabel(id) }) })),
     ...(achievements && achievements.length > 0 ? [{ key: 'ach', icon: 'trophy' as const, color: '#FFD54F', text: plural('over.achievements', achievements.length, { names: achievementNames }) }] : []),
     ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#ff8a80', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),

@@ -1,4 +1,5 @@
 // src/screens/CharactersScreen.tsx
+import { MASTERY_PERKS, MAX_MASTERY, masteryOf, withMastery, type MasteryPerk } from "../core/stats/mastery";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -171,7 +172,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         return;
       }
       if (!tutorialSeen && mode === "expedition") {
-        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: metaEffects(stats.forge) });
+        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: withMastery(metaEffects(stats.forge), masteryOf(stats.heroXp[heroIndex] ?? 0).level) });
         return;
       }
       if (modeLocked(mode)) {
@@ -179,7 +180,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate("PaywallScreen", { source: "endless" });
         return;
       }
-      navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
+      navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: withMastery(metaEffects(stats.forge), masteryOf(stats.heroXp[heroIndex] ?? 0).level) });
       emitSound("GAME_MUSIC_START");
     },
     [navigation, mode, challenge, duelCode, tutorialSeen, depth, stats, statsLoaded, setLastHero, modeLocked],
@@ -219,6 +220,19 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const progress = heroLockProgress(selected, stats);
   const wins = stats.heroWins[selected] ?? 0;
   const played = stats.heroesUsed.includes(selected);
+  // Mastery: the level of this hero, and the next edge it is working toward.
+  const mastery = masteryOf(stats.heroXp[selected] ?? 0);
+  const nextPerk = mastery.level < MAX_MASTERY ? MASTERY_PERKS[mastery.level] : null;
+  const perkLine = (perk: MasteryPerk): string =>
+    perk.kind === "gems"
+      ? t("mastery.perk.gems", { n: perk.percent })
+      : perk.kind === "explore"
+        ? t("mastery.perk.explore", { n: perk.percent })
+        : perk.kind === "ability"
+          ? t("mastery.perk.ability", { n: perk.actions })
+          : perk.kind === "title"
+            ? t("mastery.perk.title", { name: heroText(t, selected, "name") })
+            : t(`mastery.perk.${perk.kind}` as TranslationKey);
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // The difficulty picker only appears once there is something to choose (after the first victory).
@@ -397,6 +411,28 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               ) : null}
 
+              {/* Mastery: grows with every run played with this hero, each level a small lasting edge */}
+              {!locked ? (
+                <View style={[styles.masteryBox, { borderColor: accent + "66" }]} accessible accessibilityLabel={`${t("mastery.title")} ${mastery.level}/${MAX_MASTERY}`}>
+                  <View style={styles.masteryHead}>
+                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {t("mastery.title").toLocaleUpperCase()}
+                    </Text>
+                    <Text style={styles.masteryLevel} maxFontSizeMultiplier={1.2}>{`${mastery.level}/${MAX_MASTERY}`}</Text>
+                  </View>
+                  <View style={styles.masteryPips}>
+                    {MASTERY_PERKS.map((_, i) => (
+                      <View key={i} style={[styles.masteryPip, i < mastery.level && { backgroundColor: accent }]} />
+                    ))}
+                  </View>
+                  <Text style={styles.masteryNext} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                    {nextPerk
+                      ? t("mastery.next", { level: mastery.level + 1, perk: perkLine(nextPerk), n: (mastery.to ?? 0) - mastery.xp })
+                      : t("mastery.done")}
+                  </Text>
+                </View>
+              ) : null}
+
               {/* A locked hero says, first of all, how to open it */}
               {locked && progress ? (
               <View style={styles.lockInfo} accessible>
@@ -551,6 +587,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 2,
   },
+  masteryBox: { gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
+  masteryHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  masteryLevel: { color: "#fff", fontWeight: "900", fontSize: 13 },
+  masteryPips: { flexDirection: "row", gap: 4 },
+  masteryPip: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)" },
+  masteryNext: { color: "#D9C6B2", fontSize: 12, fontWeight: "600" },
   cardLabel: { fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   cardName: { color: "#fff", fontWeight: "900" },
   cardDesc: { color: "#E7DCD2" },
