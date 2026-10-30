@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
   show: { borderRadius: 20, borderWidth: 2, borderColor: "rgba(255,171,64,0.3)", backgroundColor: "rgba(36,28,19,0.92)", padding: 12, gap: 7, overflow: "hidden" },
   showReady: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.12)", shadowColor: EMBER, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
   showMaxed: { borderColor: "rgba(255,213,79,0.55)", backgroundColor: "rgba(255,213,79,0.07)" },
-  kicker: { color: "#E1D4C8", fontWeight: "900", letterSpacing: 1.6, fontSize: 10.5 },
+  kicker: { color: "#E1D4C8", fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   showTop: { flexDirection: "row", gap: 12, alignItems: "center" },
   showName: { color: "#fff", fontWeight: "900", fontSize: 18 },
   desc: { color: "#E4D8CD", fontSize: 12.5, lineHeight: 17 },
@@ -426,7 +426,7 @@ const styles = StyleSheet.create({
 
   gear: { borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(36,28,19,0.85)", padding: 10, gap: 6 },
   gearHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  gearTitle: { color: EMBER, fontWeight: "900", letterSpacing: 2, fontSize: 10.5 },
+  gearTitle: { color: EMBER, fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   owned: { color: "#B8997A", fontSize: 11.5, fontWeight: "800" },
   gearGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   gearChip: { flexBasis: "47%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(255,171,64,0.08)" },

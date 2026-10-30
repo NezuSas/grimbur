@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   medalArt: { width: 72, height: 72 },
   medalNum: { position: "absolute", bottom: -2, right: -2, minWidth: 28, height: 28, borderRadius: 14, paddingHorizontal: 4, backgroundColor: "#2A2016", borderWidth: 2, borderColor: GOLD, alignItems: "center", justifyContent: "center" },
   rankNumber: { color: GOLD, fontWeight: "900", fontSize: 14 },
-  rankLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 2 },
+  rankLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   rankName: { color: "#fff", fontWeight: "900", fontSize: 20 },
   rankTrack: { height: 9, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   rankNext: { color: "#E4D8CD", fontSize: 12.5, fontWeight: "800" },
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,171,64,0.5)", backgroundColor: "rgba(255,171,64,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
   rewardReady: { backgroundColor: GOLD, borderColor: "#FFE082" },
   rewardText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },
-  claimText: { color: "#1a1200", fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
+  claimText: { color: "#1a1200", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   claimedChip: { minWidth: 76, alignItems: "center", justifyContent: "center" },
 });
 

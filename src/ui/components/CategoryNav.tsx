@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   slim: { paddingHorizontal: 8, paddingTop: 2, paddingBottom: 8, gap: 1 },
   slimItem: { alignItems: "center", paddingVertical: 2, paddingHorizontal: 4, borderRadius: 14, borderWidth: 1.5, borderColor: "transparent" },
   slimArt: { width: 28, height: 28 },
-  slimLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 10, maxWidth: "100%" },
+  slimLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 11, maxWidth: "100%" },
   railItem: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: MIN_TOUCH + 8, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "transparent", overflow: "hidden" },
   railChip: { width: 38, height: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center" },
   railArt: { width: 38, height: 38 },

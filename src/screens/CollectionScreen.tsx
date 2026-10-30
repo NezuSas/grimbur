@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
   outfitName: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" },
   tag: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9, borderWidth: 1 },
-  tagText: { fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
+  tagText: { fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   lockInfo: { alignSelf: "stretch", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.28)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
   lockRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
