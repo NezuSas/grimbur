@@ -93,7 +93,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
 
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} />
 
-      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} />
+      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} summary={{ floor: state.level, floors: GAME_CONFIG.expedition.floors, score: state.score, gems: state.gems, arrows: state.attack, relics: state.relics }} />
 
       <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} hero={character.loseImage ?? character.scoreImage} onRevive={revive.onRevive} onDecline={revive.onDecline} />
 

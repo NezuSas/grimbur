@@ -846,6 +846,9 @@ export const en = {
   'over.cause.stalker': 'Caught by a stalker',
   'over.cause.pit': 'Lost in a vortex',
 
+  'pause.floor': 'Floor',
+  'pause.arrows': 'Arrows',
+  'pause.relics': 'Relics',
   'pause.title': 'Paused',
   'pause.resume': 'Resume',
   'pause.restart': 'Restart',
