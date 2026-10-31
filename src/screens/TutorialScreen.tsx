@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { TUTORIAL_CHAPTERS } from "../core/tutorial/lessons";
 import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -145,14 +146,14 @@ export default function TutorialScreen({ navigation, route }: Props) {
       navigation.goBack(); // came from the manual: go back there
       return;
     }
-    emitSound("GAME_MUSIC_START");
-    // Replace the tutorial with the real game so Back does not return to it.
-    navigation.replace("GameScreen", {
-      characterIndex,
-      skin: route.params?.skin,
-      mode: "expedition",
-      ascension: route.params?.ascension,
-      meta: route.params?.meta,
+    // The first steps open the chapters of the campaign; the last chapter opens the first expedition.
+    navigation.replace("LessonScreen", {
+      lesson: TUTORIAL_CHAPTERS[0],
+      chain: {
+        next: TUTORIAL_CHAPTERS.slice(1),
+        total: TUTORIAL_CHAPTERS.length,
+        game: { characterIndex, skin: route.params?.skin, ascension: route.params?.ascension, meta: route.params?.meta },
+      },
     });
   }, [navigation, setTutorialSeen, characterIndex, replay, route.params?.ascension, route.params?.meta]);
 

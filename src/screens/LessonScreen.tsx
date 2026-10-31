@@ -180,14 +180,15 @@ export default function LessonScreen({ navigation, route }: Props) {
   const shotCount = useRef(0);
   const stateRef = useRef(state);
   stateRef.current = state;
-  const attack = useCallback(() => {
+  const attack = useCallback((direction?: Direction) => {
     const s = stateRef.current;
+    const dir = direction ?? s.facingDir;
     if (s.attack > 0) {
-      const { tiles, targetIndex } = arrowPath(s, s.facingDir);
-      if (tiles.length > 0) setShot({ key: ++shotCount.current, dir: s.facingDir, tiles: tiles.length, hit: targetIndex !== -1 });
+      const { tiles, targetIndex } = arrowPath(s, dir);
+      if (tiles.length > 0) setShot({ key: ++shotCount.current, dir, tiles: tiles.length, hit: targetIndex !== -1 });
     }
     setIsAttacking(true);
-    dispatch({ type: "ATTACK" });
+    dispatch({ type: "ATTACK", direction });
     if (attackTimer.current) clearTimeout(attackTimer.current);
     attackTimer.current = setTimeout(() => setIsAttacking(false), 400);
   }, []);
@@ -199,9 +200,35 @@ export default function LessonScreen({ navigation, route }: Props) {
     return () => clearTimeout(timer);
   }, []);
 
-  const finish = useCallback(() => navigation.goBack(), [navigation]);
+  // In the first-run campaign a finished chapter opens the next one, and the last one the first expedition; skipping leaves
+  // the whole campaign for the expedition. A lesson opened on its own simply goes back.
+  const chain = route.params.chain;
+  const setTutorialSeen = useSettingsStore(st => st.setTutorialSeen);
+  const toGame = useCallback(() => {
+    if (!chain) return;
+    setTutorialSeen(true);
+    emitSound("GAME_MUSIC_START");
+    navigation.replace("GameScreen", { ...chain.game, mode: "expedition" });
+  }, [chain, navigation, setTutorialSeen]);
+  const finish = useCallback(() => {
+    if (!chain) return navigation.goBack();
+    if (chain.next.length > 0) {
+      navigation.replace("LessonScreen", { lesson: chain.next[0], chain: { ...chain, next: chain.next.slice(1) } });
+      return;
+    }
+    analytics.track("tutorial_complete", { replay: false });
+    toGame();
+  }, [chain, navigation, toGame]);
+  const leave = useCallback(() => {
+    if (!chain) return navigation.goBack();
+    analytics.track("tutorial_skip", { step: -1 });
+    toGame();
+  }, [chain, navigation, toGame]);
+  const chapter = chain ? chain.total - chain.next.length : 0;
   const relicNames = useMemo(() => state.relics.map(id => relicText(t, id, "name")).join(", "), [state.relics, t]);
   const text = showRetry ? t("lesson.retry") : t(step.textKey as TranslationKey);
+  const finishLabel = chain ? (chain.next.length > 0 ? t("lesson.nextChapter") : t("tutorial.play")) : t("lesson.finish");
+  const skipLabel = chain ? t("tutorial.skip") : t("lesson.skip");
   const bannerHeight = hudHeight + insets.top;
 
   const banner = (
@@ -219,7 +246,7 @@ export default function LessonScreen({ navigation, route }: Props) {
     >
       <View style={styles.bannerText}>
         <Text style={[styles.stepLabel, { fontSize: 11 * ui }]} maxFontSizeMultiplier={1.2}>
-          {t("lesson.label").toLocaleUpperCase()}  ·  {t(`lesson.${lesson.id}.title` as TranslationKey).toLocaleUpperCase()}
+          {(chain ? t("lesson.chapter", { n: chapter + 1, total: chain.total + 1 }) : t("lesson.label")).toLocaleUpperCase()}  ·  {t(`lesson.${lesson.id}.title` as TranslationKey).toLocaleUpperCase()}
           {!isLast ? `  ·  ${stepIndex + 1}/${lesson.steps.length - 1}` : ""}
         </Text>
         <Text style={[styles.instruction, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} maxFontSizeMultiplier={1.25} accessibilityRole="header" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7}>
@@ -228,13 +255,13 @@ export default function LessonScreen({ navigation, route }: Props) {
       </View>
       <TouchableOpacity
         style={isLast ? styles.finishButton : styles.skipButton}
-        onPress={finish}
+        onPress={isLast ? finish : leave}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={isLast ? t("lesson.finish") : t("lesson.skip")}
+        accessibilityLabel={isLast ? finishLabel : skipLabel}
       >
         <Text style={isLast ? styles.finishText : styles.skipText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-          {isLast ? t("lesson.finish").toLocaleUpperCase() : t("lesson.skip")}
+          {isLast ? finishLabel.toLocaleUpperCase() : skipLabel}
         </Text>
       </TouchableOpacity>
     </View>
