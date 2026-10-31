@@ -52,7 +52,7 @@ const NewsBanner = () => {
   const updateUrl = update.kind !== "none" ? update.url : undefined;
   return (
     <View style={[styles.wrap, { left: Math.max(insets.left, 12), bottom: Math.max(insets.bottom, 10) }]} pointerEvents="box-none">
-      <LinearGradient colors={["rgba(73, 56, 39,0.96)", "rgba(18,12,38,0.96)"]} style={styles.card} accessible accessibilityRole="alert" accessibilityLabel={text}>
+      <LinearGradient colors={["rgba(73, 56, 39,0.96)", "rgba(22, 14, 8,0.96)"]} style={styles.card} accessible accessibilityRole="alert" accessibilityLabel={text}>
         <Ionicons name={update.kind === "none" ? "megaphone" : "cloud-download"} size={18} color={update.kind === "required" ? "#FF8A80" : "#FFD54F"} />
         <Text style={styles.text} maxFontSizeMultiplier={1.2}>
           {text}

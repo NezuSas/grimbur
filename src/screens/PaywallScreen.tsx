@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#1B150F" },
   columns: { flexDirection: "row", alignItems: "stretch" },
   card: {
-    backgroundColor: "rgba(16,12,30,0.92)",
+    backgroundColor: "rgba(24, 17, 11,0.92)",
     borderRadius: 22,
     borderWidth: 1.5,
     borderColor: "rgba(242,193,78,0.5)",

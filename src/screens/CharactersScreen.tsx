@@ -354,7 +354,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
             <ScrollView contentContainerStyle={[styles.panelContent, !short && styles.panelContentCentered]} showsVerticalScrollIndicator={false}>
               <View style={styles.kickerRow}>
                 <Text style={[styles.kicker, { color: modeTint }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                  {(short ? modeTitle : `${modeTitle} · ${t("heroes.title")}`).toLocaleUpperCase()}
+                  {(short || showDepth ? modeTitle : `${modeTitle} · ${t("heroes.title")}`).toLocaleUpperCase()}
                 </Text>
                 {showDepth && (
                   <View style={styles.depth}>
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   rule: { height: 3, width: 54, borderRadius: 2, marginTop: 6 },
 
   card: {
-    backgroundColor: "rgba(18,12,36,0.78)",
+    backgroundColor: "rgba(24, 16, 9,0.78)",
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",

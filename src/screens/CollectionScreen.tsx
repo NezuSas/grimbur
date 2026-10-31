@@ -1,4 +1,5 @@
 // src/screens/CollectionScreen.tsx
+import type { ImageSourcePropType } from "react-native";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -40,17 +41,18 @@ type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 
 type Category = "skins" | "rewards" | CosmeticCategory;
 /** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
-const CATEGORIES: { id: Category; icon: React.ComponentProps<typeof Ionicons>["name"] }[] = [
-  { id: "deals", icon: "pricetag" },
-  { id: "rewards", icon: "trophy" },
-  { id: "skins", icon: "shirt" },
-  { id: "trail", icon: "flash" },
-  { id: "frame", icon: "ellipse-outline" },
-  { id: "title", icon: "ribbon" },
-  { id: "board", icon: "grid" },
-  { id: "flag", icon: "flag" },
-  { id: "attack", icon: "locate" },
-  { id: "celebration", icon: "sparkles" },
+/** Each category wears a piece of its own painted art. */
+const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
+  { id: "deals", art: require("../assets/sprites/items/Icon_Gem.png") },
+  { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.png") },
+  { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.png") },
+  { id: "trail", art: require("../assets/sprites/cosmetics/Arrow_Fire.png") },
+  { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
+  { id: "title", art: require("../assets/sprites/ui/Icon_Medal.png") },
+  { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
+  { id: "flag", art: require("../assets/sprites/ui/Icon_Flag.png") },
+  { id: "attack", art: require("../assets/sprites/ui/Attack_Ready.png") },
+  { id: "celebration", art: require("../assets/sprites/ui/Icon_Sparkles.png") },
 ];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
@@ -260,7 +262,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 accessibilityState={{ selected: on }}
                 style={[styles.cat, on && styles.catOn]}
               >
-                <Ionicons name={c.icon} size={15} color={on ? "#1a0f00" : "#E8B04A"} />
+                <SpriteImage source={c.art} style={{ width: 20, height: 20 }} resizeMode="contain" accessibilityIgnoresInvertColors />
                 <Text style={[styles.catText, on && styles.catTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
                   {t(`collection.cat.${c.id}` as TranslationKey)}
                 </Text>
