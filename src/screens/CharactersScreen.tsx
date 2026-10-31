@@ -2,7 +2,7 @@
 import GlyphIcon from "../ui/components/GlyphIcon";
 import FramedHero from "../ui/components/FramedHero";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
-import { MASTERY_PERKS, MAX_MASTERY, masteryOf, withMastery, type MasteryPerk } from "../core/stats/mastery";
+import { MAX_MASTERY, masteryOf } from "../core/stats/mastery";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -181,7 +181,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         return;
       }
       if (!tutorialSeen && mode === "expedition") {
-        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: withMastery(metaEffects(stats.forge), masteryOf(stats.heroXp[heroIndex] ?? 0).level) });
+        navigation.navigate("TutorialScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), ascension: depth, meta: metaEffects(stats.forge) });
         return;
       }
       if (modeLocked(mode)) {
@@ -189,7 +189,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
         navigation.navigate("PaywallScreen", { source: "endless" });
         return;
       }
-      navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: withMastery(metaEffects(stats.forge), masteryOf(stats.heroXp[heroIndex] ?? 0).level) });
+      navigation.navigate("GameScreen", { characterIndex: heroIndex, skin: equippedSkin(stats, heroIndex), mode, ascension: mode === "expedition" ? depth : 0, meta: metaEffects(stats.forge) });
       emitSound("GAME_MUSIC_START");
     },
     [navigation, mode, challenge, duelCode, tutorialSeen, depth, stats, statsLoaded, setLastHero, modeLocked],
@@ -234,17 +234,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const played = stats.heroesUsed.includes(selected);
   // Mastery: the level of this hero, and the next edge it is working toward.
   const mastery = masteryOf(stats.heroXp[selected] ?? 0);
-  const nextPerk = mastery.level < MAX_MASTERY ? MASTERY_PERKS[mastery.level] : null;
-  const perkLine = (perk: MasteryPerk): string =>
-    perk.kind === "gems"
-      ? t("mastery.perk.gems", { n: perk.percent })
-      : perk.kind === "explore"
-        ? t("mastery.perk.explore", { n: perk.percent })
-        : perk.kind === "ability"
-          ? t("mastery.perk.ability", { n: perk.actions })
-          : perk.kind === "title"
-            ? t("mastery.perk.title", { name: heroText(t, selected, "name") })
-            : t(`mastery.perk.${perk.kind}` as TranslationKey);
+  const toTitle = mastery.level < MAX_MASTERY;
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // The difficulty picker only appears once there is something to choose (after the first victory).
@@ -448,9 +438,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={styles.masteryLevel} maxFontSizeMultiplier={1.2}>{mastery.level <= MAX_MASTERY ? `${mastery.level}/${MAX_MASTERY}` : t("mastery.level", { n: mastery.level })}</Text>
                   </View>
                   {/* The ten levels with edges as pips; past them, one bar toward the next level */}
-                  {mastery.level < MAX_MASTERY ? (
+                  {toTitle ? (
                     <View style={styles.masteryPips}>
-                    {MASTERY_PERKS.map((_, i) => (
+                    {Array.from({ length: MAX_MASTERY }, (_, i) => (
                       <View key={i} style={[styles.masteryPip, i < mastery.level && { backgroundColor: accent }]} />
                     ))}
                   </View>
@@ -460,8 +450,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     </View>
                   )}
                   <Text style={styles.masteryNext} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                    {nextPerk
-                      ? t("mastery.next", { level: mastery.level + 1, perk: perkLine(nextPerk), n: mastery.to - mastery.xp })
+                    {toTitle
+                      ? t("mastery.toTitle", { level: mastery.level + 1, n: mastery.to - mastery.xp, name: heroText(t, selected, "name") })
                       : t("mastery.beyond", { level: mastery.level + 1, n: mastery.to - mastery.xp })}
                   </Text>
                 </View>
