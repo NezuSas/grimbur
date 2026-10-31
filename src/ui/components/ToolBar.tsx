@@ -127,12 +127,12 @@ export default ToolBar;
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 6, justifyContent: "center", alignItems: "center", flexWrap: "wrap" },
   button: {
-    backgroundColor: "rgba(20,12,40,0.82)",
+    backgroundColor: "rgba(28, 19, 11,0.82)",
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
-  dim: { backgroundColor: "rgba(20,12,40,0.6)" },
+  dim: { backgroundColor: "rgba(28, 19, 11,0.6)" },
   badge: {
     position: "absolute",
     top: -4,

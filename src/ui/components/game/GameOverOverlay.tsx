@@ -329,10 +329,17 @@ const GameOverOverlay = ({
         </Text>
       ) : null}
       {dailyLabel && (
-        <Text style={styles.daily} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-          <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
-          {streak ? <>{'  ·  '}<EmberIcon size={13} /> {plural('over.streak', streak)}</> : ''}
-        </Text>
+        // The daily and its streak each get their own line, so neither breaks in the middle.
+        <View style={{ alignItems: 'center', gap: 2 }}>
+          <Text style={styles.daily} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+            <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
+          </Text>
+          {streak ? (
+            <Text style={[styles.daily, { color: '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+              <GlyphIcon name="flame" size={13} /> {plural('over.streak', streak)}
+            </Text>
+          ) : null}
+        </View>
       )}
     </View>
   );

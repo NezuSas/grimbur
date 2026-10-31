@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   playIcon: { backgroundColor: "#2A2016", alignItems: "center", justifyContent: "center" },
   texts: { flex: 1, gap: 1 },
   title: { color: "#2A2016", fontWeight: "900", letterSpacing: 4 },
-  subtitle: { color: "rgba(26,16,48,0.82)", fontWeight: "600" },
+  subtitle: { color: "rgba(40, 24, 8,0.82)", fontWeight: "600" },
   footnote: { color: "#EAE2D9", fontSize: 12, fontWeight: "700", textAlign: "center", letterSpacing: 0.5 },
 });
 

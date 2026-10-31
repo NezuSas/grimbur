@@ -267,7 +267,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
 
 const styles = StyleSheet.create({
   disc: {
-    backgroundColor: "rgba(14, 11, 31, 0.8)",
+    backgroundColor: "rgba(22, 15, 9, 0.8)",
     borderWidth: 3,
     borderColor: "rgba(255, 213, 79, 0.55)",
     overflow: "hidden",
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   },
   hub: {
     position: "absolute",
-    backgroundColor: "rgba(14, 11, 31, 0.95)",
+    backgroundColor: "rgba(22, 15, 9, 0.95)",
     borderWidth: 2,
     borderColor: "rgba(255, 213, 79, 0.3)",
   },

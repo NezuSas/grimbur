@@ -68,7 +68,7 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
       accessibilityLiveRegion="polite"
       style={[styles.wrap, minTop > 0 && { top: Math.max(minTop, windowHeight * 0.14) }, { opacity, transform: [{ translateY: lift }] }]}
     >
-      <LinearGradient colors={['rgba(73, 56, 39,0.96)', 'rgba(18,12,38,0.96)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.card}>
+      <LinearGradient colors={['rgba(73, 56, 39,0.96)', 'rgba(22, 14, 8,0.96)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.card}>
         <View style={styles.titleRow}>
           <Text style={styles.diamond}>◆</Text>
           <Text style={styles.title} maxFontSizeMultiplier={1.2}>

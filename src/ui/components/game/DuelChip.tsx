@@ -65,8 +65,8 @@ export default DuelChip;
 
 const styles = StyleSheet.create({
   wrap: { position: "absolute", left: 0, right: 0, alignItems: "center", zIndex: 25 },
-  chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(20,12,40,0.92)", borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, maxWidth: "70%" },
-  panel: { backgroundColor: "rgba(20,12,40,0.92)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, gap: 1, maxWidth: "70%" },
+  chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(28, 19, 11,0.92)", borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, maxWidth: "70%" },
+  panel: { backgroundColor: "rgba(28, 19, 11,0.92)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, gap: 1, maxWidth: "70%" },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
   text: { color: "#fff", fontWeight: "800", fontSize: 12, flexShrink: 1 },
 });

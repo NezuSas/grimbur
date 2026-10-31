@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     gap: 12,
     borderRadius: 18,
     borderWidth: 2,
-    backgroundColor: "rgba(18, 14, 36, 0.92)",
+    backgroundColor: "rgba(28, 20, 12, 0.92)",
     paddingHorizontal: 12,
     paddingVertical: 8,
     minWidth: MIN_TOUCH,
