@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import ReviveOverlay from "../ui/components/game/ReviveOverlay";
 import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -279,6 +280,7 @@ export default function LessonScreen({ navigation, route }: Props) {
       <StatusBar hidden />
       {__DEV__ && route.params.devHideBanner ? null : banner}
       {/* Development only: the relic draft as the game shows it, with these relics, to check how it fits a window. */}
+      {__DEV__ && route.params.devRevive ? <ReviveOverlay visible price={45} embers={1285} used={1} busy={false} hero={characters[0].loseImage} onRevive={() => {}} onDecline={() => {}} /> : null}
       {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} onPick={() => {}} /> : null}
       {/* Development only: the shared picture, full width, to review its design. */}
       {__DEV__ && route.params.devShare ? (
