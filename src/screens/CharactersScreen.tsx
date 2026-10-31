@@ -54,6 +54,8 @@ import { equippedSkin, ownedSkins } from "../core/skins/ownership";
 import { heroAccent } from "../data/heroAccent";
 import { SPARKS, Spark, Thumb, Swatch } from "./characters/parts";
 
+const MEDAL_ART = require("../assets/sprites/ui/Icon_Medal.png");
+
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 
 const accentOf = heroAccent;
@@ -329,6 +331,14 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                   )}
                 </Animated.View>
 
+                {/* The hero's mastery, worn like a badge at the foot of the stage */}
+                {!locked ? (
+                  <View pointerEvents="none" style={[styles.stageBadge, { bottom: rosterH + 4, borderColor: accent }]}>
+                    <SpriteImage source={MEDAL_ART} style={{ width: 22, height: 22 }} resizeMode="contain" />
+                    <Text style={styles.stageBadgeText} maxFontSizeMultiplier={1}>{t("mastery.level", { n: mastery.level }).toLocaleUpperCase()}</Text>
+                  </View>
+                ) : null}
+
                 {/* Chevrons: previous / next hero */}
                 <TouchableOpacity style={[styles.chevron, { left: 4 }]} onPress={() => step(-1)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("heroes.prev")}>
                   <Ionicons name="chevron-back" size={26} color="#fff" />
@@ -430,30 +440,27 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
               {/* Mastery: grows with every run played with this hero, each level a small lasting edge */}
               {!locked ? (
-                <View style={[styles.masteryBox, { borderColor: accent + "66" }]} accessible accessibilityLabel={`${t("mastery.title")} ${mastery.level}/${MAX_MASTERY}`}>
-                  <View style={styles.masteryHead}>
-                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                      {t("mastery.title").toLocaleUpperCase()}
-                    </Text>
-                    <Text style={styles.masteryLevel} maxFontSizeMultiplier={1.2}>{mastery.level <= MAX_MASTERY ? `${mastery.level}/${MAX_MASTERY}` : t("mastery.level", { n: mastery.level })}</Text>
-                  </View>
-                  {/* The ten levels with edges as pips; past them, one bar toward the next level */}
-                  {toTitle ? (
-                    <View style={styles.masteryPips}>
-                    {Array.from({ length: MAX_MASTERY }, (_, i) => (
-                      <View key={i} style={[styles.masteryPip, i < mastery.level && { backgroundColor: accent }]} />
-                    ))}
-                  </View>
-                  ) : (
-                    <View style={styles.masteryTrack}>
-                      <View style={[styles.masteryFill, { width: `${Math.round(mastery.progress * 100)}%`, backgroundColor: accent }]} />
+                <View style={[styles.masteryBox, { borderColor: accent + "77" }]} accessible accessibilityLabel={`${t("mastery.title")} ${t("mastery.level", { n: mastery.level })}. ${mastery.xp - mastery.from} / ${mastery.to - mastery.from} XP`}>
+                  <View style={styles.masteryMedal}>
+                    <SpriteImage source={MEDAL_ART} style={styles.masteryMedalArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+                    <View style={[styles.masteryMedalNum, { borderColor: accent }]}>
+                      <Text style={styles.masteryMedalText} maxFontSizeMultiplier={1}>{mastery.level}</Text>
                     </View>
-                  )}
-                  <Text style={styles.masteryNext} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                    {toTitle
-                      ? t("mastery.toTitle", { level: mastery.level + 1, n: mastery.to - mastery.xp, name: heroText(t, selected, "name") })
-                      : t("mastery.beyond", { level: mastery.level + 1, n: mastery.to - mastery.xp })}
-                  </Text>
+                  </View>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <View style={styles.masteryHead}>
+                      <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                        {t("mastery.title").toLocaleUpperCase()}
+                      </Text>
+                      <Text style={styles.masteryXp} maxFontSizeMultiplier={1.1}>{`${mastery.xp - mastery.from} / ${mastery.to - mastery.from} XP`}</Text>
+                    </View>
+                    <View style={styles.masteryTrack}>
+                      <View style={[styles.masteryFill, { width: `${Math.max(3, Math.round(mastery.progress * 100))}%`, backgroundColor: accent }]} />
+                    </View>
+                    <Text style={styles.masteryNext} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                      {toTitle ? t("mastery.toTitle2", { name: heroText(t, selected, "name"), left: MAX_MASTERY - mastery.level }) : t("mastery.owned", { name: heroText(t, selected, "name") })}
+                    </Text>
+                  </View>
                 </View>
               ) : null}
 
@@ -498,9 +505,15 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       <SpriteImage source={ABILITY_ART[ability]} style={{ width: styles.abilityIcon.width - 6, height: styles.abilityIcon.height - 6 }} resizeMode="contain" accessibilityIgnoresInvertColors />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                        {`${t("heroes.active")} · ${t("heroes.recharge", { n: abilityCooldown(ability) })}`.toLocaleUpperCase()}
-                      </Text>
+                      <View style={styles.abilityLabelRow}>
+                        <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                          {t("heroes.active").toLocaleUpperCase()}
+                        </Text>
+                        <View style={styles.cooldownChip}>
+                          <Ionicons name="refresh" size={11} color="#E4D8CD" />
+                          <Text style={styles.cooldownText} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("heroes.cooldown", { n: abilityCooldown(ability) })}</Text>
+                        </View>
+                      </View>
                       <Text style={[styles.cardName, { fontSize: bodySize + 3 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                         {t(`ability.${ability}.name` as TranslationKey)}
                       </Text>
@@ -556,6 +569,16 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  masteryMedal: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
+  masteryMedalArt: { width: 48, height: 48 },
+  masteryMedalNum: { position: "absolute", bottom: -4, right: -4, minWidth: 24, height: 24, borderRadius: 12, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", borderWidth: 2, backgroundColor: "#1A120B" },
+  masteryMedalText: { color: "#FFE7A8", fontWeight: "900", fontSize: 12 },
+  masteryXp: { color: "#E4D8CD", fontWeight: "800", fontSize: 11.5 },
+  stageBadge: { position: "absolute", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 5, paddingLeft: 6, paddingRight: 12, height: 30, borderRadius: 15, borderWidth: 1.5, backgroundColor: "rgba(22,14,8,0.92)", zIndex: 5 },
+  stageBadgeText: { color: "#FFE7A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
+  abilityLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  cooldownChip: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)" },
+  cooldownText: { color: "#E4D8CD", fontWeight: "800", fontSize: 11 },
   masteryTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   masteryFill: { height: "100%", borderRadius: 3 },
   depthLocked: { borderColor: "rgba(255,213,79,0.55)", backgroundColor: "rgba(255,213,79,0.12)" },
@@ -615,11 +638,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 2,
   },
-  masteryBox: { gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
+  masteryBox: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
   masteryHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   masteryLevel: { color: "#fff", fontWeight: "900", fontSize: 13 },
-  masteryPips: { flexDirection: "row", gap: 4 },
-  masteryPip: { flex: 1, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)" },
   masteryNext: { color: "#D9C6B2", fontSize: 12, fontWeight: "600" },
   cardLabel: { fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   cardName: { color: "#fff", fontWeight: "900" },
