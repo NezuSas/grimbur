@@ -39,6 +39,8 @@ export const unlockText = (t: T, heroIndex: number): string => {
 /** Localised achievement text; the description is interpolated with the real thresholds. */
 export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'): string => {
   const info = ACHIEVEMENTS.find(a => a.id === id);
+  // An unknown id (an old save, a newer version's achievement) is left out rather than shown as a raw key.
+  if (!info) return '';
   if (part === 'name') return t(`ach.${id}.name` as TranslationKey);
   // A bespoke description (`ach.<id>.desc`) wins over the shared template.
   const bespokeKey = `ach.${id}.desc` as TranslationKey;

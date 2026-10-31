@@ -302,7 +302,7 @@ export default function LessonScreen({ navigation, route }: Props) {
                 isNewBest: true,
                 embers: 190,
                 payout: { run: 60, milestone: 30, daily: 25, welcomeBack: 40, achievements: 35, total: 190 },
-                achievements: ["win_mira", "win_bram", "first_blood", "explorer", "hoarder"],
+                achievements: ["win_mira", "win_bram", "first_steps", "gem_hoard", "relic_trio"],
                 unlocks: { heroes: [4], depth: 3, endless: true, skins: [{ hero: 4, skin: "shadow" }] },
                 goals: [
                   { kind: "forge", id: "ward", cost: 80, remaining: 0, progress: 1, affordable: true },
