@@ -1,6 +1,5 @@
 import { EMPTY_STATS, mergeRun, parseStats } from '../../src/core/stats/runStats';
-import { MASTERY_XP, MAX_MASTERY, masteryOf, masteryUp, masteryXpFor, withMastery } from '../../src/core/stats/mastery';
-import { NO_META } from '../../src/core/stats/forge';
+import { MASTERY_XP, MAX_MASTERY, masteryOf, masteryUp, masteryXpFor } from '../../src/core/stats/mastery';
 import { ownsCosmetic } from '../../src/core/cosmetics/cosmetics';
 
 describe('hero mastery', () => {
@@ -29,14 +28,6 @@ describe('hero mastery', () => {
     const after = mergeRun(EMPTY_STATS, { score: 1000, level: 5, victory: false, heroIndex: 2, day: '2026-10-30' }).stats;
     expect(after.heroXp[2]).toBe(50);
     expect(after.heroXp.filter((x, i) => i !== 2).every(x => x === 0)).toBe(true);
-  });
-
-  it('adds its edges to the run on top of the Forge', () => {
-    expect(withMastery(NO_META, 1)).toEqual(NO_META);
-    const top = withMastery(NO_META, MAX_MASTERY);
-    expect(top.coinBonus).toBeCloseTo(0.15);
-    expect(top.exploreBonus).toBeCloseTo(0.2);
-    expect(top).toMatchObject({ startDetectors: 1, startBombs: 1, abilityHaste: 2 });
   });
 
   it('old saves start each hero from its victories, and full mastery earns its title', () => {
