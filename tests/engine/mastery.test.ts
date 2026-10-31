@@ -14,8 +14,12 @@ describe('hero mastery', () => {
   it('climbs ten levels and reports progress', () => {
     expect(masteryOf(0).level).toBe(1);
     expect(masteryOf(MASTERY_XP[1]).level).toBe(2);
-    expect(masteryOf(999999).level).toBe(MAX_MASTERY);
-    expect(masteryOf(999999).progress).toBe(1);
+    expect(masteryOf(MASTERY_XP[MAX_MASTERY - 1]).level).toBe(MAX_MASTERY);
+    // No cap: past ten it keeps climbing, each level asking a little more.
+    expect(masteryOf(MASTERY_XP[MAX_MASTERY - 1] + 800).level).toBe(MAX_MASTERY + 1);
+    expect(masteryOf(MASTERY_XP[MAX_MASTERY - 1] + 800 + 849).level).toBe(MAX_MASTERY + 1);
+    expect(masteryOf(MASTERY_XP[MAX_MASTERY - 1] + 800 + 850).level).toBe(MAX_MASTERY + 2);
+    expect(masteryOf(999999).level).toBeGreaterThan(100);
     expect(masteryOf(175).progress).toBeCloseTo(0.5);
     expect(masteryUp(90, 110)).toBe(2);
     expect(masteryUp(110, 120)).toBeNull();

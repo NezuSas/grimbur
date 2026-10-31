@@ -1153,6 +1153,8 @@ export const es: Record<TranslationKey, string> = {
   'over.rankUp': "¡Nuevo rango: {name}!",
   'mastery.title': 'Maestría',
   'mastery.next': 'Nivel {level}: {perk} · faltan {n} XP',
+  'mastery.level': 'Nivel {n}',
+  'mastery.beyond': 'Maestría completa. Nivel {level}: faltan {n} XP',
   'mastery.done': 'Maestría completa: este héroe ya da todo lo que tiene.',
   'mastery.perk.gems': '+{n} % al valor de las gemas',
   'mastery.perk.explore': '+{n} % de puntos al explorar',

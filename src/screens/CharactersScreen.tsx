@@ -445,17 +445,24 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                       {t("mastery.title").toLocaleUpperCase()}
                     </Text>
-                    <Text style={styles.masteryLevel} maxFontSizeMultiplier={1.2}>{`${mastery.level}/${MAX_MASTERY}`}</Text>
+                    <Text style={styles.masteryLevel} maxFontSizeMultiplier={1.2}>{mastery.level <= MAX_MASTERY ? `${mastery.level}/${MAX_MASTERY}` : t("mastery.level", { n: mastery.level })}</Text>
                   </View>
-                  <View style={styles.masteryPips}>
+                  {/* The ten levels with edges as pips; past them, one bar toward the next level */}
+                  {mastery.level < MAX_MASTERY ? (
+                    <View style={styles.masteryPips}>
                     {MASTERY_PERKS.map((_, i) => (
                       <View key={i} style={[styles.masteryPip, i < mastery.level && { backgroundColor: accent }]} />
                     ))}
                   </View>
+                  ) : (
+                    <View style={styles.masteryTrack}>
+                      <View style={[styles.masteryFill, { width: `${Math.round(mastery.progress * 100)}%`, backgroundColor: accent }]} />
+                    </View>
+                  )}
                   <Text style={styles.masteryNext} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                     {nextPerk
-                      ? t("mastery.next", { level: mastery.level + 1, perk: perkLine(nextPerk), n: (mastery.to ?? 0) - mastery.xp })
-                      : t("mastery.done")}
+                      ? t("mastery.next", { level: mastery.level + 1, perk: perkLine(nextPerk), n: mastery.to - mastery.xp })
+                      : t("mastery.beyond", { level: mastery.level + 1, n: mastery.to - mastery.xp })}
                   </Text>
                 </View>
               ) : null}
@@ -559,6 +566,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  masteryTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
+  masteryFill: { height: "100%", borderRadius: 3 },
   depthLocked: { borderColor: "rgba(255,213,79,0.55)", backgroundColor: "rgba(255,213,79,0.12)" },
   depthHint: { color: "#FFD54F", fontSize: 12.5, fontWeight: "700" },
   root: { flex: 1, backgroundColor: "#000" },
