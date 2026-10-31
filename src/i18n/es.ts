@@ -847,6 +847,9 @@ export const es: Record<TranslationKey, string> = {
   'over.cause.stalker': 'Atrapado por un acechador',
   'over.cause.pit': 'Perdido en un vórtice',
 
+  'pause.floor': 'Piso',
+  'pause.arrows': 'Flechas',
+  'pause.relics': 'Reliquias',
   'pause.title': 'En pausa',
   'pause.resume': 'Continuar',
   'pause.restart': 'Reiniciar',

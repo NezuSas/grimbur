@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import PauseOverlay from "../ui/components/game/PauseOverlay";
+import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import ReviveOverlay from "../ui/components/game/ReviveOverlay";
 import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../ui/components/Text";
@@ -280,6 +282,8 @@ export default function LessonScreen({ navigation, route }: Props) {
       <StatusBar hidden />
       {__DEV__ && route.params.devHideBanner ? null : banner}
       {/* Development only: the relic draft as the game shows it, with these relics, to check how it fits a window. */}
+      {__DEV__ && route.params.devPause ? <PauseOverlay visible saveOnExit canRestart onResume={() => {}} onRestart={() => {}} onMainMenu={() => {}} summary={{ floor: 6, floors: 10, score: 4381, gems: 7, arrows: 3, relics: ["lantern", "phoenix", "quiver", "quiver"] }} /> : null}
+      {__DEV__ && route.params.devNameEntry ? <HighScoreEntryModal visible score={14250} level={10} totalCoins={42} time={612} onSubmit={async () => {}} onSkip={() => {}} /> : null}
       {__DEV__ && route.params.devRevive ? <ReviveOverlay visible price={45} embers={1285} used={1} busy={false} hero={characters[0].loseImage} onRevive={() => {}} onDecline={() => {}} /> : null}
       {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} onPick={() => {}} /> : null}
       {/* Development only: the shared picture, full width, to review its design. */}

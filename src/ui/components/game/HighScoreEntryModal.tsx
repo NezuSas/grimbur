@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import SpriteImage from '../SpriteImage';
 import {
   Animated,
   Keyboard,
@@ -97,9 +98,10 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   const summary = (
     <View style={styles.summary}>
       {/* With the keyboard up a landscape phone has little room left: only the title and the score stay. */}
+      {!keyboardUp && <SpriteImage source={require('../../../assets/sprites/ui/Icon_Trophy.png')} style={styles.trophy} resizeMode="contain" />}
       {!keyboardUp && (
         <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
-          <GlyphIcon name="trophy" size={13} /> {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
+          {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
         </Text>
       )}
       <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
@@ -169,7 +171,8 @@ const styles = StyleSheet.create({
   form: { gap: 8, flex: 1.2, width: '100%' },
   badge: { color: '#fff', fontSize: 18, fontWeight: '900' },
   title: { color: '#FFD54F', fontWeight: '900', fontSize: 17, letterSpacing: 2, textAlign: 'center' },
-  score: { color: '#fff', fontWeight: '900', fontSize: 22 },
+  score: { color: '#FFD54F', fontWeight: '900', fontSize: 26 },
+  trophy: { width: 54, height: 54, marginBottom: -2 },
   subtitle: { color: '#b5b5b5', fontSize: 12, letterSpacing: 0.5, textAlign: 'center' },
   input: {
     width: '100%',
