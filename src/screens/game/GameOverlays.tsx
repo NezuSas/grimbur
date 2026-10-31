@@ -95,7 +95,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
 
       <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} />
 
-      <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} onRevive={revive.onRevive} onDecline={revive.onDecline} />
+      <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} hero={character.loseImage ?? character.scoreImage} onRevive={revive.onRevive} onDecline={revive.onDecline} />
 
       <GameOverOverlay
         visible={gameOver.visible}
