@@ -242,7 +242,8 @@ export function generateBoard(
     playerIndex: spawnIndex,
     // Report the coins actually placed so the level can always be completed.
     coins: entities.filter(e => e.type === 'coin').length,
-    attack: diff.attackCharges + omen.arrowBonus,
+    // The lair is a fight: always arrows for every guardian there and every heart of the Grimbur (plus a miss to spare).
+    attack: (withBoss ? Math.max(diff.attackCharges, enemyBudget + GAME_CONFIG.boss.hp + 1) : diff.attackCharges) + omen.arrowBonus,
     seed
   };
 }

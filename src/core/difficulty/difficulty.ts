@@ -32,10 +32,10 @@ export function getDifficulty(level: number) {
     shields: level >= 2 ? Math.min(3, 1 + Math.floor(level / 8)) : 0,
     // Extra arrows lying on the board
     ammoPickups: level >= 2 ? Math.min(4, 1 + Math.floor(level / 6)) : 0,
-    // Arrows are a resource: about 0.7 per guardian plus one. Unused ones carry over (up to 4) to the next floor.
+    // Arrows are a resource: about one per two guardians, plus one. Unused ones carry over (up to 4) to the next floor.
     attackCharges: attackChargesFor(enemies),
   };
 }
 
 /** Arrows a floor starts with for `enemies` guardians. */
-export const attackChargesFor = (enemies: number): number => Math.ceil(enemies * 0.7) + 1;
+export const attackChargesFor = (enemies: number): number => Math.ceil(enemies * 0.45) + 1;
