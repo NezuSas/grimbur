@@ -2,12 +2,25 @@ import type { MetaEffects } from './forge';
 import type { RunResult } from './runStats';
 
 /**
- * Hero mastery: every finished run with a hero gives that hero experience, and each of its ten levels adds a small,
- * lasting edge when playing that hero. It is the power that keeps coming once the Forge is done, and it rewards
+ * Hero mastery: every finished run with a hero gives that hero experience, and each of its first ten levels adds a small,
+ * lasting edge when playing that hero. Past ten it never stops (like the champion levels of big online games): every level
+ * asks a little more and gives no more power, only a higher number to show. It is the power that keeps coming once the Forge is done, and it rewards
  * sticking with a favourite. Derived from `heroXp` only, so a restored backup restores it too.
  */
 export const MASTERY_XP: readonly number[] = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200];
+/** The level that completes the edges (and earns the hero's title); mastery goes on past it with no cap. */
 export const MAX_MASTERY = MASTERY_XP.length;
+/** Experience of the first level past MAX_MASTERY, and how much more each following one asks. */
+export const XP_PAST_TOP = 800;
+export const XP_PAST_TOP_STEP = 50;
+
+/** Total experience at which `level` starts (1-based, any level). */
+export function masteryThreshold(level: number): number {
+  const l = Math.max(1, Math.trunc(level));
+  if (l <= MAX_MASTERY) return MASTERY_XP[l - 1];
+  const extra = l - MAX_MASTERY; // levels past the top
+  return MASTERY_XP[MAX_MASTERY - 1] + extra * XP_PAST_TOP + (XP_PAST_TOP_STEP * (extra - 1) * extra) / 2;
+}
 
 /** Experience per floor reached (counted up to the tenth) and for a victory, plus per depth won at. */
 export const XP_PER_FLOOR = 10;
@@ -49,17 +62,18 @@ export interface MasteryInfo {
   level: number;
   xp: number;
   from: number;
-  to: number | null;
+  /** Where the next level starts (there always is one). */
+  to: number;
   progress: number;
 }
 
 export function masteryOf(xp: number): MasteryInfo {
   const earned = Math.max(0, Math.trunc(Number.isFinite(xp) ? xp : 0));
-  let index = 0;
-  for (let i = 0; i < MASTERY_XP.length; i++) if (earned >= MASTERY_XP[i]) index = i;
-  const from = MASTERY_XP[index];
-  const to = index + 1 < MASTERY_XP.length ? MASTERY_XP[index + 1] : null;
-  return { level: index + 1, xp: earned, from, to, progress: to === null ? 1 : Math.min(1, (earned - from) / (to - from)) };
+  let level = 1;
+  while (earned >= masteryThreshold(level + 1)) level++;
+  const from = masteryThreshold(level);
+  const to = masteryThreshold(level + 1);
+  return { level, xp: earned, from, to, progress: Math.min(1, (earned - from) / (to - from)) };
 }
 
 /** The Forge's effects plus what a hero's mastery adds to its runs. */

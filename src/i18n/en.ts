@@ -1149,6 +1149,8 @@ export const en = {
   'over.rankUp': "New rank: {name}!",
   'mastery.title': 'Mastery',
   'mastery.next': 'Level {level}: {perk} · {n} XP to go',
+  'mastery.level': 'Level {n}',
+  'mastery.beyond': 'Full mastery. Level {level}: {n} XP to go',
   'mastery.done': 'Full mastery: this hero gives everything it has.',
   'mastery.perk.gems': '+{n}% gem value',
   'mastery.perk.explore': '+{n}% exploring points',
