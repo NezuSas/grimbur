@@ -1169,6 +1169,7 @@ export const es: Record<TranslationKey, string> = {
   'roster.sleeper': 'bestias dormidas',
   'roster.pit': 'vórtices',
   'floor.bannerSkip': 'Toca para empezar',
+  'heroes.depthLocked': 'Gana una expedición en {current} para desbloquear {next}.',
   'rank.1': "Novato",
   'rank.2': "Aprendiz",
   'rank.3': "Explorador",

@@ -1165,6 +1165,7 @@ export const en = {
   'roster.sleeper': 'sleeping beasts',
   'roster.pit': 'vortexes',
   'floor.bannerSkip': 'Tap to start',
+  'heroes.depthLocked': 'Win an expedition on {current} to unlock {next}.',
   'rank.1': "Novice",
   'rank.2': "Apprentice",
   'rank.3': "Explorer",
