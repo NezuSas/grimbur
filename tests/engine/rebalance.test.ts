@@ -19,15 +19,15 @@ const perksWith = (ability: HeroPerks['ability']): HeroPerks => ({ ...NO_PERKS, 
 const nextFloor = { rows: 6, cols: 9, entities: [coin(30)], coins: 1, attack: 5, seed: 5 };
 
 describe('arrows are a resource', () => {
-  it('a floor starts with about 0.7 arrows per guardian plus one', () => {
-    expect(attackChargesFor(2)).toBe(3);
-    expect(attackChargesFor(14)).toBe(11);
+  it('a floor starts with about one arrow per two guardians plus one', () => {
+    expect(attackChargesFor(2)).toBe(2);
+    expect(attackChargesFor(14)).toBe(8);
     for (let level = 1; level <= 10; level++) {
       const d = getDifficulty(level);
       expect(d.attackCharges).toBe(attackChargesFor(d.enemies));
       expect(d.attackCharges).toBeLessThanOrEqual(Math.ceil(d.enemies * 1.5));
       if (level >= 3) expect(d.attackCharges).toBeLessThan(Math.ceil(d.enemies * 1.5));
-      expect(d.attackCharges).toBeGreaterThanOrEqual(3);
+      expect(d.attackCharges).toBeGreaterThanOrEqual(2);
     }
   });
 
