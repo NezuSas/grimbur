@@ -4,7 +4,6 @@ import { ImageSourcePropType, View, TouchableOpacity } from "react-native";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
 import characters from "../../data/characters";
-import { LESSON_IDS } from "../../core/tutorial/lessons";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { asKey } from "./kit";
 import type { Kit } from "./kit";
@@ -44,19 +43,6 @@ export const StartPane = ({ kit }: { kit: Kit }) => {
         ))}
       </View>
 
-      <TouchableOpacity
-        style={styles.cta}
-        onPress={() => navigation.navigate("TutorialScreen", { characterIndex: 0, replay: true })}
-        activeOpacity={0.85}
-        accessibilityRole="button"
-        accessibilityLabel={t("manual.replayTutorial")}
-      >
-        <Ionicons name="school" size={22} color="#1a1200" />
-        <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-          {t("manual.replayTutorial").toLocaleUpperCase()}
-        </Text>
-        <Ionicons name="chevron-forward" size={20} color="#1a1200" />
-      </TouchableOpacity>
 
       <TouchableOpacity style={styles.storyButton} onPress={() => navigation.navigate("StoryScreen", { replay: true })} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t("manual.replayStory")}>
         <GlyphIcon name="book" size={24} />
@@ -65,38 +51,6 @@ export const StartPane = ({ kit }: { kit: Kit }) => {
         </Text>
       </TouchableOpacity>
 
-      <View>
-        <Text style={styles.lessonsTitle} maxFontSizeMultiplier={1.2}>
-          {t("manual.lessons").toLocaleUpperCase()}
-        </Text>
-        <Text style={styles.lessonsHint} maxFontSizeMultiplier={1.2}>
-          {t("manual.lessons.hint")}
-        </Text>
-        <View style={styles.lessons}>
-          {LESSON_IDS.map(id => (
-            <TouchableOpacity
-              key={id}
-              style={[styles.lesson, wide && styles.lessonWide]}
-              onPress={() => navigation.navigate("LessonScreen", { lesson: id })}
-              activeOpacity={0.85}
-              accessibilityRole="button"
-              accessibilityLabel={`${t(asKey(`lesson.${id}.title`))}. ${t(asKey(`lesson.${id}.desc`))}`}
-            >
-              <View style={styles.lessonPlay}>
-                <GlyphIcon name="play" size={20} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.lessonName} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-                  {t(asKey(`lesson.${id}.title`))}
-                </Text>
-                <Text style={styles.lessonDesc} numberOfLines={2} maxFontSizeMultiplier={1.2}>
-                  {t(asKey(`lesson.${id}.desc`))}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
       <SpriteImage source={characters[1].winImage} style={styles.footerImage} resizeMode="contain" accessibilityIgnoresInvertColors />
     </>
   );

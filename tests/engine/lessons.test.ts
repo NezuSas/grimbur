@@ -111,4 +111,28 @@ describe('lessons', () => {
     advance();
     expect(lesson.steps[step].id).toBe('done');
   });
+
+  it('stalker: it comes, the hero shoots it facing its way, then takes the gem', () => {
+    const lesson = LESSONS.stalker;
+    let s = begin(lesson);
+    let step = 0;
+    const advance = () => { step = advanceLesson(lesson, step, s, noCtx); };
+    // Walk right along the top row until the stalker is beside the hero.
+    for (let i = 0; i < 12 && lesson.steps[step].id === 'watch'; i++) {
+      s = play(s, move('RIGHT'));
+      expect(s.isGameOver).toBe(false);
+      advance();
+    }
+    expect(lesson.steps[step].id).toBe('shoot');
+    const stalker = s.entities.find(e => e.type === 'stalker')!;
+    const dir = stalker.index === s.playerIndex + 1 ? 'RIGHT' : stalker.index === s.playerIndex - 1 ? 'LEFT' : stalker.index > s.playerIndex ? 'DOWN' : 'UP';
+    s = play(s, { type: 'ATTACK', direction: dir });
+    advance();
+    expect(lesson.steps[step].id).toBe('finish');
+    // Down to the bottom row and right to the gem in the corner.
+    for (let i = 0; i < 12 && !s.isLevelUp; i++) {
+      s = play(s, move(Math.floor(s.playerIndex / s.cols) < s.rows - 1 ? 'DOWN' : 'RIGHT'));
+    }
+    expect(s.isLevelUp).toBe(true);
+  });
 });

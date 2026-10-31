@@ -5,9 +5,12 @@ import type { RelicId } from '../engine/relics';
  * Optional lessons, one topic each, played on the real reducer (like the first tutorial in `tutorial.ts`).
  * A lesson starts from a hand-made state: a tiny board, or a draft / shop that is already open.
  */
-export type LessonId = 'deduce' | 'relics' | 'shop' | 'tools';
+export type LessonId = 'deduce' | 'stalker' | 'relics' | 'shop' | 'tools';
 
-export const LESSON_IDS: readonly LessonId[] = ['deduce', 'relics', 'shop', 'tools'];
+export const LESSON_IDS: readonly LessonId[] = ['deduce', 'stalker', 'tools', 'relics', 'shop'];
+
+/** The chapters a new player plays after the first steps, in this order, before the first expedition. */
+export const TUTORIAL_CHAPTERS: readonly LessonId[] = ['deduce', 'stalker', 'tools', 'relics', 'shop'];
 
 /** Facts the screen knows that the game state does not (flags are the player's own marks). */
 export interface LessonContext {
@@ -51,6 +54,12 @@ const TOOLS_BOMB_TILE = 1;
 
 const DRAFT_OFFER: RelicId[] = ['quiver', 'lucky_coin', 'glass_bow'];
 
+/** A stalker starts in the far corner of the top row and hunts the hero, one step every few actions.  (6 columns) */
+const STALKER_START = 5;
+const hasStalker = (s: GameState) => s.entities.some(e => e.type === 'stalker');
+const stalkerBeside = (s: GameState) =>
+  s.entities.some(e => e.type === 'stalker' && Math.abs(Math.floor(e.index / s.cols) - Math.floor(s.playerIndex / s.cols)) + Math.abs((e.index % s.cols) - (s.playerIndex % s.cols)) === 1);
+
 const emptyBoard = { rows: 4, cols: 6, attack: 99, coins: 0, entities: [] as GameEntity[] };
 
 export const LESSONS: Record<LessonId, LessonDef> = {
@@ -75,6 +84,28 @@ export const LESSONS: Record<LessonId, LessonDef> = {
       { id: 'flag', textKey: 'lesson.deduce.flag', highlight: [DEDUCE_PIT], isDone: (_s, c) => c.flags.has(DEDUCE_PIT) },
       { id: 'finish', textKey: 'lesson.deduce.finish', highlight: [14], isDone: s => s.isLevelUp },
       { ...DONE, textKey: 'lesson.deduce.done' },
+    ],
+  },
+  stalker: {
+    id: 'stalker',
+    kind: 'board',
+    board: {
+      rows: 4,
+      cols: 6,
+      attack: 3,
+      coins: 1,
+      entities: [
+        { index: STALKER_START, type: 'stalker' },
+        { index: 23, type: 'coin' },
+      ],
+    },
+    // The top row is already explored, so the stalker is seen coming the whole way.
+    patch: { visited: [0, 1, 2, 3, 4, 5] },
+    steps: [
+      { id: 'watch', textKey: 'lesson.stalker.watch', highlight: [STALKER_START], isDone: s => stalkerBeside(s) || !hasStalker(s) },
+      { id: 'shoot', textKey: 'lesson.stalker.shoot', highlight: [], isDone: s => !hasStalker(s) },
+      { id: 'finish', textKey: 'lesson.stalker.finish', highlight: [23], isDone: s => s.isLevelUp },
+      { ...DONE, textKey: 'lesson.stalker.done' },
     ],
   },
   relics: {
