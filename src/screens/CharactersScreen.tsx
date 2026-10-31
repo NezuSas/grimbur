@@ -74,6 +74,12 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // Until the saved stats arrive, every hero but the first looks locked and the depth and Forge bonuses are unknown.
   const [statsLoaded, setStatsLoaded] = useState(() => peekLocalStats() !== null);
   const [depth, setDepth] = useState(0);
+  const [depthHint, setDepthHint] = useState(false);
+  useEffect(() => {
+    if (!depthHint) return;
+    const timer = setTimeout(() => setDepthHint(false), 3500);
+    return () => clearTimeout(timer);
+  }, [depthHint]);
   const devHero = __DEV__ ? route.params?.devHero : undefined;
   const [selected, setSelected] = useState(() => devHero ?? (lastHero >= 0 && lastHero < HERO_COUNT ? lastHero : 0));
   const [stage, setStage] = useState({ w: 0, h: 0 });
@@ -242,7 +248,9 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // The difficulty picker only appears once there is something to choose (after the first victory).
-  const showDepth = mode === "expedition" && maxDepth > 0 && !challenge;
+  // Always shown on an expedition, so the harder depths are known to exist: the next one locked says how to open it.
+  const showDepth = mode === "expedition" && !challenge;
+  const nextLocked = depth >= maxDepth && depth < MAX_ASCENSION;
   const modeTitle = t(`heroes.mode.${mode}` as TranslationKey);
   // On a harder depth the line says what that depth changes and what winning it pays on top.
   const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
@@ -373,22 +381,26 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       </Text>
                     </View>
                     <TouchableOpacity
-                      style={[styles.depthButton, depth >= maxDepth && { opacity: 0.35 }]}
-                      onPress={() => setDepth(d => Math.min(maxDepth, d + 1))}
-                      disabled={depth >= maxDepth}
+                      style={[styles.depthButton, depth >= MAX_ASCENSION && { opacity: 0.35 }, nextLocked && styles.depthLocked]}
+                      onPress={() => (nextLocked ? setDepthHint(true) : setDepth(d => Math.min(maxDepth, d + 1)))}
+                      disabled={depth >= MAX_ASCENSION}
                       accessibilityRole="button"
-                      accessibilityLabel={t("a11y.depthRaise")}
+                      accessibilityLabel={nextLocked ? t("heroes.depthLocked", { current: t(`ascension.label.${depth}` as TranslationKey), next: t(`ascension.label.${depth + 1}` as TranslationKey) }) : t("a11y.depthRaise")}
                     >
-                      <Ionicons name="add" size={18} color="#fff" />
+                      <Ionicons name={nextLocked ? "lock-closed" : "add"} size={nextLocked ? 14 : 18} color="#fff" />
                     </TouchableOpacity>
                   </View>
                 )}
               </View>
-              {!short && (
+              {depthHint && nextLocked ? (
+                <Text style={styles.depthHint} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.2}>
+                  {t("heroes.depthLocked", { current: t(`ascension.label.${depth}` as TranslationKey), next: t(`ascension.label.${depth + 1}` as TranslationKey) })}
+                </Text>
+              ) : !short ? (
                 <Text style={styles.modeRule} numberOfLines={3} maxFontSizeMultiplier={1.2}>
                   {modeRule}
                 </Text>
-              )}
+              ) : null}
 
               {/* Name and title: the biggest text on the screen */}
               <Animated.View style={{ opacity: pop, transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [1.18, 1] }) }] }}>
@@ -547,6 +559,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  depthLocked: { borderColor: "rgba(255,213,79,0.55)", backgroundColor: "rgba(255,213,79,0.12)" },
+  depthHint: { color: "#FFD54F", fontSize: 12.5, fontWeight: "700" },
   root: { flex: 1, backgroundColor: "#000" },
   dim: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(4,2,14,0.55)" },
   safe: { flex: 1 },
