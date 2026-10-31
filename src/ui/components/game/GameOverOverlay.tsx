@@ -243,7 +243,7 @@ const GameOverOverlay = ({
 
   const achievementList = splitNames(achievements ?? []);
   const achievementNames =
-    achievementList.shown.map(id => achievementText(t, id as AchievementId, 'name')).join(', ') +
+    achievementList.shown.map(id => achievementText(t, id as AchievementId, 'name')).filter(Boolean).join(', ') +
     (achievementList.more > 0 ? ` ${t('over.andMore', { count: achievementList.more })}` : '');
 
   const unlockRows: { kind: 'hero' | 'depth' | 'endless' | 'skin'; text: string; skin?: { hero: number; skin: string } }[] = [
