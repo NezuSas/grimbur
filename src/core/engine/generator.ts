@@ -266,6 +266,17 @@ export const THIEF_FROM = 3;
 export const THIEF_CHANCE = 0.3;
 export const CHEST_FROM = 2;
 export const CHEST_CHANCE = 0.3;
+/**
+ * The secret room: from the second floor, some floors hide a cache (never in the lair). It is not drawn and not a danger; the
+ * explored tiles beside it show a draft (a glint in their corner), so it is found by reading the board, and it must be found
+ * before the last gem, which ends the floor.
+ */
+export const SECRET_FROM = 2;
+export const SECRET_CHANCE = 0.35;
+/** What a secret room holds: shop gems, an arrow and points (more the deeper it is). */
+export const SECRET_GEMS = 3;
+export const SECRET_ARROWS = 1;
+export const secretScore = (level: number) => 200 + 50 * level;
 
 function addExtras(
   base: GameEntity[],
@@ -327,6 +338,19 @@ function addExtras(
   if (level >= MIMIC_FROM && want.mimic && lethal().length < opts.lethalRoom) tryAdd(index => ({ index, type: 'mimic' }), 4, true);
   if (level >= THIEF_FROM && !opts.midBoss && want.thief) tryAdd(index => ({ index, type: 'thief', loot: 0 }), 4, false);
   if (level >= CHEST_FROM && want.chest) tryAdd(index => ({ index, type: 'chest' }), 3, false);
+  // Its own roll, so the extras above stay where they were before secret rooms existed (same daily for every version).
+  const secretRoll = createPRNG((seed ^ 0x5be0cd19) >>> 0);
+  secretRoll();
+  if (level >= SECRET_FROM && secretRoll() < SECRET_CHANCE) {
+    const pool = free(4);
+    for (let t = 0; t < 12 && pool.length > 0; t++) {
+      const at = pool.splice(Math.floor(secretRoll() * pool.length), 1)[0];
+      // Only where the hero can walk to it.
+      if (!validateSolvability(spawn, [...gems(), at], lethal(), rows, cols)) continue;
+      entities = [...entities, { index: at, type: 'secret' }];
+      break;
+    }
+  }
   return entities;
 }
 

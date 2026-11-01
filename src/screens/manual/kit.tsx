@@ -1,5 +1,5 @@
 import React from "react";
-import { MIMIC_FROM, THIEF_FROM, MID_BOSS_FLOOR, MID_BOSS_HP, CHEST_FROM } from "../../core/engine/generator";
+import { MIMIC_FROM, THIEF_FROM, MID_BOSS_FLOOR, MID_BOSS_HP, CHEST_FROM, SECRET_FROM } from "../../core/engine/generator";
 import { MERCHANT_ARROWS, MERCHANT_GEMS } from "../../core/engine/shop";
 import { ImageSourcePropType, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -63,6 +63,7 @@ export const PARAMS: Params = {
   midFloor: MID_BOSS_FLOOR,
   midHearts: MID_BOSS_HP,
   chestFloor: CHEST_FROM,
+  secretFloor: SECRET_FROM,
   sellArrows: MERCHANT_ARROWS,
   sellGems: MERCHANT_GEMS,
   cooldown: `${abilityCooldown("scout")}-${abilityCooldown("brace")}`,
@@ -83,6 +84,7 @@ export const IMG = {
   thief: require("../../assets/sprites/enemies/Thief_Enemy.png"),
   lieutenant: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
   chest: require("../../assets/sprites/items/Icon_Chest.png"),
+  secret: require("../../assets/sprites/ui/Icon_Sparkles.png"),
   merchant: require("../../assets/sprites/items/Icon_Merchant.png"),
   vortex: require("../../assets/sprites/tiles/Danger_Vortex.png"),
   trap: require("../../assets/sprites/tiles/Trap_Sprung.png"),

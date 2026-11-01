@@ -1905,4 +1905,13 @@ export const es: Record<TranslationKey, string> = {
   'parade.kicker.masteryTier': 'Nuevo rango de maestría',
   'parade.masteryTierTitle': '{name} · {tier}',
   'parade.masteryTierLine': 'Maestría nivel {level}: tu héroe ya luce el color de este rango.',
+  'secret.found': '¡Sala secreta! +{gems} gemas, +{arrows} flecha',
+  'ach.d.secrets': 'Encuentra {n} salas secretas.',
+  'ach.d.secrets1': 'Encuentra una sala secreta.',
+  'ach.secret_1.name': 'Algo tras el muro',
+  'ach.secret_10.name': 'Buscatesoros',
+  'ach.secret_50.name': 'Guardián de secretos',
+  'manual.hazards.secret.label': 'Salas secretas',
+  'manual.hazards.secret.detail': 'Desde el piso {secretFloor} algunos pisos esconden una sala secreta. Un destello en la esquina de una casilla explorada indica que está en una de las cuatro casillas de al lado: písala antes de la última gema y gana gemas para la tienda, una flecha y puntos.',
+  'manual.hazards.secret.badge': 'Oculta',
 };

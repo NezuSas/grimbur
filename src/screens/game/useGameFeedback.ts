@@ -11,6 +11,7 @@ import { coinReward, killValue } from "../../core/engine/scoring";
 import { floorEffects } from "../../core/engine/events";
 import { RELICS, relicCount } from "../../core/engine/relics";
 import { useT } from "../../i18n/useT";
+import { SECRET_ARROWS, SECRET_GEMS, secretScore } from "../../core/engine/generator";
 import { relicText } from "../../i18n/keys";
 import type { GameState } from "../../core/engine/types";
 import { GAME_CONFIG } from "../../config/gameConfig";
@@ -193,6 +194,11 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
             if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: `${RELICS[state.chestRelic].icon} ${relicName(state.chestRelic)}`, subColor: "#FFD54F", popScale: 1.15 }, e.tile);
+          } else if (e.pickup === "secret") {
+            // A secret room: its cache shown where it was found.
+            emitSound("RELIC_PICKED");
+            haptic.notify(NotificationFeedbackType.Success);
+            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#FFE082", popScale: 1.2 }, e.tile);
           } else if (e.pickup === "thief") {
             emitSound("COIN_COLLECTED");
             pushPopup({ points: 0, type: "streak", sub: "💎 ✔", subColor: "#4FC3F7" }, e.tile);

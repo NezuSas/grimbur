@@ -1904,6 +1904,15 @@ export const en = {
   'parade.kicker.masteryTier': 'New mastery rank',
   'parade.masteryTierTitle': '{name} · {tier}',
   'parade.masteryTierLine': 'Mastery level {level}: your hero now wears the colour of this rank.',
+  'secret.found': 'Secret room! +{gems} gems, +{arrows} arrow',
+  'ach.d.secrets': 'Find {n} secret rooms.',
+  'ach.d.secrets1': 'Find a secret room.',
+  'ach.secret_1.name': 'Something behind the wall',
+  'ach.secret_10.name': 'Treasure seeker',
+  'ach.secret_50.name': 'Keeper of secrets',
+  'manual.hazards.secret.label': 'Secret rooms',
+  'manual.hazards.secret.detail': 'From floor {secretFloor} some floors hide a secret room. A glint in the corner of an explored tile means it lies on one of the four tiles beside it: walk onto it before the last gem for shop gems, an arrow and points.',
+  'manual.hazards.secret.badge': 'Hidden',
 } as const;
 
 export type TranslationKey = keyof typeof en;

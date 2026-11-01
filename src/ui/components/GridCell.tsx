@@ -169,7 +169,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null, draft = false
 }: {
   index: number;
   tileSize: number;
@@ -188,6 +188,8 @@ const GridCell = memo(({
   flagged: boolean;
   /** Practice help: what the clues prove about this hidden tile (null: nothing yet). */
   deduced?: 'safe' | 'danger' | null;
+  /** A secret room lies beside this explored tile: a glint in its corner (see generator.ts). */
+  draft?: boolean;
   /** The direction of the arrow that would fly over this tile (null when none would). */
   aimed: Direction | null;
   /** How many tiles from the hero this tile is along the aim line (1 = the next one). */
@@ -472,6 +474,13 @@ const GridCell = memo(({
         </View>
       )}
 
+      {/* The draft of a secret room: a glint in the corner, kept out of the clue tokens' way. */}
+      {draft && !hideClue ? (
+        <View pointerEvents="none" style={[styles.draft, { width: tileSize * 0.3, height: tileSize * 0.3, borderRadius: tileSize * 0.15 }]}>
+          <Ionicons name="sparkles" size={tileSize * 0.2} color="#FFE082" />
+        </View>
+      ) : null}
+
       {/* Render Entity (Gem) overlaid on background */}
       {entity?.type === 'coin' && <GemSprite tileSize={tileSize} calm={calm} pulse={pulse} />}
       {/* The mimic is drawn as a gem until something gives it away: only the clue numbers tell them apart. */}
@@ -561,6 +570,7 @@ const styles = StyleSheet.create({
   deducedSafe: { borderColor: 'rgba(105,240,174,0.7)', backgroundColor: 'rgba(105,240,174,0.10)' },
   deducedDanger: { borderColor: 'rgba(255,82,82,0.75)', backgroundColor: 'rgba(255,82,82,0.12)' },
   deducedBadge: { alignItems: 'center', justifyContent: 'center' },
+  draft: { position: 'absolute', left: 2, top: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(40,28,8,0.8)', borderWidth: 1, borderColor: 'rgba(255,224,130,0.7)', zIndex: 5 },
   verdictBadge: { position: 'absolute', right: 1, bottom: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fff' },
   deducedBadgeSafe: { backgroundColor: '#2E9E5B' },
   deducedBadgeDanger: { backgroundColor: '#D32F2F' },

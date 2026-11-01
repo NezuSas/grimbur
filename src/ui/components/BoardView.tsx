@@ -421,6 +421,21 @@ const BoardView: React.FC<Props> = memo(
     }, [level, visited.length]);
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
+    // The draft of a secret room: the tiles beside a hidden cache glint (the cache itself is never drawn).
+    const draftSet = useMemo(() => {
+      const out = new Set<number>();
+      for (const key of Object.keys(entityMap)) {
+        const at = Number(key);
+        if (entityMap[at]?.type !== "secret") continue;
+        const r = Math.floor(at / cols);
+        const c = at % cols;
+        if (r > 0) out.add(at - cols);
+        if (r < rows - 1) out.add(at + cols);
+        if (c > 0) out.add(at - 1);
+        if (c < cols - 1) out.add(at + 1);
+      }
+      return out;
+    }, [entityMap, rows, cols]);
 
     const killerEntityType = killerTile != null ? entityMap[killerTile]?.type : undefined;
     const heroArt = characterWithSkin(characterIndex, skin);
@@ -468,7 +483,8 @@ const BoardView: React.FC<Props> = memo(
                   cols={cols}
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}
-                  entity={shown[i]}
+                  entity={shown[i]?.type === "secret" ? undefined : shown[i]}
+                  draft={draftSet.has(i) && visitedSet.has(i)}
                   enemyCount={near.enemyCount}
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}

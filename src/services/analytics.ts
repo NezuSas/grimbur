@@ -20,7 +20,7 @@ export interface AnalyticsEvents {
   daily_board_submitted: { level: number; score: number };
   revived: { level: number; score: number; price: number };
   arrows_bought: { level: number; price: number };
-  powerup_collected: { kind: 'shield' | 'ammo' | 'chest' | 'thief' };
+  powerup_collected: { kind: 'shield' | 'ammo' | 'chest' | 'thief' | 'secret' };
   trap_triggered: { level: number };
   high_score_submitted: { level: number; score: number };
   screen_view: { screen: string };

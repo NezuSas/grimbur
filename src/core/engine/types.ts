@@ -9,7 +9,7 @@ import type { ShopItem } from './shop';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper' | 'mimic' | 'thief' | 'chest';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper' | 'mimic' | 'thief' | 'chest' | 'secret';
 /** What ended a run: a creature, or the Grimbur's lieutenant (a `boss` entity with `mini`). */
 export type DeathCause = EntityType | 'brute';
 
@@ -30,7 +30,7 @@ export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleep
 export const HUNTER_TYPES: readonly EntityType[] = ['boss', 'stalker'];
 
 /** What the player ran into on the last move (UI feedback only). */
-export type PickupKind = 'shield' | 'ammo' | 'trap' | 'chest' | 'thief';
+export type PickupKind = 'shield' | 'ammo' | 'trap' | 'chest' | 'thief' | 'secret';
 
 export interface GameEntity {
   index: number;
@@ -133,6 +133,8 @@ export interface GameState {
   revives?: number;
   /** Arrow packs bought with embers in this run. */
   refills?: number;
+  /** Secret rooms found in this run (see generator.ts: a hidden cache whose draft shows on the tiles beside it). */
+  secretsFound?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
   lairRescues?: number;
 }

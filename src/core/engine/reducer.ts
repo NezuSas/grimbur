@@ -11,6 +11,7 @@ import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY, chestRelic, i
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
+import { SECRET_ARROWS, SECRET_GEMS, secretScore } from './generator';
 import { createEntityMap, removeEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss } from './worldHelpers';
 import type { World } from './worldHelpers';
 
@@ -285,6 +286,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let newLastPickup: PickupKind | null = null;
       let newVortexCost: 'arrow' | 'gem' | null = null;
       let newChestRelic: RelicId | null = null;
+      let newSecrets = state.secretsFound ?? 0;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
       let absorbedThisMove = false;
@@ -415,6 +417,16 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           newLastPickup = 'ammo';
           consumeEntity();
           break;
+
+        case 'secret':
+          // A secret room: its cache, found by following the draft on the tiles beside it.
+          newGems += SECRET_GEMS;
+          newAttack += SECRET_ARROWS;
+          newScore += secretScore(state.level);
+          newSecrets += 1;
+          newLastPickup = 'secret';
+          consumeEntity();
+          break;
       }
 
       // Gem Magnet: gems on the four tiles beside where the hero ends up are taken too, even unseen.
@@ -492,6 +504,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         vortexCost: newVortexCost,
         lastPickup: newLastPickup,
         chestRelic: newChestRelic,
+        secretsFound: newSecrets,
         turn: newTurn,
         // Retracing with the Wayfarer Boots is not an action for the clocks: the ability does not recharge either.
         abilityCd: retracing ? state.abilityCd : Math.max(0, state.abilityCd - 1),

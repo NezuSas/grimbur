@@ -28,6 +28,8 @@ export interface LocalStats {
   victories: number;
   /** Gems collected over all runs. */
   totalGems: number;
+  /** Secret rooms found over all runs. */
+  secretsFound: number;
   /** Embers (Forge currency) available to spend. */
   embers: number;
   /** Forge upgrade levels: id -> level. */
@@ -164,6 +166,8 @@ export interface RunResult {
   slain?: Partial<Record<string, number>>;
   /** The relics picked in the run (not the ones it started with). */
   relicIds?: readonly string[];
+  /** Secret rooms found in the run. */
+  secrets?: number;
   /** What killed the hero (a defeat). */
   cause?: string | null;
   /** The last floor, for the history. */
@@ -179,6 +183,7 @@ export const EMPTY_STATS: LocalStats = {
   gamesPlayed: 0,
   victories: 0,
   totalGems: 0,
+  secretsFound: 0,
   embers: 0,
   forge: {},
   maxAscension: 0,
@@ -237,6 +242,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
       ? [...stats.history, historyRecord(run)].slice(-HISTORY_LIMIT)
       : stats.history,
     totalGems: stats.totalGems + (run.gems ?? 0),
+    secretsFound: (stats.secretsFound ?? 0) + Math.max(0, Math.trunc(run.secrets ?? 0)),
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
     heroXp: stats.heroXp.map((n, i) => n + (run.heroIndex === i ? masteryXpFor(run, progressed) : 0)),
@@ -502,6 +508,7 @@ export function parseStats(raw: string | null): LocalStats {
       gamesPlayed: num(data.gamesPlayed),
       victories: num(data.victories),
       totalGems: num(data.totalGems),
+      secretsFound: Math.trunc(num(data.secretsFound)),
       maxAscension: Math.min(MAX_ASCENSION, Math.trunc(num(data.maxAscension))),
       embers: Math.trunc(num(data.embers)),
       forge: parseForge(data.forge),

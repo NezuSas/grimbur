@@ -70,6 +70,7 @@ const BY_KIND: Partial<Record<DescKind, ImageSourcePropType>> = {
   heroWin: art.heroes,
   slain: art.hunt,
   mastery: art.heroes,
+  secrets: art.floor,
   bestiary: art.hunt,
   beast: art.hunt,
 };

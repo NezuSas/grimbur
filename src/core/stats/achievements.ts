@@ -108,10 +108,14 @@ export type AchievementId =
   | 'mastery_silver'
   | 'mastery_gold'
   | 'mastery_platinum'
-  | 'mastery_legend';
+  | 'mastery_legend'
+  // Secret rooms
+  | 'secret_1'
+  | 'secret_10'
+  | 'secret_50';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -338,6 +342,10 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('mastery_gold', '🟡', 'hard', 'mastery', 30, topMastery),
   counted('mastery_platinum', '🔹', 'legend', 'mastery', 40, topMastery),
   counted('mastery_legend', '🟣', 'legend', 'mastery', 50, topMastery),
+  // ── Secret rooms ────────────────────────────────────────────────────────
+  counted('secret_1', '🗝️', 'easy', 'secrets', 1, s => s.secretsFound ?? 0),
+  counted('secret_10', '🔑', 'medium', 'secrets', 10, s => s.secretsFound ?? 0),
+  counted('secret_50', '📜', 'hard', 'secrets', 50, s => s.secretsFound ?? 0),
 ];
 
 /** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */
