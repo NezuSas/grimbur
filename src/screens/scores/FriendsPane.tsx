@@ -23,7 +23,8 @@ const GOLD = "#FFD54F";
  * Friends: this player's friend code (to copy or share), a box to add a friend's code, and every friend with their best run and
  * their points this season. A friend who beat their best since the last look wears a "new record" badge (once).
  */
-const FriendsPane = ({ bottomInset }: { bottomInset: number }) => {
+/** `embedded`: drawn inside a screen that already scrolls (no scroll view of its own). */
+const FriendsPane = ({ bottomInset = 0, embedded = false, onCount }: { bottomInset?: number; embedded?: boolean; onCount?: (n: number) => void }) => {
   const { t, n } = useT();
   const [myCode, setMyCode] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
@@ -33,10 +34,23 @@ const FriendsPane = ({ bottomInset }: { bottomInset: number }) => {
   const [offline, setOffline] = useState(false);
   const [count, setCount] = useState(0);
 
+  const Frame = useCallback(
+    ({ children }: { children: React.ReactNode }) =>
+      embedded ? (
+        <View style={{ gap: 8 }}>{children}</View>
+      ) : (
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 8, paddingBottom: 24 + bottomInset }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          {children}
+        </ScrollView>
+      ),
+    [embedded, bottomInset],
+  );
+
   const load = useCallback(async () => {
     setOffline(false);
     const stats = await getLocalStats();
     setCount(stats.friends.length);
+    onCount?.(stats.friends.length);
     if (stats.friends.length === 0) {
       setCards([]);
       return;
@@ -83,7 +97,7 @@ const FriendsPane = ({ bottomInset }: { bottomInset: number }) => {
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ gap: 8, paddingBottom: 24 + bottomInset }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+    <Frame>
       <View style={styles.codeBox}>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={styles.kicker} maxFontSizeMultiplier={1.1}>{t("friends.myCode").toLocaleUpperCase()}</Text>
@@ -158,7 +172,7 @@ const FriendsPane = ({ bottomInset }: { bottomInset: number }) => {
           );
         })
       )}
-    </ScrollView>
+    </Frame>
   );
 };
 

@@ -471,6 +471,7 @@ export const en = {
   'season.month.10': 'October',
   'season.month.11': 'November',
   'season.month.12': 'December',
+  'friends.tabPeople': 'My friends',
   'friends.tab': 'Friends',
   'friends.myCode': 'Your friend code',
   'friends.copy': 'Copy code',

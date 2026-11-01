@@ -472,6 +472,7 @@ export const es: Record<TranslationKey, string> = {
   'season.month.10': 'octubre',
   'season.month.11': 'noviembre',
   'season.month.12': 'diciembre',
+  'friends.tabPeople': 'Mis amigos',
   'friends.tab': 'Amigos',
   'friends.myCode': 'Tu código de amigo',
   'friends.copy': 'Copiar código',

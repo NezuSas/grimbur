@@ -8,7 +8,6 @@ import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
 import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
 import { loadSeasonBoard } from "../services/seasonScores";
 import { seasonKeyOf } from "../core/stats/season";
-import FriendsPane from "./scores/FriendsPane";
 import { getPlayerId } from "../services/playerProfile";
 import { dailyKey } from "../core/engine/seed";
 
@@ -46,7 +45,7 @@ import type { CosmeticId } from "../core/cosmetics/cosmetics";
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 type Status = "loading" | "ready" | "error";
-type Board = "global" | "today" | "week" | "season" | "friends";
+type Board = "global" | "today" | "week" | "season";
 
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
 /** The frame a podium place stands in when the player wears none: its medal's own. */
@@ -61,10 +60,10 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [mine, setMine] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   /** When the list shown is a saved copy (no connection), the time it was fetched. */
   const [offlineAt, setOfflineAt] = useState<number | null>(null);
-  // Development only (web): `?board=season` or `?board=friends` opens that tab, for screenshots.
+  // Development only (web): `?board=season` (or today, week) opens that tab, for screenshots.
   const [board, setBoard] = useState<Board>(() => {
     const asked = __DEV__ && typeof location !== "undefined" ? new URLSearchParams(location.search).get("board") : null;
-    return asked === "season" || asked === "friends" || asked === "today" || asked === "week" ? asked : "global";
+    return asked === "season" || asked === "today" || asked === "week" ? asked : "global";
   });
   /** This phone's id on the daily and weekly boards, to mark the player's own row. */
   const [myId, setMyId] = useState<string | null>(null);
@@ -83,10 +82,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     setStatus("loading");
     setData([]);
     try {
-      if (board === "friends") {
-        setStatus("ready");
-        return;
-      }
       if (board === "season") {
         const rows = await loadSeasonBoard(seasonKeyOf(dailyKey()));
         setData(rows.map(r => ({ id: r.id, data: () => ({ ...r.data(), score: r.data().points, level: 0, coins: 0, time: 0 }) as HighscoreRow })));
@@ -117,7 +112,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     { value: "today", label: t("scores.tab.today"), icon: "today" },
     { value: "week", label: t("scores.tab.week"), icon: "calendar" },
     { value: "season", label: t("missions.tab.season"), icon: "trophy" },
-    { value: "friends", label: t("friends.tab"), icon: "people" },
   ];
   // Five tabs: on a narrow pane the icons give their room to the words.
   const roomyTabs = (twoPanes ? cardWidth * 0.62 : cardWidth) >= 640;
@@ -452,14 +446,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           ) : null}
           <View style={{ flex: 1, gap: 8 }}>
             {twoPanes ? tabs : null}
-            {board === "friends" ? (
-              <>
-                {twoPanes ? null : tabs}
-                <FriendsPane bottomInset={insets.bottom} />
-              </>
-            ) : (
-              list
-            )}
+            {list}
           </View>
         </View>
       </SafeAreaView>

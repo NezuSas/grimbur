@@ -15,6 +15,7 @@ import Rise, { riseDelay } from "../ui/components/Rise";
 import SpriteImage from "../ui/components/SpriteImage";
 import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 import { RootStackParamList } from "../navigation/types";
+import FriendsPane from "./scores/FriendsPane";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { getRecentChallenges, type RecentChallenge } from "../services/challenges";
@@ -32,7 +33,7 @@ import { skinArt } from "../data/skinArt";
 import { useSettingsStore } from "../state/settings/store";
 
 type Props = NativeStackScreenProps<RootStackParamList, "FriendsScreen">;
-type Tab = "duels" | "challenges";
+type Tab = "people" | "duels" | "challenges";
 
 const GOLD = "#FFD54F";
 const DUEL = "#FF8A80";
@@ -93,7 +94,8 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
   const [history, setHistory] = useState<DuelRecord[]>([]);
   const [name, setName] = useState<string | null>(null);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
-  const [tab, setTab] = useState<Tab>("duels");
+  const [tab, setTab] = useState<Tab>("people");
+  const [friendCount, setFriendCount] = useState(() => peekLocalStats()?.friends?.length ?? 0);
 
   useFocusEffect(
     useCallback(() => {
@@ -265,6 +267,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
             <View style={styles.tabs}>
               {(
                 [
+                  ["people", t("friends.tabPeople"), friendCount, GOLD],
                   ["duels", t("friends.tabDuels"), history.length, DUEL],
                   ["challenges", t("friends.tabChallenges"), recent.length, CHALLENGE],
                 ] as const
@@ -295,7 +298,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
             </View>
 
             <View key={tab} style={styles.list}>
-              {tab === "duels" ? duels : challenges}
+              {tab === "people" ? <FriendsPane embedded onCount={setFriendCount} /> : tab === "duels" ? duels : challenges}
             </View>
           </View>
         </ScrollView>
