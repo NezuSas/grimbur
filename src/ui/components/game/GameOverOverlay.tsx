@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { DeathReview } from '../../../core/engine/deathReview';
 import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
 import EmberIcon from "../EmberIcon";
@@ -30,6 +31,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 
+/** The colour of each kind of death lesson. */
+const REVIEW_LOOK: Record<DeathReview['kind'], string> = { hunter: '#B388FF', proven: '#FF8A80', avoidable: '#FFB74D', forced: '#9EE37D' };
+
 type Props = {
   visible: boolean;
   score: number;
@@ -46,6 +50,8 @@ type Props = {
   time: number;
   character: Character;
   deathCause: EntityType | null;
+  /** What the board showed before the fatal action: the lesson of this defeat. */
+  review?: DeathReview | null;
   victory?: boolean;
   bestScore?: number;
   isNewBest?: boolean;
@@ -109,6 +115,7 @@ const GameOverOverlay = ({
   time,
   character,
   deathCause,
+  review,
   victory = false,
   bestScore,
   isNewBest,
@@ -217,12 +224,20 @@ const GameOverOverlay = ({
   const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   const sprite = heroSprite;
-  const spriteSize = height < 330 ? 104 : compact ? 132 : 196;
+  // A defeat with a lesson gives the hero a little less room on short screens, so the lesson fits under it.
+  const spriteSize = height < 330 ? 96 : compact ? (review && !victory ? 104 : 132) : 196;
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
 
   const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
+  const reviewText = !review
+    ? ''
+    : review.kind === 'hunter'
+      ? t(review.by === 'boss' ? 'review.boss' : 'review.stalker')
+      : review.kind === 'avoidable'
+        ? t(review.safe === 1 ? 'review.avoidable.one' : 'review.avoidable', { n: review.safe })
+        : t(review.kind === 'proven' ? 'review.proven' : 'review.forced');
 
 
   const stats = [
@@ -306,6 +321,17 @@ const GameOverOverlay = ({
               {killerName}
             </Text>
           </View>
+        </View>
+      ) : null}
+      {review && !victory ? (
+        <View style={[styles.review, { borderColor: REVIEW_LOOK[review.kind] + '66' }]} accessible accessibilityLabel={reviewText}>
+          <Text style={styles.reviewText} numberOfLines={3} maxFontSizeMultiplier={1.1}>
+            <Text style={[styles.reviewKicker, { color: REVIEW_LOOK[review.kind] }]}>
+              {t(review.kind === 'forced' ? 'review.kicker.luck' : 'review.kicker.lesson').toLocaleUpperCase()}
+              {'  '}
+            </Text>
+            {reviewText}
+          </Text>
         </View>
       ) : null}
       {duelResult ? (
@@ -618,6 +644,9 @@ const styles = StyleSheet.create({
   glowOne: { position: 'absolute', opacity: 0.15 },
   killerPill: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, paddingLeft: 4, paddingRight: 12, borderRadius: 22, borderWidth: 1.5, backgroundColor: 'rgba(0,0,0,0.35)', maxWidth: '100%' },
   killerArt: { width: 38, height: 38 },
+  review: { alignSelf: 'stretch', marginTop: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.35)', gap: 1 },
+  reviewKicker: { fontWeight: '900', fontSize: 10.5, letterSpacing: 1.2 },
+  reviewText: { color: '#EADBC8', fontSize: 11.5, fontWeight: '700', lineHeight: 15 },
   ribbon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(255,213,79,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,213,79,0.6)' },
   ribbonText: { color: '#FFD54F', fontWeight: '900', fontSize: 12.5, letterSpacing: 1.5 },
   tiles2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignSelf: 'stretch' },

@@ -1,4 +1,5 @@
 import React from "react";
+import { reviewDeath } from "../../core/engine/deathReview";
 import GameOverOverlay from "../../ui/components/game/GameOverOverlay";
 import HighScoreEntryModal from "../../ui/components/game/HighScoreEntryModal";
 import IntermissionOverlay from "../../ui/components/game/IntermissionOverlay";
@@ -105,6 +106,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         time={time}
         character={character}
         deathCause={state.deathCause}
+        review={reviewDeath(state)}
         victory={state.isVictory}
         bestScore={result?.bestScore}
         isNewBest={result?.isNewBest}

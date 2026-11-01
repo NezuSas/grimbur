@@ -1,6 +1,6 @@
 import { GameEntity, isClueHazard } from './types';
 
-type Mark = 'safe' | 'danger';
+export type Mark = 'safe' | 'danger';
 
 function neighbours(index: number, rows: number, cols: number): number[] {
   const r = Math.floor(index / cols);
@@ -107,6 +107,20 @@ export function provenSafeTiles(
   entities: readonly GameEntity[],
   visitedTiles: readonly number[],
 ): Set<number> {
+  const safe = new Set<number>();
+  provenMarks(rows, cols, entities, visitedTiles).forEach((m, i) => {
+    if (m === 'safe') safe.add(i);
+  });
+  return safe;
+}
+
+/** Everything the explored clues prove, safe or dangerous, plus the visible gems and power-ups (known safe). */
+export function provenMarks(
+  rows: number,
+  cols: number,
+  entities: readonly GameEntity[],
+  visitedTiles: readonly number[],
+): Map<number, Mark> {
   const hazards = new Set<number>();
   const marks = new Map<number, Mark>();
   for (const e of entities) {
@@ -115,9 +129,5 @@ export function provenSafeTiles(
   }
   const clue = (index: number) => neighbours(index, rows, cols).filter(n => hazards.has(n)).length;
   deduce(new Set(visitedTiles), marks, clue, rows, cols);
-  const safe = new Set<number>();
-  marks.forEach((m, i) => {
-    if (m === 'safe') safe.add(i);
-  });
-  return safe;
+  return marks;
 }
