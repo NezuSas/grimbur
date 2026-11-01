@@ -15,7 +15,9 @@ import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { claimMissionReward, getMissions, peekLocalStats } from "../services/localStats";
+import { claimMissionReward, claimSeasonReward, getMissions, peekLocalStats } from "../services/localStats";
+import SeasonPane from "./missions/SeasonPane";
+import { EMPTY_SEASON, daysLeftInSeason, syncSeason, tiersReached } from "../core/stats/season";
 import { emitSound } from "../audio/audioEventBus";
 import EmberIcon from "../ui/components/EmberIcon";
 import { DAILY_BONUS, MissionDef, MissionProgress, bonusReady, isComplete, missionDef, syncMissions } from "../core/stats/missions";
@@ -68,7 +70,12 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   // Development only (web): `?ladder=1` opens the rank ladder, for screenshots.
   const [ladder, setLadder] = useState(() => __DEV__ && typeof location !== "undefined" && new URLSearchParams(location.search).get("ladder") === "1");
   // Development only (web): `?tab=weekly` opens the week, for screenshots.
-  const [tab, setTab] = useState<"daily" | "weekly">(() => (__DEV__ && typeof location !== "undefined" && new URLSearchParams(location.search).get("tab") === "weekly" ? "weekly" : "daily"));
+  // Development only (web): `?tab=weekly` or `?tab=season` opens that tab, for screenshots (`seasonPts=` fakes the season's points).
+  const [tab, setTab] = useState<"daily" | "weekly" | "season">(() => {
+    const asked = __DEV__ && typeof location !== "undefined" ? new URLSearchParams(location.search).get("tab") : null;
+    return asked === "weekly" || asked === "season" ? asked : "daily";
+  });
+  const devSeasonPts = __DEV__ && typeof location !== "undefined" ? Number(new URLSearchParams(location.search).get("seasonPts") ?? NaN) : NaN;
 
   useFocusEffect(
     useCallback(() => {
@@ -85,6 +92,20 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
+
+  const today = dailyKey(now);
+  const synced = syncSeason(stats.season ?? EMPTY_SEASON, today);
+  const season = Number.isFinite(devSeasonPts) ? { ...synced, points: devSeasonPts } : synced;
+  const seasonReady = Math.max(0, tiersReached(season.points) - season.claimed);
+  const claimSeason = async () => {
+    const next = await claimSeasonReward(today);
+    if (next) {
+      haptic.impact();
+      emitSound("EMBER_GAIN");
+      setStats(next);
+    }
+  };
+  const seasonLeft = daysLeftInSeason(today);
 
   const claim = async (id: string) => {
     const next = await claimMissionReward(id);
@@ -240,6 +261,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                 [
                   ["daily", t("missions.today"), dailyReady],
                   ["weekly", t("missions.week"), weeklyReady],
+                  ["season", t("missions.tab.season"), seasonReady],
                 ] as const
               ).map(([k, label, count]) => {
                 const on = tab === k;
@@ -261,13 +283,21 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
               <View style={styles.refreshBox}>
                 <Ionicons name="time-outline" size={14} color="#B99A7C" />
                 <Text style={styles.refresh} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                  {tab === "daily" ? t("missions.refreshDay", { time: formatCountdown(msUntilNextDay(now)) }) : t("missions.refreshWeek", { days: daysToMonday(now) })}
+                  {tab === "daily"
+                    ? t("missions.refreshDay", { time: formatCountdown(msUntilNextDay(now)) })
+                    : tab === "weekly"
+                      ? t("missions.refreshWeek", { days: daysToMonday(now) })
+                      : seasonLeft <= 1
+                        ? t("season.endsToday")
+                        : t("season.ends", { n: seasonLeft })}
                 </Text>
               </View>
             </View>
 
             <ScrollView key={tab} contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
-              {tab === "daily" ? (
+              {tab === "season" ? (
+                <SeasonPane season={season} day={today} onClaim={() => void claimSeason()} />
+              ) : tab === "daily" ? (
                 <>
                   {m.daily.length === 0 ? <Text style={styles.empty}>{t("missions.empty")}</Text> : m.daily.map(card)}
                   <Rise delay={riseDelay(m.daily.length, 60)} style={[styles.mission, styles.bonus, bonusReady(m) && styles.missionReady, m.bonusClaimed && styles.missionClaimed]}>

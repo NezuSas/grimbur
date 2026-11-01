@@ -4,6 +4,7 @@ import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
 import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
+import { EMPTY_SEASON, SeasonState, addSeasonRun, parseSeason, seasonPointsFor } from './season';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
@@ -70,6 +71,8 @@ export interface LocalStats {
   cosmetics: { owned: CosmeticId[]; equipped: Partial<Record<CosmeticKind, CosmeticId>>; deals: { date: string | null; bought: string[] } };
   /** Today's and this week's missions with their progress. */
   missions: MissionsState;
+  /** This month's season track (see season.ts). */
+  season: SeasonState;
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -156,6 +159,7 @@ export const EMPTY_STATS: LocalStats = {
   skins: { owned: [], equipped: {} },
   cosmetics: { owned: [], equipped: {}, deals: { date: null, bought: [] } },
   missions: EMPTY_MISSIONS,
+  season: EMPTY_SEASON,
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -189,6 +193,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
       run.victory && run.heroIndex === i && (run.mode ?? 'expedition') === 'expedition' ? Math.max(n, clampAscension(run.ascension ?? 0)) : n),
     embers: stats.embers + total,
     lifetimeEmbers: stats.lifetimeEmbers + total,
+    season: played ? addSeasonRun(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : stats.season ?? EMPTY_SEASON,
   };
   return { patch, payout };
 }
@@ -432,6 +437,7 @@ export function parseStats(raw: string | null): LocalStats {
       skins: parseSkins(data.skins),
       cosmetics: parseCosmetics(data.cosmetics),
       missions: parseMissions(data.missions),
+      season: parseSeason(data.season),
     };
   } catch {
     return EMPTY_STATS;

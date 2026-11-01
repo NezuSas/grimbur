@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { claimSeason, syncSeason } from '../core/stats/season';
 import {
   LocalStats,
   RunResult,
@@ -117,6 +118,17 @@ export const claimMissionReward = (id: string): Promise<LocalStats | null> =>
     const result = claimMission(before.missions, id);
     if (result.embers <= 0) return null;
     const stats = { ...before, missions: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
+    await save(stats);
+    return stats;
+  });
+
+/** Pays every reached tier of this month's season track; null when nothing was waiting. */
+export const claimSeasonReward = (day: string = dailyKey()): Promise<LocalStats | null> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const result = claimSeason(syncSeason(before.season, day));
+    if (result.embers <= 0) return null;
+    const stats = { ...before, season: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
     await save(stats);
     return stats;
   });

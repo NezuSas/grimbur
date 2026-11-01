@@ -22,7 +22,7 @@ export type CosmeticId =
   | 'title_endless' | 'title_devoted' | 'title_wardrobe'
   | 'title_wanderer' | 'title_hawkeye' | 'title_sage' | 'title_shadow' | 'title_mythic'
   | 'title_goldtouch' | 'title_reliclord' | 'title_tireless' | 'title_lightning' | 'title_champion'
-  | 'title_collector' | 'title_curator' | 'title_hoarder'
+  | 'title_collector' | 'title_curator' | 'title_hoarder' | 'title_season'
   | 'title_mastervael' | 'title_mastersera' | 'title_masterborin' | 'title_masterauric' | 'title_mastermira' | 'title_masterbram'
   | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair' | 'board_frost' | 'board_moss' | 'board_vault'
   | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard';
@@ -34,7 +34,9 @@ export type CosmeticUnlock =
   | { kind: 'achievement'; id: AchievementId }
   | { kind: 'wardrobe' }
   | { kind: 'collection'; pct: CollectionMilestone }
-  | { kind: 'mastery'; hero: number };
+  | { kind: 'mastery'; hero: number }
+  /** Finish the whole track of any season. */
+  | { kind: 'season' };
 
 /** The shares of the collection that each give a reward of their own. */
 export const COLLECTION_MILESTONES = [25, 50, 75, 100] as const;
@@ -102,6 +104,7 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('title_collector', 'title', 'rare', 0, share(25)),
   item('title_curator', 'title', 'epic', 0, share(75)),
   item('title_hoarder', 'title', 'legendary', 0, share(100)),
+  item('title_season', 'title', 'legendary', 0, { kind: 'season' }),
   item('title_mastervael', 'title', 'legendary', 0, mastered(0)),
   item('title_mastersera', 'title', 'legendary', 0, mastered(1)),
   item('title_masterborin', 'title', 'legendary', 0, mastered(2)),
@@ -184,6 +187,7 @@ const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean => {
   if (unlock.kind === 'wardrobe') return hasFullWardrobe(stats);
   if (unlock.kind === 'collection') return collectionProgress(stats).pct >= unlock.pct;
   if (unlock.kind === 'mastery') return masteryOf(stats.heroXp?.[unlock.hero] ?? 0).level >= MAX_MASTERY;
+  if (unlock.kind === 'season') return (stats.season?.completed ?? 0) > 0;
   return !!stats.achievements[unlock.id];
 };
 

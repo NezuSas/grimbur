@@ -132,6 +132,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           ? t("cosmetic.unlock.collection", { pct: unlock.pct })
           : unlock.kind === "mastery"
             ? t("cosmetic.unlock.mastery", { name: heroText(t, unlock.hero, "name") })
+          : unlock.kind === "season"
+            ? t("cosmetic.unlock.season")
           : t("cosmetic.unlock.achievement", { name: achievementText(t, unlock.id, "name") });
   const unlockLine = howToEarn(info?.unlock);
 
