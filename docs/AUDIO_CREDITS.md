@@ -15,7 +15,6 @@ the OGG files the app ships.
 | Exploring the cave | Crystal Cave (song18) | cynicmusic | https://opengameart.org/content/crystal-cave-song18 |
 | The Grimbur's lair | Epic Boss Battle (seamlessly looping) | Juhani Junkala (SubspaceAudio) | https://opengameart.org/content/boss-battle-music |
 | Floor cleared | Victory Fanfare (short) | cynicmusic | https://opengameart.org/content/victory-fanfare-short |
-| Hero falls (opening of) | Medieval Defeat Theme | RandomMind | https://opengameart.org/content/medieval-defeat-theme |
 
 ## Sound effects
 
