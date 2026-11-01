@@ -8,7 +8,7 @@ import { ALTAR_ART, SHOP_ART } from "../../toolArt";
 import { BIOME_ART } from "../../biomeArt";
 import Text from "../Text";
 import OverlayContainer from "./OverlayContainer";
-import { PopButton } from "./popup";
+import { PopButton, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { omenText } from "../../../i18n/keys";
 import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, type Door, type ShopItem } from "../../../core/engine/shop";
@@ -93,9 +93,17 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
 
   return (
     <OverlayContainer>
-      <View style={[styles.card, { width: cardW }]}>
-        <ImageBackground source={biomeArt.background} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.32 }} />
-        <LinearGradient colors={["rgba(40,28,16,0.78)", "rgba(16,11,7,0.96)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <PopupPanel
+        tint="#FFD54F"
+        width={cardW}
+        style={styles.card}
+        backdrop={
+          <>
+            <ImageBackground source={biomeArt.background} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.32 }} />
+            <LinearGradient colors={["rgba(40,28,16,0.78)", "rgba(16,11,7,0.96)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+          </>
+        }
+      >
 
         {/* ── Header: the way down so far, and the gems to spend ─────────────── */}
         <View style={styles.header}>
@@ -108,7 +116,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
               {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
           </View>
-          <Text style={styles.title} accessibilityRole="header" numberOfLines={1} maxFontSizeMultiplier={1.15}>
+          <Text style={[popupTitleStyle("#FFD54F"), styles.title]} accessibilityRole="header" numberOfLines={1} maxFontSizeMultiplier={1.15}>
             {t("shop.title").toLocaleUpperCase()}
           </Text>
           <View style={styles.purse} accessible accessibilityLabel={t("shop.purse", { count: gems })}>
@@ -242,7 +250,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             {biomeLine}
           </Text>
         ) : null}
-      </View>
+      </PopupPanel>
     </OverlayContainer>
   );
 };
@@ -250,12 +258,12 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
 export default IntermissionOverlay;
 
 const styles = StyleSheet.create({
-  card: { borderRadius: 24, borderWidth: 2, borderColor: "rgba(255,213,79,0.5)", overflow: "hidden", padding: 12, gap: 10 },
+  card: { paddingHorizontal: 14, paddingVertical: 14, gap: 10, alignItems: "stretch" },
   header: { flexDirection: "row", alignItems: "center", gap: 12 },
   journey: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
   journeyFrom: { color: "#B99A7C", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   journeyTo: { color: "#FFE7A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
-  title: { color: "#FFD54F", fontWeight: "900", fontSize: 20, letterSpacing: 3, textAlign: "center" },
+  title: { flexShrink: 1 },
   purse: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6 },
   purseText: { color: "#fff", fontWeight: "900", fontSize: 20, textShadowColor: "rgba(79,195,247,0.6)", textShadowRadius: 8 },
   shop: { flexDirection: "row", gap: 8 },

@@ -21,9 +21,11 @@ type PanelProps = {
   style?: StyleProp<ViewStyle>;
   /** The card grows in when it appears (off for the reduced-motion setting). */
   animate?: boolean;
+  /** Drawn behind the rim light and the studs (a scene image under a wash), so they stay on top. */
+  backdrop?: React.ReactNode;
 };
 
-export const PopupPanel = ({ tint, width, children, style, animate = true }: PanelProps) => {
+export const PopupPanel = ({ tint, width, children, style, animate = true, backdrop }: PanelProps) => {
   const pop = useRef(new Animated.Value(animate ? 0 : 1)).current;
   useEffect(() => {
     if (!animate) return;
@@ -37,16 +39,27 @@ export const PopupPanel = ({ tint, width, children, style, animate = true }: Pan
       ]}
     >
       <LinearGradient colors={["#493827", "#2D2318", "#201912"]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={[styles.panel, { borderColor: tint + "CC" }, style]}>
-        <View style={[styles.lit, { backgroundColor: "rgba(255,255,255,0.22)" }]} pointerEvents="none" />
-        <View style={[styles.stud, { top: 8, left: 8, backgroundColor: tint }]} pointerEvents="none" />
-        <View style={[styles.stud, { top: 8, right: 8, backgroundColor: tint }]} pointerEvents="none" />
-        <View style={[styles.stud, { bottom: 8, left: 8, backgroundColor: tint }]} pointerEvents="none" />
-        <View style={[styles.stud, { bottom: 8, right: 8, backgroundColor: tint }]} pointerEvents="none" />
+        {backdrop}
+        <PanelTrim tint={tint} />
         {children}
       </LinearGradient>
     </Animated.View>
   );
 };
+
+/** The panel's lit top edge and corner studs, for a card that draws its own frame (the end of a run). */
+export const PanelTrim = ({ tint }: { tint: string }) => (
+  <>
+    <View style={[styles.lit, { backgroundColor: "rgba(255,255,255,0.22)" }]} pointerEvents="none" />
+    <View style={[styles.stud, { top: 8, left: 8, backgroundColor: tint }]} pointerEvents="none" />
+    <View style={[styles.stud, { top: 8, right: 8, backgroundColor: tint }]} pointerEvents="none" />
+    <View style={[styles.stud, { bottom: 8, left: 8, backgroundColor: tint }]} pointerEvents="none" />
+    <View style={[styles.stud, { bottom: 8, right: 8, backgroundColor: tint }]} pointerEvents="none" />
+  </>
+);
+
+/** The shine on the upper half of every pop-up button (for buttons laid out by hand). */
+export const ButtonGloss = () => <View style={styles.gloss} pointerEvents="none" />;
 
 type TitleProps = {
   tint: string;
@@ -56,6 +69,9 @@ type TitleProps = {
   glyph?: string;
   subtitle?: string;
 };
+
+/** The title look every pop-up shares (for titles laid out by hand): the tint, heavy and spaced, with a soft glow. */
+export const popupTitleStyle = (tint: string) => [styles.title, { color: tint, textShadowColor: tint + "88" }];
 
 export const PopupTitle = ({ tint, title, icon, glyph, subtitle }: TitleProps) => (
   <View style={styles.titleBox}>
@@ -132,7 +148,7 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
     >
       <Animated.View style={{ transform: [{ scale: press.interpolate({ inputRange: [0, 1], outputRange: [1, 0.96] }) }, { translateY: press.interpolate({ inputRange: [0, 1], outputRange: [0, 2] }) }] }}>
         <LinearGradient colors={c.fill} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={[styles.button, { borderBottomColor: c.edge }]}>
-          <View style={styles.gloss} pointerEvents="none" />
+          <ButtonGloss />
           {busy ? (
             <ActivityIndicator color={c.text} />
           ) : (

@@ -15,7 +15,7 @@ import GlyphIcon from "../GlyphIcon";
 import { formatTime } from '../../../shared/utils/formatTime';
 import { checkName } from '../../../core/leaderboard/validation';
 import OverlayContainer from './OverlayContainer';
-import { PopButton, PopupPanel } from './popup';
+import { PopButton, PopupPanel, popupTitleStyle } from './popup';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -104,7 +104,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
           {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
         </Text>
       )}
-      <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+      <Text style={popupTitleStyle('#FFD54F')} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
         {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
       </Text>
       <Text style={styles.score} maxFontSizeMultiplier={1.3}>
@@ -170,7 +170,6 @@ const styles = StyleSheet.create({
   summary: { alignItems: 'center', gap: 4, flex: 1 },
   form: { gap: 8, flex: 1.2, width: '100%' },
   badge: { color: '#fff', fontSize: 18, fontWeight: '900' },
-  title: { color: '#FFD54F', fontWeight: '900', fontSize: 17, letterSpacing: 2, textAlign: 'center' },
   score: { color: '#FFD54F', fontWeight: '900', fontSize: 26 },
   trophy: { width: 54, height: 54, marginBottom: -2 },
   subtitle: { color: '#b5b5b5', fontSize: 12, letterSpacing: 0.5, textAlign: 'center' },

@@ -30,6 +30,7 @@ import { useSettingsStore } from '../../../state/settings/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
+import { ButtonGloss, PanelTrim, shade } from './popup';
 
 /** The colour of each kind of death lesson. */
 const REVIEW_LOOK: Record<DeathReview['kind'], string> = { hunter: '#B388FF', proven: '#FF8A80', avoidable: '#FFB74D', forced: '#9EE37D' };
@@ -306,7 +307,7 @@ const GameOverOverlay = ({
       <Text style={[styles.kickerText, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
         {kicker.toLocaleUpperCase()}
       </Text>
-      <Text style={[styles.headline2, short && { fontSize: 22 }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+      <Text style={[styles.headline2, { color: accent, textShadowColor: accent + '88', textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 }, short && { fontSize: 22 }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
         {headline.toLocaleUpperCase()}
       </Text>
       <View style={{ width: glow * 1.15, height: spriteSize, alignItems: 'center', justifyContent: 'center' }}>
@@ -505,12 +506,13 @@ const GameOverOverlay = ({
     <>
       {demo && onUnlock ? (
         <TouchableOpacity
-          style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent }]}
+          style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent, borderBottomColor: shade(accent, -0.5) }]}
           onPress={onUnlock}
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={t('over.demo.cta')}
         >
+          <ButtonGloss />
           <Ionicons name="lock-open" size={22} color="#000" />
           <Text style={[styles.retryText, { color: '#000' }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
             {t('over.demo.cta').toLocaleUpperCase()}
@@ -518,12 +520,13 @@ const GameOverOverlay = ({
         </TouchableOpacity>
       ) : (
       <TouchableOpacity
-        style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent }]}
+        style={[styles.retry, snug && styles.retrySnug, { backgroundColor: accent, borderBottomColor: shade(accent, -0.5) }]}
         onPress={onRetry}
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={retryLabel ?? t('over.retry')}
       >
+        <ButtonGloss />
         <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
         <Text style={[styles.retryText, victory && { color: '#000' }, snug && styles.retryTextSnug, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {(retryLabel ?? t('over.retry')).toLocaleUpperCase()}
@@ -539,22 +542,26 @@ const GameOverOverlay = ({
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
+          <ButtonGloss />
           <Ionicons name="home" size={18} color="#fff" />
           {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
+            <ButtonGloss />
             <GlyphIcon name="hammer" size={20} />
             {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         {onShare ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
+            <ButtonGloss />
             <Ionicons name="share-social" size={20} color="#4FC3F7" />
           </TouchableOpacity>
         ) : null}
         {onCopyText ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
+            <ButtonGloss />
             <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#69F0AE' : '#4FC3F7'} />
           </TouchableOpacity>
         ) : null}
@@ -612,6 +619,7 @@ const GameOverOverlay = ({
       >
         <ImageBackground source={require('../../../assets/sprites/backgrounds/Cover_Background.png')} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.28 }} />
         <LinearGradient colors={['rgba(44,30,18,0.82)', 'rgba(18,12,8,0.97)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
+        <PanelTrim tint={accent} />
         {left}
         {right}
       </Animated.View>
@@ -741,7 +749,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     borderBottomWidth: 4,
-    borderBottomColor: 'rgba(0,0,0,0.3)',
+    overflow: 'hidden',
   },
   retryText: { color: '#fff', fontWeight: '900', fontSize: 18, letterSpacing: 2 },
   secondary: { flexDirection: 'row', gap: 8 },
@@ -752,14 +760,15 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#4F3F2F',
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderBottomWidth: 3,
+    borderBottomColor: '#261D14',
+    overflow: 'hidden',
     paddingHorizontal: 8,
   },
-  forgeButton: { borderColor: 'rgba(255,171,64,0.6)', backgroundColor: 'rgba(255,171,64,0.12)' },
-  forgeButtonPrimary: { backgroundColor: '#FFAB40', borderColor: '#FFD180' },
+  forgeButton: { backgroundColor: '#5A3A1C' },
+  forgeButtonPrimary: { backgroundColor: '#FFAB40', borderBottomColor: '#8A4A00' },
   iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: MIN_TOUCH, width: MIN_TOUCH, minWidth: MIN_TOUCH, paddingHorizontal: 0 },
   // Landscape phones: buttons at phone scale (still comfortable touch targets), so the card is not all buttons.
   sideSnug: { minHeight: 40, borderRadius: 12 },

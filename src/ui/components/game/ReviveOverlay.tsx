@@ -6,7 +6,7 @@ import Text from "../Text";
 import EmberIcon from "../EmberIcon";
 import SpriteImage from "../SpriteImage";
 import OverlayContainer from "./OverlayContainer";
-import { PopButton, PopLink } from "./popup";
+import { PopButton, PopLink, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { useSettingsStore } from "../../../state/settings/store";
 import { REVIVE_ARROWS } from "../../../core/engine/revive";
@@ -60,14 +60,22 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
 
   return (
     <OverlayContainer>
-      <View style={[styles.card, { width: cardW }, stacked && { flexDirection: "column" }]}>
-        <ImageBackground source={require("../../../assets/sprites/backgrounds/Cover_Background.png")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.25 }} />
-        <LinearGradient colors={["rgba(60,30,12,0.85)", "rgba(18,11,6,0.97)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+      <PopupPanel
+        tint={FIRE}
+        width={cardW}
+        style={[styles.card, stacked && { flexDirection: "column" }]}
+        backdrop={
+          <>
+            <ImageBackground source={require("../../../assets/sprites/backgrounds/Cover_Background.png")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.25 }} />
+            <LinearGradient colors={["rgba(60,30,12,0.85)", "rgba(18,11,6,0.97)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+          </>
+        }
+      >
 
         {/* ── The fallen hero, and the feather that can lift them ───────────── */}
         <View style={[styles.left, stacked && { width: "100%" }]}>
           <Text style={styles.kicker} maxFontSizeMultiplier={1.1}>{t("revive.kicker").toLocaleUpperCase()}</Text>
-          <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+          <Text style={popupTitleStyle(FIRE)} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {t("revive.title").toLocaleUpperCase()}
           </Text>
           <View style={{ width: art * 1.3, height: art, alignItems: "center", justifyContent: "flex-end" }}>
@@ -126,7 +134,7 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
             <PopLink label={t("revive.decline")} onPress={onDecline} disabled={busy} />
           </View>
         </View>
-      </View>
+      </PopupPanel>
     </OverlayContainer>
   );
 };
@@ -134,11 +142,10 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
 export default ReviveOverlay;
 
 const styles = StyleSheet.create({
-  card: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 26, borderWidth: 2.5, borderColor: FIRE + "B3", overflow: "hidden", shadowColor: FIRE, shadowOpacity: 0.5, shadowRadius: 20, shadowOffset: { width: 0, height: 0 }, elevation: 18 },
+  card: { flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, paddingVertical: 16 },
   left: { flex: 1, alignItems: "center", gap: 2 },
   right: { flex: 1.15, gap: 8, alignItems: "stretch" },
   kicker: { color: FIRE, fontWeight: "900", fontSize: 12, letterSpacing: 2.5 },
-  title: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 1.5, textAlign: "center", textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   glow: { position: "absolute", backgroundColor: FIRE, opacity: 0.07 },
   feather: { position: "absolute", top: 0, zIndex: 2 },
   gifts: { flexDirection: "row", gap: 8 },
