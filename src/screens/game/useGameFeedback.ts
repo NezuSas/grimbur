@@ -159,6 +159,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           const look = e.combo > 0 ? comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter")) : null;
           whenArrowLands(e.tile, () => {
             emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
+            haptic.impact(e.combo > 1 ? ImpactFeedbackStyle.Heavy : ImpactFeedbackStyle.Medium);
             if (look) pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
             flash(combatFlash, 0.35, 0.08, 25, 35);
           });
@@ -194,6 +195,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           haptic.notify(NotificationFeedbackType.Warning);
           setShieldBreakKey(k => k + 1);
           flash(hitFlash, 0.45, 0.12, 60, 190); // about 250 ms in all
+          if (!reduceFlash) setShakeKey(k => k + 1); // the blow lands on the hero: the board jolts
           break;
         }
         case "charge": {
