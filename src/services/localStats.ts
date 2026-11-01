@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addFriend, markSeen, removeFriend } from '../core/social/friends';
 import { claimSeason, syncSeason } from '../core/stats/season';
 import {
   LocalStats,
@@ -118,6 +119,36 @@ export const claimMissionReward = (id: string): Promise<LocalStats | null> =>
     const result = claimMission(before.missions, id);
     if (result.embers <= 0) return null;
     const stats = { ...before, missions: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
+    await save(stats);
+    return stats;
+  });
+
+export type AddFriendError = 'invalid' | 'self' | 'duplicate' | 'full';
+
+/** Adds a friend by code; `error` says why not when it fails. */
+export const addFriendCode = (code: string, self: string | null): Promise<{ stats: LocalStats; error: AddFriendError | null }> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const result = addFriend(before.friends ?? [], code, self);
+    if (!result.ok) return { stats: before, error: result.reason };
+    const stats = { ...before, friends: result.friends };
+    await save(stats);
+    return { stats, error: null };
+  });
+
+export const removeFriendCode = (pid: string): Promise<LocalStats> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const stats = { ...before, friends: removeFriend(before.friends ?? [], pid) };
+    await save(stats);
+    return stats;
+  });
+
+/** Remembers each friend's best score as seen now (so a "new record" badge shows once). */
+export const markFriendsSeen = (bests: Record<string, number>): Promise<LocalStats> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const stats = { ...before, friends: markSeen(before.friends ?? [], bests) };
     await save(stats);
     return stats;
   });

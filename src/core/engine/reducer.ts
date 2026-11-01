@@ -6,7 +6,7 @@ import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { REFILL_ARROWS, REVIVE_ARROWS } from './revive';
-import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY, chestRelic } from './relics';
+import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY, chestRelic, isUsefulRelic } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
@@ -154,6 +154,14 @@ export function arrowPath(
   }
   return { tiles, targetIndex: -1 };
 }
+
+/** The first draft of a run always offers the season's featured relic (in the last slot), when it can still help. */
+const withSeasonRelic = (draft: RelicId[], state: GameState): RelicId[] => {
+  const featured = state.seasonRelic;
+  if (!featured || state.level !== 1 || draft.length === 0 || draft.includes(featured)) return draft;
+  if (!isUsefulRelic(featured, state.relics, draftContext(state))) return draft;
+  return [...draft.slice(0, -1), featured];
+};
 
 /** Shop gems the Grimbur's lieutenant drops when it falls. */
 export const MID_BOSS_GEMS = 4;
@@ -657,7 +665,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       if (relicCount(state.relics, 'gambler') > 0) arrows = Math.max(1, arrows + gamblerRoll(state.runSeed, state.level + 1));
       // Arrows are a resource: some of the unused ones come along to the next floor.
       arrows += Math.min(GAME_CONFIG.arrows.carryOverCap, Math.max(0, state.attack));
-      const draft = nonEmpty(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)));
+      const draft = nonEmpty(withSeasonRelic(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)), state));
       return {
         ...state,
         level: state.level + 1 + skip,
@@ -902,7 +910,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic } = action;
       const heroPerks = perks ?? NO_PERKS;
       const startingRelics: RelicId[] = startRelics ? [...startRelics] : [];
       const withRelic = (id: RelicId) => relicCount(startingRelics, id) > 0;
@@ -924,6 +932,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         mode: mode ?? 'expedition',
         ascension: ascension ?? 0,
         draftBonus: draftBonus ?? 0,
+        seasonRelic: seasonRelic ?? null,
         relics: startingRelics,
         visited: startingVisited(cols, rows, withRelic('lantern') || heroPerks.startLit, entities),
         items: { ...heroPerks.startItems },

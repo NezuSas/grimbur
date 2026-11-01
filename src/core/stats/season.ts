@@ -1,3 +1,4 @@
+import { NORMAL_RELICS, type RelicId } from '../engine/relics';
 /**
  * Seasons: every calendar month is a season with its own track. Every finished run adds season points (how deep it got,
  * a victory, the depth it was won at); ten tiers on the track pay embers, and finishing the track earns the season title
@@ -12,9 +13,11 @@ export interface SeasonState {
   claimed: number;
   /** Seasons whose whole track was claimed, over all time. */
   completed: number;
+  /** The seasons (`YYYY-MM`) whose track was completed: each month has its own title. */
+  months: string[];
 }
 
-export const EMPTY_SEASON: SeasonState = { key: null, points: 0, claimed: 0, completed: 0 };
+export const EMPTY_SEASON: SeasonState = { key: null, points: 0, claimed: 0, completed: 0, months: [] };
 
 /** Points at which each tier is reached, and the embers each one pays (the last one also completes the season). */
 export const SEASON_TIERS: readonly number[] = [50, 130, 240, 380, 550, 750, 980, 1240, 1530, 1850];
@@ -37,7 +40,7 @@ export function seasonPointsFor(run: { level: number; victory?: boolean; ascensi
 /** The state for the season of `day`: a new month starts a new track (the completed count is kept). */
 export function syncSeason(state: SeasonState, day: string): SeasonState {
   const key = seasonKeyOf(day);
-  return state.key === key ? state : { key, points: 0, claimed: 0, completed: state.completed };
+  return state.key === key ? state : { key, points: 0, claimed: 0, completed: state.completed, months: state.months ?? [] };
 }
 
 /** Adds a run played on `day` to the season. */
@@ -59,7 +62,25 @@ export function claimSeason(state: SeasonState): { state: SeasonState; embers: n
   const embers = seasonClaimable(state);
   if (embers <= 0) return { state, embers: 0 };
   const done = reached === SEASON_TIERS.length && state.claimed < reached;
-  return { state: { ...state, claimed: reached, completed: state.completed + (done ? 1 : 0) }, embers };
+  const months = done && state.key && !(state.months ?? []).includes(state.key) ? [...(state.months ?? []), state.key] : state.months ?? [];
+  return { state: { ...state, claimed: reached, completed: state.completed + (done ? 1 : 0), months }, embers };
+}
+
+/** True when the track of some season of `month` (1-12, any year) was completed. */
+export const completedMonth = (state: SeasonState | undefined, month: number): boolean =>
+  !!state?.months?.some(m => Number(m.slice(5, 7)) === month);
+
+/**
+ * The relic the season features: it is offered in the first draft of every run of that month (the same for everyone, so a
+ * daily or a duel stays fair).
+ */
+export function seasonRelicFor(key: string): RelicId {
+  let h = 2166136261;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return NORMAL_RELICS[(h >>> 0) % NORMAL_RELICS.length];
 }
 
 /** Whole days until the next season begins (1 on the last day of the month). */
@@ -74,5 +95,6 @@ export function parseSeason(raw: unknown): SeasonState {
   const r = raw as Record<string, unknown>;
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.trunc(v) : 0);
   const key = typeof r.key === 'string' && /^\d{4}-\d{2}$/.test(r.key) ? r.key : null;
-  return { key, points: num(r.points), claimed: Math.min(SEASON_TIERS.length, num(r.claimed)), completed: num(r.completed) };
+  const months = Array.isArray(r.months) ? [...new Set(r.months.filter((m): m is string => typeof m === 'string' && /^\d{4}-\d{2}$/.test(m)))] : [];
+  return { key, points: num(r.points), claimed: Math.min(SEASON_TIERS.length, num(r.claimed)), completed: num(r.completed), months };
 }

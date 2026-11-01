@@ -6,6 +6,9 @@ import Text from "../ui/components/Text";
 import { useFocusEffect } from "@react-navigation/native";
 import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
 import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
+import { loadSeasonBoard } from "../services/seasonScores";
+import { seasonKeyOf } from "../core/stats/season";
+import FriendsPane from "./scores/FriendsPane";
 import { getPlayerId } from "../services/playerProfile";
 import { dailyKey } from "../core/engine/seed";
 
@@ -43,7 +46,7 @@ import type { CosmeticId } from "../core/cosmetics/cosmetics";
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 type Status = "loading" | "ready" | "error";
-type Board = "global" | "today" | "week";
+type Board = "global" | "today" | "week" | "season" | "friends";
 
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
 /** The frame a podium place stands in when the player wears none: its medal's own. */
@@ -58,7 +61,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [mine, setMine] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   /** When the list shown is a saved copy (no connection), the time it was fetched. */
   const [offlineAt, setOfflineAt] = useState<number | null>(null);
-  const [board, setBoard] = useState<Board>("global");
+  // Development only (web): `?board=season` or `?board=friends` opens that tab, for screenshots.
+  const [board, setBoard] = useState<Board>(() => {
+    const asked = __DEV__ && typeof location !== "undefined" ? new URLSearchParams(location.search).get("board") : null;
+    return asked === "season" || asked === "friends" || asked === "today" || asked === "week" ? asked : "global";
+  });
   /** This phone's id on the daily and weekly boards, to mark the player's own row. */
   const [myId, setMyId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string | null>(null);
@@ -76,7 +83,15 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     setStatus("loading");
     setData([]);
     try {
-      if (board === "global") {
+      if (board === "friends") {
+        setStatus("ready");
+        return;
+      }
+      if (board === "season") {
+        const rows = await loadSeasonBoard(seasonKeyOf(dailyKey()));
+        setData(rows.map(r => ({ id: r.id, data: () => ({ ...r.data(), score: r.data().points, level: 0, coins: 0, time: 0 }) as HighscoreRow })));
+        setOfflineAt(null);
+      } else if (board === "global") {
         const result = await loadTop10();
         setData(result.docs);
         setOfflineAt(result.offline ? result.at : null);
@@ -101,15 +116,19 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     { value: "global", label: t("scores.tab.global"), icon: "earth" },
     { value: "today", label: t("scores.tab.today"), icon: "today" },
     { value: "week", label: t("scores.tab.week"), icon: "calendar" },
+    { value: "season", label: t("missions.tab.season"), icon: "trophy" },
+    { value: "friends", label: t("friends.tab"), icon: "people" },
   ];
+  // Five tabs: on a narrow pane the icons give their room to the words.
+  const roomyTabs = (twoPanes ? cardWidth * 0.62 : cardWidth) >= 640;
   const tabs = (
     <View style={styles.tabs} accessibilityRole="tablist" accessibilityLabel={t("scores.title")}>
       {boardOptions.map(o => {
         const on = board === o.value;
         return (
           <PressScale key={o.value} onPress={() => setBoard(o.value)} style={[styles.tab, on && styles.tabOn]} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={o.label}>
-            <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#FFD54F"} />
-            <Text style={[styles.tabText, on && { color: "#2A2016" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            {roomyTabs ? <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#FFD54F"} /> : null}
+            <Text style={[styles.tabText, !roomyTabs && styles.tabTextTight, on && { color: "#2A2016" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
               {o.label.toLocaleUpperCase()}
             </Text>
           </PressScale>
@@ -279,7 +298,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
           <PlayerTitle title={row.title} />
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}
+            {board === "season" ? t("season.pointsShort") : <>{t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}</>}
           </Text>
         </View>
         <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
@@ -381,7 +400,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     ) : (
       <View style={styles.centerBox}>
         <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
-          {board === "today" ? t("scores.empty.today") : board === "week" ? t("scores.empty.week") : t("scores.empty")}
+          {board === "today" ? t("scores.empty.today") : board === "week" ? t("scores.empty.week") : board === "season" ? t("scores.empty.season") : t("scores.empty")}
         </Text>
       </View>
     );
@@ -400,7 +419,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           {twoPanes ? null : tabs}
           {board !== "global" ? (
             <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
-              {board === "today" ? t("scores.dailyNote") : t("scores.weekNote")}
+              {board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : t("scores.weekNote")}
             </Text>
           ) : null}
           {status === "ready" ? offlineNotice : null}
@@ -433,7 +452,14 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           ) : null}
           <View style={{ flex: 1, gap: 8 }}>
             {twoPanes ? tabs : null}
-            {list}
+            {board === "friends" ? (
+              <>
+                {twoPanes ? null : tabs}
+                <FriendsPane bottomInset={insets.bottom} />
+              </>
+            ) : (
+              list
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -444,8 +470,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   tabs: { flexDirection: "row", gap: 6 },
-  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, minHeight: 36, paddingHorizontal: 8, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.35)", backgroundColor: "rgba(255,255,255,0.04)" },
+  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 36, paddingHorizontal: 4, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.35)", backgroundColor: "rgba(255,255,255,0.04)" },
   tabOn: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  tabTextTight: { letterSpacing: 0.2, fontSize: 11 },
   tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
   meRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
   meName: { color: "#fff", fontWeight: "900", fontSize: 16 },

@@ -1,4 +1,6 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react';
+import { dailyKey } from './seed';
+import { seasonKeyOf, seasonRelicFor } from '../stats/season';
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../shared/haptics';
 import { gameReducer, initialState } from './reducer';
 import { Direction, GameEngineInterface, GameAction } from './types';
@@ -155,6 +157,7 @@ export function useGameEngine(): GameEngineInterface {
 
     pureDispatch({
       type: 'RESET',
+      seasonRelic: seasonRelicFor(seasonKeyOf(dailyKey())),
       character,
       rows: board.rows,
       cols: board.cols,

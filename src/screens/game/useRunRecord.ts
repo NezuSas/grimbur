@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { syncSeasonScore } from "../../services/seasonScores";
 import { Animated } from "react-native";
 import type { MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
@@ -85,10 +86,12 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       if (isDaily) {
         const r = await recordDailyRun(run, dailyDate);
         queueCloudSync(); // the cloud copy (when the player turned it on) follows the progress
+        void syncSeasonScore(characterIndex);
         return dailyRunResult(r);
       }
       const r = await recordRun(run);
       queueCloudSync();
+      void syncSeasonScore(characterIndex); // this month's board follows the season points
       return runResultOf(r, mode);
     } catch (e) {
       console.warn("[GameScreen] recording the run failed:", e);

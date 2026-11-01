@@ -287,6 +287,55 @@ describe('friend challenges', () => {
   });
 });
 
+describe('season boards', () => {
+  const pid = UID;
+  const season = '2026-11';
+  const entry = (patch: Record<string, unknown> = {}) => ({ season, pid, name: 'Oscar', points: 320, characterIndex: 2, ...patch });
+  const ref = (p = pid, s = season) => doc(authed(p), 'season_scores', `${s}_${p}`);
+
+  it('accepts the season points, then only more; never deletes', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertSucceeds(setDoc(ref(), entry({ points: 500, title: 'title_season' })));
+    await assertFails(setDoc(ref(), entry({ points: 400 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  it("refuses a write without sign-in, under another pid or over somebody else's row", async () => {
+    await assertFails(setDoc(doc(db(), 'season_scores', `${season}_${pid}`), entry()));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'season_scores', `${season}_${pid}`), entry()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['a bad season', { season: '2026-13' }],
+    ['no points', { points: 0 }],
+    ['too many points', { points: 100001 }],
+    ['fractional points', { points: 10.5 }],
+    ['an unknown hero', { characterIndex: 6 }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+    ['a bad title', { title: 'title_X1' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = `S${String(i).padStart(15, '0')}`;
+    const s = (patch.season as string | undefined) ?? season;
+    await assertFails(setDoc(doc(authed(owner), 'season_scores', `${s}_${owner}`), entry({ pid: owner, ...patch })));
+  });
+
+  it('a document id that does not match is refused', async () => {
+    await assertFails(setDoc(doc(authed(pid), 'season_scores', 'whatever'), entry()));
+  });
+
+  it('lists at most 20 rows of a season and reads one, without sign-in', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'season_scores', `${season}_${pid}`), entry());
+    });
+    const col = collection(db(), 'season_scores');
+    await assertSucceeds(getDocs(query(col, where('season', '==', season), orderBy('points', 'desc'), limit(20))));
+    await assertFails(getDocs(query(col, where('season', '==', season), orderBy('points', 'desc'), limit(21))));
+    await assertSucceeds(getDoc(doc(db(), 'season_scores', `${season}_${pid}`)));
+  });
+});
+
 describe('live duels', () => {
   const pid = UID;
   const code = 'ABCD2345';

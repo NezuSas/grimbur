@@ -5,6 +5,7 @@ import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
 import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
 import { EMPTY_SEASON, SeasonState, addSeasonRun, parseSeason, seasonPointsFor } from './season';
+import { type FriendEntry, parseFriends } from '../social/friends';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
@@ -73,6 +74,8 @@ export interface LocalStats {
   missions: MissionsState;
   /** This month's season track (see season.ts). */
   season: SeasonState;
+  /** Friends' codes and the best score last seen of each (see core/social/friends.ts). */
+  friends: FriendEntry[];
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -160,6 +163,7 @@ export const EMPTY_STATS: LocalStats = {
   cosmetics: { owned: [], equipped: {}, deals: { date: null, bought: [] } },
   missions: EMPTY_MISSIONS,
   season: EMPTY_SEASON,
+  friends: [],
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -438,6 +442,7 @@ export function parseStats(raw: string | null): LocalStats {
       cosmetics: parseCosmetics(data.cosmetics),
       missions: parseMissions(data.missions),
       season: parseSeason(data.season),
+      friends: parseFriends(data.friends),
     };
   } catch {
     return EMPTY_STATS;

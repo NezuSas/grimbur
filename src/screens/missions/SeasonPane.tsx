@@ -6,7 +6,9 @@ import EmberIcon from "../../ui/components/EmberIcon";
 import PressScale from "../../ui/components/PressScale";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
-import { SEASON_REWARDS, SEASON_TIERS, seasonClaimable, tiersReached, type SeasonState } from "../../core/stats/season";
+import { SEASON_REWARDS, SEASON_TIERS, seasonClaimable, seasonRelicFor, tiersReached, type SeasonState } from "../../core/stats/season";
+import RelicIcon from "../../ui/components/RelicIcon";
+import { relicText } from "../../i18n/keys";
 
 const GOLD = "#FFD54F";
 const TROPHY = require("../../assets/sprites/ui/Icon_Trophy.png");
@@ -88,6 +90,16 @@ const SeasonPane = ({ season, day, onClaim }: Props) => {
         })}
       </View>
 
+      {season.key ? (
+        <View style={styles.featured}>
+          <RelicIcon id={seasonRelicFor(season.key)} size={34} />
+          <Text style={styles.featuredText} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+            <Text style={{ color: GOLD, fontWeight: "900" }}>{t("season.featured", { name: relicText(t, seasonRelicFor(season.key), "name") })}</Text>
+            {"  "}
+            {t("season.featuredHow", { month })}
+          </Text>
+        </View>
+      ) : null}
       <Text style={styles.how} maxFontSizeMultiplier={1.15}>
         {t("season.how")} {t("season.howFinal")}
       </Text>
@@ -120,5 +132,7 @@ const styles = StyleSheet.create({
   dotText: { color: "#E9D8C4", fontWeight: "900", fontSize: 13 },
   dotArt: { width: 26, height: 26 },
   reward: { color: "#9C8670", fontWeight: "800", fontSize: 11 },
+  featured: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(206,147,216,0.4)", backgroundColor: "rgba(206,147,216,0.08)" },
+  featuredText: { flex: 1, color: "#E1D2EE", fontSize: 12, fontWeight: "600" },
   how: { color: "#B99A7C", fontSize: 12, fontWeight: "600", textAlign: "center", paddingHorizontal: 8 },
 });

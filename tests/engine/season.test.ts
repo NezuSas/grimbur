@@ -13,7 +13,7 @@ describe('seasons', () => {
     const october = addSeasonRun(EMPTY_SEASON, '2026-10-31', 300);
     expect(october).toMatchObject({ key: '2026-10', points: 300 });
     const november = syncSeason({ ...october, completed: 2 }, '2026-11-01');
-    expect(november).toEqual({ key: '2026-11', points: 0, claimed: 0, completed: 2 });
+    expect(november).toEqual({ key: '2026-11', points: 0, claimed: 0, completed: 2, months: [] });
     expect(syncSeason(october, '2026-10-02')).toBe(october);
   });
 

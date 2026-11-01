@@ -115,6 +115,8 @@ export interface GameState {
   /** The board just before the last step, so one step per floor can be taken back. */
   undo: UndoSnapshot | null;
   undoUsed: boolean;
+  /** The season's featured relic: offered in the first draft of the run. */
+  seasonRelic?: RelicId | null;
   /** The blood merchant already traded on this stop between floors. */
   merchantUsed?: boolean;
   /** The Sand Hourglass's spare take-back was used on this floor. */
@@ -166,6 +168,8 @@ export type GameAction =
       perks?: HeroPerks;
       ascension?: number;
       draftBonus?: number;
+      /** The season's featured relic (see core/stats/season.ts). */
+      seasonRelic?: RelicId | null;
       /** Start the run with a shield (Forge upgrade). */
       startShield?: boolean;
       /** Relics the run begins with (Forge: Phoenix Feather). */
