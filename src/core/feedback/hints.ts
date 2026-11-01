@@ -9,9 +9,17 @@ export interface HintFacts {
   /** Tiles explored on this floor. */
   explored: number;
   arrows: number;
+  /** What this floor holds that the player may not know yet (see `floorNovelties`). */
+  novelties?: readonly FloorNovelty[];
 }
 
-export type HintId = 'ability' | 'undo' | 'detector' | 'bomb' | 'clues' | 'travel' | 'flag' | 'aim';
+/** Things a floor can hold that change how it is played: each one is explained the first time it is met. */
+export type FloorNovelty = 'lieutenant' | 'mimic' | 'dark' | 'thief' | 'elite' | 'chest' | 'sleeper' | 'stalker';
+
+export type HintId = 'ability' | 'undo' | 'detector' | 'bomb' | 'clues' | 'travel' | 'flag' | 'aim' | FloorNovelty;
+
+/** The order novelties are explained in when a floor holds several: what can kill first. */
+const NOVELTY_ORDER: readonly FloorNovelty[] = ['lieutenant', 'mimic', 'dark', 'stalker', 'sleeper', 'thief', 'elite', 'chest'];
 
 /**
  * The next first-time hint to show, or null. A hint is returned until it is marked seen, in priority order, so the
@@ -23,6 +31,8 @@ export function nextHint(facts: HintFacts, seen: readonly string[]): HintId | nu
   if (facts.turn === 0) return null;
   if (facts.ability && unseen('ability')) return 'ability';
   if (facts.cluesShown && unseen('clues')) return 'clues';
+  // Something new on this floor: explained before the tools, since it can change what the next step should be.
+  for (const n of NOVELTY_ORDER) if (facts.novelties?.includes(n) && unseen(n)) return n;
   if (facts.canUndo && unseen('undo')) return 'undo';
   if (facts.detector > 0 && unseen('detector')) return 'detector';
   if (facts.bomb > 0 && unseen('bomb')) return 'bomb';
@@ -30,4 +40,19 @@ export function nextHint(facts: HintFacts, seen: readonly string[]): HintId | nu
   if (facts.explored >= 6 && unseen('flag')) return 'flag';
   if (facts.arrows > 0 && facts.explored >= 8 && unseen('aim')) return 'aim';
   return null;
+}
+
+/** The novelties of a floor, read from what it holds (the mimic is hidden, but the floor announces it holds one). */
+export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean }[]; omen?: string | null }): FloorNovelty[] {
+  const out: FloorNovelty[] = [];
+  const has = (type: string) => s.entities.some(e => e.type === type);
+  if (s.entities.some(e => e.type === 'boss' && e.mini)) out.push('lieutenant');
+  if (has('mimic')) out.push('mimic');
+  if (s.omen === 'dark') out.push('dark');
+  if (has('stalker')) out.push('stalker');
+  if (has('sleeper')) out.push('sleeper');
+  if (has('thief')) out.push('thief');
+  if (s.omen === 'elite') out.push('elite');
+  if (has('chest')) out.push('chest');
+  return out;
 }

@@ -48,7 +48,7 @@ import { getNearbyHazards } from "../core/engine/proximity";
 import { bossHearts, countGuardians } from "../core/engine/entityCounts";
 import { killerTile } from "../core/feedback/diffFeedback";
 import { shouldShowShop } from "../core/feedback/flow";
-import { nextHint } from "../core/feedback/hints";
+import { floorNovelties, nextHint } from "../core/feedback/hints";
 import type { TranslationKey } from "../i18n/en";
 import { forkDoors } from "../core/engine/shop";
 import { biomeFor, isNewBiome } from "../core/engine/biomes";
@@ -723,6 +723,7 @@ export default function GameScreen({ navigation, route }: Props) {
         cluesShown,
         explored: state.visited.length,
         arrows: state.attack,
+        novelties: floorNovelties(state),
       },
       hintsSeen,
     );
@@ -943,6 +944,8 @@ export default function GameScreen({ navigation, route }: Props) {
       {hint && (
         <CoachHint
           hintKey={hint.id}
+          // Long tips stay longer: about 50 ms per character (7 s at least), so a new mechanic can be read in full.
+          duration={Math.max(7000, hint.text.length * 50)}
           text={hint.text}
           place={
             controlPosition === "left"

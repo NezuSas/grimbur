@@ -12,7 +12,7 @@ import {
 } from '../../src/core/feedback/combo';
 import { popupStackOffset, tileCenter } from '../../src/core/feedback/geometry';
 import { shouldShowShop } from '../../src/core/feedback/flow';
-import { nextHint, HintFacts } from '../../src/core/feedback/hints';
+import { floorNovelties, nextHint, HintFacts } from '../../src/core/feedback/hints';
 import { boss, coin, createState, enemy } from '../helpers/state';
 import type { GameState } from '../../src/core/engine/types';
 
@@ -136,6 +136,24 @@ describe('between floors', () => {
   it('skips the shop on the first two descents only', () => {
     expect(shouldShowShop(2)).toBe(false);
     expect(shouldShowShop(3)).toBe(true);
+  });
+});
+
+describe('first-time hints for what a floor holds', () => {
+  const facts: HintFacts = { turn: 3, ability: null, canUndo: false, detector: 0, bomb: 0, cluesShown: false, explored: 1, arrows: 0 };
+  it('explains what can kill first, each once, before the tools', () => {
+    const novelties = floorNovelties({ entities: [{ type: 'chest' }, { type: 'mimic' }, { type: 'boss', mini: true }], omen: 'dark' });
+    expect(novelties).toEqual(['lieutenant', 'mimic', 'dark', 'chest']);
+    const order: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const id = nextHint({ ...facts, detector: 1, novelties }, order);
+      if (!id) break;
+      order.push(id);
+    }
+    expect(order).toEqual(['lieutenant', 'mimic', 'dark', 'chest', 'detector']);
+  });
+  it('says nothing about a floor that holds nothing new', () => {
+    expect(floorNovelties({ entities: [{ type: 'enemy' }, { type: 'coin' }], omen: null })).toEqual([]);
   });
 });
 
