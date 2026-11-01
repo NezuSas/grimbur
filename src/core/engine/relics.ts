@@ -20,7 +20,16 @@ export type RelicId =
   | 'blood_pact'
   | 'hasty_boots'
   | 'greedy_idol'
-  | 'glass_bow';
+  | 'glass_bow'
+  | 'echo_arrow'
+  | 'piercing'
+  | 'magnet'
+  | 'raven_eye'
+  | 'thorns'
+  | 'bomb_belt'
+  | 'owl'
+  | 'toll_free'
+  | 'gambler';
 
 export interface RelicInfo {
   id: RelicId;
@@ -143,7 +152,81 @@ export const RELICS: Record<RelicId, RelicInfo> = {
     max: 1,
     cursed: true,
   },
+  echo_arrow: {
+    id: 'echo_arrow',
+    name: 'Echo Arrow',
+    description: 'A guardian slain from two or more tiles away gives the arrow back.',
+    icon: '🔁',
+    max: 1,
+  },
+  piercing: {
+    id: 'piercing',
+    name: 'Piercing Head',
+    description: 'An arrow that slays a guardian flies on and can slay a second one behind it.',
+    icon: '🗡️',
+    max: 1,
+  },
+  magnet: {
+    id: 'magnet',
+    name: 'Gem Magnet',
+    description: 'Gems on the tiles beside you fly to you, even in the dark.',
+    icon: '🧲',
+    max: 1,
+  },
+  raven_eye: {
+    id: 'raven_eye',
+    name: "Raven's Eye",
+    description: 'Every floor starts with the danger nearest to you already marked.',
+    icon: '🐦‍⬛',
+    max: 1,
+  },
+  thorns: {
+    id: 'thorns',
+    name: 'Thorn Mail',
+    description: 'When your shield stops a stalker, the stalker dies.',
+    icon: '🌵',
+    max: 1,
+  },
+  bomb_belt: {
+    id: 'bomb_belt',
+    name: 'Powder Belt',
+    description: 'Every floor starts with one more bomb (up to the bag limit).',
+    icon: '💣',
+    max: 1,
+  },
+  owl: {
+    id: 'owl',
+    name: 'Owl Totem',
+    description: 'Every twelve tiles explored give one detector charge (up to the bag limit).',
+    icon: '🦉',
+    max: 1,
+  },
+  toll_free: {
+    id: 'toll_free',
+    name: 'Void Compass',
+    description: 'Vortexes take no toll: no arrow, no gem.',
+    icon: '🧭',
+    max: 1,
+  },
+  gambler: {
+    id: 'gambler',
+    name: "Trickster's Dice",
+    description: 'Every floor the dice roll: three more arrows, or one less (at least one).',
+    icon: '🎲',
+    max: 1,
+    cursed: true,
+  },
 };
+
+/** The roll of the Trickster's Dice for a floor: +3 arrows or -1, the same for everyone on the same run and floor. */
+export const gamblerRoll = (runSeed: number, floor: number): number => {
+  const next = createPRNG(deriveLevelSeed(runSeed, 5000 + floor));
+  next();
+  return next() < 0.5 ? 3 : -1;
+};
+
+/** Twelve new tiles explored are worth one detector charge with the Owl Totem. */
+export const OWL_EVERY = 12;
 
 export const ALL_RELICS = Object.keys(RELICS) as RelicId[];
 /** Relics that can appear in a normal draft. */

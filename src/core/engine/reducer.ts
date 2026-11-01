@@ -6,7 +6,7 @@ import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { REFILL_ARROWS, REVIVE_ARROWS } from './revive';
-import { RelicId, draftRelics, relicCount } from './relics';
+import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
@@ -155,6 +155,31 @@ export function arrowPath(
   return { tiles, targetIndex: -1 };
 }
 
+/** Thorn Mail: a stalker that strikes into the shield dies on it (the Grimbur is too big for thorns). */
+const thornsStrike = (world: World, playerIndex: number, rows: number, cols: number): World => {
+  let out = world;
+  for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as const) {
+    const n = neighbour(playerIndex, dir, rows, cols);
+    if (n !== -1 && out.entityMap[n]?.type === 'stalker') out = removeEntityAt(out, n);
+  }
+  return out;
+};
+
+/** Raven's Eye: the guardian or vortex closest to the floor's start (tile 0), or nothing on a floor without one. */
+export const nearestDanger = (entities: readonly GameEntity[], cols: number): number[] => {
+  let best = -1;
+  let bestDist = Infinity;
+  for (const e of entities) {
+    if (e.type !== 'pit' && !GUARDIAN_TYPES.includes(e.type)) continue;
+    const d = manhattan(e.index, 0, cols);
+    if (d < bestDist || (d === bestDist && e.index < best)) {
+      best = e.index;
+      bestDist = d;
+    }
+  }
+  return best === -1 ? [] : [best];
+};
+
 /** The altar costs the shield; where the next floor gives it back for nothing (Borin, the Bulwark) it would cost nothing. */
 export const altarIsFree = (state: Pick<GameState, 'perks' | 'relics'>): boolean => state.perks.startShield || relicCount(state.relics, 'bulwark') > 0;
 
@@ -297,8 +322,10 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           } else {
             nextIndex = destination;
             newWasTeleported = true;
-            // The vortex takes a toll: one arrow, or else one shop gem, or else nothing.
-            if (newAttack > 0) {
+            // The vortex takes a toll: one arrow, or else one shop gem, or else nothing (the Void Compass pays none).
+            if (has('toll_free')) {
+              // free passage
+            } else if (newAttack > 0) {
               newAttack -= 1;
               newVortexCost = 'arrow';
             } else if (newGems > 0) {
@@ -343,6 +370,26 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           break;
       }
 
+      // Gem Magnet: gems on the four tiles beside where the hero ends up are taken too, even unseen.
+      if (has('magnet') && !newIsGameOver) {
+        for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as const) {
+          const n = neighbour(nextIndex, dir, rows, cols);
+          if (n === -1 || world.entityMap[n]?.type !== 'coin') continue;
+          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+          newCoins -= 1;
+          newTotalCoins += 1;
+          newGems += gemYield(state, newTotalCoins);
+          world = removeEntityAt(world, n);
+          if (!newVisited.includes(n)) newVisited = [...newVisited, n];
+        }
+      }
+
+      // Owl Totem: every OWL_EVERY tiles explored on a floor give a detector charge.
+      let newItems = state.items;
+      if (has('owl') && Math.floor(newVisited.length / OWL_EVERY) > Math.floor(state.visited.length / OWL_EVERY) && newItems.detector < MAX_ITEMS) {
+        newItems = { ...newItems, detector: newItems.detector + 1 };
+      }
+
       // Taking the last gem clears the floor before anything can strike, and a hit that was just soaked
       // by a shield (or feather) stuns the hunters for this action, so one move never costs two protections.
       const floorCleared = newCoins === 0 && !newIsGameOver && !hasBoss(world);
@@ -362,6 +409,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
             newDeathCause = hitter;
             break;
           }
+          if (has('thorns')) world = thornsStrike(world, nextIndex, rows, cols);
         }
       }
 
@@ -389,6 +437,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         enemyCombo: 0,
         shield: newShield,
         relics: newRelics,
+        items: newItems,
         totalCoins: newTotalCoins,
         gems: newGems,
         wasTeleported: newWasTeleported,
@@ -420,6 +469,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let newIsLevelUp = false;
       let newIsVictory = false;
       let newGems = state.gems;
+      let arrowBack = 0;
 
       const target = targetIndex !== -1 ? state.entityMap[targetIndex] : undefined;
 
@@ -446,6 +496,19 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         newScore += killValue(newEnemyCombo);
         world = removeEntityAt(world, targetIndex);
         if (relicCount(state.relics, 'hunter') > 0) newGems += 1; // Hunter's Mark: every kill drops a shop gem
+        // Echo Arrow: a kill from two or more tiles away gives the arrow back.
+        if (relicCount(state.relics, 'echo_arrow') > 0 && manhattan(targetIndex, state.playerIndex, cols) >= 2) arrowBack = 1;
+        // Piercing Head: the arrow flies on through the fallen guardian and can slay one more.
+        if (relicCount(state.relics, 'piercing') > 0) {
+          const second = arrowPath({ ...state, entityMap: world.entityMap }, aim).targetIndex;
+          const behind = second !== -1 ? world.entityMap[second] : undefined;
+          if (behind && GUARDIAN_TYPES.includes(behind.type)) {
+            newEnemyCombo = Math.min(newEnemyCombo + 1, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'));
+            newScore += killValue(newEnemyCombo);
+            world = removeEntityAt(world, second);
+            if (relicCount(state.relics, 'hunter') > 0) newGems += 1;
+          }
+        }
       } else {
         newScore += GAME_CONFIG.scoring.missPenalty;
         newEnemyCombo = 0;
@@ -467,6 +530,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           if (absorbed.ok) {
             newShield = absorbed.shield;
             newRelics = absorbed.relics;
+            if (relicCount(state.relics, 'thorns') > 0) world = thornsStrike(world, state.playerIndex, rows, cols);
           } else {
             newIsGameOver = true;
             newDeathCause = hitter;
@@ -478,7 +542,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         facingDir: aim,
-        attack: state.attack - 1,
+        attack: state.attack - 1 + arrowBack,
         gems: newGems + (newIsLevelUp ? relicCount(state.relics, 'greed') : 0),
         vortexCost: null,
         score: Math.max(0, newScore),
@@ -506,6 +570,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let arrows = attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver');
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
+      if (relicCount(state.relics, 'gambler') > 0) arrows = Math.max(1, arrows + gamblerRoll(state.runSeed, state.level + 1));
       // Arrows are a resource: some of the unused ones come along to the next floor.
       arrows += Math.min(GAME_CONFIG.arrows.carryOverCap, Math.max(0, state.attack));
       const draft = nonEmpty(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)));
@@ -528,7 +593,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarPending: draft ? state.altarPending : false,
         altarUsed: false,
         omen: omen ?? null,
-        marked: [],
+        marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],
+        items: relicCount(state.relics, 'bomb_belt') > 0 ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
         abilityCd: 0,
         undo: null,
         undoUsed: false,
@@ -558,6 +624,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarPending: false,
         // Relics with an immediate effect on the floor that is already loaded:
         attack: action.id === 'quiver' ? state.attack + 2 : state.attack,
+        items: action.id === 'bomb_belt' ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
         shield: action.id === 'bulwark' ? true : state.shield,
         visited: action.id === 'lantern'
           ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true, state.entities)]))
