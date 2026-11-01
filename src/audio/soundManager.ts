@@ -135,6 +135,8 @@ export function useSoundManager(): void {
       return;
     }
 
+    // The effects recorded for one event alone (a trap, a shield, a wind-up, a hit on the Grimbur), when they are loaded.
+    const own = (name: string) => (sounds as unknown as Record<string, typeof sounds.attack | undefined>)[name] ?? undefined;
     const isStopEvent = event.includes('STOP') || event === 'QUIT' || event === 'GAME_MUSIC_STOP';
     if (!soundEnabled && !isStopEvent && event !== 'LEVEL_UP' && event !== 'GAME_OVER') return;
 
@@ -170,7 +172,7 @@ export function useSoundManager(): void {
         activeMusic.current = event;
         break;
       // The same recordings, played at different speeds and levels, so a hit, a miss, a kill and a trap all sound apart.
-      case 'TRAP_TRIGGERED': playSfx(sounds.attack, mixVolume('trap'), 0.55); break;
+      case 'TRAP_TRIGGERED': playSfx(own('trap') ?? sounds.attack, mixVolume('trap'), own('trap') ? 1 : 0.55); break;
       case 'ATTACK':         playSfx(sounds.attack, mixVolume('miss'), 0.92); break;
       case 'ENEMY_KILLED': {
         // Each creature dies with its own sound (stone, shadow, beast, crystal); the combo still raises the pitch.
@@ -180,9 +182,9 @@ export function useSoundManager(): void {
         setTimeout(() => playSfx(sounds.coin, mixVolume('killTail'), 1.4 * rate), 60);
         break;
       }
-      case 'BOSS_HIT':       playSfx(sounds.attack, mixVolume('bossHit'), 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
-      case 'SHIELD_BREAK':   playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); break;
-      case 'CHARGE_WARN':    playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); break;
+      case 'BOSS_HIT':       playSfx(own('bosshit') ?? sounds.attack, mixVolume('bossHit'), own('bosshit') ? 1 : 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
+      case 'SHIELD_BREAK':   if (own('shield')) playSfx(own('shield')!, mixVolume('shieldCrack')); else { playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); } break;
+      case 'CHARGE_WARN':    if (own('charge')) playSfx(own('charge')!, mixVolume('charge')); else { playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); } break;
       case 'UI_TAP':         playSfx(sounds.ui, mixVolume('uiTap')); break;
       case 'FORGE_HAMMER':   playSfx(sounds.forge, mixVolume('forgeHammer')); break;
       case 'EMBER_GAIN':     playSfx(sounds.ember, mixVolume('emberGain')); break;

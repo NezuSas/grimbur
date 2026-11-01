@@ -164,6 +164,10 @@ def kill_crystal() -> np.ndarray:
 
 
 if __name__ == '__main__':
+    # The shipped effects are now recorded ones (scripts/buildAudio.py): these synthesized versions are only rebuilt on purpose.
+    import sys
+    if '--force' not in sys.argv:
+        sys.exit('The game uses the recorded effects from scripts/buildAudio.py; pass --force to overwrite them with the synthesized ones.')
     save('kill_stone.wav', finish(kill_stone()))
     save('kill_shadow.wav', finish(kill_shadow()))
     save('kill_beast.wav', finish(kill_beast()))

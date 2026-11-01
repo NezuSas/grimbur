@@ -402,7 +402,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["monster", require("../../assets/sfx/monster.wav")],
         ["vortex", require("../../assets/sfx/vortex.wav")],
         // Same sound, own player: the teleport must not share a channel with the vortex proximity loop (STOP_VORTEX_NEAR cut it).
-        ["teleport", require("../../assets/sfx/vortex.wav")],
+        ["teleport", require("../../assets/sfx/teleport.wav")],
         ["relic", require("../../assets/sfx/relic.wav")],
         ["roar", require("../../assets/sfx/roar.wav")],
         ["ui", require("../../assets/sfx/ui.wav")],
@@ -412,6 +412,10 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["kill_shadow", require("../../assets/sfx/kill_shadow.wav")],
         ["kill_beast", require("../../assets/sfx/kill_beast.wav")],
         ["kill_crystal", require("../../assets/sfx/kill_crystal.wav")],
+        ["trap", require("../../assets/sfx/trap.wav")],
+        ["shield", require("../../assets/sfx/shield.wav")],
+        ["charge", require("../../assets/sfx/charge.wav")],
+        ["bosshit", require("../../assets/sfx/bosshit.wav")],
       ];
       soundsTotal = files.length;
       const handles = files.map(([name, source]) => register(source, name));
@@ -422,7 +426,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
       // it is needed.
       const CRITICAL = ['move', 'coin', 'attack', 'cover'];
-      const LATER = ['ui', 'gameplay', 'boss', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember', 'kill_stone', 'kill_shadow', 'kill_beast', 'kill_crystal'];
+      const LATER = ['ui', 'gameplay', 'boss', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember', 'kill_stone', 'kill_shadow', 'kill_beast', 'kill_crystal', 'trap', 'shield', 'charge', 'bosshit'];
       await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
       audioLog('init', 'ready (first sounds loaded, the rest follows)');

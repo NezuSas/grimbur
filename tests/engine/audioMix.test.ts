@@ -43,14 +43,14 @@ function loudest250(samples: Float64Array, rate: number): number {
 
 const wholeRms = (samples: Float64Array): number => db(Math.sqrt(samples.reduce((n, s) => n + s * s, 0) / samples.length));
 
-const SFX_FILES = ['attack', 'coin', 'death', 'ember', 'forge', 'kill_beast', 'kill_crystal', 'kill_shadow', 'kill_stone', 'monster', 'move', 'relic', 'roar', 'ui', 'vortex'];
+const SFX_FILES = ['attack', 'bosshit', 'charge', 'coin', 'death', 'ember', 'forge', 'kill_beast', 'kill_crystal', 'kill_shadow', 'kill_stone', 'monster', 'move', 'relic', 'roar', 'shield', 'teleport', 'trap', 'ui', 'vortex'];
 const MUSIC_FILES = ['cover', 'gameplay', 'selection', 'victory'];
 
 describe('audio files are normalised', () => {
   it.each(SFX_FILES)('effect %s sits at the standard effect loudness', name => {
     const { samples, rate } = readWav(path.join(ASSETS, 'sfx', `${name}.wav`));
     expect(Math.abs(loudest250(samples, rate) - SFX_ASSET_DB)).toBeLessThan(0.6);
-    expect(db(Math.max(...Array.from(samples, Math.abs)))).toBeLessThanOrEqual(-0.9); // never clips
+    expect(db(samples.reduce((m, s) => Math.max(m, Math.abs(s)), 0))).toBeLessThanOrEqual(-0.9); // never clips (no spread: long files overflow the stack)
   });
 
   // The app ships OGG (see scripts/convertMusic.py); loudness is checked on the WAV masters they come from.
