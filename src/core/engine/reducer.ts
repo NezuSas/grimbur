@@ -590,7 +590,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0 || state.perks.startLit, entities),
         // With every relic maxed there is nothing to offer: no draft, rather than an empty one that blocks input.
         pendingDraft: draft,
-        altarPending: draft ? state.altarPending : false,
+        // An elite floor cleared earns a second pick, like the altar (the two do not add up to a third).
+        altarPending: draft ? state.altarPending || !!omenEffects(state.omen).extraRelic : false,
         altarUsed: false,
         omen: omen ?? null,
         marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],

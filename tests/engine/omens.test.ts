@@ -26,7 +26,8 @@ describe('omenFor', () => {
         total++;
       }
     }
-    for (const id of Object.keys(OMENS)) expect(seen[id]).toBeGreaterThan(0);
+    // The elite floor is only ever chosen at a fork, never rolled by the seed.
+    for (const id of Object.keys(OMENS).filter(o => o !== 'elite')) expect(seen[id]).toBeGreaterThan(0);
     expect(seen.none / total).toBeGreaterThan(0.3);
     expect(seen.none / total).toBeLessThan(0.5);
   });

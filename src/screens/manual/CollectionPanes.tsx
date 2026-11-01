@@ -106,6 +106,7 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
     bounty: { icon: "cash", tint: "#FFD54F" },
     calm: { icon: "leaf", tint: "#81C784" },
     arsenal: { icon: "flash", tint: "#FF7043" },
+    elite: { icon: "skull", tint: "#FF5252" },
   };
   return (
     <>
@@ -117,7 +118,7 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
       <View style={styles.relicGrid}>{CURSED_RELICS.map(relicCard)}</View>
       <SubHeading text={t("manual.relics.omens.label")} color="#ffd54f" />
       {fact("manual.relics.omens", "#ffd54f", icon("partly-sunny", "#ffd54f"))}
-      {(["bounty", "calm", "arsenal"] as const).map(id => (
+      {(["bounty", "calm", "arsenal", "elite"] as const).map(id => (
         <FactCard key={id} label={omenText(t, id, "name")} detail={omenText(t, id, "rule")} color={omenIcons[id].tint} art={icon(omenIcons[id].icon, omenIcons[id].tint)} />
       ))}
     </>

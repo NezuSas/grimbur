@@ -22,6 +22,7 @@ const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
   bounty: { art: require("../../../assets/sprites/items/Icon_Gem.png"), color: "#4FC3F7" },
   calm: { art: require("../../../assets/sprites/relics/lantern.png"), color: "#9EE37D" },
   arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.png"), color: "#FF8A65" },
+  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.png"), color: "#FF5252" },
 };
 
 type Props = {

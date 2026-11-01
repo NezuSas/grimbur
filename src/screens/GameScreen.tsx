@@ -194,8 +194,8 @@ export default function GameScreen({ navigation, route }: Props) {
   // A new cave type is announced on its first floor (the omen, when there is one, takes the banner).
   const biomeAnnounce = isNewBiome(state.level, state.mode) && floorBiome !== "cave" && floorBiome !== "lair";
   const doors = useMemo(
-    () => (intermission ? forkDoors(state.runSeed, state.level + 1, state.mode) : null),
-    [intermission, state.runSeed, state.level, state.mode],
+    () => (intermission ? (__DEV__ && route.params?.devDoors) || forkDoors(state.runSeed, state.level + 1, state.mode) : null),
+    [intermission, state.runSeed, state.level, state.mode, route.params?.devDoors],
   );
   useEffect(() => {
     if (!levelUpWindow && !(__DEV__ && route.params?.devIntermission)) setIntermission(false);

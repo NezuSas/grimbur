@@ -557,6 +557,8 @@ export const en = {
   'omen.bounty.rule': 'One more gem, worth 50% more (score and shop), but one more guardian lurks.',
   'omen.calm.name': 'Omen: Calm',
   'omen.calm.rule': 'One guardian and one vortex fewer, but one gem less.',
+  'omen.elite.name': 'Omen: Elite',
+  'omen.elite.rule': 'More guardians and a stalker. Gems ×2 and two relics.',
   'omen.arsenal.name': 'Omen: Arsenal',
   'omen.arsenal.rule': '+2 arrows, but one more vortex and one more hunter (a roaming stalker from floor 3).',
 

@@ -48,6 +48,9 @@ export const abilityCooldown = (ability: AbilityId | null | undefined): number =
 export type Door = OmenId | null;
 
 const DOORS: readonly Door[] = ['bounty', 'calm', 'arsenal', null];
+/** The elite door shows up at a fork from this floor, with this chance. */
+export const ELITE_FROM = 3;
+export const ELITE_CHANCE = 0.35;
 
 /**
  * The two doors the player chooses between before floor `level` (only expedition and endless; the daily keeps the
@@ -61,5 +64,7 @@ export function forkDoors(runSeed: number, level: number, mode: GameMode): [Door
   const pool = [...DOORS];
   const first = pool.splice(Math.floor(next() * pool.length), 1)[0];
   const second = pool[Math.floor(next() * pool.length)];
+  // From the third floor one fork in three swaps a door for the elite floor: the risk is always a choice, never forced.
+  if (level >= ELITE_FROM && next() < ELITE_CHANCE) return next() < 0.5 ? ['elite', second] : [first, 'elite'];
   return [first, second];
 }

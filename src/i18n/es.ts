@@ -558,6 +558,8 @@ export const es: Record<TranslationKey, string> = {
   'omen.bounty.rule': 'Una gema más, que vale un 50 % más (puntos y tienda), pero acecha un guardián extra.',
   'omen.calm.name': 'Presagio: Calma',
   'omen.calm.rule': 'Un guardián y un vórtice menos, pero una gema menos.',
+  'omen.elite.name': 'Presagio: Élite',
+  'omen.elite.rule': 'Más guardianes y un acechador. Gemas ×2 y dos reliquias.',
   'omen.arsenal.name': 'Presagio: Arsenal',
   'omen.arsenal.rule': '+2 flechas, pero un vórtice más y un cazador más (un acechador errante desde el piso 3).',
 

@@ -9,7 +9,7 @@ import type { GameMode } from './seed';
  * flavour (risk for reward, a breather, a bigger arsenal) without changing the board format.
  * Chosen purely from the run seed and the floor, so a daily challenge has the same omens for everyone.
  */
-export type OmenId = 'bounty' | 'calm' | 'arsenal';
+export type OmenId = 'bounty' | 'calm' | 'arsenal' | 'elite';
 
 export interface OmenEffects {
   /** Gem score multiplier. */
@@ -26,6 +26,8 @@ export interface OmenEffects {
   stalkerDelta: number;
   /** Extra arrows lying in the quiver. */
   arrowBonus: number;
+  /** Clearing the floor earns a second relic pick in the next draft. */
+  extraRelic?: boolean;
 }
 
 export const OMENS: Record<OmenId, OmenEffects> = {
@@ -35,6 +37,9 @@ export const OMENS: Record<OmenId, OmenEffects> = {
   calm: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: -1, pitDelta: -1, coinDelta: -1, stalkerDelta: 0, arrowBonus: 0 },
   // Firepower: two more arrows, paid for with a vortex and a roaming stalker drawn by the noise.
   arsenal: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 1, coinDelta: 0, stalkerDelta: 1, arrowBonus: 2 },
+  // The elite floor, only ever chosen at a fork: two more guardians, a stalker and a vortex, two arrows to face them;
+  // every gem pays double (score and shop) and clearing it earns two relics from the next draft.
+  elite: { gemMultiplier: 2, shopGemEvery: 1, enemyDelta: 2, pitDelta: 1, coinDelta: 0, stalkerDelta: 1, arrowBonus: 2, extraRelic: true },
 };
 
 export const NO_OMEN: OmenEffects = { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 0, coinDelta: 0, stalkerDelta: 0, arrowBonus: 0 };
