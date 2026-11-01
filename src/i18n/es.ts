@@ -1881,4 +1881,12 @@ export const es: Record<TranslationKey, string> = {
   'over.nearScore': 'Te faltaron solo {n} puntos para tu récord.',
   'over.nearFloor_one': 'Te faltó solo {n} piso para tu récord.',
   'over.nearFloor_other': 'Te faltaron solo {n} pisos para tu récord.',
+  'chest.title': 'Cofre diario',
+  'chest.day': 'Día {n}',
+  'chest.dayOf': 'Día {n} de {total}',
+  'chest.open': 'Abrir',
+  'chest.hint': 'Vuelve cada día: cada día seguido el cofre trae más, y el séptimo un congelador de racha.',
+  'chest.comeBack': 'Vuelve mañana por uno más grande. Si faltas un día, la semana empieza de nuevo.',
+  'chest.weekDone': '¡Semana completa! Mañana empieza una nueva.',
+  'chest.freeze': 'Congelador de racha',
 };

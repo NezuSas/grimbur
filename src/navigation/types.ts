@@ -9,7 +9,7 @@ import type { RelicId } from "../core/engine/relics";
 export type ChallengeParam = { code: string; seed: number; depth: number };
 
 export type RootStackParamList = {
-  CoverScreen: undefined;
+  CoverScreen: { devChest?: boolean | "open" } | undefined;
   /** `devHero`: development only, opens on that hero even when it is locked (for screenshots). */
   CollectionScreen: { hero?: number; skin?: SkinId; category?: "deals" | "rewards" | "skins" | "trail" | "frame" | "title" | "board" | "flag" | "attack" | "celebration" } | undefined;
   /** The opening story; `replay` returns to the previous screen instead of starting a run. */

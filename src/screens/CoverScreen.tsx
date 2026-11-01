@@ -8,7 +8,9 @@ import NewsBanner from "../ui/components/NewsBanner";
 import { EMPTY_STATS, LocalStats, streakStatus } from "../core/stats/runStats";
 import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
-import { getLocalStats, peekLocalStats, syncAchievements } from "../services/localStats";
+import { getLocalStats, openDailyChest, peekLocalStats, syncAchievements } from "../services/localStats";
+import { chestStatus } from "../core/stats/dailyChest";
+import DailyChestModal from "../ui/components/DailyChestModal";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { claimableCount, syncMissions } from "../core/stats/missions";
 import { syncReminders } from "../services/reminders";
@@ -26,10 +28,23 @@ import { emitSound } from "../audio/audioEventBus";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 
-const CoverScreen: React.FC<Props> = ({ navigation }) => {
+const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
+  const calm = useSettingsStore(s => s.reduceFlash);
   const storySeen = useSettingsStore(s => s.storySeen);
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
+  // The daily chest: offered once a day after the first run ever, when the cover is reached with nothing else pressing.
+  const [chest, setChest] = useState<{ day: number; opened: { embers: number; freeze: boolean } | null; busy: boolean } | null>(null);
+  const openChest = useCallback(() => {
+    setChest(c => (c ? { ...c, busy: true } : c));
+    openDailyChest()
+      .then(r => {
+        if (!r) return setChest(null);
+        setStats(r.stats);
+        setChest({ day: r.day, opened: { embers: r.embers, freeze: r.freeze }, busy: false });
+      })
+      .catch(() => setChest(null));
+  }, []);
   // An expedition left half-way (or cut short by Android) can be continued from here.
   const [savedRun, setSavedRun] = useState<SavedRun | null>(null);
   useFocusEffect(
@@ -56,17 +71,20 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         .catch(() => getLocalStats())
         .then(loaded => {
           setStats(loaded);
+          const box = chestStatus(loaded.chest, dailyKey());
+          const chestDue = (loaded.gamesPlayed > 0 && box.ready) || (__DEV__ && !!route.params?.devChest);
+          if (active && chestDue) setChest(c => c ?? { day: box.day, opened: __DEV__ && route.params?.devChest === "open" ? { embers: 25, freeze: false } : null, busy: false });
           void syncReminders(loaded); // the evening reminder moves on once the daily is played
           void flushPendingSubmits(); // results that could not reach the boards try again here
           // Let the cover settle before any rating dialog.
-          if (active) timer = setTimeout(() => void maybeRequestReview(loaded), 1500);
+          if (active && !chestDue) timer = setTimeout(() => void maybeRequestReview(loaded), 1500);
         })
         .catch(() => {});
       return () => {
         active = false;
         clearTimeout(timer);
       };
-    }, [])
+    }, [route.params?.devChest])
   );
 
   // The clock ticks once a minute so the countdown and the day itself roll over while the cover is open.
@@ -147,6 +165,7 @@ const CoverScreen: React.FC<Props> = ({ navigation }) => {
         />
         <NewsBanner />
       </ImageBackground>
+      {chest ? <DailyChestModal day={chest.day} opened={chest.opened} busy={chest.busy} onOpen={openChest} onClose={() => setChest(null)} calm={calm} /> : null}
     </View>
   );
 };

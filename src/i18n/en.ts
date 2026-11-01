@@ -1880,6 +1880,14 @@ export const en = {
   'over.nearScore': 'Only {n} points short of your record.',
   'over.nearFloor_one': 'Only {n} floor short of your record.',
   'over.nearFloor_other': 'Only {n} floors short of your record.',
+  'chest.title': 'Daily chest',
+  'chest.day': 'Day {n}',
+  'chest.dayOf': 'Day {n} of {total}',
+  'chest.open': 'Open',
+  'chest.hint': 'Come back every day: each day in a row the chest holds more, and the seventh a streak freeze.',
+  'chest.comeBack': 'Come back tomorrow for a bigger one. Miss a day and the week starts over.',
+  'chest.weekDone': 'Week complete! Tomorrow a new one begins.',
+  'chest.freeze': 'Streak freeze',
 } as const;
 
 export type TranslationKey = keyof typeof en;

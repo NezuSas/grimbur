@@ -40,6 +40,8 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     heroBestDepth: [2, 1, 0, 0, 0, 0],
     streak: 6,
     lastDailyDate: today,
+    // Today's chest already opened (day 3), so the cover stays clear; devChest shows it anyway.
+    chest: { last: today, day: 3 },
     // Missions with some progress: one done and waiting, one partly done, one claimed
     missions: (() => {
       const sync = syncMissions(EMPTY_MISSIONS, today);

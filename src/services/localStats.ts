@@ -3,6 +3,7 @@ import { addFriend, markSeen, removeFriend } from '../core/social/friends';
 import { claimSeason, syncSeason } from '../core/stats/season';
 import {
   LocalStats,
+  MAX_FREEZES,
   RunResult,
   addAchievementEmbers,
   mergeDailyRun,
@@ -31,6 +32,7 @@ import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';
 import { buyCosmetic, equipCosmetic, type CosmeticId, type CosmeticKind } from '../core/cosmetics/cosmetics';
 import { buyDeal } from '../core/cosmetics/dailyShop';
+import { openChest } from '../core/stats/dailyChest';
 
 const STORAGE_KEY = 'grimbur.stats.v1';
 
@@ -162,6 +164,20 @@ export const claimSeasonReward = (day: string = dailyKey()): Promise<LocalStats 
     const stats = { ...before, season: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
     await save(stats);
     return stats;
+  });
+
+/**
+ * Opens today's daily chest. Its embers go to the purse but not to the lifetime count (the rank only counts embers earned by
+ * playing). Resolves with the new stats and what the chest gave, or null when it was already opened today.
+ */
+export const openDailyChest = (day: string = dailyKey()) =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const opened = openChest(before.chest, day, before.freezes, MAX_FREEZES);
+    if (!opened) return null;
+    const stats: LocalStats = { ...before, chest: opened.state, embers: before.embers + opened.embers, freezes: before.freezes + (opened.freeze ? 1 : 0) };
+    await save(stats);
+    return { stats, embers: opened.embers, freeze: opened.freeze, day: opened.day };
   });
 
 /** Persists a finished expedition run and reports whether it beat the previous best score. */

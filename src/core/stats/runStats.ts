@@ -1,4 +1,5 @@
 import { daysBetween } from '../engine/seed';
+import { EMPTY_CHEST, parseChest, type ChestState } from './dailyChest';
 import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
@@ -88,6 +89,8 @@ export interface LocalStats {
   heroBestScore: number[];
   /** The best run under this week's event (see engine/events.ts). */
   eventBest: EventBest | null;
+  /** The daily chest opened from the cover (see dailyChest.ts). */
+  chest: ChestState;
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -207,6 +210,7 @@ export const EMPTY_STATS: LocalStats = {
   heroBestFloor: Array.from({ length: HERO_COUNT }, () => 0),
   heroBestScore: Array.from({ length: HERO_COUNT }, () => 0),
   eventBest: null,
+  chest: EMPTY_CHEST,
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -537,6 +541,7 @@ export function parseStats(raw: string | null): LocalStats {
       heroBestFloor: heroCounts(data.heroBestFloor),
       heroBestScore: heroCounts(data.heroBestScore),
       eventBest: parseEventBest(data.eventBest),
+      chest: parseChest(data.chest),
     };
   } catch {
     return EMPTY_STATS;
