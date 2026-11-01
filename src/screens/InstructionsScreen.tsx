@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BestiaryPane } from "./manual/BestiaryPane";
 import { View, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import characters from "../data/characters";
@@ -31,6 +32,7 @@ const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string
   { id: "controls", icon: "game-controller", color: "#ffd54f", art: require("../assets/sprites/ui/Attack_Ready.png") },
   { id: "explore", icon: "map", color: "#4fc3f7", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
   { id: "hazards", icon: "warning", color: "#ffa726", art: require("../assets/sprites/tiles/Danger_Vortex.png") },
+  { id: "bestiary", icon: "paw", color: "#80cbc4", art: require("../assets/sprites/enemies/Mimic_Enemy.png") },
   { id: "combat", icon: "flash", color: "#ff5252", art: require("../assets/sprites/items/Icon_Arrows.png") },
   { id: "powerups", icon: "shield", color: "#4fc3f7", art: require("../assets/sprites/items/Icon_Shield.png") },
   { id: "heroes", icon: "people", color: "#f48fb1", art: characters[0].scoreImage },
@@ -72,6 +74,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     controls: <ControlsPane kit={kit} />,
     explore: <ExplorePane kit={kit} />,
     hazards: <HazardsPane kit={kit} />,
+    bestiary: <BestiaryPane kit={kit} />,
     combat: <CombatPane kit={kit} />,
     powerups: <PowerupsPane kit={kit} />,
     heroes: <HeroesPane kit={kit} />,

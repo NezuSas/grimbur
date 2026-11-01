@@ -6,6 +6,7 @@ import { HERO_COUNT } from './achievements';
 import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
 import { EMPTY_SEASON, SeasonState, addSeasonRun, parseSeason, seasonPointsFor } from './season';
 import { type FriendEntry, parseFriends } from '../social/friends';
+import { EMPTY_BESTIARY, type Bestiary, mergeBestiary, parseBestiary } from './bestiary';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
@@ -76,6 +77,8 @@ export interface LocalStats {
   season: SeasonState;
   /** Friends' codes and the best score last seen of each (see core/social/friends.ts). */
   friends: FriendEntry[];
+  /** Every creature met and how many of each were defeated, over all runs. */
+  bestiary: Bestiary;
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -131,6 +134,9 @@ export interface RunResult {
   day?: string;
   /** False for a run abandoned before doing anything (earns no embers). */
   progressed?: boolean;
+  /** The creatures met and defeated in the run (see bestiary.ts). */
+  met?: readonly string[];
+  slain?: Partial<Record<string, number>>;
 }
 
 export const EMPTY_STATS: LocalStats = {
@@ -164,6 +170,7 @@ export const EMPTY_STATS: LocalStats = {
   missions: EMPTY_MISSIONS,
   season: EMPTY_SEASON,
   friends: [],
+  bestiary: EMPTY_BESTIARY,
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -197,6 +204,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
       run.victory && run.heroIndex === i && (run.mode ?? 'expedition') === 'expedition' ? Math.max(n, clampAscension(run.ascension ?? 0)) : n),
     embers: stats.embers + total,
     lifetimeEmbers: stats.lifetimeEmbers + total,
+    bestiary: mergeBestiary(stats.bestiary ?? EMPTY_BESTIARY, run),
     season: played ? addSeasonRun(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : stats.season ?? EMPTY_SEASON,
   };
   return { patch, payout };
@@ -443,6 +451,7 @@ export function parseStats(raw: string | null): LocalStats {
       missions: parseMissions(data.missions),
       season: parseSeason(data.season),
       friends: parseFriends(data.friends),
+      bestiary: parseBestiary(data.bestiary),
     };
   } catch {
     return EMPTY_STATS;

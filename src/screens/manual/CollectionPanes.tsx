@@ -5,7 +5,8 @@ import characters from "../../data/characters";
 import { abilityCooldown } from "../../core/engine/shop";
 import type { ShopItem } from "../../core/engine/shop";
 import { HEROES } from "../../core/engine/heroes";
-import { RELICS, NORMAL_RELICS, CURSED_RELICS } from "../../core/engine/relics";
+import { FAMILY_COLOR } from "../../ui/familyLook";
+import { RELICS, NORMAL_RELICS, CURSED_RELICS, ALL_RELICS, RELIC_FAMILIES, RELIC_FAMILY, FAMILY_SET } from "../../core/engine/relics";
 import type { RelicId } from "../../core/engine/relics";
 import { heroText, omenText, relicText, unlockText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
@@ -116,6 +117,16 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
       {fact("manual.relics.intro", "#ce93d8", <Art tint="#ce93d8"><RelicIcon id="quiver" size={44} /></Art>)}
       <SubHeading text={t("manual.relics.all")} color="#ce93d8" />
       <View style={styles.relicGrid}>{NORMAL_RELICS.map(relicCard)}</View>
+      <SubHeading text={t("manual.relics.families")} color="#ffd54f" />
+      {RELIC_FAMILIES.map(f => (
+        <FactCard
+          key={f}
+          label={`${t(`family.${f}.name` as TranslationKey)} · ${FAMILY_SET}`}
+          detail={`${t(`family.${f}.bonus` as TranslationKey)}. ${t("manual.relics.familyHow")}`}
+          color={FAMILY_COLOR[f]}
+          art={<Art tint={FAMILY_COLOR[f]}><RelicIcon id={ALL_RELICS.find(r => RELIC_FAMILY[r] === f)!} size={44} /></Art>}
+        />
+      ))}
       {fact("manual.tools.cursed", "#ef5350", icon("skull", "#ef5350"))}
       <View style={styles.relicGrid}>{CURSED_RELICS.map(relicCard)}</View>
       <SubHeading text={t("manual.relics.omens.label")} color="#ffd54f" />

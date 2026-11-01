@@ -6,7 +6,8 @@ import { omenEffects } from './omens';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { REFILL_ARROWS, REVIVE_ARROWS } from './revive';
-import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY, chestRelic, isUsefulRelic } from './relics';
+import { tallyBestiary } from '../stats/bestiary';
+import { RelicId, draftRelics, relicCount, gamblerRoll, OWL_EVERY, chestRelic, isUsefulRelic, hasFamilyBonus, LOOTER_GEMS } from './relics';
 import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, abilityCooldown } from './shop';
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
@@ -243,7 +244,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   // Blood Gems: the hero can never hold a shield, whatever would give one.
   const next = core.shield && relicCount(core.relics, 'blood_gems') > 0 ? { ...core, shield: false } : core;
   // A new floor starts its own count of rescues.
-  const fresh = next.level !== state.level || next.runSeed !== state.runSeed ? { ...next, lairRescues: 0 } : next;
+  const counted = next === state ? next : { ...next, ...tallyBestiary(state as never, next as never) };
+  const fresh = counted.level !== state.level || counted.runSeed !== state.runSeed ? { ...counted, lairRescues: 0 } : counted;
   return ensureWinnable(fresh);
 }
 
@@ -663,6 +665,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
       if (relicCount(state.relics, 'gambler') > 0) arrows = Math.max(1, arrows + gamblerRoll(state.runSeed, state.level + 1));
+      // The archers' set bonus: one more arrow on every floor.
+      if (hasFamilyBonus(state.relics, 'archer')) arrows += 1;
       // Arrows are a resource: some of the unused ones come along to the next floor.
       arrows += Math.min(GAME_CONFIG.arrows.carryOverCap, Math.max(0, state.attack));
       const draft = nonEmpty(withSeasonRelic(draftRelics(state.runSeed, state.level, state.relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)), state));
@@ -689,7 +693,13 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarUsed: false,
         omen: omen ?? null,
         marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],
-        items: relicCount(state.relics, 'bomb_belt') > 0 ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
+        // The Powder Belt's bomb and the explorers' set bonus (a detector charge) on every floor, never past the bag.
+        items: {
+          bomb: Math.min(MAX_ITEMS, state.items.bomb + (relicCount(state.relics, 'bomb_belt') > 0 ? 1 : 0)),
+          detector: Math.min(MAX_ITEMS, state.items.detector + (hasFamilyBonus(state.relics, 'explorer') ? 1 : 0)),
+        },
+        // The looters' set bonus: shop gems on every new floor.
+        gems: state.gems + (hasFamilyBonus(state.relics, 'looter') ? LOOTER_GEMS : 0),
         abilityCd: 0,
         undo: null,
         undoUsed: false,

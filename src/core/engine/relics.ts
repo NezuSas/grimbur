@@ -275,6 +275,34 @@ export const gamblerRoll = (runSeed: number, floor: number): number => {
   return next() < 0.5 ? 3 : -1;
 };
 
+/**
+ * Relic families: every relic belongs to one. Three of a family (cursed ones count) wake its set bonus, so a run grows a
+ * style (an archer's run, a looter's run...) instead of a pile of unrelated picks.
+ */
+export type RelicFamily = 'archer' | 'looter' | 'explorer' | 'survivor';
+export const RELIC_FAMILIES: readonly RelicFamily[] = ['archer', 'looter', 'explorer', 'survivor'];
+export const RELIC_FAMILY: Record<RelicId, RelicFamily> = {
+  quiver: 'archer', hunter: 'archer', long_bow: 'archer', echo_arrow: 'archer', piercing: 'archer', flare_arrow: 'archer',
+  stun_shot: 'archer', glass_bow: 'archer', reaper: 'archer',
+  lucky_coin: 'looter', greed: 'looter', magnet: 'looter', toll_free: 'looter', greedy_idol: 'looter', blood_pact: 'looter',
+  blood_gems: 'looter', gambler: 'looter',
+  iron_boots: 'explorer', lantern: 'explorer', raven_eye: 'explorer', owl: 'explorer', trap_sense: 'explorer',
+  hourglass: 'explorer', hasty_boots: 'explorer',
+  phoenix: 'survivor', bulwark: 'survivor', thorns: 'survivor', frost: 'survivor', bomb_belt: 'survivor', lullaby: 'survivor',
+};
+/** Relics of one family that wake its bonus. */
+export const FAMILY_SET = 3;
+/** Shop gems the looters' bonus pays on every new floor. */
+export const LOOTER_GEMS = 2;
+
+export const familyCount = (relics: readonly RelicId[], family: RelicFamily): number =>
+  relics.reduce((n, r) => (RELIC_FAMILY[r] === family ? n + 1 : n), 0);
+
+export const hasFamilyBonus = (relics: readonly RelicId[], family: RelicFamily): boolean => familyCount(relics, family) >= FAMILY_SET;
+
+/** The families whose bonus is awake. */
+export const activeFamilies = (relics: readonly RelicId[]): RelicFamily[] => RELIC_FAMILIES.filter(f => hasFamilyBonus(relics, f));
+
 /** Chance that a chest holds a cursed relic (only when the run carries none). */
 export const CHEST_CURSE_CHANCE = 0.3;
 

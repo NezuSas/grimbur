@@ -23,6 +23,7 @@ export type TopicId =
   | "start"
   | "mission"
   | "controls"
+  | "bestiary"
   | "explore"
   | "hazards"
   | "combat"

@@ -6,7 +6,9 @@ import { PopButton, PopupPanel, PopupTitle } from './popup';
 import { useT } from '../../../i18n/useT';
 import SpriteImage from '../SpriteImage';
 import RelicTray from '../RelicTray';
-import type { RelicId } from '../../../core/engine/relics';
+import { activeFamilies, type RelicId } from '../../../core/engine/relics';
+import { FAMILY_COLOR } from '../../familyLook';
+import type { TranslationKey } from '../../../i18n/en';
 import type { ImageSourcePropType } from 'react-native';
 
 /** Where the run stands, shown under the title so a paused player knows what they come back to. */
@@ -88,6 +90,11 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
             {summary.relics.length > 0 ? (
               <View style={styles.relics}>
                 <RelicTray relics={summary.relics} size={24} label={t('pause.relics')} />
+                {activeFamilies(summary.relics).map(f => (
+                  <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                    {`${t(`family.${f}.name` as TranslationKey)}: ${t(`family.${f}.bonus` as TranslationKey)}`}
+                  </Text>
+                ))}
               </View>
             ) : null}
           </View>
@@ -131,5 +138,6 @@ const styles = StyleSheet.create({
   tileArt: { width: 24, height: 24 },
   tileValue: { color: '#FFF4DE', fontWeight: '900', fontSize: 16 },
   tileLabel: { color: '#B99A7C', fontWeight: '900', fontSize: 11, letterSpacing: 0.6 },
-  relics: { alignItems: 'center' },
+  relics: { alignItems: 'center', gap: 2 },
+  family: { fontSize: 11.5, fontWeight: '800' },
 });

@@ -3,7 +3,7 @@ import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityTyp
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { omenEffects } from './omens';
-import { RelicId, relicCount, removeRelic } from './relics';
+import { RelicId, relicCount, removeRelic, hasFamilyBonus } from './relics';
 
 export const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
   const map: Record<number, GameEntity> = {};
@@ -289,7 +289,7 @@ export const stalkerStep = (
 
 /** Hunters wait longer with a Frost Charm and act sooner in Hasty Boots. */
 export const hunterSlowdown = (relics: readonly RelicId[]): number =>
-  relicCount(relics, 'frost') - relicCount(relics, 'hasty_boots');
+  relicCount(relics, 'frost') - relicCount(relics, 'hasty_boots') + (hasFamilyBonus(relics, 'survivor') ? 1 : 0);
 
 export const manhattan = (a: number, b: number, cols: number): number =>
   Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));

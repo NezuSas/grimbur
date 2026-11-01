@@ -4,11 +4,13 @@ import { Animated, Pressable, StyleSheet, View, useWindowDimensions } from "reac
 import { LinearGradient } from "expo-linear-gradient";
 import Text from "../Text";
 
-import { RelicId, RELICS } from '../../../core/engine/relics';
+import { RelicId, RELICS, RELIC_FAMILY, FAMILY_SET, familyCount } from '../../../core/engine/relics';
 import RelicIcon from '../RelicIcon';
 import OverlayContainer from './OverlayContainer';
 import { useT } from '../../../i18n/useT';
 import { relicText } from '../../../i18n/keys';
+import type { TranslationKey } from '../../../i18n/en';
+import { FAMILY_COLOR } from '../../familyLook';
 
 type Props = {
   /** Relics on offer; the overlay is hidden when null. */
@@ -18,6 +20,8 @@ type Props = {
   /** True when that floor is the Grimbur' lair. */
   lairNext?: boolean;
   onPick: (id: RelicId) => void;
+  /** The relics the run already holds (each card shows how far its family is from its set bonus). */
+  owned?: readonly RelicId[];
 };
 
 const GOLD = '#FFD54F';
@@ -29,7 +33,7 @@ const RED = '#EF5350';
  * description), so icons, names and texts line up like a hand of cards. Everything is sized from the window so the
  * whole draft fits a small phone without scrolling.
  */
-const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) => {
+const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] }: Props) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const pop = useRef(new Animated.Value(0.9)).current;
@@ -90,11 +94,19 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick }: Props) =>
               >
                 <View style={styles.lit} pointerEvents="none" />
                 <View style={styles.tagSlot}>
-                  {cursed ? (
-                    <Text style={styles.cursedTag} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-                      {t('relic.cursed').toLocaleUpperCase()}
-                    </Text>
-                  ) : null}
+                  {(() => {
+                    // The family and how far it is from its set bonus: picking the third wakes it.
+                    const family = RELIC_FAMILY[id];
+                    const have = Math.min(FAMILY_SET, familyCount(owned, family) + 1);
+                    const wakes = have === FAMILY_SET && familyCount(owned, family) < FAMILY_SET;
+                    return (
+                      <Text style={[styles.cursedTag, { color: wakes ? GOLD : FAMILY_COLOR[family] }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                        {cursed ? `${t('relic.cursed').toLocaleUpperCase()} · ` : ''}
+                        {`${t(`family.${family}.name` as TranslationKey).toLocaleUpperCase()} ${have}/${FAMILY_SET}`}
+                        {wakes ? ` · ${t('family.bonus').toLocaleUpperCase()}` : ''}
+                      </Text>
+                    );
+                  })()}
                 </View>
                 <View style={[styles.iconWell, { width: well, height: well, borderRadius: well / 2, borderColor: tint + '88', backgroundColor: tint + '1F' }]}>
                   <RelicIcon id={id} size={icon} />

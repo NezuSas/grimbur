@@ -285,7 +285,7 @@ export default function LessonScreen({ navigation, route }: Props) {
       {__DEV__ && route.params.devPause ? <PauseOverlay visible saveOnExit canRestart onResume={() => {}} onRestart={() => {}} onMainMenu={() => {}} summary={{ floor: 6, floors: 10, score: 4381, gems: 7, arrows: 3, relics: ["lantern", "phoenix", "quiver", "quiver"] }} /> : null}
       {__DEV__ && route.params.devNameEntry ? <HighScoreEntryModal visible score={14250} level={10} totalCoins={42} time={612} onSubmit={async () => {}} onSkip={() => {}} /> : null}
       {__DEV__ && route.params.devRevive ? <ReviveOverlay visible price={45} embers={1285} used={1} busy={false} hero={characters[0].loseImage} onRevive={() => {}} onDecline={() => {}} /> : null}
-      {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} onPick={() => {}} /> : null}
+      {__DEV__ && route.params.devDraft ? <RelicDraftOverlay offer={route.params.devDraft} floor={4} owned={["quiver", "hunter", "lantern"]} onPick={() => {}} /> : null}
       {/* Development only: the shared picture, full width, to review its design. */}
       {__DEV__ && route.params.devShare ? (
         <View style={[StyleSheet.absoluteFill, { zIndex: 2000, backgroundColor: "#000", alignItems: "center", justifyContent: "center" }]}>
@@ -417,7 +417,7 @@ export default function LessonScreen({ navigation, route }: Props) {
                   <RelicTray relics={state.relics} size={44} label={relicNames} />
                 </View>
               )}
-              <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} onPick={id => dispatch({ type: "PICK_RELIC", id })} />
+              <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} owned={state.relics} onPick={id => dispatch({ type: "PICK_RELIC", id })} />
             </>
           ) : (
             <IntermissionOverlay

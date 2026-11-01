@@ -81,6 +81,8 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       heroIndex: characterIndex,
       ascension,
       mode,
+      met: s.met,
+      slain: s.slain,
     };
     try {
       if (isDaily) {

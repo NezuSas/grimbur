@@ -115,6 +115,9 @@ export interface GameState {
   /** The board just before the last step, so one step per floor can be taken back. */
   undo: UndoSnapshot | null;
   undoUsed: boolean;
+  /** The run's bestiary tally (see core/stats/bestiary.ts): creatures met and defeated. */
+  met?: string[];
+  slain?: Partial<Record<string, number>>;
   /** The season's featured relic: offered in the first draft of the run. */
   seasonRelic?: RelicId | null;
   /** The blood merchant already traded on this stop between floors. */
