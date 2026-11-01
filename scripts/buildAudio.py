@@ -21,27 +21,30 @@ CEILING = 10 ** (-1.2 / 20)
 
 # Effect name -> (source file, options). `loop` makes a seamless loop of that many seconds; `cut` keeps only that many seconds
 # (fading out the last `fade` seconds); `rate` resamples by playback speed (pitch with it).
+# The effects are generated with ElevenLabs Sound Effects (one prompt per sound, see docs/AUDIO_CREDITS.md); the chosen take of
+# each is kept losslessly in assets-src/sfx-ai. `cut` keeps the first seconds (fading out the last `fade`); `loop` makes a hum.
+AI = os.path.join(ROOT, 'assets-src', 'sfx-ai')
 SFX = {
-    'move': ('kenney-rpg/audio/OGG__footstep02.ogg', {'phone': True}),
-    'coin': ('rd-rpg/audio/item_gem_01.ogg', {}),
-    'attack': ('ad-battle/audio/battle_sound_effects__Bow.wav', {}),
-    'ember': ('kenney-rpg/audio/OGG__handleCoins.ogg', {}),
-    'forge': ('rpg-sound-pack/audio/RPG Sound Pack__inventory__metal-ringing.wav', {}),
-    'relic': ('rpg-sound-pack/audio/RPG Sound Pack__battle__magic1.wav', {}),
-    'ui': ('kenney-ui/audio/click3.wav', {}),
-    'roar': ('rd-rpg/audio/creature_roar_03.ogg', {}),
-    'death': ('music/defeat.wav', {'cut': 4.6, 'fade': 1.6}),
-    'monster': ('rd-100/audio/sfx100v2_loop_ambient_03.ogg', {'loop': True}),
-    'vortex': ('rd-100/audio/sfx100v2_loop_ambient_01.ogg', {'loop': True}),
-    'teleport': ('rd-100/audio/sfx100v2_air_02.ogg', {}),
-    'kill_stone': ('rd-rpg/audio/stones_01.ogg', {}),
-    'kill_shadow': ('rpg-sound-pack/audio/RPG Sound Pack__NPC__shade__shade4.wav', {}),
-    'kill_beast': ('rd-rpg/audio/creature_die_01.ogg', {}),
-    'kill_crystal': ('rd-100/audio/sfx100v2_glass_05.ogg', {}),
-    'trap': ('kenney-rpg/audio/OGG__metalLatch.ogg', {}),
-    'shield': ('rd-100/audio/sfx100v2_metal_hit_01.ogg', {}),
-    'charge': ('rd-creature/audio/grunt_02.ogg', {}),
-    'bosshit': ('rd-100/audio/sfx100v2_hit_01.ogg', {}),
+    'move': ('@move.flac', {'phone': True, 'cut': 0.28, 'fade': 0.08}),
+    'coin': ('@coin.flac', {}),
+    'attack': ('@attack.flac', {}),
+    'ember': ('@ember.flac', {}),
+    'forge': ('@forge.flac', {'cut': 1.0, 'fade': 0.35}),
+    'relic': ('@relic.flac', {'cut': 2.2, 'fade': 0.6}),
+    'ui': ('@ui.flac', {}),
+    'roar': ('@roar.flac', {'cut': 3.0, 'fade': 0.8}),
+    'death': ('@death.flac', {'cut': 2.8, 'fade': 0.7}),
+    'monster': ('@monster.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True}),
+    'vortex': ('@vortex.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True}),
+    'teleport': ('@teleport.flac', {'cut': 1.6, 'fade': 0.4}),
+    'kill_stone': ('@kill_stone.flac', {'cut': 1.3, 'fade': 0.4}),
+    'kill_shadow': ('@kill_shadow.flac', {'cut': 1.1, 'fade': 0.4}),
+    'kill_beast': ('@kill_beast.flac', {'cut': 1.5, 'fade': 0.4}),
+    'kill_crystal': ('@kill_crystal.flac', {'cut': 1.2, 'fade': 0.3}),
+    'trap': ('@trap.flac', {}),
+    'shield': ('@shield.flac', {'cut': 1.2, 'fade': 0.3}),
+    'charge': ('@charge.flac', {'cut': 1.0, 'fade': 0.3}),
+    'bosshit': ('@bosshit.flac', {'cut': 1.0, 'fade': 0.3}),
 }
 MUSIC = {
     'cover': ('music/mysterious.mp3', {}),
@@ -154,11 +157,13 @@ def write_wav(path, x, sr):
 
 def build(src_root):
     for name, (src, opt) in SFX.items():
-        x, sr = read(os.path.join(src_root, src))
-        if 'cut' in opt:
-            x = cut(x, sr, opt['cut'], opt['fade'])
+        x, sr = read(os.path.join(AI, src[1:]) if src.startswith('@') else os.path.join(src_root, src))
+        if 'cut' in opt and not opt.get('loop'):
+            x = cut(trim(x, sr), sr, opt['cut'], opt['fade'])
+        elif 'cut' in opt:
+            x = x[: int(sr * opt['cut'])]  # a loop keeps a plain slice: its ends are cross-faded into each other below
         if opt.get('phone'):
-            x = highpass(x, sr)
+            x = highpass(highpass(x, sr, 220), sr, 220)  # twice: a steeper cut of what a phone cannot play
         if opt.get('loop'):
             x = seamless_loop(x, sr)
             x = master_sfx(x, sr)

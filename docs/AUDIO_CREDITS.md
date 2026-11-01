@@ -1,6 +1,6 @@
 # Audio credits
 
-Every sound and music track in Grimbur comes from OpenGameArt.org under **CC0 1.0 (public domain)**: free for any use,
+The music comes from OpenGameArt.org under **CC0 1.0 (public domain)**: free for any use,
 commercial included, with no attribution required. They are credited here anyway, with thanks.
 
 `scripts/buildAudio.py` trims, loops and masters them (−12 dBFS effects, −18 dBFS music); `scripts/convertMusic.py` makes
@@ -19,24 +19,32 @@ the OGG files the app ships.
 
 ## Sound effects
 
-| In the game | File | Pack (author) |
-|---|---|---|
-| Footstep | footstep02 | 50 RPG Sound Effects (Kenney) — https://opengameart.org/content/50-rpg-sound-effects |
-| Embers gained | handleCoins | 50 RPG Sound Effects (Kenney) |
-| Trap | metalLatch | 50 RPG Sound Effects (Kenney) |
-| Button tap | click3 | 51 UI Sound Effects (Kenney) — https://opengameart.org/content/51-ui-sound-effects-buttons-switches-and-clicks |
-| Bow shot | Bow | Battle Sound Effects (artisticdude) — https://opengameart.org/content/battle-sound-effects |
-| Forge hammer | metal-ringing | RPG Sound Pack (artisticdude) — https://opengameart.org/content/rpg-sound-pack |
-| Relic | magic1 | RPG Sound Pack (artisticdude) |
-| Shadow wolf dies | shade4 | RPG Sound Pack (artisticdude) |
-| Gem | item_gem_01 | 80 CC0 RPG SFX (rubberduck) — https://opengameart.org/content/80-cc0-rpg-sfx |
-| Grimbur roar | creature_roar_03 | 80 CC0 RPG SFX (rubberduck) |
-| Stone golem dies | stones_01 | 80 CC0 RPG SFX (rubberduck) |
-| Sleeping beast dies | creature_die_01 | 80 CC0 RPG SFX (rubberduck) |
-| Stalker winds up | grunt_02 | 80 CC0 creature SFX (rubberduck) — https://opengameart.org/content/80-cc0-creature-sfx |
-| Guardian nearby (loop) | loop_ambient_03 | 100 CC0 SFX #2 (rubberduck) — https://opengameart.org/content/100-cc0-sfx-2 |
-| Vortex nearby (loop) | loop_ambient_01 | 100 CC0 SFX #2 (rubberduck) |
-| Teleport | air_02 | 100 CC0 SFX #2 (rubberduck) |
-| Mimic shatters | glass_05 | 100 CC0 SFX #2 (rubberduck) |
-| Shield breaks | metal_hit_01 | 100 CC0 SFX #2 (rubberduck) |
-| Hit on the Grimbur | hit_01 | 100 CC0 SFX #2 (rubberduck) |
+Generated with **ElevenLabs Sound Effects** (model v3), one English prompt per sound, four takes each; the chosen take is kept
+losslessly in `assets-src/sfx-ai/` and mastered by `scripts/buildAudio.py`.
+
+> **License:** they were generated on the free plan, which does **not** grant commercial use. Before the game is sold or
+> monetized, the account must be on a paid plan (Starter or above, which includes the commercial license) and these takes
+> regenerated (or their status confirmed with ElevenLabs).
+
+| In the game | Prompt |
+|---|---|
+| Footstep | Single soft footstep of a leather boot on a stone cave floor, crisp and clean, short, for a mobile fantasy game, no reverb tail |
+| Gem | Bright magical crystal gem pickup chime, sparkling and satisfying, short, polished mobile fantasy game reward sound |
+| Bow shot | Bow string twang and fast arrow whoosh, punchy and short, fantasy mobile game arrow shot |
+| Embers | Warm glowing embers and coins collected, rewarding jingle with soft crackle, mobile game |
+| Forge | Blacksmith hammer striking an anvil with sparks, single strong metallic ring |
+| Relic | Magical relic power-up, shimmering ascending chime with soft choir, rewarding fantasy game |
+| Button | Soft wooden button click, subtle and pleasant, fantasy mobile game menu |
+| Grimbur roar | Huge cave monster roar echoing in a cavern, menacing boss entrance, cinematic and deep |
+| Hero falls | Hero defeated game over sting, dramatic low impact then sad descending magical tone |
+| Guardian nearby (loop) | Ominous low growling breath of a hidden monster nearby, dark cave ambience, seamless loop |
+| Vortex nearby (loop) | Swirling magical vortex hum with airy wind, mysterious and low, seamless loop |
+| Teleport | Magical vortex teleport whoosh, swirling portal swallowing the player |
+| Golem dies | Stone golem shattering into rubble, heavy rock crumble, punchy short game impact |
+| Shadow wolf dies | Shadow wolf dissolving into dark smoke with a ghostly whimper, short magical game sound |
+| Beast dies | Large sleeping beast death growl, short and heavy, fantasy creature game sound |
+| Mimic shatters | Crystal monster shattering into glass shards, bright punchy magical break |
+| Trap | Metal bear trap snapping shut, sharp mechanical snap |
+| Shield breaks | Magic shield shattering, metallic and glassy break with a magical whoosh |
+| Stalker winds up | Monster snarl warning before an attack, short menacing growl |
+| Hit on the Grimbur | Heavy arrow impact on a giant monster, meaty thud with a pained grunt |
