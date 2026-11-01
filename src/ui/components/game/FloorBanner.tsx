@@ -138,10 +138,10 @@ const styles = StyleSheet.create({
   omen: { color: '#FFD54F', fontWeight: '900', fontSize: 13, letterSpacing: 2, marginTop: 2 },
   story: { color: '#cdb8ff', fontSize: 12.5, fontStyle: 'italic', textAlign: 'center', marginTop: 5 },
   rule: { color: '#e0e0e0', fontSize: 12, textAlign: 'center', marginTop: 1 },
-  roster: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,213,79,0.25)' },
-  rosterItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  rosterArt: { width: 34, height: 34 },
-  rosterCount: { color: '#FFE7A8', fontWeight: '900', fontSize: 14 },
+  roster: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,213,79,0.25)' },
+  rosterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  rosterArt: { width: 52, height: 52 },
+  rosterCount: { color: '#FFE7A8', fontWeight: '900', fontSize: 20, textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
 });
 
 export default FloorBanner;

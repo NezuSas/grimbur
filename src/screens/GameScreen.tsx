@@ -93,6 +93,8 @@ import { rememberChallenge } from "../services/challenges";
 import { canSaveState, clearSavedRun, loadSavedRun, restoredState, saveRun } from "../services/savedRun";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
+/** The Grimbur's lieutenant on the floor banner. */
+const LIEUTENANT_ART = require("../assets/sprites/enemies/Lieutenant_Boss.png");
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 
@@ -187,10 +189,14 @@ export default function GameScreen({ navigation, route }: Props) {
       { key: "enemy", art: ASSETS.enemy, label: t("roster.enemy") },
       { key: "stalker", art: ASSETS.stalker, label: t("roster.stalker") },
       { key: "sleeper", art: ASSETS.sleeper, label: t("roster.sleeper") },
+      { key: "mimic", art: ASSETS.mimic, label: t("roster.mimic") },
+      { key: "thief", art: ASSETS.thief, label: t("roster.thief") },
+      { key: "brute", art: LIEUTENANT_ART, label: t("roster.brute") },
       { key: "pit", art: ASSETS.pit, label: t("roster.pit") },
+      { key: "chest", art: ASSETS.chest, label: t("roster.chest") },
     ] as const;
     return kinds
-      .map(k => ({ ...k, count: state.entities.filter(e => e.type === k.key).length }))
+      .map(k => ({ ...k, count: state.entities.filter(e => (k.key === "brute" ? e.type === "boss" && e.mini : e.type === k.key)).length }))
       .filter(k => k.count > 0);
     // Counted when the floor starts; kills during the floor do not rewrite the banner.
     // eslint-disable-next-line react-hooks/exhaustive-deps
