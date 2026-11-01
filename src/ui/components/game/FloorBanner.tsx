@@ -26,10 +26,12 @@ type Props = {
   onDone?: () => void;
   /** Who waits in the fog of this floor: each kind of creature with how many there are. */
   roster?: { key: string; art: ImageSourcePropType; count: number; label: string }[];
+  /** Development only: the banner stays up (for screenshots). */
+  hold?: boolean;
 };
 
 /** Brief "Floor N" announcement that also names the floor's omen. Never blocks touches. */
-const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0, roster, onDone }) => {
+const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, story, calm, long, dismiss, minTop = 0, roster, onDone, hold = false }) => {
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -39,14 +41,14 @@ const FloorBanner: React.FC<Props> = ({ floorKey, title, omenName, omenRule, sto
   useEffect(() => {
     opacity.setValue(0);
     lift.setValue(calm ? 0 : 12);
-    const hold = (long ? 4200 : story ? 2600 : omenName ? 1400 : 1100) + (roster && roster.length > 0 ? 900 : 0);
+    const holdMs = (long ? 4200 : story ? 2600 : omenName ? 1400 : 1100) + (roster && roster.length > 0 ? 900 : 0);
     const run = Animated.sequence([
       Animated.parallel([
         Animated.timing(opacity, { toValue: 1, duration: 220, useNativeDriver: true }),
         Animated.timing(lift, { toValue: 0, duration: 220, useNativeDriver: true }),
       ]),
-      Animated.delay(hold),
-      Animated.timing(opacity, { toValue: 0, duration: 320, useNativeDriver: true }),
+      Animated.delay(holdMs),
+      ...(hold ? [] : [Animated.timing(opacity, { toValue: 0, duration: 320, useNativeDriver: true })]),
     ]);
     run.start(({ finished }) => {
       if (finished) doneRef.current?.();
@@ -140,8 +142,8 @@ const styles = StyleSheet.create({
   rule: { color: '#e0e0e0', fontSize: 12, textAlign: 'center', marginTop: 1 },
   roster: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 16, marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,213,79,0.25)' },
   rosterItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  rosterArt: { width: 52, height: 52 },
-  rosterCount: { color: '#FFE7A8', fontWeight: '900', fontSize: 20, textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  rosterArt: { width: 68, height: 68 },
+  rosterCount: { color: '#FFE7A8', fontWeight: '900', fontSize: 26, textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
 });
 
 export default FloorBanner;

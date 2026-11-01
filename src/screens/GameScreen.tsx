@@ -813,6 +813,7 @@ export default function GameScreen({ navigation, route }: Props) {
           story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
           dismiss={bannerSkipped === bannerKey}
+          hold={__DEV__ && !!route.params?.devBanner}
           minTop={insets.top + hudHeight + 6}
           calm={reduceFlash}
           roster={floorRoster}
