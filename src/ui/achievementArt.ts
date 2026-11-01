@@ -1,6 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { AchievementInfo, DescKind } from '../core/stats/achievements';
 import characters from '../data/characters';
+import { BEAST_ART } from './beastArt';
 
 const art = {
   games: require('../assets/sprites/achievements/Ach_Games.png'),
@@ -19,7 +20,18 @@ const art = {
   achCount: require('../assets/sprites/achievements/Ach_Collector.png'),
   speed: require('../assets/sprites/achievements/Ach_Speed.png'),
   heroes: require('../assets/sprites/achievements/Ach_Heroes.png'),
+  hunt: require('../assets/sprites/enemies/Guardian_Enemy.png'),
 } as const;
+
+/** The hunter's marks show the creature they are about. */
+const HUNT: Record<string, ImageSourcePropType> = {
+  hunt_enemy: BEAST_ART.enemy,
+  hunt_sleeper: BEAST_ART.sleeper,
+  hunt_stalker: BEAST_ART.stalker,
+  hunt_mimic: BEAST_ART.mimic,
+  hunt_thief: BEAST_ART.thief,
+  hunt_brute: BEAST_ART.brute,
+};
 
 /** Achievements whose shared description does not name their theme. */
 const BY_ID: Partial<Record<string, ImageSourcePropType>> = {
@@ -56,11 +68,15 @@ const BY_KIND: Partial<Record<DescKind, ImageSourcePropType>> = {
   achCount: art.achCount,
   winTime: art.speed,
   heroWin: art.heroes,
+  slain: art.hunt,
+  bestiary: art.hunt,
+  beast: art.hunt,
 };
 
 /** The painted emblem of an achievement (every one has one: by id, by its hero, or by the theme of its description). */
 export function achievementArt(a: Pick<AchievementInfo, 'id' | 'desc'>): ImageSourcePropType {
   if (a.id in HERO_WIN) return characters[HERO_WIN[a.id]].scoreImage;
+  if (a.id in HUNT) return HUNT[a.id];
   return BY_ID[a.id] ?? (a.desc ? BY_KIND[a.desc] : undefined) ?? art.games;
 }
 
@@ -69,13 +85,14 @@ export type AchievementTheme = keyof typeof art;
 /** The family an achievement belongs to, the one its emblem paints (heroes, floors, gems...). */
 export function achievementTheme(a: Pick<AchievementInfo, 'id' | 'desc'>): AchievementTheme {
   if (a.id in HERO_WIN) return 'heroes';
+  if (a.id in HUNT) return 'hunt';
   const src = BY_ID[a.id] ?? (a.desc ? BY_KIND[a.desc] : undefined) ?? art.games;
   return (Object.keys(art) as AchievementTheme[]).find(k => art[k] === src) ?? 'games';
 }
 
 /** Every family in the order the Achievements screen lists them: the first steps first, the long hauls last. */
 export const ACHIEVEMENT_THEMES: readonly AchievementTheme[] = [
-  'games', 'floor', 'gems', 'relics', 'forge', 'embers', 'score', 'wins', 'heroes', 'speed', 'depthWin', 'endless', 'streak', 'dailyRuns', 'dailyWins', 'achCount',
+  'games', 'floor', 'gems', 'relics', 'forge', 'embers', 'score', 'wins', 'heroes', 'speed', 'depthWin', 'endless', 'streak', 'dailyRuns', 'dailyWins', 'hunt', 'achCount',
 ];
 
 /** The emblem standing for a whole family. */

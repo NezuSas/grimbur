@@ -3,7 +3,8 @@ import { StyleSheet, View } from "react-native";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import type { TranslationKey } from "../../i18n/en";
-import { BEASTS, EMPTY_BESTIARY, SLAYABLE, type Bestiary } from "../../core/stats/bestiary";
+import { BEASTS, EMPTY_BESTIARY, SLAYABLE, huntStars, type Bestiary } from "../../core/stats/bestiary";
+import { Ionicons } from "@expo/vector-icons";
 import { getLocalStats, peekLocalStats } from "../../services/localStats";
 import type { Kit } from "./kit";
 import { BEAST_ART, BEAST_TINT } from "../../ui/beastArt";
@@ -22,12 +23,14 @@ export const BestiaryPane = ({ kit }: { kit: Kit }) => {
     void getLocalStats().then(s => setBook(s.bestiary ?? EMPTY_BESTIARY)).catch(() => {});
   }, []);
   const found = BEASTS.filter(b => book.met.includes(b)).length;
+  const total = Object.values(book.slain).reduce((sum: number, n) => sum + (n ?? 0), 0);
 
   return (
     <>
       {heading(t("manual.bestiary.title"))}
       <Text style={styles.progress} maxFontSizeMultiplier={1.2}>
         {t("bestiary.progress", { n: found, total: BEASTS.length })}
+        {total > 0 ? `  ·  ${t("bestiary.total", { n: total })}` : ""}
       </Text>
       <View style={styles.grid}>
         {BEASTS.map(b => {
@@ -46,9 +49,26 @@ export const BestiaryPane = ({ kit }: { kit: Kit }) => {
                 {known ? t(`bestiary.${b}.lore` as TranslationKey) : t("bestiary.unknown")}
               </Text>
               {known && SLAYABLE.includes(b) ? (
-                <Text style={[styles.count, { color: tint }]} maxFontSizeMultiplier={1.1}>
-                  {t(b === "thief" ? "bestiary.caught" : "bestiary.slain", { n: slain })}
-                </Text>
+                <>
+                  <Text style={[styles.count, { color: tint }]} maxFontSizeMultiplier={1.1}>
+                    {t(b === "thief" ? "bestiary.caught" : "bestiary.slain", { n: slain })}
+                  </Text>
+                  {(() => {
+                    const { stars, next } = huntStars(b, slain);
+                    return (
+                      <View style={styles.hunt} accessible accessibilityLabel={`${t("bestiary.hunter")} ${stars}/3`}>
+                        <View style={styles.stars}>
+                          {[0, 1, 2].map(i => (
+                            <Ionicons key={i} name={i < stars ? "star" : "star-outline"} size={14} color={i < stars ? "#FFD54F" : "#6d5a48"} />
+                          ))}
+                        </View>
+                        <Text style={styles.next} maxFontSizeMultiplier={1.1}>
+                          {next === null ? t("bestiary.maxed") : t("bestiary.nextStar", { n: next })}
+                        </Text>
+                      </View>
+                    );
+                  })()}
+                </>
               ) : null}
             </View>
           );
@@ -68,4 +88,7 @@ const styles = StyleSheet.create({
   name: { fontWeight: "900", fontSize: 14 },
   lore: { color: "#D9C8B5", fontSize: 11.5, textAlign: "center", minHeight: 30 },
   count: { fontWeight: "900", fontSize: 12 },
+  hunt: { alignItems: "center", gap: 1 },
+  stars: { flexDirection: "row", gap: 2 },
+  next: { color: "#A8927C", fontSize: 10.5, fontWeight: "800" },
 });

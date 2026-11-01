@@ -1,6 +1,7 @@
 import type { LocalStats, RunResult } from './runStats';
 import { MAX_ASCENSION } from '../engine/ascension';
 import { UPGRADES } from './forge';
+import { BEASTS, type BeastId } from './bestiary';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -89,10 +90,22 @@ export type AchievementId =
   | 'win_auric'
   | 'win_mira'
   | 'win_bram'
-  | 'all_hero_wins';
+  | 'all_hero_wins'
+  // The hunt (the bestiary)
+  | 'hunt_25'
+  | 'hunt_100'
+  | 'hunt_500'
+  | 'hunt_1500'
+  | 'bestiary_all'
+  | 'hunt_enemy'
+  | 'hunt_sleeper'
+  | 'hunt_stalker'
+  | 'hunt_mimic'
+  | 'hunt_thief'
+  | 'hunt_brute';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -114,6 +127,15 @@ export const HIGH_ROLLER_SCORE = 5000;
 export const COLLECTOR_GEMS = 100;
 export const DEVOTEE_DAYS = 3;
 export const HERO_COUNT = 6;
+
+/** Every creature defeated (or thief caught) over all runs. */
+export const totalSlain = (s: LocalStats) => Object.values(s.bestiary?.slain ?? {}).reduce((sum: number, n) => sum + (n ?? 0), 0);
+const slainOf = (b: BeastId) => (s: LocalStats) => s.bestiary?.slain?.[b] ?? 0;
+/** A hunter's mark on one creature: `params.b` is its place in BEASTS (the description names it). */
+const hunt = (id: AchievementId, icon: string, tier: AchievementTier, beast: BeastId, target: number): AchievementInfo => ({
+  ...counted(id, icon, tier, 'beast', target, slainOf(beast)),
+  params: { n: target, b: BEASTS.indexOf(beast) },
+});
 
 const forgeLevels = (s: LocalStats) => Object.values(s.forge).reduce((sum, n) => sum + n, 0);
 const forgeTotal = UPGRADES.reduce((sum, u) => sum + u.costs.length, 0);
@@ -290,6 +312,18 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   { id: 'win_mira', icon: '🏮', tier: 'hard', desc: 'heroWin', params: { n: 4 }, isMet: s => (s.heroWins[4] ?? 0) >= 1 },
   { id: 'win_bram', icon: '💣', tier: 'hard', desc: 'heroWin', params: { n: 5 }, isMet: s => (s.heroWins[5] ?? 0) >= 1 },
   { id: 'all_hero_wins', icon: '🏛️', tier: 'legend', params: {}, isMet: s => s.heroWins.length >= HERO_COUNT && s.heroWins.every(n => n >= 1), progress: s => ({ current: s.heroWins.filter(n => n >= 1).length, target: HERO_COUNT }) },
+  // ── The hunt ────────────────────────────────────────────────────────────
+  counted('hunt_25', '🐾', 'easy', 'slain', 25, totalSlain),
+  counted('hunt_100', '🪓', 'medium', 'slain', 100, totalSlain),
+  counted('hunt_500', '🦴', 'hard', 'slain', 500, totalSlain),
+  counted('hunt_1500', '🐺', 'legend', 'slain', 1500, totalSlain),
+  counted('bestiary_all', '🦎', 'hard', 'bestiary', BEASTS.length, s => s.bestiary?.met.length ?? 0),
+  hunt('hunt_enemy', '🪦', 'medium', 'enemy', 60),
+  hunt('hunt_sleeper', '💤', 'medium', 'sleeper', 30),
+  hunt('hunt_stalker', '👁️', 'hard', 'stalker', 30),
+  hunt('hunt_mimic', '📦', 'hard', 'mimic', 20),
+  hunt('hunt_thief', '🪤', 'hard', 'thief', 15),
+  hunt('hunt_brute', '⚔️', 'hard', 'brute', 15),
 ];
 
 /** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */

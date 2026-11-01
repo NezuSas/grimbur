@@ -98,3 +98,22 @@ export function parseBestiary(raw: unknown): Bestiary {
   }
   return { met, slain };
 }
+
+/** The hunter's stars of each creature that can be defeated: one per mark reached (the rarer ones need fewer). */
+export const HUNT_STARS: Partial<Record<BeastId, readonly [number, number, number]>> = {
+  enemy: [10, 60, 200],
+  sleeper: [5, 30, 100],
+  stalker: [5, 30, 100],
+  mimic: [5, 20, 60],
+  thief: [3, 15, 40],
+  brute: [3, 15, 40],
+  boss: [1, 10, 30],
+};
+
+/** How many stars a creature has (0..3) and the count that earns the next one (null once all three are won). */
+export function huntStars(beast: BeastId, slain: number): { stars: number; next: number | null } {
+  const marks = HUNT_STARS[beast];
+  if (!marks) return { stars: 0, next: null };
+  const stars = marks.filter(m => slain >= m).length;
+  return { stars, next: stars < marks.length ? marks[stars] : null };
+}

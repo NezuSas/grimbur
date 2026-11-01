@@ -5,6 +5,7 @@ import type { RelicId } from '../core/engine/relics';
 import type { SkinId } from '../core/skins/skins';
 import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
 import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
+import { BEASTS } from '../core/stats/bestiary';
 import { UPGRADES, UpgradeId } from '../core/stats/forge';
 
 type T = (key: TranslationKey, params?: Params) => string;
@@ -50,6 +51,7 @@ export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'):
     const params: Params = { ...(info.params ?? {}) };
     if (info.desc === 'depthWin') params.name = t(`ascension.label.${info.params.n}` as TranslationKey);
     if (info.desc === 'heroWin') params.name = t(`hero.${info.params.n}.name` as TranslationKey);
+    if (info.desc === 'beast') params.name = t(`bestiary.${BEASTS[info.params.b] ?? 'enemy'}.name` as TranslationKey);
     // "Play 1 daily challenges" reads wrong: the singular has its own text
     const one = (info.desc === 'dailyRuns' || info.desc === 'dailyWins') && info.params.n === 1 ? '1' : '';
     return t(`ach.d.${info.desc}${one}` as TranslationKey, params);

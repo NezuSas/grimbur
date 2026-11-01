@@ -518,6 +518,12 @@ const GridCell = memo(({
           <Animated.View style={[styles.flagBlink, { opacity: flagBlink }]} />
           {unveiled ? <View style={[styles.flagVerdict, hazard ? styles.flagRight : styles.flagWrong, { width: tileSize * 0.86, height: tileSize * 0.86, borderRadius: tileSize * 0.2 }]} /> : null}
           {flagArt ? <SpriteImage source={flagArt} style={{ width: tileSize * 0.62, height: tileSize * 0.62 }} resizeMode="contain" /> : <GlyphIcon name="flag" size={tileSize * 0.58} />}
+          {/* Right or wrong is told by a shape as well as the colour, for colour-blind eyes. */}
+          {unveiled ? (
+            <View style={[styles.verdictBadge, hazard ? styles.deducedBadgeSafe : styles.deducedBadgeDanger, { width: tileSize * 0.32, height: tileSize * 0.32, borderRadius: tileSize * 0.16 }]}>
+              <Ionicons name={hazard ? 'checkmark' : 'close'} size={tileSize * 0.24} color="#fff" />
+            </View>
+          ) : null}
         </Animated.View>
       )}
 
@@ -555,6 +561,7 @@ const styles = StyleSheet.create({
   deducedSafe: { borderColor: 'rgba(105,240,174,0.7)', backgroundColor: 'rgba(105,240,174,0.10)' },
   deducedDanger: { borderColor: 'rgba(255,82,82,0.75)', backgroundColor: 'rgba(255,82,82,0.12)' },
   deducedBadge: { alignItems: 'center', justifyContent: 'center' },
+  verdictBadge: { position: 'absolute', right: 1, bottom: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fff' },
   deducedBadgeSafe: { backgroundColor: '#2E9E5B' },
   deducedBadgeDanger: { backgroundColor: '#D32F2F' },
   loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#7FE3FF' },
