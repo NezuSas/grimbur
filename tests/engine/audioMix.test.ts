@@ -109,6 +109,18 @@ describe('the mix table', () => {
 });
 
 describe('the footstep is audible on a phone speaker', () => {
+  // Proven twice on the owner's Android phone: a lone short step is swallowed (only quick runs of steps are heard). The step must
+  // last long enough, with sound after its first instant, for a single step to be heard (see commit eff351c).
+  it('lasts at least 0.4 s and keeps sound after its first 120 ms', () => {
+    const { samples, rate } = readWav(path.join(ASSETS, 'sfx', 'move.wav'));
+    expect(samples.length / rate).toBeGreaterThanOrEqual(0.4);
+    const head = Math.floor(rate * 0.12);
+    let early = 0;
+    let late = 0;
+    samples.forEach((s, i) => (i < head ? (early += s * s) : (late += s * s)));
+    expect(late / (early + late)).toBeGreaterThan(0.06); // the proven step keeps ~10 % after its first instant
+  });
+
   // A phone speaker cannot reproduce anything much below ~150 Hz. The first recording of the step kept 98.5 % of its
   // energy there, so on a phone a single step was silent (only the stacked clicks of fast steps were heard).
   // Later (2026-11) a recorded step passed the 150 Hz check and was still silent on a phone: 89 % of it sat under 1 kHz, which a

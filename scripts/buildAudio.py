@@ -25,7 +25,9 @@ CEILING = 10 ** (-1.2 / 20)
 # each is kept losslessly in assets-src/sfx-ai. `cut` keeps the first seconds (fading out the last `fade`); `loop` makes a hum.
 AI = os.path.join(ROOT, 'assets-src', 'sfx-ai')
 SFX = {
-    'move': ('@move.flac', {'phone': True, 'cut': 0.28, 'fade': 0.08}),
+    # The footstep is NOT regenerated: some Android phones swallow the first instant of a lone sound, so a step must be long
+    # (0.42 s: tap, gravel scuff, short cave tail) or a single step is silent. This one was proven on the owner's phone.
+    'move': ('=sfx-fixed/move.wav', {}),
     'coin': ('@coin.flac', {}),
     'attack': ('@attack.flac', {}),
     'ember': ('@ember.flac', {}),
@@ -170,6 +172,12 @@ def write_wav(path, x, sr):
 
 def build(src_root):
     for name, (src, opt) in SFX.items():
+        if src.startswith('='):
+            # A file proven on a real phone ships exactly as it is.
+            import shutil
+            shutil.copy(os.path.join(ROOT, 'assets-src', src[1:]), os.path.join(SFX_OUT, f'{name}.wav'))
+            print(f'sfx {name:13} kept as proven ({src[1:]})')
+            continue
         x, sr = read(os.path.join(AI, src[1:]) if src.startswith('@') else os.path.join(src_root, src))
         if 'cut' in opt and not opt.get('loop'):
             x = cut(trim(x, sr), sr, opt['cut'], opt['fade'])
