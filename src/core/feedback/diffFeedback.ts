@@ -1,5 +1,5 @@
 import type { GameState } from '../engine/types';
-import { HUNTER_TYPES, LETHAL_TYPES } from '../engine/types';
+import { HUNTER_TYPES, LETHAL_TYPES, type PickupKind } from '../engine/types';
 import { bossHearts, countGuardians } from '../engine/entityCounts';
 import { getNearbyHazards } from '../engine/proximity';
 import { relicCount } from '../engine/relics';
@@ -37,7 +37,7 @@ export type FeedbackEvent =
   | { kind: 'bossHit'; dead: boolean; hearts: number; tile: number }
   /** An arrow was fired and hit nothing. */
   | { kind: 'miss' }
-  | { kind: 'pickup'; pickup: 'shield' | 'ammo' | 'trap'; tile: number }
+  | { kind: 'pickup'; pickup: PickupKind; tile: number }
   /** A shield (or a Phoenix Feather) soaked a deadly touch. */
   | { kind: 'shieldBreak'; tile: number }
   /** A hunter has just started winding up a strike. */

@@ -10,6 +10,12 @@ export const BOSS_FRAMES = {
   hurt: require("../../assets/sprites/enemies/Grimbur_Boss_Hurt.png"),
 } as const;
 
+/** The Grimbur's lieutenant: two frames (it rears on the breath frame when it winds up or is hit). */
+const MINI_FRAMES = {
+  idle: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
+  breathe: require("../../assets/sprites/enemies/Lieutenant_Boss_Breathe.png"),
+} as const;
+
 const BREATH_MS = 850;
 const HURT_MS = 600;
 
@@ -18,7 +24,7 @@ const HURT_MS = 600;
  * winds up, and flinches (with a squash the spring undoes) when an arrow lands. Purely visual: the real
  * danger signals (aura, "!" mark) stay, this only makes them felt.
  */
-export default memo(function BossSprite({ hp, charged, style }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle> }) {
+export default memo(function BossSprite({ hp, charged, style, mini = false }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle>; mini?: boolean }) {
   const [breathIn, setBreathIn] = useState(false);
   const [hurt, setHurt] = useState(false);
   const prevHp = useRef(hp);
@@ -41,7 +47,9 @@ export default memo(function BossSprite({ hp, charged, style }: { hp: number; ch
     prevHp.current = hp;
   }, [hp, squash]);
 
-  const source = hurt ? BOSS_FRAMES.hurt : charged ? BOSS_FRAMES.attack : breathIn ? BOSS_FRAMES.breathe : BOSS_FRAMES.idle;
+  const source = mini
+    ? hurt || charged || breathIn ? MINI_FRAMES.breathe : MINI_FRAMES.idle
+    : hurt ? BOSS_FRAMES.hurt : charged ? BOSS_FRAMES.attack : breathIn ? BOSS_FRAMES.breathe : BOSS_FRAMES.idle;
   return (
     <Animated.View style={[style, { transform: [{ scaleY: squash }] }]} pointerEvents="none">
       <SpriteImage style={{ width: "100%", height: "100%" }} source={source} resizeMode="contain" />

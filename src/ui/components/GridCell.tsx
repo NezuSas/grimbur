@@ -12,10 +12,13 @@ import GlyphIcon from "./GlyphIcon";
 
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
 
-export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
+export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" | "chest" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
   enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
   stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
   sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
+  mimic:    require("../../assets/sprites/enemies/Mimic_Enemy.png"),
+  thief:    require("../../assets/sprites/enemies/Thief_Enemy.png"),
+  chest:    require("../../assets/sprites/items/Icon_Chest.png"),
   boss:     require("../../assets/sprites/enemies/Grimbur_Boss.png"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
   shield:   require("../../assets/sprites/items/Icon_Shield.png"),
@@ -30,10 +33,13 @@ export const CLUE_ART = {
   vortex: require("../../assets/sprites/ui/Clue_Vortex.png"),
 } as const;
 
-const BREATHE: Record<"enemy" | "stalker" | "sleeper", ImageSourcePropType> = {
+type Creature = "enemy" | "stalker" | "sleeper" | "mimic" | "thief";
+const BREATHE: Record<Creature, ImageSourcePropType> = {
   enemy:   require("../../assets/sprites/enemies/Guardian_Enemy_Breathe.png"),
   stalker: require("../../assets/sprites/enemies/Stalker_Enemy_Breathe.png"),
   sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy_Breathe.png"),
+  mimic: require("../../assets/sprites/enemies/Mimic_Enemy_Breathe.png"),
+  thief: require("../../assets/sprites/enemies/Thief_Enemy_Breathe.png"),
 };
 
 export const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };
@@ -46,7 +52,7 @@ const FACING_ICON: Record<Direction, keyof typeof Ionicons.glyphMap> = {
 };
 
 /** A guardian breathes: two frames swapped on a slow beat, each creature on its own phase so a floor never moves in lockstep. */
-const EnemySprite = memo(({ type, size, calm }: { type: "enemy" | "stalker" | "sleeper"; size: number; calm: boolean }) => {
+const EnemySprite = memo(({ type, size, calm }: { type: Creature; size: number; calm: boolean }) => {
   const [inhale, setInhale] = useState(false);
   useEffect(() => {
     if (calm) {
@@ -162,12 +168,14 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false
 }: {
   index: number;
   tileSize: number;
   cols: number;
   isVisited: boolean;
+  /** A dark floor hides this tile's clue numbers (it is too far from the hero). */
+  hideClue?: boolean;
   isPlayerHere: boolean;
   entity?: GameEntity;
   /** Guardians (and the Grimbur) touching this tile; only set on explored tiles. */
@@ -295,7 +303,7 @@ const GridCell = memo(({
   }, [unveiled, unveil, calm, index]);
   const lit = isVisited || isPlayerHere;
   const seen = lit || unveiled;
-  const hazard = !!entity && (entity.type === 'enemy' || entity.type === 'pit' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'trap' || entity.type === 'boss');
+  const hazard = !!entity && (entity.type === 'enemy' || entity.type === 'pit' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'mimic' || entity.type === 'trap' || entity.type === 'boss');
 
   // Background priority: visited block > fog
   // On an unveiled floor only the tiles that hid something open up: each creature stands on explored ground, the rest stays fogged.
@@ -308,7 +316,8 @@ const GridCell = memo(({
   const col = index % cols;
 
   // Don't show hint if an entity is directly on this cell (it would overlap)
-  const showHints = isVisited && !entity && (roar || vortex);
+  // On a dark floor the numbers only show beside the hero (`hideClue`): the rest must be remembered.
+  const showHints = isVisited && !entity && (roar || vortex) && !hideClue;
 
   const charged = (entity?.type === 'boss' || entity?.type === 'stalker') && (entity.charge ?? 0) >= 1;
   // On small tiles (a big floor on a small phone) an icon plus a tiny number is unreadable: the badge becomes the number itself,
@@ -386,7 +395,7 @@ const GridCell = memo(({
       {entity?.type === 'pit' && (seen || killer) && (
         <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
       )}
-      {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper') && (seen || killer) && (
+      {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'mimic') && (seen || killer) && (
         <EnemySprite type={entity.type} size={tileSize * 0.98} calm={calm} />
       )}
       {entity?.type === 'sleeper' && seen && (
@@ -409,6 +418,7 @@ const GridCell = memo(({
             style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
             hp={entity.hp ?? 0}
             charged={charged}
+            mini={!!entity.mini}
           />
           <View style={styles.bossHp} pointerEvents="none">
             <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
@@ -456,6 +466,25 @@ const GridCell = memo(({
 
       {/* Render Entity (Gem) overlaid on background */}
       {entity?.type === 'coin' && <GemSprite tileSize={tileSize} calm={calm} pulse={pulse} />}
+      {/* The mimic is drawn as a gem until something gives it away: only the clue numbers tell them apart. */}
+      {entity?.type === 'mimic' && !(seen || killer) && <GemSprite tileSize={tileSize} calm={calm} pulse={pulse} />}
+
+      {/* The thief is always in sight, with the gems it carries. */}
+      {entity?.type === 'thief' && (
+        <>
+          <EnemySprite type="thief" size={tileSize * 0.92} calm={calm} />
+          {(entity.loot ?? 0) > 0 ? (
+            <View style={[styles.loot, { minWidth: Math.max(16, tileSize * 0.34), height: Math.max(16, tileSize * 0.34), borderRadius: tileSize }]} pointerEvents="none">
+              <Text style={[styles.lootText, { fontSize: Math.max(10, tileSize * 0.22) }]}>{entity.loot}</Text>
+            </View>
+          ) : null}
+        </>
+      )}
+      {entity?.type === 'chest' && (
+        <View style={styles.pickup} pointerEvents="none">
+          <SpriteImage source={ASSETS.chest} style={{ width: tileSize * 0.78, height: tileSize * 0.78 }} resizeMode="contain" />
+        </View>
+      )}
 
       {/* A trap that went off stays on the ground, sprung: the floor remembers where it bit. */}
       {sprung && !entity && (
@@ -506,6 +535,8 @@ const GridCell = memo(({
 
 
 const styles = StyleSheet.create({
+  loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#7FE3FF' },
+  lootText: { color: '#fff', fontWeight: '900' },
   cell: { alignItems: "center", justifyContent: "center" },
   creatureShadow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(0,0,0,0.55)" },
   creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(255,72,40,0.16)" },

@@ -1,5 +1,5 @@
 // The pure helpers the reducer builds on: the world (entities by index), the hunters' turn, the Grimbur, pickups and teleports.
-import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType } from './types';
+import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType, DeathCause } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { omenEffects } from './omens';
@@ -204,9 +204,9 @@ export const huntersAct = (
   slowdown: number,
   /** Stalkers (not the Grimbur) act this many actions sooner on the deepest depths. */
   haste = 0,
-): { world: World; hits: EntityType[] } => {
-  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp }));
-  const hits: EntityType[] = [];
+): { world: World; hits: DeathCause[] } => {
+  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp, mini: e.mini }));
+  const hits: DeathCause[] = [];
   let current = world;
 
   for (const hunter of hunters) {
@@ -218,7 +218,11 @@ export const huntersAct = (
     if (turn % every !== 0) continue;
     const acted = hunterAct(current, hunter.index, playerIndex, rows, cols);
     current = acted.world;
-    if (acted.hit) hits.push(hunter.type);
+    if (acted.hit) hits.push(hunter.mini ? 'brute' : hunter.type);
+  }
+  // Thieves are not hunters: every few actions they run for a gem, or away from a hero who gets close.
+  if (turn % THIEF_EVERY === 0) {
+    for (const thief of current.entities.filter(e => e.type === 'thief')) current = thiefAct(current, thief.index, playerIndex, rows, cols);
   }
   return { world: current, hits };
 };
@@ -320,6 +324,39 @@ export const gemYield = (
 
 /** Chance per Lucky Coin that a gem also gives one more shop gem. */
 export const LUCKY_COIN_CHANCE = 0.2;
+
+/** A thief acts once every this many actions. */
+export const THIEF_EVERY = 2;
+
+/**
+ * A thief's move: away from a hero within two tiles, otherwise one step closer to the nearest gem (taking it when it lands on
+ * it). It only walks onto empty tiles or gems, never onto the hero.
+ */
+export const thiefAct = (world: World, thiefIndex: number, playerIndex: number, rows: number, cols: number): World => {
+  const thief = world.entityMap[thiefIndex];
+  if (!thief) return world;
+  const options = (['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[])
+    .map(d => neighbour(thiefIndex, d, rows, cols))
+    .filter(n => n !== -1 && n !== playerIndex && (!world.entityMap[n] || world.entityMap[n].type === 'coin'));
+  if (options.length === 0) return world;
+  const gems = world.entities.filter(e => e.type === 'coin').map(e => e.index);
+  const nearestGem = (i: number) => (gems.length === 0 ? 0 : Math.min(...gems.map(g => manhattan(i, g, cols))));
+  let to: number;
+  if (manhattan(thiefIndex, playerIndex, cols) <= 2 || gems.length === 0) {
+    to = options.reduce((best, n) => (manhattan(n, playerIndex, cols) > manhattan(best, playerIndex, cols) ? n : best));
+    if (manhattan(to, playerIndex, cols) <= manhattan(thiefIndex, playerIndex, cols)) return world;
+  } else {
+    to = options.reduce((best, n) => (nearestGem(n) < nearestGem(best) ? n : best));
+    if (nearestGem(to) >= nearestGem(thiefIndex)) return world;
+  }
+  let next = world;
+  let loot = thief.loot ?? 0;
+  if (next.entityMap[to]?.type === 'coin') {
+    next = removeEntityAt(next, to);
+    loot += 1;
+  }
+  return replaceEntityAt(next, thiefIndex, { ...thief, index: to, loot });
+};
 
 /** One heart off the Grimbur. A wounded (still living) Grimbur may call a stalker beside itself, at most `maxCalls` per fight. */
 export const hurtBoss = (

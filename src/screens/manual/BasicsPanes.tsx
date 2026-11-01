@@ -105,6 +105,11 @@ export const HazardsPane = ({ kit }: { kit: Kit }) => {
       {fact("manual.hazards.guardianInfo", "#ef5350", image(IMG.guardian, "#ef5350"))}
       {fact("manual.hazards.stalker", "#ba68c8", image(IMG.stalker, "#ba68c8"))}
       {fact("manual.hazards.sleeper", "#90a4ae", image(IMG.sleeper, "#90a4ae"))}
+      {fact("manual.hazards.mimic", "#4fc3f7", image(IMG.mimic, "#4fc3f7"))}
+      {fact("manual.hazards.thief", "#ffd54f", image(IMG.thief, "#ffd54f"))}
+      {fact("manual.hazards.lieutenant", "#ff7043", image(IMG.lieutenant, "#ff7043"))}
+      {fact("manual.hazards.chest", "#ffca28", image(IMG.chest, "#ffca28"))}
+      {fact("manual.hazards.merchant", "#e57373", image(IMG.merchant, "#e57373"))}
       {fact("manual.hazards.vortexInfo", "#ce93d8", image(IMG.vortex, "#ce93d8"))}
       <Text style={styles.note} maxFontSizeMultiplier={1.3}>
         {t("manual.hazards.note")}

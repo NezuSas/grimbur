@@ -1,3 +1,4 @@
+import { omenEffects } from "../core/engine/omens";
 import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } from "react";
 import {
   StyleSheet,
@@ -116,7 +117,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, restore, levelUp, pickRelic, buy, useAltar: spendAltar, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, restore, levelUp, pickRelic, buy, useAltar: spendAltar, sellArrows, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
   // Expeditions and endless runs can be left and continued later; the daily is tied to its date, challenges and duels are live.
   const resumable = !challenge && !duelParam && !isDaily;
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
@@ -629,6 +630,11 @@ export default function GameScreen({ navigation, route }: Props) {
   }, [levelUp, door]);
 
   const handleBuy = useCallback((item: Parameters<typeof buy>[0]) => { emitSound("POWERUP"); buy(item); }, [buy]);
+  const handleSell = useCallback(() => {
+    haptic.impact();
+    emitSound("EMBER_GAIN");
+    sellArrows();
+  }, [sellArrows]);
   const handleAltar = useCallback(() => { emitSound("RELIC_PICKED"); spendAltar(); }, [spendAltar]);
   const handleAbility = useCallback(() => { cancelTravel(); emitSound("POWERUP"); castAbility(); }, [cancelTravel, castAbility]);
   const handleItem = useCallback((item: "detector" | "bomb") => { cancelTravel(); emitSound("POWERUP"); spendItem(item); }, [cancelTravel, spendItem]);
@@ -813,6 +819,7 @@ export default function GameScreen({ navigation, route }: Props) {
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
+            dark={!!omenEffects(state.omen).dark}
             level={state.level}
             rows={state.rows}
             cols={state.cols}
@@ -944,7 +951,7 @@ export default function GameScreen({ navigation, route }: Props) {
         character={selectedCharacter}
         time={clock.get()}
         bootCover={bootCover}
-        shop={{ visible: intermission, preview: __DEV__ && !!route.params?.devIntermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onGo: handleGo }}
+        shop={{ visible: intermission, preview: __DEV__ && !!route.params?.devIntermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onSell: handleSell, onGo: handleGo }}
         onPickRelic={handlePickRelic}
         pause={{ visible: paused, saveOnExit: resumable, canRestart: !duelParam, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{

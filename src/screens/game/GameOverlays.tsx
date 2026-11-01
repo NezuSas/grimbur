@@ -34,6 +34,7 @@ type Props = {
     onChoose: (door: 0 | 1) => void;
     onBuy: (item: ShopItem) => void;
     onAltar: () => void;
+    onSell: () => void;
     onGo: () => void;
   };
   onPickRelic: (id: RelicId) => void;
@@ -89,6 +90,9 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         onBuy={shop.onBuy}
         altarUsed={state.altarUsed}
         onAltar={shop.onAltar}
+        arrows={state.attack}
+        merchantUsed={!!state.merchantUsed}
+        onSell={shop.onSell}
         onGo={shop.onGo}
       />
 

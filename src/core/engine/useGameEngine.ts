@@ -3,10 +3,10 @@ import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../sha
 import { gameReducer, initialState } from './reducer';
 import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
-import { generateBoard } from './generator';
+import { generateBoard, MID_BOSS_FLOOR } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
-import { omenFor, OmenId } from './omens';
+import { omenFor, omenEffects, OmenId } from './omens';
 import { biomeFor } from './biomes';
 import { ShopItem } from './shop';
 import { isLairFloor, lairHeartBonus } from './lair';
@@ -180,9 +180,12 @@ export function useGameEngine(): GameEngineInterface {
   }, [pureDispatch]);
 
   const levelUp = useCallback((chosenOmen?: OmenId | null) => {
-    const nextLevel = stateRef.current.level + 1;
     // The omen is the one picked at the fork; without a choice (daily, first fork-less floors) the seeded one applies.
-    const omen = chosenOmen !== undefined ? chosenOmen : omenFor(stateRef.current.runSeed, nextLevel, stateRef.current.mode);
+    const picked = chosenOmen !== undefined ? chosenOmen : omenFor(stateRef.current.runSeed, stateRef.current.level + 1, stateRef.current.mode);
+    // A shortcut jumps one floor: the hero lands on the floor after next.
+    const skip = picked && omenEffects(picked).skip ? 1 : 0;
+    const nextLevel = stateRef.current.level + 1 + skip;
+    const omen = picked;
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
     const ascension = stateRef.current.ascension;
     const board = generateBoard(nextLevel, seed, {
@@ -193,6 +196,7 @@ export function useGameEngine(): GameEngineInterface {
       extraPits: relicCount(stateRef.current.relics, 'greedy_idol') > 0 ? 2 : 0,
       bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),
       endless: stateRef.current.mode === 'endless',
+      midBoss: stateRef.current.mode !== 'endless' && nextLevel === MID_BOSS_FLOOR,
     });
 
     pureDispatch({
@@ -205,12 +209,14 @@ export function useGameEngine(): GameEngineInterface {
         attack: Math.max(1, board.attack - modifiersFor(ascension).arrowPenalty),
         seed,
         omen,
+        skip,
       },
     });
   }, [pureDispatch]);
 
   const buy = useCallback((item: ShopItem) => pureDispatch({ type: 'BUY', item }), [pureDispatch]);
   const useAltar = useCallback(() => pureDispatch({ type: 'ALTAR' }), [pureDispatch]);
+  const sellArrows = useCallback(() => pureDispatch({ type: 'SELL_ARROWS' }), [pureDispatch]);
   const useItem = useCallback((item: 'detector' | 'bomb') => pureDispatch({ type: 'USE_ITEM', item }), [pureDispatch]);
   const useAbility = useCallback(() => pureDispatch({ type: 'USE_ABILITY' }), [pureDispatch]);
   const undo = useCallback(() => pureDispatch({ type: 'UNDO' }), [pureDispatch]);
@@ -232,6 +238,7 @@ export function useGameEngine(): GameEngineInterface {
     pickRelic,
     buy,
     useAltar,
+    sellArrows,
     useItem,
     useAbility,
     undo,

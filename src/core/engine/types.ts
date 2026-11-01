@@ -8,26 +8,28 @@ import type { ShopItem } from './shop';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
-export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper';
+export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper' | 'mimic' | 'thief' | 'chest';
+/** What ended a run: a creature, or the Grimbur's lieutenant (a `boss` entity with `mini`). */
+export type DeathCause = EntityType | 'brute';
 
 /** Entities that kill the player on contact. */
-export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper'];
+export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper', 'mimic'];
 
 /**
  * The hazards the clue numbers count (guardians, the Grimbur, stalkers where they stand, sleepers and vortexes). The clues on the
  * board (proximity.ts) and the fairness check of the generator (solver.ts) both read this one list, so they can never disagree.
  */
-export const CLUE_HAZARD_TYPES: readonly EntityType[] = ['enemy', 'boss', 'stalker', 'sleeper', 'pit'];
+export const CLUE_HAZARD_TYPES: readonly EntityType[] = ['enemy', 'boss', 'stalker', 'sleeper', 'pit', 'mimic'];
 export const isClueHazard = (type: EntityType | undefined): boolean => !!type && CLUE_HAZARD_TYPES.includes(type);
 
 /** Guardians an arrow, a volley or a bomb can destroy (the Grimbur is handled apart). */
-export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleeper'];
+export const GUARDIAN_TYPES: readonly EntityType[] = ['enemy', 'stalker', 'sleeper', 'mimic'];
 
 /** Monsters that walk toward the player (they wind up before striking). */
 export const HUNTER_TYPES: readonly EntityType[] = ['boss', 'stalker'];
 
 /** What the player ran into on the last move (UI feedback only). */
-export type PickupKind = 'shield' | 'ammo' | 'trap';
+export type PickupKind = 'shield' | 'ammo' | 'trap' | 'chest' | 'thief';
 
 export interface GameEntity {
   index: number;
@@ -38,6 +40,10 @@ export interface GameEntity {
   charge?: number;
   /** Stalkers the Grimbur has called so far (the boss only). */
   calls?: number;
+  /** The Grimbur's lieutenant: a smaller boss that guards the middle of the expedition (it never ends the run). */
+  mini?: boolean;
+  /** Gems a thief carries. */
+  loot?: number;
 }
 
 export interface GameState {
@@ -71,7 +77,7 @@ export interface GameState {
   /** Extra relics offered per draft (Forge upgrade). */
   draftBonus: number;
   totalCoins: number;
-  deathCause: EntityType | null;
+  deathCause: DeathCause | null;
   /** Set to true for one frame when the player was teleported by a vortex. */
   wasTeleported: boolean;
   /** What the last vortex cost (an arrow or a shop gem), for one move; null when it cost nothing or none was entered. */
@@ -88,6 +94,8 @@ export interface GameState {
   isVictory: boolean;
   /** Set for one move when the player stepped on a trap or collected a power-up. */
   lastPickup: PickupKind | null;
+  /** The relic the last opened chest gave. */
+  chestRelic?: RelicId | null;
   /** Gems collected this run and not yet spent in the shop between floors. */
   gems: number;
   /** One-use items in the bag. */
@@ -107,6 +115,10 @@ export interface GameState {
   /** The board just before the last step, so one step per floor can be taken back. */
   undo: UndoSnapshot | null;
   undoUsed: boolean;
+  /** The blood merchant already traded on this stop between floors. */
+  merchantUsed?: boolean;
+  /** The Sand Hourglass's spare take-back was used on this floor. */
+  hourglassUsed?: boolean;
   /** The board just before the action that killed the hero: what a revive goes back to (null while alive). */
   lastBreath?: UndoSnapshot | null;
   /** Times the hero was revived with embers in this run. */
@@ -129,6 +141,8 @@ export type GameAction =
   | { type: 'BUY'; item: ShopItem }
   /** Sacrifices the shield at the altar for an extra relic draft (only between floors). */
   | { type: 'ALTAR' }
+  /** The blood merchant: arrows for shop gems (once between two floors). */
+  | { type: 'SELL_ARROWS' }
   | { type: 'USE_ITEM'; item: 'detector' | 'bomb' }
   | { type: 'USE_ABILITY' }
   /** Takes back the last step (once per floor). */
@@ -169,10 +183,14 @@ export type GameAction =
         attack: number;
         seed?: number;
         omen?: OmenId | null;
+        /** Floors jumped over by a shortcut (their clearing bonus is paid on arrival). */
+        skip?: number;
       };
     };
 
 export interface GameEngineInterface {
+  /** The blood merchant: arrows for shop gems. */
+  sellArrows: () => void;
   state: GameState;
   isAttacking: boolean;
   move: (direction: Direction) => void;

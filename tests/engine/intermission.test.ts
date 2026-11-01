@@ -249,7 +249,7 @@ describe('biomes', () => {
 
 describe('cursed relics', () => {
   it('are in the relic list, flagged as cursed, with a description', () => {
-    expect(CURSED_RELICS.length).toBe(5);
+    expect(CURSED_RELICS.length).toBe(7);
     for (const id of CURSED_RELICS) expect(RELICS[id].description.length).toBeGreaterThan(10);
   });
 

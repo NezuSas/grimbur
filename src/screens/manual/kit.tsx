@@ -1,4 +1,6 @@
 import React from "react";
+import { MIMIC_FROM, THIEF_FROM, MID_BOSS_FLOOR, MID_BOSS_HP, CHEST_FROM } from "../../core/engine/generator";
+import { MERCHANT_ARROWS, MERCHANT_GEMS } from "../../core/engine/shop";
 import { ImageSourcePropType, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -54,6 +56,13 @@ export const PARAMS: Params = {
   stalkerMoves: GAME_CONFIG.stalker.moveEvery,
   sleeperFloor: GAME_CONFIG.sleeper.minFloor,
   sleeperWake: GAME_CONFIG.sleeper.wakeDistance,
+  mimicFloor: MIMIC_FROM,
+  thiefFloor: THIEF_FROM,
+  midFloor: MID_BOSS_FLOOR,
+  midHearts: MID_BOSS_HP,
+  chestFloor: CHEST_FROM,
+  sellArrows: MERCHANT_ARROWS,
+  sellGems: MERCHANT_GEMS,
   cooldown: `${abilityCooldown("scout")}-${abilityCooldown("brace")}`,
   maxItems: MAX_ITEMS,
   days: FREEZE_EVERY_DAYS,
@@ -68,6 +77,11 @@ export const IMG = {
   guardian: require("../../assets/sprites/enemies/Guardian_Enemy.png"),
   stalker: require("../../assets/sprites/enemies/Stalker_Enemy.png"),
   sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
+  mimic: require("../../assets/sprites/enemies/Mimic_Enemy.png"),
+  thief: require("../../assets/sprites/enemies/Thief_Enemy.png"),
+  lieutenant: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
+  chest: require("../../assets/sprites/items/Icon_Chest.png"),
+  merchant: require("../../assets/sprites/items/Icon_Merchant.png"),
   vortex: require("../../assets/sprites/tiles/Danger_Vortex.png"),
   trap: require("../../assets/sprites/tiles/Trap_Sprung.png"),
   hidden: require("../../assets/sprites/tiles/Tile_Hidden.png"),

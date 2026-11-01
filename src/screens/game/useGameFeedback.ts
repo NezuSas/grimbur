@@ -9,7 +9,9 @@ import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemSt
 import { tileCenter } from "../../core/feedback/geometry";
 import { coinReward, killValue } from "../../core/engine/scoring";
 import { omenEffects } from "../../core/engine/omens";
-import { relicCount } from "../../core/engine/relics";
+import { RELICS, relicCount } from "../../core/engine/relics";
+import { useT } from "../../i18n/useT";
+import { relicText } from "../../i18n/keys";
 import type { GameState } from "../../core/engine/types";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import { useGameLayout } from "../../ui/layout/useGameLayout";
@@ -32,6 +34,8 @@ type Params = {
  * pickup. It owns the floating scores, the flying gems, the screen flashes and the board's anchor for them.
  */
 export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, bootCover }: Params) {
+  const { t } = useT();
+  const relicName = (id: Parameters<typeof relicText>[1]) => relicText(t, id, "name");
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [activeCoins, setActiveCoins] = useState<{ id: number; x: number; y: number }[]>([]);
   const [popups, setPopups] = useState<Popup[]>([]);
@@ -184,6 +188,14 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           if (e.pickup === "trap") {
             emitSound("TRAP_TRIGGERED");
             pushPopup({ points: GAME_CONFIG.scoring.trapPenalty, type: "trap" }, e.tile);
+          } else if (e.pickup === "chest") {
+            // A chest: the relic it held is named where it was opened.
+            emitSound("RELIC_PICKED");
+            haptic.notify(NotificationFeedbackType.Success);
+            if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: `${RELICS[state.chestRelic].icon} ${relicName(state.chestRelic)}`, subColor: "#FFD54F", popScale: 1.15 }, e.tile);
+          } else if (e.pickup === "thief") {
+            emitSound("COIN_COLLECTED");
+            pushPopup({ points: 0, type: "streak", sub: "💎 ✔", subColor: "#4FC3F7" }, e.tile);
           } else {
             emitSound("POWERUP");
             pushPopup({ points: e.pickup === "ammo" ? GAME_CONFIG.pickups.ammoAmount : 0, type: e.pickup }, e.tile);

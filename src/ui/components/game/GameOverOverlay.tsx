@@ -7,7 +7,7 @@ import GlyphIcon from "../GlyphIcon";
 import { Ionicons } from '@expo/vector-icons';
 
 import type { Character } from '../../../data/characters';
-import type { EntityType } from '../../../core/engine/types';
+import type { DeathCause } from '../../../core/engine/types';
 import { formatTime } from '../../../shared/utils/formatTime';
 import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
@@ -49,7 +49,7 @@ type Props = {
   totalCoins: number;
   time: number;
   character: Character;
-  deathCause: EntityType | null;
+  deathCause: DeathCause | null;
   /** What the board showed before the fatal action: the lesson of this defeat. */
   review?: DeathReview | null;
   victory?: boolean;

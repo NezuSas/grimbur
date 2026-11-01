@@ -1,15 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated } from "react-native";
 import Text from "../Text";
-import type { EntityType } from '../../../core/engine/types';
+import type { DeathCause } from '../../../core/engine/types';
 import { formatNumberNow } from '../../../i18n/useT';
 
-export const KILLERS: Partial<Record<EntityType, number>> = {
+export const KILLERS: Partial<Record<DeathCause, number>> = {
   enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
   stalker: require('../../../assets/sprites/enemies/Stalker_Enemy.png'),
   sleeper: require('../../../assets/sprites/enemies/Sleeper_Enemy.png'),
   boss: require('../../../assets/sprites/enemies/Grimbur_Boss.png'),
   pit: require('../../../assets/sprites/tiles/Danger_Vortex.png'),
+  mimic: require('../../../assets/sprites/enemies/Mimic_Enemy.png'),
+  brute: require('../../../assets/sprites/enemies/Lieutenant_Boss.png'),
 };
 
 /** Counts a number up to its value (a small reward moment for the score). */

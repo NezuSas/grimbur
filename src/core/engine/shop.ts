@@ -4,6 +4,7 @@ import { isLairFloor } from './lair';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import type { GameMode } from './seed';
 import type { OmenId } from './omens';
+import { MID_BOSS_FLOOR } from './generator';
 import type { AbilityId } from './abilities';
 
 /** What gems buy between floors. */
@@ -50,7 +51,14 @@ export type Door = OmenId | null;
 const DOORS: readonly Door[] = ['bounty', 'calm', 'arsenal', null];
 /** The elite door shows up at a fork from this floor, with this chance. */
 export const ELITE_FROM = 3;
+/** The blood merchant takes this many arrows for this many shop gems. */
+export const MERCHANT_ARROWS = 2;
+export const MERCHANT_GEMS = 5;
 export const ELITE_CHANCE = 0.35;
+/** The dark floor can be offered from this floor. */
+export const DARK_FROM = 4;
+/** A shortcut can be offered from this floor. */
+export const SHORTCUT_FROM = 3;
 
 /**
  * The two doors the player chooses between before floor `level` (only expedition and endless; the daily keeps the
@@ -61,7 +69,10 @@ export function forkDoors(runSeed: number, level: number, mode: GameMode): [Door
   if (mode !== 'endless' && level > GAME_CONFIG.expedition.floors) return null;
   const next = createPRNG(deriveLevelSeed(runSeed, level) ^ 0x2c1b3c6d);
   next();
-  const pool = [...DOORS];
+  // From the fourth floor the dark floor can be one of the doors; from the third, a shortcut that never jumps the lieutenant's floor
+  // and never lands past the lair.
+  const pool: Door[] = level >= DARK_FROM ? [...DOORS, 'dark'] : [...DOORS];
+  if (level >= SHORTCUT_FROM && level !== MID_BOSS_FLOOR && (mode === 'endless' || level + 1 <= GAME_CONFIG.expedition.floors)) pool.push('shortcut');
   const first = pool.splice(Math.floor(next() * pool.length), 1)[0];
   const second = pool[Math.floor(next() * pool.length)];
   // From the third floor one fork in three swaps a door for the elite floor: the risk is always a choice, never forced.

@@ -109,6 +109,8 @@ type Props = {
   flagPing?: { index: number; n: number } | null;
   /** Reduced motion: no shakes, no pulsing. */
   calm?: boolean;
+  /** A dark floor: clue numbers only show beside the hero. */
+  dark?: boolean;
   /** The heartbeat, only while the hero stands next to a hazard (and not calm): the clues beat with it. */
   beat?: Animated.Value;
   /** The outfit the hero wears (classic when omitted). */
@@ -124,7 +126,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -478,6 +480,7 @@ const BoardView: React.FC<Props> = memo(
                   flagArt={flag}
                   unveiled={unveil}
                   lurking={shown[i]?.type === "stalker" && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) <= 2}
+                  hideClue={dark && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) > 1}
                   calm={!!calm}
                   sprung={sprung.has(i)}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}

@@ -10,8 +10,8 @@
  * Output per floor: clear rate, how often the board forced a guess, and how
  * often a guess killed the bot. Use it to tune `core/difficulty/difficulty.ts`.
  */
-import { gameReducer, initialState } from '../src/core/engine/reducer';
-import { generateBoard } from '../src/core/engine/generator';
+import { arrowPath, gameReducer, initialState } from '../src/core/engine/reducer';
+import { generateBoard, MID_BOSS_FLOOR } from '../src/core/engine/generator';
 import { omenFor } from '../src/core/engine/omens';
 import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
@@ -151,11 +151,20 @@ function choose(state: GameState): Choice {
   const marks = deduce(state);
   const reaction = dealWithStalkers(state, marks);
   if (reaction) return reaction;
+  // A boss (the lieutenant) or a thief in the line of fire is shot, as a player would.
+  if (state.attack > 0) {
+    for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as Direction[]) {
+      const hit = arrowPath(state, dir).targetIndex;
+      const type = hit !== -1 ? state.entityMap[hit]?.type : undefined;
+      if (type === 'boss' || type === 'thief') return { attack: true, dir };
+    }
+  }
   const visited = new Set(state.visited);
 
   const targets: number[] = [];
   const gems = state.entities.filter(e => e.type === 'coin').map(e => e.index);
-  const items = state.entities.filter(e => e.type === 'shield' || e.type === 'ammo').map(e => e.index);
+  // Thieves and chests are always in sight: walk into them (a thief gives back the gems it carries).
+  const items = state.entities.filter(e => e.type === 'shield' || e.type === 'ammo' || e.type === 'thief' || e.type === 'chest').map(e => e.index);
   const frontierSafe = [...marks.entries()].filter(([i, m]) => m === 'safe' && !visited.has(i)).map(([i]) => i);
   targets.push(...gems, ...items, ...frontierSafe);
 
@@ -232,7 +241,7 @@ interface FloorResult {
 }
 
 function playFloor(floor: number, seed: number): FloorResult {
-  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10 });
+  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR });
   let state: GameState = gameReducer(
     { ...initialState },
     {
@@ -307,7 +316,7 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 
   for (let i = 0; i < RUNS; i++) {
     const seed = floor * 100003 + i * 7919 + 1;
-    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10 });
+    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR });
     dims = `${board.rows}x${board.cols}`;
     cells = board.rows * board.cols;
     gems += board.coins;

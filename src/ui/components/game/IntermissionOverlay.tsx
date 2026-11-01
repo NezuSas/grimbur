@@ -11,17 +11,20 @@ import OverlayContainer from "./OverlayContainer";
 import { PopButton } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { omenText } from "../../../i18n/keys";
-import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, type Door, type ShopItem } from "../../../core/engine/shop";
+import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, type Door, type ShopItem } from "../../../core/engine/shop";
 import type { BiomeId } from "../../../core/engine/biomes";
 import type { TranslationKey } from "../../../i18n/en";
 
 const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#FFB74D", shield: "#4FC3F7", detector: "#81C784", bomb: "#FF7043" };
 const GEM = require("../../../assets/sprites/items/Icon_Gem.png");
 /** Each omen's door wears the art and colour of what it brings. */
+const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.png");
 const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
   bounty: { art: require("../../../assets/sprites/items/Icon_Gem.png"), color: "#4FC3F7" },
   calm: { art: require("../../../assets/sprites/relics/lantern.png"), color: "#9EE37D" },
   arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.png"), color: "#FF8A65" },
+  dark: { art: require("../../../assets/sprites/items/Icon_Darkness.png"), color: "#7986CB" },
+  shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.png"), color: "#A1887F" },
   elite: { art: require("../../../assets/sprites/ui/Icon_Skull.png"), color: "#FF5252" },
 };
 
@@ -45,6 +48,10 @@ type Props = {
   /** The shield comes back every floor anyway, so the altar would be free: it is not offered. */
   altarFree?: boolean;
   onAltar: () => void;
+  /** Arrows the hero carries (the blood merchant buys two). */
+  arrows?: number;
+  merchantUsed?: boolean;
+  onSell?: () => void;
   onGo: () => void;
 };
 
@@ -52,7 +59,7 @@ type Props = {
  * Between two floors, over the next cave: the way down so far and the gems on top, the shop as four cards with the ware
  * big, and below the two doors as portals in the colour of their omen (or the floor ahead) beside the button down.
  */
-const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, shield, items, doors, chosen, onChoose, onBuy, altarUsed, altarFree, onAltar, onGo }: Props) => {
+const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, shield, items, doors, chosen, onChoose, onBuy, altarUsed, altarFree, onAltar, onGo, arrows = 0, merchantUsed = false, onSell }: Props) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   // The button only works a moment after the overlay appears, so a leftover tap from the level card cannot skip it.
@@ -78,7 +85,9 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
   const biomeArt = BIOME_ART[nextIsLair ? "lair" : newBiome ?? "cave"];
   const biomeLine =
     newBiome && newBiome !== "cave" && newBiome !== "lair" ? `${t(`biome.${newBiome}.name` as TranslationKey)}: ${t(`biome.${newBiome}.rule` as TranslationKey)}` : null;
-  const goLabel = nextIsLair ? t("shop.goLair") : t("shop.go", { floor: nextFloor });
+  // The shortcut lands one floor deeper than the next one.
+  const landing = doors && chosen !== null && chosen !== undefined && doors[chosen] === "shortcut" ? nextFloor + 1 : nextFloor;
+  const goLabel = nextIsLair ? t("shop.goLair") : t("shop.go", { floor: landing });
   // The doors to draw: the two of the fork, or a single one showing the floor ahead.
   const portals: { key: string; door?: Door; fork: boolean }[] = doors ? doors.map((door, i) => ({ key: `d${i}`, door, fork: true })) : [{ key: "ahead", fork: false }];
 
@@ -96,7 +105,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             </Text>
             <Ionicons name="chevron-forward" size={16} color="#B99A7C" />
             <Text style={styles.journeyTo} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-              {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: nextFloor })).toLocaleUpperCase()}
+              {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
           </View>
           <Text style={styles.title} accessibilityRole="header" numberOfLines={1} maxFontSizeMultiplier={1.15}>
@@ -147,6 +156,22 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             );
           })}
         </View>
+        <View style={styles.deals}>
+        {onSell && (arrows >= MERCHANT_ARROWS || merchantUsed) ? (
+          <TouchableOpacity
+            disabled={merchantUsed}
+            onPress={onSell}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={`${t("shop.merchant.name")}. ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
+            style={[styles.altar, styles.merchant, merchantUsed && { opacity: 0.55 }]}
+          >
+            <SpriteImage source={MERCHANT_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
+            <Text style={[styles.altarText, { color: "#FFCDD2" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              {merchantUsed ? t("shop.merchant.done") : `${t("shop.merchant.name")}: ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
         {(shield || altarUsed) && !altarFree ? (
           <TouchableOpacity
             disabled={!shield || altarUsed}
@@ -162,6 +187,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             </Text>
           </TouchableOpacity>
         ) : null}
+        </View>
 
         {/* ── The way on: two portals (or the floor ahead) and the button ───── */}
         <View style={[styles.wayRow, narrow && { flexDirection: "column" }]}>
@@ -240,7 +266,9 @@ const styles = StyleSheet.create({
   wareDesc: { color: "#CAB39C", fontSize: 11, fontWeight: "600", textAlign: "center", minHeight: 28 },
   wareBuy: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, paddingHorizontal: 14, paddingVertical: 4, borderRadius: 12 },
   wareBuyText: { color: "#1a1200", fontWeight: "900", fontSize: 14 },
-  altar: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "#CE93D8", backgroundColor: "rgba(206,147,216,0.12)" },
+  deals: { flexDirection: "row", gap: 8 },
+  merchant: { borderColor: "#E57373", backgroundColor: "rgba(229,115,115,0.12)" },
+  altar: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "#CE93D8", backgroundColor: "rgba(206,147,216,0.12)" },
   altarText: { flex: 1, color: "#E1BEE7", fontWeight: "800", fontSize: 12 },
   wayRow: { flexDirection: "row", alignItems: "stretch", gap: 10 },
   doors: { flex: 1, flexDirection: "row", gap: 8 },

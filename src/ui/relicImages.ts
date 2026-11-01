@@ -27,4 +27,10 @@ export const RELIC_IMAGES: Record<RelicId, ImageSourcePropType> = {
   owl: require('../assets/sprites/relics/owl.png'),
   toll_free: require('../assets/sprites/relics/toll_free.png'),
   gambler: require('../assets/sprites/relics/gambler.png'),
+  flare_arrow: require('../assets/sprites/relics/flare_arrow.png'),
+  lullaby: require('../assets/sprites/relics/lullaby.png'),
+  stun_shot: require('../assets/sprites/relics/stun_shot.png'),
+  hourglass: require('../assets/sprites/relics/hourglass.png'),
+  blood_gems: require('../assets/sprites/relics/blood_gems.png'),
+  reaper: require('../assets/sprites/relics/reaper.png'),
 };

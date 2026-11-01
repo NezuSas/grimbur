@@ -60,6 +60,8 @@ export interface GenerateOptions {
   biome?: BiomeId;
   /** Vortexes added on top of the floor's budget (the Greedy Idol curse). */
   extraPits?: number;
+  /** The middle of the expedition: the Grimbur's lieutenant guards this floor. */
+  midBoss?: boolean;
 }
 
 export function generateBoard(
@@ -234,6 +236,10 @@ export function generateBoard(
     }
   }
 
+  // Extras rolled apart from the board (so the board itself is the same with or without them): the lieutenant in the middle of
+  // the expedition, a mimic (a guardian that looks like a gem, given away only by the clues), a thief and a chest.
+  entities = addExtras(entities, level, seed, diff.rows, diff.cols, spawnIndex, safeSet, { withBoss, midBoss: options.midBoss === true, lethalRoom: room });
+
   return {
     level,
     rows: diff.rows,
@@ -243,9 +249,82 @@ export function generateBoard(
     // Report the coins actually placed so the level can always be completed.
     coins: entities.filter(e => e.type === 'coin').length,
     // The lair is a fight: always arrows for every guardian there and every heart of the Grimbur (plus a miss to spare).
-    attack: (withBoss ? Math.max(diff.attackCharges, enemyBudget + GAME_CONFIG.boss.hp + 1) : diff.attackCharges) + omen.arrowBonus,
+    attack: (withBoss ? Math.max(diff.attackCharges, enemyBudget + GAME_CONFIG.boss.hp + 1) : diff.attackCharges) + omen.arrowBonus + (options.midBoss ? MID_BOSS_HP + 1 : 0),
     seed
   };
+}
+
+/** The floor of the Grimbur's lieutenant, its hearts, and from which floors (and how often) the other extras show up. */
+export const MID_BOSS_FLOOR = 5;
+export const MID_BOSS_HP = 2;
+export const MIMIC_FROM = 4;
+export const MIMIC_CHANCE = 0.4;
+export const THIEF_FROM = 3;
+export const THIEF_CHANCE = 0.3;
+export const CHEST_FROM = 2;
+export const CHEST_CHANCE = 0.3;
+
+function addExtras(
+  base: GameEntity[],
+  level: number,
+  seed: number,
+  rows: number,
+  cols: number,
+  spawn: number,
+  safe: ReadonlySet<number>,
+  opts: { withBoss: boolean; midBoss: boolean; lethalRoom: number },
+): GameEntity[] {
+  const roll = createPRNG((seed ^ 0x3c6ef372) >>> 0);
+  roll(); // discard the weakly-mixed first sample
+  const want = { mimic: roll() < MIMIC_CHANCE, thief: roll() < THIEF_CHANCE, chest: roll() < CHEST_CHANCE };
+  let entities = base;
+  const free = (far: number) => {
+    const used = new Set(entities.map(e => e.index));
+    const out: number[] = [];
+    for (let i = 0; i < rows * cols; i++) {
+      if (i === spawn || used.has(i) || safe.has(i)) continue;
+      if (Math.floor(i / cols) + (i % cols) >= far) out.push(i);
+    }
+    return out;
+  };
+  const gems = () => entities.filter(e => e.type === 'coin').map(e => e.index);
+  const lethal = () => entities.filter(e => e.type === 'pit' || e.type === 'enemy' || e.type === 'stalker' || e.type === 'sleeper' || e.type === 'mimic').map(e => e.index);
+  // A hazard is only added where the floor stays reachable and solvable by deduction.
+  const tryAdd = (make: (index: number) => GameEntity, far: number, hazard: boolean, tries = 12): boolean => {
+    const pool = free(far);
+    for (let t = 0; t < tries && pool.length > 0; t++) {
+      const at = pool.splice(Math.floor(roll() * pool.length), 1)[0];
+      const next = [...entities, make(at)];
+      if (hazard) {
+        const before = entities;
+        entities = next;
+        const ok = validateSolvability(spawn, gems(), lethal(), rows, cols) && isSolvableByDeduction(rows, cols, entities, spawn);
+        if (ok) return true;
+        entities = before;
+        continue;
+      }
+      entities = next;
+      return true;
+    }
+    return false;
+  };
+
+  if (opts.midBoss) {
+    const pits = () => entities.filter(e => e.type === 'pit').map(e => e.index);
+    const pool = free(GAME_CONFIG.boss.minSpawnDistance);
+    while (pool.length > 0) {
+      const at = pool.splice(Math.floor(roll() * pool.length), 1)[0];
+      if (!canReachNeighbourOf(spawn, at, pits(), rows, cols)) continue;
+      entities = [...entities, { index: at, type: 'boss', hp: MID_BOSS_HP, mini: true, calls: GAME_CONFIG.boss.maxCalls }];
+      break;
+    }
+  }
+  if (opts.withBoss) return entities;
+  // The mimic never pushes the floor past its share of lethal tiles.
+  if (level >= MIMIC_FROM && want.mimic && lethal().length < opts.lethalRoom) tryAdd(index => ({ index, type: 'mimic' }), 4, true);
+  if (level >= THIEF_FROM && !opts.midBoss && want.thief) tryAdd(index => ({ index, type: 'thief', loot: 0 }), 4, false);
+  if (level >= CHEST_FROM && want.chest) tryAdd(index => ({ index, type: 'chest' }), 3, false);
+  return entities;
 }
 
 /** True when some tile next to `target` can be reached from `start` without crossing `blocked`. */

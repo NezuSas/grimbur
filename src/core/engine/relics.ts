@@ -29,7 +29,13 @@ export type RelicId =
   | 'bomb_belt'
   | 'owl'
   | 'toll_free'
-  | 'gambler';
+  | 'gambler'
+  | 'flare_arrow'
+  | 'lullaby'
+  | 'stun_shot'
+  | 'hourglass'
+  | 'blood_gems'
+  | 'reaper';
 
 export interface RelicInfo {
   id: RelicId;
@@ -216,6 +222,50 @@ export const RELICS: Record<RelicId, RelicInfo> = {
     max: 1,
     cursed: true,
   },
+  flare_arrow: {
+    id: 'flare_arrow',
+    name: 'Flare Arrow',
+    description: 'Every arrow lights the tiles it crosses: empty ones are explored, vortexes and traps get marked.',
+    icon: '🎆',
+    max: 1,
+  },
+  lullaby: {
+    id: 'lullaby',
+    name: 'Lullaby Flute',
+    description: 'Sleeping beasts never wake up.',
+    icon: '🎶',
+    max: 1,
+  },
+  stun_shot: {
+    id: 'stun_shot',
+    name: 'Stunning Blow',
+    description: 'Slaying a guardian stuns the hunters: they do not act on that action.',
+    icon: '💫',
+    max: 1,
+  },
+  hourglass: {
+    id: 'hourglass',
+    name: 'Sand Hourglass',
+    description: 'You can take back two steps on every floor instead of one.',
+    icon: '⏳',
+    max: 1,
+  },
+  blood_gems: {
+    id: 'blood_gems',
+    name: 'Blood Gems',
+    description: 'Every gem also gives an arrow, but you can never hold a shield.',
+    icon: '🩸',
+    max: 1,
+    cursed: true,
+  },
+  reaper: {
+    id: 'reaper',
+    name: "Reaper's Scythe",
+    description: 'Kills are worth double, but a missed arrow costs two.',
+    icon: '💀',
+    max: 1,
+    cursed: true,
+  },
 };
 
 /** The roll of the Trickster's Dice for a floor: +3 arrows or -1, the same for everyone on the same run and floor. */
@@ -224,6 +274,20 @@ export const gamblerRoll = (runSeed: number, floor: number): number => {
   next();
   return next() < 0.5 ? 3 : -1;
 };
+
+/** Chance that a chest holds a cursed relic (only when the run carries none). */
+export const CHEST_CURSE_CHANCE = 0.3;
+
+/** The relic a chest at `tile` holds, the same for everyone on the same run (null when nothing useful is left). */
+export function chestRelic(runSeed: number, floor: number, tile: number, owned: readonly RelicId[]): RelicId | null {
+  const roll = createPRNG(deriveLevelSeed(runSeed, 7000 + floor * 131 + tile));
+  roll();
+  const cursed = !hasCursed(owned) && roll() < CHEST_CURSE_CHANCE;
+  const pool = (cursed ? CURSED_RELICS : NORMAL_RELICS).filter(id => isUsefulRelic(id, owned));
+  const fallback = NORMAL_RELICS.filter(id => isUsefulRelic(id, owned));
+  const from = pool.length > 0 ? pool : fallback;
+  return from.length > 0 ? from[Math.floor(roll() * from.length)] : null;
+}
 
 /** Twelve new tiles explored are worth one detector charge with the Owl Totem. */
 export const OWL_EVERY = 12;
@@ -264,6 +328,9 @@ export function isUsefulRelic(id: RelicId, owned: readonly RelicId[], ctx: Draft
   if (id === 'bulwark' && ctx.startShield) return false;
   if (id === 'trap_sense' && ctx.trapImmune) return false;
   if (id === 'lantern' && ctx.startLit) return false;
+  // A run without shields gets nothing from the shield relics, and a shield relic is wasted on Blood Gems.
+  if ((id === 'bulwark' || id === 'thorns') && owned.includes('blood_gems')) return false;
+  if (id === 'blood_gems' && (ctx.startShield || owned.includes('bulwark'))) return false;
   return true;
 }
 

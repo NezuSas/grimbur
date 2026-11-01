@@ -9,7 +9,7 @@ import type { GameMode } from './seed';
  * flavour (risk for reward, a breather, a bigger arsenal) without changing the board format.
  * Chosen purely from the run seed and the floor, so a daily challenge has the same omens for everyone.
  */
-export type OmenId = 'bounty' | 'calm' | 'arsenal' | 'elite';
+export type OmenId = 'bounty' | 'calm' | 'arsenal' | 'elite' | 'dark' | 'shortcut';
 
 export interface OmenEffects {
   /** Gem score multiplier. */
@@ -28,6 +28,10 @@ export interface OmenEffects {
   arrowBonus: number;
   /** Clearing the floor earns a second relic pick in the next draft. */
   extraRelic?: boolean;
+  /** The clue numbers only show around the hero: the rest has to be remembered. */
+  dark?: boolean;
+  /** A shortcut: one floor is jumped over (its clearing bonus is paid, its gems and relic are lost). */
+  skip?: boolean;
 }
 
 export const OMENS: Record<OmenId, OmenEffects> = {
@@ -39,6 +43,10 @@ export const OMENS: Record<OmenId, OmenEffects> = {
   arsenal: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 1, coinDelta: 0, stalkerDelta: 1, arrowBonus: 2 },
   // The elite floor, only ever chosen at a fork: two more guardians, a stalker and a vortex, two arrows to face them;
   // every gem pays double (score and shop) and clearing it earns two relics from the next draft.
+  // In the dark the clue numbers only show beside the hero; gems pay 50% more (score and shop) for the memory work.
+  dark: { gemMultiplier: 1.5, shopGemEvery: 2, enemyDelta: 0, pitDelta: 0, coinDelta: 0, stalkerDelta: 0, arrowBonus: 0, dark: true },
+  // A shortcut down: the next floor is skipped (its clearing bonus paid), but the hero lands with two arrows less by a vortex more.
+  shortcut: { gemMultiplier: 1, shopGemEvery: 0, enemyDelta: 0, pitDelta: 1, coinDelta: 0, stalkerDelta: 0, arrowBonus: -2, skip: true },
   elite: { gemMultiplier: 2, shopGemEvery: 1, enemyDelta: 2, pitDelta: 1, coinDelta: 0, stalkerDelta: 1, arrowBonus: 2, extraRelic: true },
 };
 
