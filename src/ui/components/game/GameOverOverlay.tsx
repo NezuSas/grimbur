@@ -228,7 +228,7 @@ const GameOverOverlay = ({
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   const sprite = heroSprite;
   // A defeat with a lesson gives the hero a little less room on short screens, so the lesson fits under it.
-  const spriteSize = height < 330 ? 96 : compact ? (review && !victory ? 104 : 132) : 196;
+  const spriteSize = height < 330 ? 96 : compact ? (review && !victory ? (dailyLabel || streak ? 84 : 104) : 132) : 196;
   // The notch / gesture insets are padding of the overlay, so the card must fit what is left of them.
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);

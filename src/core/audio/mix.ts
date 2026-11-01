@@ -44,7 +44,8 @@ export const MIX = {
   trap: { kind: 'sfx', db: -18 },
   // Constant, light feedback
   charge: { kind: 'sfx', db: -19 },
-  step: { kind: 'sfx', db: -20 },
+  // Every step sounds: audible on a phone speaker, still under the feedback that matters (gems, hits).
+  step: { kind: 'sfx', db: -17 },
   uiTap: { kind: 'sfx', db: -21 },
   killTail: { kind: 'sfx', db: -22 },
   miss: { kind: 'sfx', db: -22 },

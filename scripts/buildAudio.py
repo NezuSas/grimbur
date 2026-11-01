@@ -22,7 +22,7 @@ CEILING = 10 ** (-1.2 / 20)
 # Effect name -> (source file, options). `loop` makes a seamless loop of that many seconds; `cut` keeps only that many seconds
 # (fading out the last `fade` seconds); `rate` resamples by playback speed (pitch with it).
 SFX = {
-    'move': ('kenney-rpg/audio/OGG__footstep02.ogg', {}),
+    'move': ('kenney-rpg/audio/OGG__footstep02.ogg', {'phone': True}),
     'coin': ('rd-rpg/audio/item_gem_01.ogg', {}),
     'attack': ('ad-battle/audio/battle_sound_effects__Bow.wav', {}),
     'ember': ('kenney-rpg/audio/OGG__handleCoins.ogg', {}),
@@ -77,6 +77,19 @@ def trim(x, sr):
     start = max(0, nz[0] - int(0.004 * sr))
     end = min(len(x), nz[-1] + int(0.02 * sr))
     return x[start:end]
+
+
+def highpass(x, sr, hz=180):
+    """Removes what a phone speaker cannot play (under ~150 Hz), so the footstep's energy is where it can be heard."""
+    rc = 1 / (2 * np.pi * hz)
+    a = rc / (rc + 1 / sr)
+    y = np.empty_like(x)
+    px = py = 0.0
+    for i, v in enumerate(x):
+        py = a * (py + v - px)
+        px = v
+        y[i] = py
+    return y
 
 
 def fades(x, sr, fade_in=0.003, fade_out=0.012):
@@ -144,6 +157,8 @@ def build(src_root):
         x, sr = read(os.path.join(src_root, src))
         if 'cut' in opt:
             x = cut(x, sr, opt['cut'], opt['fade'])
+        if opt.get('phone'):
+            x = highpass(x, sr)
         if opt.get('loop'):
             x = seamless_loop(x, sr)
             x = master_sfx(x, sr)
