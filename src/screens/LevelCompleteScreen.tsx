@@ -11,7 +11,7 @@ import { emitSound } from "../audio/audioEventBus";
 import { formatTime } from "../shared/utils/formatTime";
 import { useT } from "../i18n/useT";
 import SpriteImage from "../ui/components/SpriteImage";
-import { PopButton } from "../ui/components/game/popup";
+import { PanelTrim, PopButton } from "../ui/components/game/popup";
 import { useSettingsStore } from "../state/settings/store";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
@@ -99,6 +99,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
       >
         <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.35 }} />
         <LinearGradient colors={["rgba(40,28,16,0.75)", "rgba(20,14,9,0.95)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
+        <PanelTrim tint={accent} />
 
         <View style={[styles.body, stacked && { flexDirection: "column" }]} pointerEvents="box-none">
           {/* ── The hero and the floor's stars ─────────────────────────────────────────────── */}
@@ -106,7 +107,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
             <Text style={[styles.kicker, { color: accent }]} maxFontSizeMultiplier={1.2}>
               {t("complete.floor", { n: level }).toLocaleUpperCase()}
             </Text>
-            <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+            <Text style={[styles.title, { color: accent, textShadowColor: accent + "88" }]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
               {t("complete.title").toLocaleUpperCase()}
             </Text>
             <View style={{ width: hero * 1.2, height: hero, alignItems: "center", justifyContent: "flex-end" }}>
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
   left: { flex: 1, alignItems: "center", gap: 2 },
   right: { flex: 1.15, gap: 10 },
   kicker: { fontWeight: "900", fontSize: 13, letterSpacing: 3 },
-  title: { color: "#fff", fontWeight: "900", fontSize: 26, letterSpacing: 2, textShadowColor: "rgba(0,0,0,0.6)", textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
+  title: { color: "#fff", fontWeight: "900", fontSize: 26, letterSpacing: 2, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
   glow: { position: "absolute", top: 0, opacity: 0.16 },
   stars: { flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
