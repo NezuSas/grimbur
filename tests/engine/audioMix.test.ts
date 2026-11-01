@@ -111,7 +111,9 @@ describe('the mix table', () => {
 describe('the footstep is audible on a phone speaker', () => {
   // A phone speaker cannot reproduce anything much below ~150 Hz. The first recording of the step kept 98.5 % of its
   // energy there, so on a phone a single step was silent (only the stacked clicks of fast steps were heard).
-  it('keeps most of its energy above 150 Hz', () => {
+  // Later (2026-11) a recorded step passed the 150 Hz check and was still silent on a phone: 89 % of it sat under 1 kHz, which a
+  // phone speaker barely plays. What works is a step that lives above 1 kHz (the one heard on every phone had 90 % there).
+  it('keeps most of its energy above 1 kHz, where a phone speaker plays', () => {
     const { samples, rate } = readWav(path.join(ASSETS, 'sfx', 'move.wav'));
     const n = samples.length;
     const hann = (i: number) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (n - 1));
@@ -125,7 +127,7 @@ describe('the footstep is audible on a phone speaker', () => {
       }
       return re * re + im * im;
     };
-    const lastLowBin = Math.floor((150 * n) / rate);
+    const lastLowBin = Math.floor((1000 * n) / rate);
     let low = 0;
     let total = 0;
     for (let k = 1; k <= n / 2; k++) {
@@ -133,6 +135,6 @@ describe('the footstep is audible on a phone speaker', () => {
       total += e;
       if (k <= lastLowBin) low += e;
     }
-    expect(low / total).toBeLessThan(0.15);
+    expect(1 - low / total).toBeGreaterThan(0.6);
   });
 });

@@ -32,19 +32,19 @@ SFX = {
     'forge': ('@forge.flac', {'cut': 1.0, 'fade': 0.35}),
     'relic': ('@relic.flac', {'cut': 2.2, 'fade': 0.6}),
     'ui': ('@ui.flac', {}),
-    'roar': ('@roar.flac', {'cut': 3.0, 'fade': 0.8}),
-    'death': ('@death.flac', {'cut': 2.8, 'fade': 0.7}),
-    'monster': ('@monster.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True}),
-    'vortex': ('@vortex.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True}),
-    'teleport': ('@teleport.flac', {'cut': 1.6, 'fade': 0.4}),
-    'kill_stone': ('@kill_stone.flac', {'cut': 1.3, 'fade': 0.4}),
+    'roar': ('@roar.flac', {'cut': 3.0, 'fade': 0.8, 'deep': 0.8}),
+    'death': ('@death.flac', {'cut': 2.8, 'fade': 0.7, 'deep': 0.8}),
+    'monster': ('@monster.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True, 'deep': 2.0}),
+    'vortex': ('@vortex.flac', {'cut': 10.0, 'fade': 0.05, 'loop': True, 'deep': 0.6}),
+    'teleport': ('@teleport.flac', {'cut': 1.6, 'fade': 0.4, 'deep': 0.25}),
+    'kill_stone': ('@kill_stone.flac', {'cut': 1.3, 'fade': 0.4, 'deep': 0.35}),
     'kill_shadow': ('@kill_shadow.flac', {'cut': 1.1, 'fade': 0.4}),
-    'kill_beast': ('@kill_beast.flac', {'cut': 1.5, 'fade': 0.4}),
+    'kill_beast': ('@kill_beast.flac', {'cut': 1.5, 'fade': 0.4, 'deep': 1.0}),
     'kill_crystal': ('@kill_crystal.flac', {'cut': 1.2, 'fade': 0.3}),
     'trap': ('@trap.flac', {}),
     'shield': ('@shield.flac', {'cut': 1.2, 'fade': 0.3}),
     'charge': ('@charge.flac', {'cut': 1.0, 'fade': 0.3}),
-    'bosshit': ('@bosshit.flac', {'cut': 1.0, 'fade': 0.3}),
+    'bosshit': ('@bosshit.flac', {'cut': 1.0, 'fade': 0.3, 'deep': 0.35}),
 }
 MUSIC = {
     'cover': ('music/mysterious.mp3', {}),
@@ -93,6 +93,19 @@ def highpass(x, sr, hz=180):
         px = v
         y[i] = py
     return y
+
+
+def presence(x, sr, amount=0.8):
+    """For deep sounds on a phone speaker (which plays almost nothing under ~400 Hz): the lowest rumble is trimmed and soft
+    saturation adds the harmonics of the bass an octave and more above it, so the ear still hears the weight (the 'missing
+    fundamental'). Headphones keep the body; a phone gets something it can play."""
+    y = highpass(highpass(x, sr, 120), sr, 120)
+    peak = np.abs(y).max() or 1.0
+    drive = 4.0
+    harmonics = np.tanh(drive * y / peak) / np.tanh(drive) * peak - y
+    for _ in range(2):
+        harmonics = highpass(harmonics, sr, 500)
+    return y + amount * harmonics * 3
 
 
 def fades(x, sr, fade_in=0.003, fade_out=0.012):
@@ -162,8 +175,13 @@ def build(src_root):
             x = cut(trim(x, sr), sr, opt['cut'], opt['fade'])
         elif 'cut' in opt:
             x = x[: int(sr * opt['cut'])]  # a loop keeps a plain slice: its ends are cross-faded into each other below
+        if opt.get('deep'):
+            x = presence(x, sr, opt['deep'])
         if opt.get('phone'):
-            x = highpass(highpass(x, sr, 220), sr, 220)  # twice: a steeper cut of what a phone cannot play
+            # A phone speaker barely plays anything under ~1 kHz: a single step must live above it or it is silent (only a fast run
+            # of stacked steps would be heard). Three passes make a steep cut.
+            for _ in range(3):
+                x = highpass(x, sr, 700)
         if opt.get('loop'):
             x = seamless_loop(x, sr)
             x = master_sfx(x, sr)
