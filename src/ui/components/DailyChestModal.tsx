@@ -11,6 +11,7 @@ import { emitSound } from "../../audio/audioEventBus";
 import { CHEST_DAYS, CHEST_EMBERS, CHEST_FREEZE_DAY } from "../../core/stats/dailyChest";
 
 const CHEST_ART = require("../../assets/sprites/items/Icon_Chest.png");
+const CHEST_SHUT_ART = require("../../assets/sprites/items/Icon_Chest_Closed.png");
 const GOLD = "#FFD54F";
 
 type Props = {
@@ -116,7 +117,11 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
               ],
             }}
           >
-            <SpriteImage source={CHEST_ART} style={{ width: chestSize, height: chestSize, opacity: opened ? 1 : 0.92 }} resizeMode="contain" />
+            {/* Both stay mounted and swap by opacity (changing the source would flash): shut until it is opened. */}
+            <View style={{ width: chestSize, height: chestSize }}>
+              <SpriteImage source={CHEST_SHUT_ART} style={{ position: "absolute", left: 0, top: 0, width: chestSize, height: chestSize, opacity: opened ? 0 : 1 }} resizeMode="contain" />
+              <SpriteImage source={CHEST_ART} style={{ position: "absolute", left: 0, top: 0, width: chestSize, height: chestSize, opacity: opened ? 1 : 0 }} resizeMode="contain" />
+            </View>
           </Animated.View>
           {opened ? (
             <Animated.View style={[styles.prize, { opacity: burst, transform: [{ translateY: burst.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] }]}>
