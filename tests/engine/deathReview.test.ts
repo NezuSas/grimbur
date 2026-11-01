@@ -34,7 +34,7 @@ describe('reviewDeath: the lesson of a defeat', () => {
     expect(at1.isGameOver).toBe(false);
     const dead = gameReducer(at1, { type: 'MOVE', direction: 'DOWN' });
     expect(dead.isGameOver).toBe(true);
-    expect(reviewDeath(dead)).toEqual({ kind: 'avoidable', safe: 1 });
+    expect(reviewDeath(dead)).toEqual({ kind: 'avoidable', safe: 1, tiles: [5] });
   });
 
   it('owns up to a forced guess', () => {

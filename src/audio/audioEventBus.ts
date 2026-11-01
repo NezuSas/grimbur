@@ -17,6 +17,8 @@ import { SoundEvent } from './soundEvents';
 /** Optional shaping of one play: `rate` is the playback speed (and pitch) of the effect, 1 = as recorded. */
 export interface SoundOptions {
   rate?: number;
+  /** Which creature died (ENEMY_KILLED): each one has its own death sound. */
+  foe?: 'stone' | 'shadow' | 'beast' | 'crystal';
 }
 
 type SoundListener = (event: SoundEvent, options?: SoundOptions) => void;

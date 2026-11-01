@@ -8,6 +8,7 @@ import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
 import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 import BossSprite from "./BossSprite";
+import FogPuff from "./game/FogPuff";
 import GlyphIcon from "./GlyphIcon";
 
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
@@ -276,11 +277,14 @@ const GridCell = memo(({
     [flip],
   );
   const wasVisited = useRef(isVisited);
+  const [puff, setPuff] = useState(0);
   // The delay lasts one render (the board's next one clears it): the flash layer stays once a ripple reached this tile.
   const rippled = useRef(false);
   if (revealDelay > 0) rippled.current = true;
   useEffect(() => {
     if (isVisited && !wasVisited.current && !calm) {
+      // A tile explored by a step tears its fog off (a ripple of many tiles flashes gold instead).
+      if (!rippled.current) setPuff(p => p + 1);
       flip.setValue(0);
       Animated.spring(flip, { toValue: 1, friction: 4.5, tension: 120, useNativeDriver: true }).start();
       if (rippled.current) {
@@ -377,6 +381,8 @@ const GridCell = memo(({
           ]}
         />
       )}
+
+      {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#FFB74D" : vortex ? "#B39DDB" : "#D7CCC8"} /> : null}
 
       {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }]}>

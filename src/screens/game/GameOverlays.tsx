@@ -58,6 +58,8 @@ type Props = {
     onCopyText?: () => Promise<boolean>;
     onUnlock: () => void;
     onForge: () => void;
+    /** A look at the board behind the defeat card (the lesson's safe tiles marked). */
+    onPeek?: () => void;
     onRetry: () => void;
     retryLabel?: string;
     onMainMenu: () => void;
@@ -143,6 +145,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         demo={gameOver.demo}
         onUnlock={gameOver.onUnlock}
         onForge={gameOver.onForge}
+        onPeek={gameOver.onPeek}
         onRetry={gameOver.onRetry}
         retryLabel={gameOver.retryLabel}
         onMainMenu={gameOver.onMainMenu}

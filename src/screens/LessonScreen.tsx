@@ -321,7 +321,7 @@ export default function LessonScreen({ navigation, route }: Props) {
           time={412}
           character={characterWithSkin(route.params.devGameOver.hero, route.params.devGameOver.skin)}
           deathCause={route.params.devGameOver.victory ? null : route.params.devGameOver.cause}
-          review={route.params.devGameOver.victory ? null : { kind: 'avoidable', safe: 3 }}
+          review={route.params.devGameOver.victory ? null : { kind: 'avoidable', safe: 3, tiles: [] }}
           victory={route.params.devGameOver.victory}
           onRetry={() => {}}
           onMainMenu={() => {}}

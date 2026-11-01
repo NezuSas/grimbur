@@ -162,7 +162,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
         case "kill": {
           const look = e.combo > 0 ? comboLook(e.combo, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, "hunter")) : null;
           whenArrowLands(e.tile, () => {
-            emitSound("ENEMY_KILLED", { rate: comboRate(e.combo) });
+            emitSound("ENEMY_KILLED", { rate: comboRate(e.combo), foe: e.foe === "stalker" ? "shadow" : e.foe === "sleeper" ? "beast" : e.foe === "mimic" ? "crystal" : "stone" });
             haptic.impact(e.combo > 1 ? ImpactFeedbackStyle.Heavy : ImpactFeedbackStyle.Medium);
             if (look) pushPopup({ points: killValue(e.combo), type: "kill", sub: look.label, subColor: look.color, popScale: look.scale }, e.tile);
             flash(combatFlash, 0.35, 0.08, 25, 35);

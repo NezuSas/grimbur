@@ -615,6 +615,8 @@ export const es: Record<TranslationKey, string> = {
   'a11y.bossHearts': 'Corazones del Grimbur: {count}',
   'hud.bossHearts': 'Grimbur',
   'floor.banner.lair': 'La guarida del Grimbur',
+  'review.peek': 'Ver dónde',
+  'review.back': 'Volver al resumen',
   'review.kicker.lesson': 'Lección',
   'review.kicker.luck': 'Mala suerte',
   'review.stalker': 'El acechador brilla con «!» una acción antes de golpear: dispárale o apártate.',

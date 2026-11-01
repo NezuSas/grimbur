@@ -1,5 +1,5 @@
 import type { GameState } from '../engine/types';
-import { HUNTER_TYPES, LETHAL_TYPES, type PickupKind } from '../engine/types';
+import { HUNTER_TYPES, LETHAL_TYPES, type EntityType, type PickupKind } from '../engine/types';
 import { bossHearts, countGuardians } from '../engine/entityCounts';
 import { getNearbyHazards } from '../engine/proximity';
 import { relicCount } from '../engine/relics';
@@ -32,7 +32,7 @@ export type FeedbackEvent =
   /** `tile` is where the effect happened (the popups rise from it). */
   | { kind: 'coin'; tile: number }
   /** A guardian died to an arrow or a bomb. `combo` is the combo after the kill (0 for a bomb). */
-  | { kind: 'kill'; combo: number; tile: number }
+  | { kind: 'kill'; combo: number; tile: number; foe?: EntityType }
   /** The Grimbur lost hearts; `dead` when it has none left. */
   | { kind: 'bossHit'; dead: boolean; hearts: number; tile: number }
   /** An arrow was fired and hit nothing. */
@@ -74,7 +74,10 @@ export function diffFeedback(prev: FeedbackState, next: FeedbackState): Feedback
   const bossHit = bossBefore && (heartsNow < heartsBefore || !bossAfter) && !moved;
 
   if (next.coins < prev.coins) events.push({ kind: 'coin', tile: next.playerIndex });
-  if (killed) events.push({ kind: 'kill', combo: shot || next.enemyCombo > prev.enemyCombo ? next.enemyCombo : 0, tile: goneGuardianTile(prev, next) });
+  if (killed) {
+    const tile = goneGuardianTile(prev, next);
+    events.push({ kind: 'kill', combo: shot || next.enemyCombo > prev.enemyCombo ? next.enemyCombo : 0, tile, foe: prev.entityMap[tile]?.type });
+  }
   if (bossHit) {
     const bossTile = prev.entities.find(e => e.type === 'boss')?.index ?? next.playerIndex;
     events.push({ kind: 'bossHit', dead: !bossAfter, hearts: heartsNow, tile: bossTile });

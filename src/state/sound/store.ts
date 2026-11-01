@@ -408,6 +408,10 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
         ["ui", require("../../assets/sfx/ui.wav")],
         ["forge", require("../../assets/sfx/forge.wav")],
         ["ember", require("../../assets/sfx/ember.wav")],
+        ["kill_stone", require("../../assets/sfx/kill_stone.wav")],
+        ["kill_shadow", require("../../assets/sfx/kill_shadow.wav")],
+        ["kill_beast", require("../../assets/sfx/kill_beast.wav")],
+        ["kill_crystal", require("../../assets/sfx/kill_crystal.wav")],
       ];
       soundsTotal = files.length;
       const handles = files.map(([name, source]) => register(source, name));
@@ -418,7 +422,7 @@ export const useSoundStore = create<SoundStore & { ready: boolean }>((set, get) 
       // and the app starts as soon as they are ready; everything else loads one by one behind them, in the order
       // it is needed.
       const CRITICAL = ['move', 'coin', 'attack', 'cover'];
-      const LATER = ['ui', 'gameplay', 'boss', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember'];
+      const LATER = ['ui', 'gameplay', 'boss', 'selection', 'relic', 'death', 'monster', 'vortex', 'teleport', 'roar', 'victory', 'forge', 'ember', 'kill_stone', 'kill_shadow', 'kill_beast', 'kill_crystal'];
       await Promise.all(CRITICAL.map(load));
       set({ sounds: p as any, ready: true });
       audioLog('init', 'ready (first sounds loaded, the rest follows)');

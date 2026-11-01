@@ -1,4 +1,7 @@
 import { omenEffects } from "../core/engine/omens";
+import { reviewDeath } from "../core/engine/deathReview";
+import { Ionicons } from "@expo/vector-icons";
+import Text from "../ui/components/Text";
 import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } from "react";
 import {
   StyleSheet,
@@ -260,6 +263,13 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // While an overlay is open, the HUD, board and pad must not be reachable by screen readers (Android ignores
   // accessibilityViewIsModal).
+  // A look at the board behind the defeat card: the tiles the lesson says were provably safe are outlined.
+  const [peek, setPeek] = useState(false);
+  const review = useMemo(() => reviewDeath(state), [state]);
+  const peekTiles = review?.kind === "avoidable" ? review.tiles : [];
+  useEffect(() => {
+    if (!state.isGameOver) setPeek(false);
+  }, [state.isGameOver]);
   const overlayOpen = paused || !!state.pendingDraft || showGameOver || second.visible || showHighScoreEntry || intermission;
   const behindOverlay = {
     importantForAccessibility: overlayOpen ? ("no-hide-descendants" as const) : ("auto" as const),
@@ -844,6 +854,7 @@ export default function GameScreen({ navigation, route }: Props) {
             teleported={state.wasTeleported}
             paused={paused || !isFocused}
             dying={state.isGameOver && !state.isVictory}
+            highlight={peek ? peekTiles : undefined}
             onTileLongPress={toggleFlag}
             onReady={handleBoardReady}
             onSwipe={swipeMove ? manualMove : undefined}
@@ -945,6 +956,19 @@ export default function GameScreen({ navigation, route }: Props) {
 
       <DuelChip duel={duel} level={state.level} score={state.score} top={insets.top + hudHeight - 14} />
 
+      {/* Looking at the board behind the defeat card: one tap brings the card back. */}
+      {peek && showGameOver ? (
+        <Pressable
+          onPress={() => setPeek(false)}
+          accessibilityRole="button"
+          accessibilityLabel={t("review.back")}
+          style={{ position: "absolute", bottom: insets.bottom + 16, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 22, backgroundColor: "#FFB74D", zIndex: 50 }}
+        >
+          <Ionicons name="arrow-back" size={16} color="#2A1A08" />
+          <Text style={{ color: "#2A1A08", fontWeight: "900", fontSize: 13 }} maxFontSizeMultiplier={1.1}>{t("review.back").toLocaleUpperCase()}</Text>
+        </Pressable>
+      ) : null}
+
 
       <GameOverlays
         state={state}
@@ -955,7 +979,8 @@ export default function GameScreen({ navigation, route }: Props) {
         onPickRelic={handlePickRelic}
         pause={{ visible: paused, saveOnExit: resumable, canRestart: !duelParam, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{
-          visible: showGameOver,
+          visible: showGameOver && !peek,
+          onPeek: () => setPeek(true),
           result: runResult,
           isDaily,
           dailyDate,

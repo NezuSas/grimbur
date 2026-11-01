@@ -43,7 +43,7 @@ describe('diffFeedback', () => {
   it('reports a kill with the combo, and a miss when the arrow hits nothing', () => {
     const base = createState({ entities: [enemy(1), coin(100)], attack: 3 });
     const killed = gameReducer(base, { type: 'ATTACK', direction: 'RIGHT' });
-    expect(diffFeedback(base, killed)).toContainEqual({ kind: 'kill', combo: 1, tile: 1 });
+    expect(diffFeedback(base, killed)).toContainEqual({ kind: 'kill', combo: 1, tile: 1, foe: 'enemy' });
     const missed = gameReducer(base, { type: 'ATTACK', direction: 'UP' });
     expect(kinds(base, missed)).toEqual(['miss']);
   });

@@ -97,6 +97,8 @@ type Props = {
   onCopyText?: () => Promise<boolean>;
   /** Opens the Forge (shown when the run earned embers). */
   onForge?: () => void;
+  /** Hides the card for a look at the board, where the lesson's safe tiles are marked. */
+  onPeek?: () => void;
   onRetry: () => void;
   /** A different name for the main button (a duel offers a rematch). */
   retryLabel?: string;
@@ -116,6 +118,7 @@ const GameOverOverlay = ({
   character,
   deathCause,
   review,
+  onPeek,
   victory = false,
   bestScore,
   isNewBest,
@@ -332,6 +335,12 @@ const GameOverOverlay = ({
             </Text>
             {reviewText}
           </Text>
+          {onPeek && review.kind === 'avoidable' ? (
+            <TouchableOpacity onPress={onPeek} hitSlop={6} accessibilityRole="button" accessibilityLabel={t('review.peek')} style={styles.peek}>
+              <Ionicons name="eye-outline" size={13} color={REVIEW_LOOK.avoidable} />
+              <Text style={[styles.peekText, { color: REVIEW_LOOK.avoidable }]} maxFontSizeMultiplier={1.1}>{t('review.peek').toLocaleUpperCase()}</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       ) : null}
       {duelResult ? (
@@ -646,6 +655,8 @@ const styles = StyleSheet.create({
   killerArt: { width: 38, height: 38 },
   review: { alignSelf: 'stretch', marginTop: 4, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.35)', gap: 1 },
   reviewKicker: { fontWeight: '900', fontSize: 10.5, letterSpacing: 1.2 },
+  peek: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 2 },
+  peekText: { fontWeight: '900', fontSize: 11, letterSpacing: 0.8 },
   reviewText: { color: '#EADBC8', fontSize: 11.5, fontWeight: '700', lineHeight: 15 },
   ribbon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(255,213,79,0.16)', borderWidth: 1.5, borderColor: 'rgba(255,213,79,0.6)' },
   ribbonText: { color: '#FFD54F', fontWeight: '900', fontSize: 12.5, letterSpacing: 1.5 },

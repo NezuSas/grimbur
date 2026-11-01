@@ -172,7 +172,14 @@ export function useSoundManager(): void {
       // The same recordings, played at different speeds and levels, so a hit, a miss, a kill and a trap all sound apart.
       case 'TRAP_TRIGGERED': playSfx(sounds.attack, mixVolume('trap'), 0.55); break;
       case 'ATTACK':         playSfx(sounds.attack, mixVolume('miss'), 0.92); break;
-      case 'ENEMY_KILLED':   playSfx(sounds.attack, mixVolume('kill'), 1.25 * rate); setTimeout(() => playSfx(sounds.coin, mixVolume('killTail'), 1.4 * rate), 60); break;
+      case 'ENEMY_KILLED': {
+        // Each creature dies with its own sound (stone, shadow, beast, crystal); the combo still raises the pitch.
+        const own = options?.foe ? (sounds as unknown as Record<string, unknown>)[`kill_${options.foe}`] : undefined;
+        if (own) playSfx(own as typeof sounds.attack, mixVolume('kill'), rate);
+        else playSfx(sounds.attack, mixVolume('kill'), 1.25 * rate);
+        setTimeout(() => playSfx(sounds.coin, mixVolume('killTail'), 1.4 * rate), 60);
+        break;
+      }
       case 'BOSS_HIT':       playSfx(sounds.attack, mixVolume('bossHit'), 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
       case 'SHIELD_BREAK':   playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); break;
       case 'CHARGE_WARN':    playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); break;

@@ -614,6 +614,8 @@ export const en = {
   'a11y.bossHearts': 'Grimbur hearts left: {count}',
   'hud.bossHearts': 'Grimbur',
   'floor.banner.lair': 'The Grimbur\'s lair',
+  'review.peek': 'Show me',
+  'review.back': 'Back to the summary',
   'review.kicker.lesson': 'Lesson',
   'review.kicker.luck': 'Bad luck',
   'review.stalker': 'A stalker glows with a "!" one action before it strikes: shoot it or step away.',

@@ -12,7 +12,7 @@ import { neighbour } from './worldHelpers';
 export type DeathReview =
   | { kind: 'hunter'; by: 'stalker' | 'boss' }
   | { kind: 'proven' }
-  | { kind: 'avoidable'; safe: number }
+  | { kind: 'avoidable'; safe: number; tiles: number[] }
   | { kind: 'forced' };
 
 export function reviewDeath(state: Pick<GameState, 'isGameOver' | 'isVictory' | 'deathCause' | 'playerIndex' | 'lastBreath'>): DeathReview | null {
@@ -34,5 +34,5 @@ export function reviewDeath(state: Pick<GameState, 'isGameOver' | 'isVictory' | 
     }
   }
   frontier.delete(state.playerIndex);
-  return frontier.size > 0 ? { kind: 'avoidable', safe: frontier.size } : { kind: 'forced' };
+  return frontier.size > 0 ? { kind: 'avoidable', safe: frontier.size, tiles: [...frontier].sort((a, b) => a - b) } : { kind: 'forced' };
 }

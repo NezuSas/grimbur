@@ -135,7 +135,39 @@ def ember_gain() -> np.ndarray:
     )
 
 
+def kill_stone() -> np.ndarray:
+    # The golem falls apart: a deep thud and a rattle of rocks tumbling after it.
+    rattle = [(lowpass(noise(0.06, 0.02, seed=20 + k), 0.3), 0.55 - k * 0.08, 0.05 + k * 0.055) for k in range(5)]
+    return mix([(tone(78, 0.4, 0.12), 1.0, 0.0), (lowpass(noise(0.12, 0.04, seed=19), 0.12), 1.1, 0.0), *rattle], 0.45)
+
+
+def kill_shadow() -> np.ndarray:
+    # The shadow wolf comes apart: a falling breathy hiss with a low howl under it.
+    hiss = lowpass(noise(0.5, 0.18, seed=23), 0.45)
+    hiss *= np.linspace(1, 0.2, len(hiss))
+    return mix([(sweep(420, 140, 0.5, 0.2), 0.7, 0.0), (hiss, 0.6, 0.0), (sweep(880, 260, 0.3, 0.09), 0.2, 0.02)], 0.52)
+
+
+def kill_beast() -> np.ndarray:
+    # The beast's last growl: a rough low note that sinks, with a grunt of noise.
+    x = t(0.55)
+    growl = np.sin(2 * np.pi * np.cumsum(120 - 60 * (x / 0.55)) / RATE) * (0.6 + 0.4 * np.sign(np.sin(2 * np.pi * 31 * x)))
+    growl *= np.exp(-x / 0.2)
+    return mix([(lowpass(growl, 0.25), 1.0, 0.0), (lowpass(noise(0.2, 0.06, seed=29), 0.2), 0.7, 0.0)], 0.56)
+
+
+def kill_crystal() -> np.ndarray:
+    # The mimic shatters: bright glassy partials and a spray of tinkling shards.
+    partials = [(1870, 0.18), (2650, 0.12), (3420, 0.09), (4610, 0.07)]
+    shards = [(tone(2900 + 450 * k, 0.12, 0.03), 0.25, 0.04 + k * 0.04) for k in range(5)]
+    return mix([(lowpass(noise(0.05, 0.012, seed=31), 0.8), 0.8, 0.0), *[(tone(f, 0.4, tau), 0.45, 0.0) for f, tau in partials], *shards], 0.45)
+
+
 if __name__ == '__main__':
+    save('kill_stone.wav', finish(kill_stone()))
+    save('kill_shadow.wav', finish(kill_shadow()))
+    save('kill_beast.wav', finish(kill_beast()))
+    save('kill_crystal.wav', finish(kill_crystal()))
     save('ui.wav', finish(ui_tick()))
     save('forge.wav', finish(forge_anvil()))
     save('ember.wav', finish(ember_gain()))
