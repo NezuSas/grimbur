@@ -69,6 +69,7 @@ const BY_KIND: Partial<Record<DescKind, ImageSourcePropType>> = {
   winTime: art.speed,
   heroWin: art.heroes,
   slain: art.hunt,
+  mastery: art.heroes,
   bestiary: art.hunt,
   beast: art.hunt,
 };

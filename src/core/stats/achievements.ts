@@ -2,6 +2,7 @@ import type { LocalStats, RunResult } from './runStats';
 import { MAX_ASCENSION } from '../engine/ascension';
 import { UPGRADES } from './forge';
 import { BEASTS, type BeastId } from './bestiary';
+import { masteryOf } from './mastery';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -102,10 +103,15 @@ export type AchievementId =
   | 'hunt_stalker'
   | 'hunt_mimic'
   | 'hunt_thief'
-  | 'hunt_brute';
+  | 'hunt_brute'
+  // Mastery ranks (any hero)
+  | 'mastery_silver'
+  | 'mastery_gold'
+  | 'mastery_platinum'
+  | 'mastery_legend';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -127,6 +133,9 @@ export const HIGH_ROLLER_SCORE = 5000;
 export const COLLECTOR_GEMS = 100;
 export const DEVOTEE_DAYS = 3;
 export const HERO_COUNT = 6;
+
+/** The highest mastery level of any hero. */
+const topMastery = (s: LocalStats) => Math.max(0, ...(s.heroXp ?? []).map(xp => masteryOf(xp).level));
 
 /** Every creature defeated (or thief caught) over all runs. */
 export const totalSlain = (s: LocalStats) => Object.values(s.bestiary?.slain ?? {}).reduce((sum: number, n) => sum + (n ?? 0), 0);
@@ -324,6 +333,11 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   hunt('hunt_mimic', '📦', 'hard', 'mimic', 20),
   hunt('hunt_thief', '🪤', 'hard', 'thief', 15),
   hunt('hunt_brute', '⚔️', 'hard', 'brute', 15),
+  // ── Mastery ranks ───────────────────────────────────────────────────────
+  counted('mastery_silver', '🔘', 'hard', 'mastery', 20, topMastery),
+  counted('mastery_gold', '🟡', 'hard', 'mastery', 30, topMastery),
+  counted('mastery_platinum', '🔹', 'legend', 'mastery', 40, topMastery),
+  counted('mastery_legend', '🟣', 'legend', 'mastery', 50, topMastery),
 ];
 
 /** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */

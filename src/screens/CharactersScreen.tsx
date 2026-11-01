@@ -2,7 +2,7 @@
 import GlyphIcon from "../ui/components/GlyphIcon";
 import FramedHero from "../ui/components/FramedHero";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
-import { MAX_MASTERY, masteryOf } from "../core/stats/mastery";
+import { MAX_MASTERY, masteryOf, masteryTier, nextMasteryTier } from "../core/stats/mastery";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -239,6 +239,14 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // Mastery: the level of this hero, and the next edge it is working toward.
   const mastery = masteryOf(stats.heroXp[selected] ?? 0);
   const toTitle = mastery.level < MAX_MASTERY;
+  // Past the title, the mastery ranks: the colour reached and the next one to chase.
+  const tier = masteryTier(mastery.level);
+  const nextTier = nextMasteryTier(mastery.level);
+  const tierLine = !tier
+    ? null
+    : nextTier
+      ? `${t("mastery.tierNow", { tier: t(`mastery.tier.${tier.id}` as TranslationKey) })} · ${t("mastery.tierNext", { tier: t(`mastery.tier.${nextTier.id}` as TranslationKey), level: nextTier.level })}`
+      : t("mastery.tierTop");
 
   const maxDepth = GAME_CONFIG.dev.unlockAllHeroes ? MAX_ASCENSION : stats.maxAscension;
   // The difficulty picker only appears once there is something to choose (after the first victory).
@@ -339,9 +347,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 {/* The hero's mastery, worn like a badge at the foot of the stage */}
                 {!locked ? (
-                  <View pointerEvents="none" style={[styles.stageBadge, { bottom: rosterH + 4, borderColor: accent }]}>
+                  <View pointerEvents="none" style={[styles.stageBadge, { bottom: rosterH + 4, borderColor: tier?.color ?? accent }, tier && { borderWidth: 2.5, shadowColor: tier.color, shadowOpacity: 0.8, shadowRadius: 8, elevation: 6 }]}>
                     <SpriteImage source={MEDAL_ART} style={{ width: 22, height: 22 }} resizeMode="contain" />
                     <Text style={styles.stageBadgeText} maxFontSizeMultiplier={1}>{t("mastery.level", { n: mastery.level }).toLocaleUpperCase()}</Text>
+                    {tier ? <Text style={[styles.stageBadgeText, { color: tier.color }]} maxFontSizeMultiplier={1}>{`· ${t(`mastery.tier.${tier.id}` as TranslationKey).toLocaleUpperCase()}`}</Text> : null}
                   </View>
                 ) : null}
 
@@ -356,7 +365,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 {/* Roster */}
                 <View style={[styles.roster, { height: rosterH, gap: rosterGap }]}>
                   {characters.map((_, i) => (
-                    <Thumb key={i} heroIndex={i} skin={equippedSkin(stats, i)} selected={i === selected} locked={isLocked(i)} size={thumbSize} onPress={go} />
+                    <Thumb key={i} heroIndex={i} skin={equippedSkin(stats, i)} selected={i === selected} locked={isLocked(i)} size={thumbSize} onPress={go} tierColor={isLocked(i) ? null : masteryTier(masteryOf(stats.heroXp[i] ?? 0).level)?.color ?? null} />
                   ))}
                 </View>
               </>
@@ -460,7 +469,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={[styles.masteryBox, { borderColor: accent + "77" }]} accessible accessibilityLabel={`${t("mastery.title")} ${t("mastery.level", { n: mastery.level })}. ${mastery.xp - mastery.from} / ${mastery.to - mastery.from} XP`}>
                   <View style={styles.masteryMedal}>
                     <SpriteImage source={MEDAL_ART} style={styles.masteryMedalArt} resizeMode="contain" accessibilityIgnoresInvertColors />
-                    <View style={[styles.masteryMedalNum, { borderColor: accent }]}>
+                    <View style={[styles.masteryMedalNum, { borderColor: tier?.color ?? accent }, tier && { backgroundColor: tier.color + "33" }]}>
                       <Text style={styles.masteryMedalText} maxFontSizeMultiplier={1}>{mastery.level}</Text>
                     </View>
                   </View>
@@ -475,7 +484,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       <View style={[styles.masteryFill, { width: `${Math.max(3, Math.round(mastery.progress * 100))}%`, backgroundColor: accent }]} />
                     </View>
                     <Text style={styles.masteryNext} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-                      {toTitle ? t("mastery.toTitle2", { name: heroText(t, selected, "name"), left: MAX_MASTERY - mastery.level }) : t("mastery.owned", { name: heroText(t, selected, "name") })}
+                      {toTitle ? t("mastery.toTitle2", { name: heroText(t, selected, "name"), left: MAX_MASTERY - mastery.level }) : tierLine ?? t("mastery.owned", { name: heroText(t, selected, "name") })}
                     </Text>
                   </View>
                 </View>

@@ -48,10 +48,19 @@ export const Spark = ({ color, x, duration, delay, size, rise }: { color: string
   );
 };
 
-type ThumbProps = { heroIndex: number; skin: SkinId; selected: boolean; locked: boolean; size: number; onPress: (heroIndex: number) => void };
+type ThumbProps = {
+  heroIndex: number;
+  skin: SkinId;
+  selected: boolean;
+  locked: boolean;
+  size: number;
+  onPress: (index: number) => void;
+  /** The colour of the hero's mastery rank (a ring when the hero is not the selected one). */
+  tierColor?: string | null;
+};
 
 /** A small round portrait in the roster under the stage: the selected one is bigger and ringed in its colour. */
-export const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress }: ThumbProps) => {
+export const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress, tierColor }: ThumbProps) => {
   const { t } = useT();
   const accent = heroAccent(heroIndex);
   const box = selected ? size + 12 : size;
@@ -66,7 +75,7 @@ export const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress }:
       accessibilityLabel={t("heroes.rosterItem", { name, state: locked ? t("heroes.state.locked") : t("heroes.state.open") })}
       style={[
         styles.thumb,
-        { width: box, height: box, borderRadius: box / 2, borderColor: selected ? accent : "rgba(255,255,255,0.22)", borderWidth: selected ? 3 : 1.5 },
+        { width: box, height: box, borderRadius: box / 2, borderColor: selected ? accent : tierColor ?? "rgba(255,255,255,0.22)", borderWidth: selected ? 3 : tierColor ? 2.5 : 1.5 },
         selected && { shadowColor: accent, shadowOpacity: 0.9, shadowRadius: 12, elevation: 10, backgroundColor: accent + "33" },
       ]}
     >

@@ -58,3 +58,39 @@ export const masteryUp = (before: number, after: number): number | null => {
   const b = masteryOf(after).level;
   return b > a ? b : null;
 };
+
+/**
+ * Mastery ranks: past the title, a hero's mastery climbs bronze, silver, gold, platinum and legend. Nothing is reset and
+ * nothing changes a run: a rank is a colour on the hero (the roster ring, the medal) and a card when it is reached, so a
+ * long-time favourite always has a next mark to chase.
+ */
+export type MasteryTierId = 'bronze' | 'silver' | 'gold' | 'platinum' | 'legend';
+export interface MasteryTier {
+  id: MasteryTierId;
+  level: number;
+  color: string;
+}
+export const MASTERY_TIERS: readonly MasteryTier[] = [
+  { id: 'bronze', level: 10, color: '#D08A4E' },
+  { id: 'silver', level: 20, color: '#CFD8DC' },
+  { id: 'gold', level: 30, color: '#FFD54F' },
+  { id: 'platinum', level: 40, color: '#80DEEA' },
+  { id: 'legend', level: 50, color: '#E040FB' },
+];
+
+/** The highest rank a mastery level has reached (null below the first). */
+export function masteryTier(level: number): MasteryTier | null {
+  let tier: MasteryTier | null = null;
+  for (const t of MASTERY_TIERS) if (level >= t.level) tier = t;
+  return tier;
+}
+
+/** The next rank to reach from a level (null once legend is reached). */
+export const nextMasteryTier = (level: number): MasteryTier | null => MASTERY_TIERS.find(t => level < t.level) ?? null;
+
+/** The rank reached by going from level `before` to level `after`, or null when no new rank was crossed. */
+export function tierCrossed(before: number, after: number): MasteryTier | null {
+  const a = masteryTier(before);
+  const b = masteryTier(after);
+  return b && b.id !== a?.id ? b : null;
+}

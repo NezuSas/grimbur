@@ -1888,6 +1888,22 @@ export const en = {
   'chest.comeBack': 'Come back tomorrow for a bigger one. Miss a day and the week starts over.',
   'chest.weekDone': 'Week complete! Tomorrow a new one begins.',
   'chest.freeze': 'Streak freeze',
+  'ach.d.mastery': 'Take a hero to mastery level {n}.',
+  'ach.mastery_silver.name': 'Silver mastery',
+  'ach.mastery_gold.name': 'Golden mastery',
+  'ach.mastery_platinum.name': 'Platinum mastery',
+  'ach.mastery_legend.name': 'Living legend',
+  'mastery.tier.bronze': 'Bronze',
+  'mastery.tier.silver': 'Silver',
+  'mastery.tier.gold': 'Gold',
+  'mastery.tier.platinum': 'Platinum',
+  'mastery.tier.legend': 'Legend',
+  'mastery.tierNow': '{tier} rank',
+  'mastery.tierNext': '{tier} rank at level {level}',
+  'mastery.tierTop': 'Legend rank: the highest',
+  'parade.kicker.masteryTier': 'New mastery rank',
+  'parade.masteryTierTitle': '{name} · {tier}',
+  'parade.masteryTierLine': 'Mastery level {level}: your hero now wears the colour of this rank.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

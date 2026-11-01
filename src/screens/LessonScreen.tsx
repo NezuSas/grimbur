@@ -340,7 +340,7 @@ export default function LessonScreen({ navigation, route }: Props) {
                 payout: { run: 60, milestone: 30, daily: 25, welcomeBack: 40, achievements: 35, total: 190 },
                 achievements: ["win_mira", "win_bram", "first_steps", "gem_hoard", "relic_trio"],
                 rankUp: 4,
-                masteryUp: { hero: 5, level: 5 },
+                masteryUp: { hero: 5, level: 20, tier: "silver" },
                 missionsDone: ["d_gems20", "d_floor5"],
                 devParade: route.params.devGameOver.parade,
                 unlocks: { heroes: [4], depth: 3, endless: true, skins: [{ hero: 4, skin: "shadow" }] },

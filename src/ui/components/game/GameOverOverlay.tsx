@@ -33,6 +33,7 @@ import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 import { ButtonGloss, PanelTrim, shade } from './popup';
 import RewardParade, { type RewardItem } from './RewardParade';
 import { nearMiss } from '../../../core/stats/nearMiss';
+import { MASTERY_TIERS, type MasteryTierId } from '../../../core/stats/mastery';
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
 import { achievementArt } from '../../achievementArt';
 import { skinArt } from '../../../data/skinArt';
@@ -99,7 +100,7 @@ type Props = {
   /** Missions this run completed (their ids) and the new rank when the run raised it. */
   missionsDone?: string[];
   rankUp?: number | null;
-  masteryUp?: { hero: number; level: number } | null;
+  masteryUp?: { hero: number; level: number; tier?: MasteryTierId } | null;
   /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
   devParade?: number | 'grid';
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
@@ -338,7 +339,19 @@ const GameOverOverlay = ({
     }),
     ...(rankUp ? [{ key: 'rank', tint: '#FFD54F', art: MEDAL_ART, kicker: t('parade.kicker.rank'), title: t(`rank.${rankUp}` as TranslationKey), line: t('parade.rankLine') }] : []),
     ...(masteryUp
-      ? [{ key: 'mastery', tint: '#FFB74D', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') }]
+      ? [
+          masteryUp.tier
+            ? {
+                key: 'mastery',
+                tint: MASTERY_TIERS.find(m => m.id === masteryUp.tier)?.color ?? '#FFB74D',
+                art: skinArt(masteryUp.hero, 'classic').playerImage,
+                standing: true,
+                kicker: t('parade.kicker.masteryTier'),
+                title: t('parade.masteryTierTitle', { name: heroText(t, masteryUp.hero, 'name'), tier: t(`mastery.tier.${masteryUp.tier}` as TranslationKey) }),
+                line: t('parade.masteryTierLine', { level: masteryUp.level }),
+              }
+            : { key: 'mastery', tint: '#FFB74D', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') },
+        ]
       : []),
     ...(achievements ?? []).map((id): RewardItem => {
       const def = ACHIEVEMENTS.find(a => a.id === id);

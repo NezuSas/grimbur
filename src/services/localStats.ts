@@ -20,13 +20,15 @@ import { buySkin, claimUnlockedSkins, equipSkin } from '../core/skins/ownership'
 import { spendEmbers } from '../core/stats/spend';
 import { applyRun as applyMissionRun, claim as claimMission, syncMissions } from '../core/stats/missions';
 import { rankUp } from '../core/stats/rank';
-import { masteryUp } from '../core/stats/mastery';
+import { masteryOf, masteryUp, tierCrossed, type MasteryTierId } from '../core/stats/mastery';
 
 /** The hero and its new mastery level when a run raised it. */
-const masteryRaised = (before: LocalStats, after: LocalStats, hero: number | undefined): { hero: number; level: number } | null => {
+const masteryRaised = (before: LocalStats, after: LocalStats, hero: number | undefined): { hero: number; level: number; tier?: MasteryTierId } | null => {
   if (hero === undefined) return null;
   const level = masteryUp(before.heroXp[hero] ?? 0, after.heroXp[hero] ?? 0);
-  return level ? { hero, level } : null;
+  if (!level) return null;
+  const tier = tierCrossed(masteryOf(before.heroXp[hero] ?? 0).level, level);
+  return tier ? { hero, level, tier: tier.id } : { hero, level };
 };
 import { HERO_UNLOCKS, isHeroUnlocked } from '../core/stats/heroUnlocks';
 import type { SkinId } from '../core/skins/skins';

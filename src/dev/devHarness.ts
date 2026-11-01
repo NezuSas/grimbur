@@ -38,6 +38,8 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     heroesUsed: [0, 1, 2, 4],
     heroWins: [2, 1, 0, 0, 1, 0],
     heroBestDepth: [2, 1, 0, 0, 0, 0],
+    // Mastery ranks to show: gold (Vael), silver (Sera), bronze (Borin).
+    heroXp: [29000, 14000, 3500, 0, 800, 0],
     streak: 6,
     lastDailyDate: today,
     // Today's chest already opened (day 3), so the cover stays clear; devChest shows it anyway.
