@@ -4,6 +4,7 @@ import { HeroPerks } from './heroes';
 import { RelicId } from './relics';
 import type { MetaEffects } from '../stats/forge';
 import type { OmenId } from './omens';
+import type { EventId } from './events';
 import type { ShopItem } from './shop';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
@@ -120,6 +121,8 @@ export interface GameState {
   slain?: Partial<Record<string, number>>;
   /** The season's featured relic: offered in the first draft of the run. */
   seasonRelic?: RelicId | null;
+  /** The week's event the run is played under (see events.ts); null outside expeditions. */
+  event?: EventId | null;
   /** The blood merchant already traded on this stop between floors. */
   merchantUsed?: boolean;
   /** The Sand Hourglass's spare take-back was used on this floor. */
@@ -173,6 +176,8 @@ export type GameAction =
       draftBonus?: number;
       /** The season's featured relic (see core/stats/season.ts). */
       seasonRelic?: RelicId | null;
+      /** The week's event (expeditions only). */
+      event?: EventId | null;
       /** Start the run with a shield (Forge upgrade). */
       startShield?: boolean;
       /** Relics the run begins with (Forge: Phoenix Feather). */
@@ -202,7 +207,7 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: (direction?: Direction) => void;
-  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects }) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null }) => void;
   /** Continues a saved run: the given state becomes the current one, with no side-effects fired. */
   restore: (state: GameState) => void;
   levelUp: (omen?: OmenId | null) => void;

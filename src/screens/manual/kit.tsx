@@ -24,6 +24,7 @@ export type TopicId =
   | "mission"
   | "controls"
   | "bestiary"
+  | "relicbook"
   | "explore"
   | "hazards"
   | "combat"

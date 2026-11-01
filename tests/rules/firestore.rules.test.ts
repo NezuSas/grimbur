@@ -140,6 +140,12 @@ describe('daily and weekly scores', () => {
     await assertSucceeds(setDoc(doc(authed(uid), 'daily_scores', `${today}_${uid}`), entry({ pid: uid })));
   });
 
+  it('accepts the tile where the run ended (for the ghosts of friends) and nothing else there', async () => {
+    await assertSucceeds(setDoc(entryRef(), entry({ fell: 17 })));
+    await assertFails(setDoc(entryRef(dayKey(0), 'CCCCCCCCCCCCCCCC'), entry({ pid: 'CCCCCCCCCCCCCCCC', fell: 400 })));
+    await assertFails(setDoc(entryRef(dayKey(0), 'DDDDDDDDDDDDDDDD'), entry({ pid: 'DDDDDDDDDDDDDDDD', fell: 'x' })));
+  });
+
   it('only raises a score, never lowers it, never deletes', async () => {
     await assertSucceeds(setDoc(entryRef(), entry()));
     await assertSucceeds(setDoc(entryRef(), entry({ score: 5000 })));

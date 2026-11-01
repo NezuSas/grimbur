@@ -60,6 +60,8 @@ type Props = {
     onForge: () => void;
     /** A look at the board behind the defeat card (the lesson's safe tiles marked). */
     onPeek?: () => void;
+    /** Friends who fell on this same floor of the daily (their ghosts are on the board). */
+    friendGhosts?: number;
     onRetry: () => void;
     retryLabel?: string;
     onMainMenu: () => void;
@@ -146,6 +148,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         onUnlock={gameOver.onUnlock}
         onForge={gameOver.onForge}
         onPeek={gameOver.onPeek}
+        friendGhosts={gameOver.friendGhosts}
         onRetry={gameOver.onRetry}
         retryLabel={gameOver.retryLabel}
         onMainMenu={gameOver.onMainMenu}

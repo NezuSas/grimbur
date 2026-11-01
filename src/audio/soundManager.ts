@@ -188,6 +188,10 @@ export function useSoundManager(): void {
       case 'UI_TAP':         playSfx(sounds.ui, mixVolume('uiTap')); break;
       case 'FORGE_HAMMER':   playSfx(sounds.forge, mixVolume('forgeHammer')); break;
       case 'EMBER_GAIN':     playSfx(sounds.ember, mixVolume('emberGain')); break;
+      // A family set: the relic chime, then the same chime higher, with the ember sparkle on top.
+      case 'FAMILY_SET':     playSfx(sounds.relic, mixVolume('relic')); setTimeout(() => playSfx(sounds.relic, mixVolume('relic'), 1.33), 150); setTimeout(() => playSfx(sounds.ember, mixVolume('emberGain'), 1.2), 300); break;
+      // A new creature: a low, curious ember swell and a soft high coin.
+      case 'BEAST_FOUND':    playSfx(sounds.ember, mixVolume('emberGain'), 0.75); setTimeout(() => playSfx(sounds.coin, mixVolume('powerup'), 1.5), 180); break;
 
       case 'LEVEL_UP':
         stopAllBackgroundMusic("level_up");

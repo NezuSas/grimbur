@@ -7,6 +7,7 @@ import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
 import { EMPTY_SEASON, SeasonState, addSeasonRun, parseSeason, seasonPointsFor } from './season';
 import { type FriendEntry, parseFriends } from '../social/friends';
 import { EMPTY_BESTIARY, type Bestiary, mergeBestiary, parseBestiary } from './bestiary';
+import { EMPTY_RELIC_BOOK, addEventRun, addRunRelics, parseEventBest, parseRelicBook, parseRunBoard, type EventBest, type RelicBook, type RunBoard } from './runLog';
 import { SKINS_BY_HERO, SkinId, isSkinId, skinKey } from '../skins/skins';
 import { parseCosmetics, type CosmeticId, type CosmeticKind } from '../cosmetics/cosmetics';
 
@@ -79,6 +80,14 @@ export interface LocalStats {
   friends: FriendEntry[];
   /** Every creature met and how many of each were defeated, over all runs. */
   bestiary: Bestiary;
+  /** Every relic picked, how often and in how many won runs (see runLog.ts). */
+  relicBook: RelicBook;
+  /** Runs played, deepest floor and best score with each hero (same order as the roster). */
+  heroRuns: number[];
+  heroBestFloor: number[];
+  heroBestScore: number[];
+  /** The best run under this week's event (see engine/events.ts). */
+  eventBest: EventBest | null;
 }
 
 /** One finished run, kept for the progress chart (the latest HISTORY_LIMIT are stored). */
@@ -88,6 +97,19 @@ export interface RunRecord {
   level: number;
   victory: boolean;
   mode: 'expedition' | 'daily' | 'endless';
+  /** The details below came later: older records lack them. */
+  hero?: number;
+  /** The relics picked in the run. */
+  relics?: string[];
+  /** What ended the run (a death cause), when it was a defeat. */
+  cause?: string;
+  time?: number;
+  gems?: number;
+  depth?: number;
+  /** The week's event the run was played under. */
+  event?: string;
+  /** The last floor as it was when the run ended. */
+  board?: RunBoard;
 }
 
 export const HISTORY_LIMIT = 30;
@@ -137,6 +159,15 @@ export interface RunResult {
   /** The creatures met and defeated in the run (see bestiary.ts). */
   met?: readonly string[];
   slain?: Partial<Record<string, number>>;
+  /** The relics picked in the run (not the ones it started with). */
+  relicIds?: readonly string[];
+  /** What killed the hero (a defeat). */
+  cause?: string | null;
+  /** The last floor, for the history. */
+  board?: RunBoard;
+  /** The week's event the run was played under (expeditions only), and its week. */
+  event?: string | null;
+  eventWeek?: string | null;
 }
 
 export const EMPTY_STATS: LocalStats = {
@@ -171,6 +202,11 @@ export const EMPTY_STATS: LocalStats = {
   season: EMPTY_SEASON,
   friends: [],
   bestiary: EMPTY_BESTIARY,
+  relicBook: EMPTY_RELIC_BOOK,
+  heroRuns: Array.from({ length: HERO_COUNT }, () => 0),
+  heroBestFloor: Array.from({ length: HERO_COUNT }, () => 0),
+  heroBestScore: Array.from({ length: HERO_COUNT }, () => 0),
+  eventBest: null,
 };
 
 /** Fields shared by every finished run: lifetime gems, the heroes tried and the embers paid (with their breakdown). */
@@ -194,7 +230,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     lastBonusDate: bonusDue ? (run.day as string) : stats.lastBonusDate,
     lastPlayedDate: played && (stats.lastPlayedDate === null || (run.day as string) > stats.lastPlayedDate) ? (run.day as string) : stats.lastPlayedDate,
     history: played
-      ? [...stats.history, { day: run.day as string, score: Math.max(0, Math.trunc(run.score) || 0), level: Math.max(1, Math.trunc(run.level) || 1), victory: run.victory === true, mode: run.mode ?? 'expedition' } as RunRecord].slice(-HISTORY_LIMIT)
+      ? [...stats.history, historyRecord(run)].slice(-HISTORY_LIMIT)
       : stats.history,
     totalGems: stats.totalGems + (run.gems ?? 0),
     heroesUsed,
@@ -205,9 +241,35 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     embers: stats.embers + total,
     lifetimeEmbers: stats.lifetimeEmbers + total,
     bestiary: mergeBestiary(stats.bestiary ?? EMPTY_BESTIARY, run),
+    relicBook: played ? addRunRelics(stats.relicBook ?? EMPTY_RELIC_BOOK, run.relicIds, run.victory === true) : stats.relicBook ?? EMPTY_RELIC_BOOK,
+    heroRuns: (stats.heroRuns ?? EMPTY_STATS.heroRuns).map((n, i) => n + (played && run.heroIndex === i ? 1 : 0)),
+    // The endless descent counts floors past the expedition's: it would crowd out the hero's real best.
+    heroBestFloor: (stats.heroBestFloor ?? EMPTY_STATS.heroBestFloor).map((n, i) => (played && run.heroIndex === i && run.mode !== 'endless' ? Math.max(n, run.level) : n)),
+    heroBestScore: (stats.heroBestScore ?? EMPTY_STATS.heroBestScore).map((n, i) => (played && run.heroIndex === i && run.mode !== 'endless' ? Math.max(n, Math.trunc(run.score) || 0) : n)),
+    eventBest: played && run.event && run.eventWeek ? addEventRun(stats.eventBest ?? null, run.eventWeek, run.event, Math.trunc(run.score) || 0, run.level) : stats.eventBest ?? null,
     season: played ? addSeasonRun(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : stats.season ?? EMPTY_SEASON,
   };
   return { patch, payout };
+}
+
+/** The history line of a finished run (the details are dropped when missing, so old and new records mix). */
+function historyRecord(run: RunResult): RunRecord {
+  const rec: RunRecord = {
+    day: run.day as string,
+    score: Math.max(0, Math.trunc(run.score) || 0),
+    level: Math.max(1, Math.trunc(run.level) || 1),
+    victory: run.victory === true,
+    mode: run.mode ?? 'expedition',
+  };
+  if (run.heroIndex !== undefined) rec.hero = run.heroIndex;
+  if (run.relicIds && run.relicIds.length > 0) rec.relics = [...run.relicIds];
+  if (!run.victory && run.cause) rec.cause = run.cause;
+  if (run.time !== undefined) rec.time = Math.max(0, Math.trunc(run.time));
+  if (run.gems !== undefined) rec.gems = Math.max(0, Math.trunc(run.gems));
+  if (run.ascension) rec.depth = run.ascension;
+  if (run.event) rec.event = run.event;
+  if (run.board) rec.board = run.board;
+  return rec;
 }
 
 /** Winning at a depth unlocks the next one (never lowers what was already unlocked). */
@@ -357,6 +419,12 @@ function parseForge(value: unknown): Record<string, number> {
   return out;
 }
 
+const heroCounts = (value: unknown): number[] =>
+  Array.from({ length: HERO_COUNT }, (_, i) => {
+    const v = Array.isArray(value) ? value[i] : 0;
+    return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.trunc(v) : 0;
+  });
+
 function parseHistory(value: unknown): RunRecord[] {
   if (!Array.isArray(value)) return [];
   const out: RunRecord[] = [];
@@ -366,7 +434,19 @@ function parseHistory(value: unknown): RunRecord[] {
     if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
     if (typeof score !== 'number' || !Number.isFinite(score) || score < 0) continue;
     if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue;
-    out.push({ day, score: Math.trunc(score), level: Math.trunc(level), victory: victory === true, mode: mode === 'daily' || mode === 'endless' ? mode : 'expedition' });
+    const rec: RunRecord = { day, score: Math.trunc(score), level: Math.trunc(level), victory: victory === true, mode: mode === 'daily' || mode === 'endless' ? mode : 'expedition' };
+    const x = r as Record<string, unknown>;
+    if (Number.isInteger(x.hero) && (x.hero as number) >= 0 && (x.hero as number) < HERO_COUNT) rec.hero = x.hero as number;
+    if (Array.isArray(x.relics)) rec.relics = x.relics.filter((v): v is string => typeof v === 'string' && v.length <= 32).slice(0, 40);
+    if (typeof x.cause === 'string' && x.cause.length <= 16) rec.cause = x.cause;
+    for (const k of ['time', 'gems', 'depth'] as const) {
+      const v = x[k];
+      if (typeof v === 'number' && Number.isFinite(v) && v >= 0) rec[k] = Math.trunc(v);
+    }
+    if (typeof x.event === 'string' && x.event.length <= 16) rec.event = x.event;
+    const board = parseRunBoard(x.board);
+    if (board) rec.board = board;
+    out.push(rec);
   }
   return out.slice(-HISTORY_LIMIT);
 }
@@ -452,6 +532,11 @@ export function parseStats(raw: string | null): LocalStats {
       season: parseSeason(data.season),
       friends: parseFriends(data.friends),
       bestiary: parseBestiary(data.bestiary),
+      relicBook: parseRelicBook(data.relicBook),
+      heroRuns: heroCounts(data.heroRuns),
+      heroBestFloor: heroCounts(data.heroBestFloor),
+      heroBestScore: heroCounts(data.heroBestScore),
+      eventBest: parseEventBest(data.eventBest),
     };
   } catch {
     return EMPTY_STATS;

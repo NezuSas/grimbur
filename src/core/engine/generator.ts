@@ -2,7 +2,8 @@ import { getDifficulty } from '../difficulty/difficulty';
 import { createPRNG } from '../random/prng';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { modifiersFor } from './ascension';
-import { OmenId, omenEffects } from './omens';
+import { OmenId } from './omens';
+import { floorEffects, type EventId } from './events';
 import { BiomeId, BIOMES } from './biomes';
 import { endlessPressure } from './lair';
 import { isSolvableByDeduction } from './solver';
@@ -52,6 +53,8 @@ export interface GenerateOptions {
   ascension?: number;
   /** The floor's omen (see omens.ts). */
   omen?: OmenId | null;
+  /** The week's event, on top of the omen (see events.ts). */
+  event?: EventId | null;
   /** Extra hearts for the Grimbur (the endless descent grows it). */
   bossHeartBonus?: number;
   /** Past the designed floors the endless descent adds more guardians and vortexes. */
@@ -73,7 +76,7 @@ export function generateBoard(
   const withBoss = options.boss === true;
   const mods = modifiersFor(options.ascension ?? 0);
   const diff = getDifficulty(level);
-  const omen = omenEffects(options.omen);
+  const omen = floorEffects(options.omen, options.event);
   const biome = BIOMES[options.biome ?? 'cave'];
   const prng = createPRNG(seed);
   const totalCells = diff.rows * diff.cols;

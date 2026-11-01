@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import GlyphIcon from "../ui/components/GlyphIcon";
-import { ImageBackground, ScrollView, StyleSheet, View } from "react-native";
+import { ImageBackground, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { achievementArt } from "../ui/achievementArt";
 import Rise, { riseDelay } from "../ui/components/Rise";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
@@ -25,6 +25,8 @@ import characters from "../data/characters";
 import { useT } from "../i18n/useT";
 import { achievementText, heroText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
+import RunDetail from "./progress/RunDetail";
+import type { RunRecord } from "../core/stats/runStats";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProgressScreen">;
 
@@ -88,7 +90,7 @@ const Steps = ({ total, filled, color }: { total: number; filled: number; color:
   </View>
 );
 
-const ProgressScreen: React.FC<Props> = ({ navigation }) => {
+const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t, n } = useT();
   const { width } = useWindowDimensions();
   const { insets } = useGameLayout();
@@ -105,7 +107,11 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
   const runs = chartRuns(stats.history);
   const best = Math.max(0, ...runs.map(r => r.score));
   const trend = trendOf(runs);
-  const list = recentList(stats.history, 6);
+  const list = recentList(stats.history, 12);
+  const [opened, setOpened] = useState<RunRecord | null>(null);
+  // Development: open one run of the history at once (for screenshots).
+  const devOpen = __DEV__ ? route.params?.devOpenRun : undefined;
+  const shown = opened ?? (devOpen !== undefined ? stats.history[stats.history.length - 1 - devOpen] ?? null : null);
   const days = playedDays(stats.history, today, 14);
   const stored = stats.history.length;
   const olderGames = Math.max(0, stats.gamesPlayed - stored);
@@ -235,6 +241,21 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                       <View style={styles.heroTrack}>
                         <View style={[styles.heroFill, { width: `${Math.round((wins / maxWins) * 100)}%` }]} />
                       </View>
+                      {used ? (
+                        <>
+                          <Text style={styles.heroStat} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                            {t("progress.hero.floor", { n: stats.heroBestFloor[i] ?? 0 })}
+                          </Text>
+                          <Text style={styles.heroStatDim} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                            {t("progress.hero.runs", { n: Math.max(stats.heroRuns[i] ?? 0, wins) })}
+                          </Text>
+                          {(stats.heroBestScore[i] ?? 0) > 0 ? (
+                            <Text style={styles.heroStatDim} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                              {n(stats.heroBestScore[i])}
+                            </Text>
+                          ) : null}
+                        </>
+                      ) : null}
                     </View>
                   );
                 })}
@@ -256,10 +277,20 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                 {list.map((r, i) => {
                   const modeIcon = r.mode === "daily" ? "calendar" : r.mode === "endless" ? "infinite" : "compass";
                   return (
-                    <View key={i} style={styles.runRow} accessible accessibilityLabel={`${r.day}. ${r.victory ? t("progress.legend.win") : t("progress.legend.run")}. ${t("scores.floorShort", { n: r.level })}. ${r.score}`}>
+                    <Pressable
+                      key={i}
+                      onPress={() => setOpened(r)}
+                      style={({ pressed }) => [styles.runRow, pressed && { opacity: 0.7 }]}
+                      accessibilityRole="button"
+                      accessibilityHint={t("history.open")}
+                      accessibilityLabel={`${r.day}. ${r.victory ? t("progress.legend.win") : t("progress.legend.run")}. ${t("scores.floorShort", { n: r.level })}. ${r.score}`}
+                    >
                       <View style={[styles.result, r.victory ? styles.resultWin : styles.resultLoss]}>
                         <Ionicons name={r.victory ? "trophy" : "close"} size={16} color={r.victory ? "#2A2016" : "#EAE1D8"} />
                       </View>
+                      {r.hero !== undefined && characters[r.hero] ? (
+                        <SpriteImage source={characters[r.hero].scoreImage} style={styles.runHero} resizeMode="cover" />
+                      ) : null}
                       <Ionicons name={modeIcon} size={16} color="#CAB39C" />
                       <Text style={styles.runFloor} maxFontSizeMultiplier={1.2}>
                         {t("scores.floorShort", { n: r.level })}
@@ -272,7 +303,8 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
                       <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
                         {r.mode === "endless" ? "∞" : n(r.score)}
                       </Text>
-                    </View>
+                      <Ionicons name="chevron-forward" size={16} color="#8C7560" />
+                    </Pressable>
                   );
                 })}
                 {olderGames > 0 && (
@@ -313,11 +345,15 @@ const ProgressScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         </ScrollView>
       </SafeAreaView>
+      <RunDetail run={shown} onClose={() => setOpened(null)} />
     </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  runHero: { width: 26, height: 26, borderRadius: 13, borderWidth: 1, borderColor: "rgba(255,255,255,0.25)" },
+  heroStat: { color: "#E6D6C4", fontSize: 11, fontWeight: "900" },
+  heroStatDim: { color: "#A8927D", fontSize: 10.5, fontWeight: "700" },
   root: { flex: 1, backgroundColor: "#000" },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   card: { flexGrow: 1, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(36, 28, 19,0.88)", padding: 14, gap: 8 },

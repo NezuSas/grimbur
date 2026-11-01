@@ -169,7 +169,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null
 }: {
   index: number;
   tileSize: number;
@@ -186,6 +186,8 @@ const GridCell = memo(({
   highlighted: boolean;
   /** The player marked this unexplored tile as dangerous. */
   flagged: boolean;
+  /** Practice help: what the clues prove about this hidden tile (null: nothing yet). */
+  deduced?: 'safe' | 'danger' | null;
   /** The direction of the arrow that would fly over this tile (null when none would). */
   aimed: Direction | null;
   /** How many tiles from the hero this tile is along the aim line (1 = the next one). */
@@ -527,6 +529,14 @@ const GridCell = memo(({
         </View>
       )}
 
+      {deduced && !flagged && (
+        <View style={[styles.deduced, deduced === 'safe' ? styles.deducedSafe : styles.deducedDanger, { borderRadius: tileSize * 0.16 }]} pointerEvents="none">
+          <View style={[styles.deducedBadge, { width: tileSize * 0.34, height: tileSize * 0.34, borderRadius: tileSize * 0.17 }, deduced === 'safe' ? styles.deducedBadgeSafe : styles.deducedBadgeDanger]}>
+            <Ionicons name={deduced === 'safe' ? 'checkmark' : 'alert'} size={tileSize * 0.24} color="#fff" />
+          </View>
+        </View>
+      )}
+
       {highlighted && <View style={styles.highlight} pointerEvents="none" />}
 
       {killer && <View style={styles.killer} pointerEvents="none" />}
@@ -541,6 +551,12 @@ const GridCell = memo(({
 
 
 const styles = StyleSheet.create({
+  deduced: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderWidth: 2, alignItems: 'flex-end', justifyContent: 'flex-start', padding: 2 },
+  deducedSafe: { borderColor: 'rgba(105,240,174,0.7)', backgroundColor: 'rgba(105,240,174,0.10)' },
+  deducedDanger: { borderColor: 'rgba(255,82,82,0.75)', backgroundColor: 'rgba(255,82,82,0.12)' },
+  deducedBadge: { alignItems: 'center', justifyContent: 'center' },
+  deducedBadgeSafe: { backgroundColor: '#2E9E5B' },
+  deducedBadgeDanger: { backgroundColor: '#D32F2F' },
   loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#7FE3FF' },
   lootText: { color: '#fff', fontWeight: '900' },
   cell: { alignItems: "center", justifyContent: "center" },

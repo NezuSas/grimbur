@@ -1,29 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import type { ImageSourcePropType } from "react-native";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import type { TranslationKey } from "../../i18n/en";
-import { BEASTS, EMPTY_BESTIARY, SLAYABLE, type BeastId, type Bestiary } from "../../core/stats/bestiary";
+import { BEASTS, EMPTY_BESTIARY, SLAYABLE, type Bestiary } from "../../core/stats/bestiary";
 import { getLocalStats, peekLocalStats } from "../../services/localStats";
 import type { Kit } from "./kit";
+import { BEAST_ART, BEAST_TINT } from "../../ui/beastArt";
 
-const ART: Record<BeastId, ImageSourcePropType> = {
-  enemy: require("../../assets/sprites/enemies/Guardian_Enemy.png"),
-  stalker: require("../../assets/sprites/enemies/Stalker_Enemy.png"),
-  sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
-  mimic: require("../../assets/sprites/enemies/Mimic_Enemy.png"),
-  thief: require("../../assets/sprites/enemies/Thief_Enemy.png"),
-  brute: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
-  boss: require("../../assets/sprites/enemies/Grimbur_Boss.png"),
-  pit: require("../../assets/sprites/tiles/Danger_Vortex.png"),
-  trap: require("../../assets/sprites/tiles/Trap_Sprung.png"),
-  chest: require("../../assets/sprites/items/Icon_Chest.png"),
-};
-const TINT: Record<BeastId, string> = {
-  enemy: "#FF8A65", stalker: "#B388FF", sleeper: "#80CBC4", mimic: "#4FC3F7", thief: "#FFD54F",
-  brute: "#FF7043", boss: "#FF5252", pit: "#CE93D8", trap: "#BCAAA4", chest: "#FFCA28",
-};
+const ART = BEAST_ART;
+const TINT = BEAST_TINT;
 
 /**
  * The bestiary: every creature and danger of the cave. Those not met yet are a dark shape and "???"; the met ones show their

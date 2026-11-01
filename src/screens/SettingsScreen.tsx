@@ -77,6 +77,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const controlSize = useSettingsStore(s => s.controlSize);
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
+  const deductionHint = useSettingsStore(s => s.deductionHint);
   const musicVolume = useSettingsStore(s => s.musicVolume);
   const sfxVolume = useSettingsStore(s => s.sfxVolume);
   const setMusicVolume = useSettingsStore(s => s.setMusicVolume);
@@ -87,6 +88,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const setAttackButton = useSettingsStore(s => s.setAttackButton);
   const setSwipeMove = useSettingsStore(s => s.setSwipeMove);
   const setDragAim = useSettingsStore(s => s.setDragAim);
+  const setDeductionHint = useSettingsStore(s => s.setDeductionHint);
   const setSoundEnabled = useSettingsStore(s => s.setSoundEnabled);
   const setHapticsEnabled = useSettingsStore(s => s.setHapticsEnabled);
   const setReduceFlash = useSettingsStore(s => s.setReduceFlash);
@@ -394,6 +396,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     <SettingCard>
       <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#9EE37D">
         <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
+      </SettingRow>
+      <RowDivider />
+      <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#FFD54F">
+        <ToggleSwitch value={deductionHint} onValueChange={setDeductionHint} accessibilityLabel={t("settings.deductionHint")} />
       </SettingRow>
       {remindersSupported() ? (
         <>

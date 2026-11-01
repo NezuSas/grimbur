@@ -12,6 +12,7 @@ import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
+import Text from "./Text";
 import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
@@ -123,10 +124,14 @@ type Props = {
   flag?: ImageSourcePropType | null;
   /** The floor is over: every hidden creature, vortex and trap shows where it was. */
   unveil?: boolean;
+  /** Practice help: hidden tiles the clues prove safe or dangerous. */
+  deduced?: ReadonlyMap<number, "safe" | "danger"> | null;
+  /** Friends who fell on this same floor of the daily: a ghost of their hero where their run ended. */
+  friendGhosts?: readonly { tile: number; name: string; art: ImageSourcePropType }[];
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -468,6 +473,7 @@ const BoardView: React.FC<Props> = memo(
                   pitCount={near.pitCount}
                   highlighted={highlightSet.has(i)}
                   flagged={!!flags && flags.has(i) && !visitedSet.has(i)}
+                  deduced={deduced && !visitedSet.has(i) && !unveil ? deduced.get(i) ?? null : null}
                   aimed={aimTiles && aimTiles.has(i) ? aimDir : null}
                   aimStep={aimTiles && aimTiles.has(i) ? Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) : 0}
                   aimLast={!!aimTiles && aimTiles.has(i) && Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) === aimTiles.size}
@@ -491,6 +497,23 @@ const BoardView: React.FC<Props> = memo(
 
           {dusts.map(d => (
             <DustPuff key={d.id} x={d.x} y={d.y} tileSize={tileSize} onDone={() => removeDust(d.id)} />
+          ))}
+
+          {friendGhosts?.map((g, k) => (
+            <View
+              key={`ghost-${k}`}
+              pointerEvents="none"
+              accessible
+              accessibilityLabel={g.name}
+              style={[styles.ghost, { left: (g.tile % cols) * tileSize, top: Math.floor(g.tile / cols) * tileSize, width: tileSize, height: tileSize }]}
+            >
+              <View style={[styles.ghostRing, { width: tileSize * 0.78, height: tileSize * 0.78, borderRadius: tileSize * 0.39 }]}>
+                <SpriteImage source={g.art} style={{ width: tileSize * 0.7, height: tileSize * 0.7, borderRadius: tileSize * 0.35, opacity: 0.75 }} resizeMode="cover" />
+              </View>
+              <Text style={[styles.ghostName, { maxWidth: tileSize * 1.6 }]} numberOfLines={1} maxFontSizeMultiplier={1}>
+                {g.name}
+              </Text>
+            </View>
           ))}
 
           {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
@@ -658,6 +681,9 @@ const BoardView: React.FC<Props> = memo(
 );
 
 const styles = StyleSheet.create({
+  ghost: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 6 },
+  ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },
+  ghostName: { position: "absolute", bottom: -6, color: "#E3F2FD", fontSize: 9, fontWeight: "900", backgroundColor: "rgba(10,20,40,0.8)", paddingHorizontal: 4, borderRadius: 4, overflow: "hidden" },
   cameraContainer: { justifyContent: "center", alignItems: "center" },
   boardFrame: {
     backgroundColor: "#111",

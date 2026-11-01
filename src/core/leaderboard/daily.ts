@@ -54,6 +54,8 @@ export interface DailySubmission {
   coins: number;
   characterIndex: number;
   time: number;
+  /** The tile of the last floor where the run ended (a defeat): friends see it as a ghost. */
+  fell?: number;
 }
 
 /** What is wrong with a daily result (empty when it is fine). Name rules live in validation.ts. */
@@ -66,5 +68,6 @@ export function validateDaily(row: DailySubmission): string[] {
   if (!Number.isInteger(row.coins) || row.coins < 0 || row.coins > row.level * 8) problems.push('coins');
   if (!Number.isInteger(row.characterIndex) || row.characterIndex < 0 || row.characterIndex > 5) problems.push('hero');
   if (!Number.isInteger(row.time) || row.time < (row.level - 1) * 5 + 1 || row.time > 86400) problems.push('time');
+  if (row.fell !== undefined && (!Number.isInteger(row.fell) || row.fell < 0 || row.fell >= 400)) problems.push('fell');
   return problems;
 }

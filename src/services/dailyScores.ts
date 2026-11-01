@@ -26,6 +26,8 @@ export interface DailyResult {
   characterIndex: number;
   /** Seconds played. */
   time: number;
+  /** The tile of the last floor where the run ended (a defeat). */
+  fell?: number;
 }
 
 export type SubmitOutcome = 'saved' | 'not-better';
@@ -47,6 +49,7 @@ export async function submitDailyScore(result: DailyResult, name: string): Promi
     coins: Math.max(0, Math.round(result.coins)),
     characterIndex: result.characterIndex,
     time: Math.max(1, Math.round(result.time)),
+    ...(Number.isInteger(result.fell) ? { fell: result.fell } : {}),
   };
   const problems = validateDaily(row);
   if (problems.length > 0) throw new Error(`[daily] invalid result: ${problems.join(', ')}`);
@@ -54,7 +57,14 @@ export async function submitDailyScore(result: DailyResult, name: string): Promi
   const ref = doc(db, COLLECTION, dailyDocId(row.day, pid));
   const existing = await withTimeout(getDoc(ref), 'read');
   if (existing.exists() && Number(existing.data()?.score) >= row.score) return 'not-better';
-  await withTimeout(setDoc(ref, { ...row, ...lookOf(peekLocalStats()) }), 'write');
+  try {
+    await withTimeout(setDoc(ref, { ...row, ...lookOf(peekLocalStats()) }), 'write');
+  } catch (e) {
+    // A server whose rules predate the ghost tile refuses it: the score still goes up without it.
+    if (row.fell === undefined || (e as { code?: string })?.code !== 'permission-denied') throw e;
+    const { fell: _fell, ...plain } = row;
+    await withTimeout(setDoc(ref, { ...plain, ...lookOf(peekLocalStats()) }), 'write');
+  }
   return 'saved';
 }
 
@@ -65,6 +75,33 @@ async function load(days: string[]): Promise<BoardDoc[]> {
   const docs: BoardDoc[] = snap.docs.map(d => ({ id: d.id, data: () => d.data() as BoardRow }));
   // Ties on score: the faster run first.
   return rankRows(docs.map(d => ({ doc: d, score: d.data().score, time: d.data().time }))).map(r => r.doc);
+}
+
+/** A friend's ghost on today's daily: where their best run of the day ended. */
+export interface DailyGhost {
+  pid: string;
+  name: string;
+  level: number;
+  fell: number;
+  characterIndex: number;
+}
+
+/** Where each friend's daily run of `day` ended (only those who fell; a friend that cannot be read is skipped). */
+export async function loadDailyGhosts(day: string, pids: readonly string[]): Promise<DailyGhost[]> {
+  const rows = await Promise.all(
+    pids.slice(0, 30).map(async pid => {
+      try {
+        const snap = await withTimeout(getDoc(doc(db, COLLECTION, dailyDocId(day, pid))), 'ghost');
+        if (!snap.exists()) return null;
+        const d = snap.data() as Partial<DailySubmission>;
+        if (!Number.isInteger(d.fell) || !Number.isInteger(d.level) || typeof d.name !== 'string') return null;
+        return { pid, name: d.name, level: d.level as number, fell: d.fell as number, characterIndex: Number(d.characterIndex) || 0 };
+      } catch {
+        return null;
+      }
+    }),
+  );
+  return rows.filter((r): r is DailyGhost => r !== null);
 }
 
 /** The best results of a day (up to 20). Throws when the network fails. */

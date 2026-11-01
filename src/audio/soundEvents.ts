@@ -39,4 +39,6 @@ export type SoundEvent =
   | 'CHARGE_WARN'       // A hunter started winding up a strike
   | 'UI_TAP'             // A menu or popup button was pressed
   | 'FORGE_HAMMER'       // A Forge upgrade (or outfit) was bought
-  | 'EMBER_GAIN';       // Embers were claimed (missions, achievements, duel prize)
+  | 'EMBER_GAIN'        // Embers were claimed (missions, achievements, duel prize)
+  | 'FAMILY_SET'        // Three relics of one family: its bonus wakes up
+  | 'BEAST_FOUND';      // A creature new to the bestiary was met

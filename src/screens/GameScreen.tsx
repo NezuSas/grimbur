@@ -1,4 +1,7 @@
-import { omenEffects } from "../core/engine/omens";
+import { EVENT_MIN_RUNS, eventForWeek, floorEffects } from "../core/engine/events";
+import { provenMarks } from "../core/engine/solver";
+import { loadDailyGhosts, type DailyGhost } from "../services/dailyScores";
+import { weekKey } from "../core/leaderboard/daily";
 import { reviewDeath } from "../core/engine/deathReview";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../ui/components/Text";
@@ -39,7 +42,14 @@ import ScorePopup from "../ui/components/game/ScorePopup";
 import Toast from "../ui/components/game/Toast";
 import { useGameLayout, GAME_ROW_PADDING } from "../ui/layout/useGameLayout";
 import { haptic, ImpactFeedbackStyle } from "../shared/haptics";
-import { RelicId, relicCount } from "../core/engine/relics";
+import { RELIC_FAMILY, RelicId, activeFamilies, relicCount, type RelicFamily } from "../core/engine/relics";
+import type { ImageSourcePropType } from "react-native";
+import Fanfare from "../ui/components/game/Fanfare";
+import { FAMILY_COLOR } from "../ui/familyLook";
+import { RELIC_IMAGES } from "../ui/relicImages";
+import { BEAST_ART, BEAST_TINT } from "../ui/beastArt";
+import type { BeastId } from "../core/stats/bestiary";
+import { NotificationFeedbackType } from "../shared/haptics";
 import { useSettingsStore } from "../state/settings/store";
 import { emitSound } from "../audio/audioEventBus";
 import { onRenderProfile } from "../audio/renderProfile";
@@ -144,6 +154,10 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
+  // Practice help: only in an expedition or the endless descent (the daily, challenges and duels are the same test for everyone).
+  const hintAllowed = (useSettingsStore(s => s.deductionHint) || (__DEV__ && !!route.params?.devHint)) && !isDaily && !challenge;
+  const practiceRef = useRef(false);
+  if (hintAllowed) practiceRef.current = true; // a run that saw the help once stays out of the top 10
   const movePad = useSettingsStore(s => s.movePad);
   const hintsSeen = useSettingsStore(s => s.hintsSeen);
   const markHintSeen = useSettingsStore(s => s.markHintSeen);
@@ -158,6 +172,15 @@ export default function GameScreen({ navigation, route }: Props) {
   const openPause = useCallback(() => setPaused(true), []);
   const runEnded = state.isGameOver || state.isVictory;
   const floorOmen = state.omen;
+  // The week's event is announced on the first floor (the later banners tell their own omens).
+  const eventAnnounce = state.level === 1 && !!state.event;
+  // What the explored clues prove about the hidden tiles (the practice help); the gems and items lying in plain sight are left alone.
+  const deduced = useMemo(() => {
+    if (!hintAllowed || state.isGameOver || state.isVictory) return null;
+    const marks = provenMarks(state.rows, state.cols, state.entities, state.visited);
+    for (const e of state.entities) if (e.type === "coin" || e.type === "shield" || e.type === "ammo") marks.delete(e.index);
+    return marks;
+  }, [hintAllowed, state.rows, state.cols, state.entities, state.visited, state.isGameOver, state.isVictory]);
   const floorBiome = (__DEV__ ? route.params?.devBiome : undefined) ?? biomeFor(state.level, state.mode);
   // Equipped looks (Collection): read once per run. A board theme only repaints the floor; the biome's rules stay.
   const [looks] = useState(() => {
@@ -172,6 +195,102 @@ export default function GameScreen({ navigation, route }: Props) {
   const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+
+  // ── Friends' ghosts on the daily: where each friend's best run of today ended (shown once this run is over) ──
+  const [dailyGhosts, setDailyGhosts] = useState<DailyGhost[]>([]);
+  const runOver = state.isGameOver || state.isVictory;
+  useEffect(() => {
+    if (!isDaily || !runOver) return;
+    const pids = (peekLocalStats()?.friends ?? []).map(f => f.pid);
+    if (pids.length === 0) return;
+    let live = true;
+    void loadDailyGhosts(dailyDate, pids).then(g => live && setDailyGhosts(g)).catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [isDaily, runOver, dailyDate]);
+  const ghostsHere = useMemo(
+    () => (runOver ? dailyGhosts.filter(g => g.level === state.level && g.fell < state.rows * state.cols).map(g => ({ tile: g.fell, name: g.name, art: characters[g.characterIndex]?.scoreImage ?? characters[0].scoreImage })) : []),
+    [runOver, dailyGhosts, state.level, state.rows, state.cols],
+  );
+
+  // ── Fanfares: a relic family completed, a creature new to the bestiary ──
+  const [fanfare, setFanfare] = useState<{ key: number; tint: string; art: ImageSourcePropType | ImageSourcePropType[]; kicker: string; title: string; line?: string } | null>(null);
+  const familiesSeen = useRef<{ seed: number; families: RelicFamily[] } | null>(null);
+  useEffect(() => {
+    const now = activeFamilies(state.relics);
+    const before = familiesSeen.current;
+    familiesSeen.current = { seed: state.runSeed, families: now };
+    // A new run, or a run restored from disk: its families were already there.
+    if (!before || before.seed !== state.runSeed) return;
+    const fresh = now.find(f => !before.families.includes(f));
+    if (!fresh) return;
+    const own = [...new Set(state.relics.filter(r => RELIC_FAMILY[r] === fresh))].slice(0, 3);
+    emitSound("FAMILY_SET");
+    haptic.notify(NotificationFeedbackType.Success);
+    setFanfare({
+      key: Date.now(),
+      tint: FAMILY_COLOR[fresh],
+      art: own.map(r => RELIC_IMAGES[r]),
+      kicker: t("fanfare.family.kicker"),
+      title: t("fanfare.family.title", { name: t(`family.${fresh}.name` as TranslationKey) }),
+      line: t(`family.${fresh}.bonus` as TranslationKey),
+    });
+  }, [state.relics, state.runSeed, t]);
+
+  // Development: a fanfare at once (for screenshots).
+  useEffect(() => {
+    const kind = __DEV__ ? route.params?.devFanfare : undefined;
+    if (!kind) return;
+    const timer = setTimeout(() => {
+      setFanfare(
+        kind === "family"
+          ? { key: 1, tint: FAMILY_COLOR.archer, art: (["quiver", "long_bow", "hunter"] as RelicId[]).map(r => RELIC_IMAGES[r]), kicker: t("fanfare.family.kicker"), title: t("fanfare.family.title", { name: t("family.archer.name") }), line: t("family.archer.bonus") }
+          : { key: 2, tint: BEAST_TINT.mimic, art: [BEAST_ART.mimic], kicker: t("fanfare.beast.kicker"), title: t("bestiary.mimic.name"), line: t("fanfare.beast.line") },
+      );
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [route.params?.devFanfare, t]);
+
+  // Creatures new to the bestiary: announced at once in the middle of a floor, or once the next floor opens when they were
+  // met as a floor ended (the level card covers the board then). A defeat shows nothing: the card has the floor's story.
+  const metSeen = useRef<{ seed: number; n: number } | null>(null);
+  const beastsDue = useRef<BeastId[]>([]);
+  const announced = useRef<Set<string>>(new Set());
+  const announceBeasts = useCallback(() => {
+    const list = beastsDue.current;
+    if (list.length === 0) return;
+    beastsDue.current = [];
+    const first = list[0];
+    emitSound("BEAST_FOUND");
+    haptic.notify(NotificationFeedbackType.Success);
+    setFanfare({
+      key: Date.now(),
+      tint: BEAST_TINT[first],
+      art: list.slice(0, 3).map(b => BEAST_ART[b]),
+      kicker: t("fanfare.beast.kicker"),
+      title: list.map(b => t(`bestiary.${b}.name` as TranslationKey)).join(" · "),
+      line: t("fanfare.beast.line"),
+    });
+  }, [t]);
+  useEffect(() => {
+    const met = (state.met ?? []) as BeastId[];
+    const before = metSeen.current;
+    metSeen.current = { seed: state.runSeed, n: met.length };
+    if (!before || before.seed !== state.runSeed || met.length <= before.n) return;
+    const known = peekLocalStats()?.bestiary?.met ?? [];
+    const fresh = met.slice(before.n).filter(b => !known.includes(b) && !announced.current.has(b));
+    if (fresh.length === 0) return;
+    fresh.forEach(b => announced.current.add(b));
+    beastsDue.current = [...beastsDue.current, ...fresh];
+    if (!state.isLevelUp && !state.isGameOver && !state.isVictory) announceBeasts();
+  }, [state.met, state.runSeed, state.isLevelUp, state.isGameOver, state.isVictory, announceBeasts]);
+  useEffect(() => {
+    if (beastsDue.current.length === 0 || state.isLevelUp || state.isGameOver) return;
+    // A new floor: after its banner.
+    const timer = setTimeout(announceBeasts, 3200);
+    return () => clearTimeout(timer);
+  }, [state.level, state.isLevelUp, state.isGameOver, announceBeasts]);
   // The floor banner holds the board until it has gone (or is tapped away), so no step is taken under it.
   const bannerKey = `${runNumber}-${state.runSeed}-${state.level}`;
   const [bannerDone, setBannerDone] = useState<string | null>(null);
@@ -262,6 +381,7 @@ export default function GameScreen({ navigation, route }: Props) {
     dailyDate,
     challengeCode: challenge?.code ?? null,
     startRelics: route.params?.meta?.startRelics?.length ?? 0,
+    practiceRef,
     sessionTimeRef,
     deathFlash,
     reduceFlash,
@@ -296,6 +416,7 @@ export default function GameScreen({ navigation, route }: Props) {
 
   // ── Run bookkeeping ──────────────────────────────────────────────────────
   const startRun = useCallback(() => {
+    practiceRef.current = hintAllowed;
     deathFlash.setValue(0);
     resetStreak();
     setRunNumber(n => n + 1); // replays the floor banner even when a daily restarts on the same seed
@@ -306,8 +427,10 @@ export default function GameScreen({ navigation, route }: Props) {
       ...(challenge ? { runSeed: challenge.seed } : {}),
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
       ...(mode === "endless" ? { mode: "endless" as const } : {}),
+      // The week's event: every expedition this week (never a challenge or a duel, nor a newcomer's first runs).
+      event: !challenge && (peekLocalStats()?.gamesPlayed ?? 0) >= EVENT_MIN_RUNS ? eventForWeek(weekKey(dailyKey())) : null,
     });
-  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta]);
+  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta, hintAllowed]);
 
   /** Writes the run to disk so "Continuar" (or Android killing the process) does not cost it. */
   const saveCurrentRun = useCallback(() => {
@@ -808,8 +931,8 @@ export default function GameScreen({ navigation, route }: Props) {
           floorKey={bannerKey}
           onDone={() => setBannerDone(bannerKey)}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
-          omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : undefined}
-          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : undefined}
+          omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : eventAnnounce ? `${t("event.kicker")}: ${t(`event.${state.event}.name` as TranslationKey)}` : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : eventAnnounce ? t(`event.${state.event}.rule` as TranslationKey) : undefined}
           story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
           dismiss={bannerSkipped === bannerKey}
@@ -837,7 +960,9 @@ export default function GameScreen({ navigation, route }: Props) {
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
-            dark={!!omenEffects(state.omen).dark}
+            deduced={deduced}
+            friendGhosts={ghostsHere}
+            dark={!!floorEffects(state.omen, state.event).dark}
             level={state.level}
             rows={state.rows}
             cols={state.cols}
@@ -991,6 +1116,7 @@ export default function GameScreen({ navigation, route }: Props) {
         gameOver={{
           visible: showGameOver && !peek,
           onPeek: () => setPeek(true),
+          friendGhosts: ghostsHere.length,
           result: runResult,
           isDaily,
           dailyDate,
@@ -1015,6 +1141,11 @@ export default function GameScreen({ navigation, route }: Props) {
         revive={{ visible: second.visible, price: second.price, embers: second.embers, used: second.used, busy: second.busy, onRevive: () => void second.accept(), onDecline: second.decline }}
         highScore={{ visible: showHighScoreEntry, daily: isDaily, challenge: !!challenge, onSubmit: handleHighScoreSubmit, onSkip: () => setShowHighScoreEntry(false) }}
       />
+
+      {/* Over everything, the pick and the shop included: the moment it marks often happens there. */}
+      {fanfare && !showGameOver ? (
+        <Fanfare fanfareKey={fanfare.key} tint={fanfare.tint} art={fanfare.art} kicker={fanfare.kicker} title={fanfare.title} line={fanfare.line} top={insets.top + 10} calm={reduceFlash} hold={__DEV__ && !!route.params?.devFanfare} onDone={() => setFanfare(null)} />
+      ) : null}
     </ImageBackground>
     </Profiler>
   );

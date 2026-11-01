@@ -6,9 +6,13 @@ import { emitSound } from "../../audio/audioEventBus";
 import { analytics } from "../../services/analytics";
 import { addHighscore, isTopTenScore, prefetchLeaderboardThreshold } from "../../services/highscores";
 import { recordDailyRun, recordRun } from "../../services/localStats";
+import { snapshotBoard } from "../../core/stats/runLog";
+import { weekKey } from "../../core/leaderboard/daily";
+import { dailyKey } from "../../core/engine/seed";
 import { queueCloudSync } from "../../services/cloudBackup";
 import { getPlayerName, setPlayerName } from "../../services/playerProfile";
 import { submitDailyScore } from "../../services/dailyScores";
+import { killerTile } from "../../core/feedback/diffFeedback";
 import { rememberChallenge, submitChallengeScore } from "../../services/challenges";
 import { queuePendingSubmit } from "../../services/pendingSubmits";
 import type { GameState } from "../../core/engine/types";
@@ -32,6 +36,8 @@ type Params = {
   challengeCode?: string | null;
   /** Relics a Forge upgrade starts the run with: they are not counted as picked. */
   startRelics: number;
+  /** True once the run has shown the practice help: it then stays out of the top 10. */
+  practiceRef?: MutableRefObject<boolean>;
   /** The seconds played, read when it is needed. */
   sessionTimeRef: { readonly current: number };
   /** The red edges on a death. */
@@ -43,7 +49,7 @@ type Params = {
  * The end of a run: saving it once to the local stats, the result the card shows, the card itself and the high-score entry. It
  * keeps the guards that make each of those happen exactly once (a retry, leaving the screen and the card may all try to save).
  */
-export function useRunRecord({ stateRef, runEnded, afterQuestion = false, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, sessionTimeRef, deathFlash, reduceFlash }: Params) {
+export function useRunRecord({ stateRef, runEnded, afterQuestion = false, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, practiceRef, sessionTimeRef, deathFlash, reduceFlash }: Params) {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -83,6 +89,11 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       mode,
       met: s.met,
       slain: s.slain,
+      relicIds: s.relics.slice(startRelics),
+      cause: s.isVictory ? null : s.deathCause,
+      board: snapshotBoard(s),
+      event: s.event ?? null,
+      eventWeek: s.event ? weekKey(dailyKey()) : null,
     };
     try {
       if (isDaily) {
@@ -107,6 +118,8 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
     async (name: string) => {
       const s = stateRef.current;
       const result = { level: s.level, score: s.score, coins: s.totalCoins, characterIndex, time: sessionTimeRef.current };
+      // Where the daily ended, for friends' ghosts (a challenge keeps its own board without it).
+      const fell = !challengeCode && s.isGameOver && !s.isVictory ? killerTile(s) : undefined;
       if (challengeCode) {
         void rememberChallenge(challengeCode, result.score);
         try {
@@ -119,9 +132,9 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
         return;
       }
       try {
-        await submitDailyScore({ day: dailyDate, ...result }, name);
+        await submitDailyScore({ day: dailyDate, ...result, fell }, name);
       } catch (e) {
-        await queuePendingSubmit({ kind: "daily", result: { day: dailyDate, ...result }, name }).catch(() => {});
+        await queuePendingSubmit({ kind: "daily", result: { day: dailyDate, ...result, fell }, name }).catch(() => {});
         throw e;
       }
       analytics.track("daily_board_submitted", { level: s.level, score: s.score });
@@ -180,6 +193,8 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       }
       // Endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
       if (mode === "endless") return;
+      // A run played with the practice help never enters the top 10.
+      if (practiceRef?.current) return;
       // null: the board could not be read in time. A new personal best is then offered the name anyway: saving it
       // checks the player's own row and only ever raises it, so asking can never post a worse score.
       const qualifies = await Promise.race([

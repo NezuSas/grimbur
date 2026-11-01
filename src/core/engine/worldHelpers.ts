@@ -2,7 +2,7 @@
 import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType, DeathCause } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
-import { omenEffects } from './omens';
+import { floorEffects } from './events';
 import { RelicId, relicCount, removeRelic, hasFamilyBonus } from './relics';
 
 export const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
@@ -307,11 +307,11 @@ export const wakeSleepers = (world: World, playerIndex: number, cols: number): W
 
 /** Shop gems one collected gem is worth: the Idol doubles it, a bounty floor adds one per second gem, Lucky Coins sometimes add one. */
 export const gemYield = (
-  s: Pick<GameState, 'relics' | 'omen' | 'seed' | 'turn'>,
+  s: Pick<GameState, 'relics' | 'omen' | 'event' | 'seed' | 'turn'>,
   totalAfter: number,
 ): number => {
   let n = relicCount(s.relics, 'greedy_idol') > 0 ? 2 : 1;
-  const every = omenEffects(s.omen).shopGemEvery;
+  const every = floorEffects(s.omen, s.event).shopGemEvery;
   if (every > 0 && totalAfter % every === 0) n += 1;
   const lucky = relicCount(s.relics, 'lucky_coin');
   if (lucky > 0) {

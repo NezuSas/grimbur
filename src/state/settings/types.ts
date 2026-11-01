@@ -28,6 +28,8 @@ export interface SettingsState {
   swipeMove: boolean;
   /** Shoot by dragging from the hero toward a side and letting go (the attack button keeps working). */
   dragAim: boolean;
+  /** Practice help: the board marks the tiles the clues already prove safe or dangerous (expeditions only; such runs skip the top 10). */
+  deductionHint: boolean;
   language: LanguagePreference;
   /** True once the player has finished or skipped the tutorial. */
   tutorialSeen: boolean;
@@ -57,6 +59,7 @@ export interface SettingsState {
   setJoystickSkin: (skin: JoystickSkin) => void;
   setSwipeMove: (enabled: boolean) => void;
   setDragAim: (enabled: boolean) => void;
+  setDeductionHint: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
   setStorySeen: (seen: boolean) => void;

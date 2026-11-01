@@ -9,6 +9,7 @@ import { generateBoard, MID_BOSS_FLOOR } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
 import { omenFor, omenEffects, OmenId } from './omens';
+import type { EventId } from './events';
 import { biomeFor } from './biomes';
 import { ShopItem } from './shop';
 import { isLairFloor, lairHeartBonus } from './lair';
@@ -144,7 +145,7 @@ export function useGameEngine(): GameEngineInterface {
   /** The final floor of an expedition (and of a daily) is the Grimbur' lair. */
   const isBossFloor = isLairFloor;
 
-  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects } = {}) => {
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null } = {}) => {
     const mode = options.mode ?? 'expedition';
     // The daily challenge is the same cave for everyone, so it never uses a harder depth.
     const ascension = mode === 'daily' ? 0 : clampAscension(options.ascension ?? 0);
@@ -153,11 +154,14 @@ export function useGameEngine(): GameEngineInterface {
     const perks = applyMeta(getHeroPerks(options.heroIndex ?? 0), meta);
     const runSeed = options.runSeed ?? Date.now();
     const seed = deriveLevelSeed(runSeed, 1);
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), endless: mode === 'endless', biome: biomeFor(1, mode) });
+    // The week's event only ever holds in an expedition (the daily, challenges and the endless descent stay the same for everyone).
+    const event = mode === 'expedition' ? options.event ?? null : null;
+    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), event, endless: mode === 'endless', biome: biomeFor(1, mode) });
 
     pureDispatch({
       type: 'RESET',
       seasonRelic: seasonRelicFor(seasonKeyOf(dailyKey())),
+      event,
       character,
       rows: board.rows,
       cols: board.cols,
@@ -195,6 +199,7 @@ export function useGameEngine(): GameEngineInterface {
       boss: isBossFloor(stateRef.current.mode, nextLevel),
       ascension,
       omen,
+      event: stateRef.current.event ?? null,
       biome: biomeFor(nextLevel, stateRef.current.mode),
       extraPits: relicCount(stateRef.current.relics, 'greedy_idol') > 0 ? 2 : 0,
       bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),

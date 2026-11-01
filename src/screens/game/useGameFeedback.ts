@@ -8,7 +8,7 @@ import { diffFeedback } from "../../core/feedback/diffFeedback";
 import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemStreakLabel } from "../../core/feedback/combo";
 import { tileCenter } from "../../core/feedback/geometry";
 import { coinReward, killValue } from "../../core/engine/scoring";
-import { omenEffects } from "../../core/engine/omens";
+import { floorEffects } from "../../core/engine/events";
 import { RELICS, relicCount } from "../../core/engine/relics";
 import { useT } from "../../i18n/useT";
 import { relicText } from "../../i18n/keys";
@@ -144,7 +144,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           setGemPop(gemPopScale(streak));
           const points = coinReward(
             state.level,
-            state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
+            state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (relicCount(state.relics, "blood_pact") > 0 ? 1.5 : 1),
             relicCount(state.relics, "lucky_coin"),
           );
           pushPopup({ points, type: "coin" }, e.tile);

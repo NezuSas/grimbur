@@ -2,7 +2,7 @@ import { GameState, GameAction, GameEntity, PickupKind, LETHAL_TYPES, GUARDIAN_T
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { coinReward, killValue, levelClearBonus } from './scoring';
-import { omenEffects } from './omens';
+import { floorEffects } from './events';
 import { NO_PERKS } from './heroes';
 import { modifiersFor } from './ascension';
 import { REFILL_ARROWS, REVIVE_ARROWS } from './revive';
@@ -334,7 +334,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           // Caught: the thief gives back every gem it carried and runs off for good.
           const loot = entityAtPoint.loot ?? 0;
           for (let k = 0; k < loot; k++) {
-            newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+            newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
             newTotalCoins += 1;
             newGems += gemYield(state, newTotalCoins);
           }
@@ -386,7 +386,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         }
 
         case 'coin':
-          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+          newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
           newGems += gemYield(state, newTotalCoins);
@@ -422,7 +422,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as const) {
           const n = neighbour(nextIndex, dir, rows, cols);
           if (n === -1 || world.entityMap[n]?.type !== 'coin') continue;
-          newScore += coinReward(state.level, perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+          newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
           newCoins -= 1;
           newTotalCoins += 1;
           newGems += gemYield(state, newTotalCoins);
@@ -553,7 +553,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         const loot = target.loot ?? 0;
         world = removeEntityAt(world, targetIndex);
         for (let k = 0; k < loot; k++) {
-          newScore += coinReward(state.level, state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier, relicCount(state.relics, 'lucky_coin'));
+          newScore += coinReward(state.level, state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier, relicCount(state.relics, 'lucky_coin'));
           newGems += 1;
         }
         newCoinsAfter = state.coins - loot;
@@ -689,7 +689,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         // With every relic maxed there is nothing to offer: no draft, rather than an empty one that blocks input.
         pendingDraft: draft,
         // An elite floor cleared earns a second pick, like the altar (the two do not add up to a third).
-        altarPending: draft ? state.altarPending || !!omenEffects(state.omen).extraRelic : false,
+        altarPending: draft ? state.altarPending || !!floorEffects(state.omen, state.event).extraRelic : false,
         altarUsed: false,
         omen: omen ?? null,
         marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],
@@ -856,7 +856,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         if (gems.length === 0) return state;
         const nearest = gems.reduce((a, b) => (manhattan(b.index, state.playerIndex, cols) < manhattan(a.index, state.playerIndex, cols) ? b : a));
         world = removeEntityAt(world, nearest.index);
-        const reward = coinReward(state.level, state.perks.coinMultiplier * omenEffects(state.omen).gemMultiplier * (relicCount(state.relics, 'blood_pact') > 0 ? 1.5 : 1), relicCount(state.relics, 'lucky_coin'));
+        const reward = coinReward(state.level, state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (relicCount(state.relics, 'blood_pact') > 0 ? 1.5 : 1), relicCount(state.relics, 'lucky_coin'));
         return settle(state, world, {
           ...cooldown,
           coins: state.coins - 1,
@@ -920,7 +920,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic } = action;
+      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic, event } = action;
       const heroPerks = perks ?? NO_PERKS;
       const startingRelics: RelicId[] = startRelics ? [...startRelics] : [];
       const withRelic = (id: RelicId) => relicCount(startingRelics, id) > 0;
@@ -943,6 +943,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         ascension: ascension ?? 0,
         draftBonus: draftBonus ?? 0,
         seasonRelic: seasonRelic ?? null,
+        event: event ?? null,
         relics: startingRelics,
         visited: startingVisited(cols, rows, withRelic('lantern') || heroPerks.startLit, entities),
         items: { ...heroPerks.startItems },

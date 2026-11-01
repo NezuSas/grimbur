@@ -100,6 +100,8 @@ type Props = {
   onForge?: () => void;
   /** Hides the card for a look at the board, where the lesson's safe tiles are marked. */
   onPeek?: () => void;
+  /** Friends who fell on this same floor of the daily: a line offers to look at their ghosts. */
+  friendGhosts?: number;
   onRetry: () => void;
   /** A different name for the main button (a duel offers a rematch). */
   retryLabel?: string;
@@ -120,6 +122,7 @@ const GameOverOverlay = ({
   deathCause,
   review,
   onPeek,
+  friendGhosts = 0,
   victory = false,
   bestScore,
   isNewBest,
@@ -343,6 +346,15 @@ const GameOverOverlay = ({
             </TouchableOpacity>
           ) : null}
         </View>
+      ) : null}
+      {friendGhosts > 0 && onPeek ? (
+        <TouchableOpacity onPress={onPeek} accessibilityRole="button" accessibilityLabel={t('ghosts.line', { n: friendGhosts })} style={styles.ghosts}>
+          <Ionicons name="people" size={14} color="#90CAF9" />
+          <Text style={styles.ghostsText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            {t('ghosts.line', { n: friendGhosts })}
+          </Text>
+          <Text style={styles.ghostsLink} maxFontSizeMultiplier={1.1}>{t('ghosts.look').toLocaleUpperCase()}</Text>
+        </TouchableOpacity>
       ) : null}
       {duelResult ? (
         <View style={styles.duelBox} accessible accessibilityLabel={`${duelResult.headline}. ${duelResult.line}`}>
@@ -631,6 +643,9 @@ const GameOverOverlay = ({
 export default GameOverOverlay;
 
 const styles = StyleSheet.create({
+  ghosts: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(144,202,249,0.12)', borderWidth: 1, borderColor: 'rgba(144,202,249,0.5)' },
+  ghostsText: { flex: 1, color: '#E3F2FD', fontSize: 12, fontWeight: '800' },
+  ghostsLink: { color: '#90CAF9', fontSize: 11, fontWeight: '900', letterSpacing: 1 },
   duelBox: { alignSelf: 'stretch', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' },
   duelHeadline: { fontWeight: '900', fontSize: 15, letterSpacing: 1.5, textAlign: 'center' },
   duelLine: { color: '#E9E0D7', fontSize: 12.5, fontWeight: '700', textAlign: 'center' },
