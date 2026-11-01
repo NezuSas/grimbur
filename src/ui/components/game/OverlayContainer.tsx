@@ -8,6 +8,8 @@ type Props = {
   keyboardAvoiding?: boolean;
   /** The dimmed layer fades in over this long (ms) instead of cutting to black in one frame. */
   fadeMs?: number;
+  /** A darker layer (0-1 of black) when the overlay sits over another card whose text would show through. */
+  dim?: number;
 };
 
 /**
@@ -16,7 +18,7 @@ type Props = {
  *  - scrolls when the content is taller than the window (small landscape phones, big fonts, keyboard),
  *  - tells screen readers that only its content is active (`accessibilityViewIsModal`).
  */
-const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220 }: Props) => {
+const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220, dim }: Props) => {
   const insets = useSafeAreaInsets();
   // The layer used to appear at once at 88% black while the card inside took 200 ms to come in: one almost-black frame in between.
   const fade = useRef(new Animated.Value(fadeMs > 0 ? 0 : 1)).current;
@@ -50,7 +52,7 @@ const OverlayContainer = ({ children, keyboardAvoiding = false, fadeMs = 220 }: 
 
   return (
     <Animated.View
-      style={[styles.overlay, { opacity: fade }]}
+      style={[styles.overlay, dim !== undefined && { backgroundColor: `rgba(0,0,0,${dim})` }, { opacity: fade }]}
       accessibilityViewIsModal
       importantForAccessibility="yes"
     >

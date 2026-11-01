@@ -1877,4 +1877,8 @@ export const es: Record<TranslationKey, string> = {
   'bestiary.nextStar': 'Próxima estrella: {n}',
   'bestiary.maxed': 'Dominado',
   'bestiary.total': 'Criaturas derrotadas: {n}',
+  'over.oneMore': '¡Una más!',
+  'over.nearScore': 'Te faltaron solo {n} puntos para tu récord.',
+  'over.nearFloor_one': 'Te faltó solo {n} piso para tu récord.',
+  'over.nearFloor_other': 'Te faltaron solo {n} pisos para tu récord.',
 };

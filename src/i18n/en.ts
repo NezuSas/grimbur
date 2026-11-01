@@ -1876,6 +1876,10 @@ export const en = {
   'bestiary.nextStar': 'Next star: {n}',
   'bestiary.maxed': 'Mastered',
   'bestiary.total': 'Creatures defeated: {n}',
+  'over.oneMore': 'One more!',
+  'over.nearScore': 'Only {n} points short of your record.',
+  'over.nearFloor_one': 'Only {n} floor short of your record.',
+  'over.nearFloor_other': 'Only {n} floors short of your record.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

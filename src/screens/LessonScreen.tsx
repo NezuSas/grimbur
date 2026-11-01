@@ -325,6 +325,8 @@ export default function LessonScreen({ navigation, route }: Props) {
           victory={route.params.devGameOver.victory}
           onRetry={() => {}}
           onMainMenu={() => {}}
+          // A defeat just short of the record ("one more").
+          {...(route.params.devGameOver.near ? { bestScore: 5200 } : {})}
           // The fullest card a real run can produce (every optional line at once), to check it fits small phones.
           {...(route.params.devGameOver.full
             ? {

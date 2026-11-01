@@ -32,6 +32,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 import { ButtonGloss, PanelTrim, shade } from './popup';
 import RewardParade, { type RewardItem } from './RewardParade';
+import { nearMiss } from '../../../core/stats/nearMiss';
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
 import { achievementArt } from '../../achievementArt';
 import { skinArt } from '../../../data/skinArt';
@@ -308,7 +309,13 @@ const GameOverOverlay = ({
       : t(`mission.desc.${def.metric}` as TranslationKey, { n: def.target });
   };
 
+  // So close to the record: say by how much, and ask for one more (not on a duel or a friend's challenge, they have their own call).
+  const near = retryLabel || challengeLabel || duelResult ? null : nearMiss({ score, level, victory: !!victory, endless, isNewBest: !!isNewBest, best: bestScore });
+  const retryText = retryLabel ?? (near ? t('over.oneMore') : t('over.retry'));
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
+    ...(near
+      ? [{ key: 'near', icon: 'flame' as const, color: '#FFB74D', text: near.kind === 'floor' ? plural('over.nearFloor', near.gap, { n: near.gap }) : t('over.nearScore', { n: near.gap.toLocaleString() }) }]
+      : []),
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
     ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#ff8a80', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),
     ...(dailyLabel && freezeUsed ? [{ key: 'fused', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeUsed') }] : []),
@@ -589,12 +596,12 @@ const GameOverOverlay = ({
         onPress={onRetry}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={retryLabel ?? t('over.retry')}
+        accessibilityLabel={retryText}
       >
         <ButtonGloss />
         <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
         <Text style={[styles.retryText, victory && { color: '#000' }, snug && styles.retryTextSnug, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-          {(retryLabel ?? t('over.retry')).toLocaleUpperCase()}
+          {retryText.toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
       )}

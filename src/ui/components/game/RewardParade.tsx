@@ -75,7 +75,7 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
     // The panel's padding and rim take 44: the tiles share what is left (floored, so a row never spills over).
     const tile = Math.floor((cardW - 48 - (cols - 1) * 8) / cols);
     return (
-      <OverlayContainer fadeMs={0}>
+      <OverlayContainer fadeMs={0} dim={0.97}>
         <PopupPanel tint="#FFD54F" width={cardW} style={styles.gridPanel} animate={!calm}>
           <Text style={popupTitleStyle("#FFD54F")} accessibilityRole="header" maxFontSizeMultiplier={1.15}>
             {t("parade.all", { n: items.length }).toLocaleUpperCase()}
@@ -118,7 +118,7 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
   const artSize = Math.min(height * 0.42, 170);
   const wide = width > height;
   return (
-    <OverlayContainer fadeMs={index === 0 ? 220 : 0}>
+    <OverlayContainer fadeMs={index === 0 ? 220 : 0} dim={0.97}>
       <Pressable onPress={next} accessibilityRole="button" accessibilityLabel={`${item.kicker}. ${item.title}${item.line ? `. ${item.line}` : ""}. ${t(last ? "parade.continue" : "parade.next")}`}>
         <Animated.View style={{ opacity: enter, transform: [{ scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }, { translateY: enter.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }}>
           <PopupPanel key={item.key} tint={item.tint} width={cardW} style={[styles.panel, wide && styles.panelRow]} animate={false}>
