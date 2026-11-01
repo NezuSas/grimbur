@@ -15,7 +15,7 @@ import { useT } from '../../../i18n/useT';
 import { achievementText, heroText, skinText } from '../../../i18n/keys';
 import type { SkinId } from '../../../data/skinArt';
 import type { TranslationKey } from '../../../i18n/en';
-import { splitNames, type AchievementId } from '../../../core/stats/achievements';
+import { type AchievementId } from '../../../core/stats/achievements';
 import { missionDef } from '../../../core/stats/missions';
 import type { RunPayout } from '../../../core/stats/runStats';
 import type { Goal } from '../../../core/stats/goals';
@@ -31,6 +31,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 import { ButtonGloss, PanelTrim, shade } from './popup';
+import RewardParade, { type RewardItem } from './RewardParade';
+import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
+import { achievementArt } from '../../achievementArt';
+import { skinArt } from '../../../data/skinArt';
+
+const MEDAL_ART = require('../../../assets/sprites/ui/Icon_Medal.png');
+const FLAG_ART = require('../../../assets/sprites/ui/Icon_Flag.png');
+const DEPTH_ART = require('../../../assets/sprites/achievements/Ach_Depth.png');
+const ENDLESS_ART = require('../../../assets/sprites/achievements/Ach_Endless.png');
+const TIER_TINT: Record<string, string> = { easy: '#A5D6A7', medium: '#90CAF9', hard: '#FFAB91', legend: '#CE93D8' };
 
 /** The colour of each kind of death lesson. */
 const REVIEW_LOOK: Record<DeathReview['kind'], string> = { hunter: '#B388FF', proven: '#FF8A80', avoidable: '#FFB74D', forced: '#9EE37D' };
@@ -89,6 +99,8 @@ type Props = {
   missionsDone?: string[];
   rankUp?: number | null;
   masteryUp?: { hero: number; level: number } | null;
+  /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
+  devParade?: number | 'grid';
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
   explainEmbers?: boolean;
   /** Gems still on the floor when the run ended (for the near-miss line). */
@@ -147,6 +159,7 @@ const GameOverOverlay = ({
   missionsDone,
   rankUp,
   masteryUp,
+  devParade,
   gemsLeft,
   onShare,
   onCopyText,
@@ -198,6 +211,21 @@ const GameOverOverlay = ({
   const [extrasBox, setExtrasBox] = useState(0);
   const [extrasContent, setExtrasContent] = useState(0);
   const [extrasAtEnd, setExtrasAtEnd] = useState(false);
+  // The parade of rewards: once per card, as soon as the run's rewards are known (they come a moment after the card).
+  const rewardCount =
+    (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
+    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
+  const [parade, setParade] = useState<'off' | 'cards' | 'grid'>('off');
+  const paradeShown = useRef(false);
+  useEffect(() => {
+    if (rewardCount === 0) {
+      paradeShown.current = false; // a new run: its card gets its own parade (a look at the board and back does not)
+      return;
+    }
+    if (!visible || paradeShown.current || devParade === -1) return;
+    paradeShown.current = true;
+    setParade('cards');
+  }, [visible, rewardCount]);
   useEffect(() => {
     if (!visible) {
       heroPop.setValue(0.82);
@@ -263,10 +291,6 @@ const GameOverOverlay = ({
   // A single source needs no breakdown: the pill already says it.
   const breakdown = parts.length > 1 || (payout && payout.welcomeBack > 0 && parts.length > 0) ? parts.join('  ·  ') : null;
 
-  const achievementList = splitNames(achievements ?? []);
-  const achievementNames =
-    achievementList.shown.map(id => achievementText(t, id as AchievementId, 'name')).filter(Boolean).join(', ') +
-    (achievementList.more > 0 ? ` ${t('over.andMore', { count: achievementList.more })}` : '');
 
   const unlockRows: { kind: 'hero' | 'depth' | 'endless' | 'skin'; text: string; skin?: { hero: number; skin: string } }[] = [
     ...(unlockedHeroes ?? unlocks?.heroes ?? []).map(i => ({ kind: 'hero' as const, text: t('over.unlock.hero', { name: heroText(t, i, 'name') }) })),
@@ -286,13 +310,42 @@ const GameOverOverlay = ({
 
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#9ee37d', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
-    ...(rankUp ? [{ key: 'rank', icon: 'medal' as const, color: '#FFD54F', text: t('over.rankUp', { name: t(`rank.${rankUp}` as TranslationKey) }) }] : []),
-    ...(masteryUp ? [{ key: 'mastery', icon: 'star' as const, color: '#FFB74D', text: t('mastery.up', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }) }] : []),
-    ...(missionsDone ?? []).map(id => ({ key: `m-${id}`, icon: 'flag' as const, color: '#4FC3F7', text: t('over.mission', { name: missionLabel(id) }) })),
-    ...(achievements && achievements.length > 0 ? [{ key: 'ach', icon: 'trophy' as const, color: '#FFD54F', text: plural('over.achievements', achievements.length, { names: achievementNames }) }] : []),
     ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#ff8a80', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),
     ...(dailyLabel && freezeUsed ? [{ key: 'fused', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeUsed') }] : []),
     ...(dailyLabel && freezeEarned ? [{ key: 'fearn', icon: 'snow' as const, color: '#80D8FF', text: t('over.freezeEarned') }] : []),
+  ];
+
+  // Everything the run earned, as cards of their own (the parade before the card; a row on the card to see them again).
+  const rewards: RewardItem[] = [
+    ...unlockRows.map((row, i): RewardItem => {
+      const tryIt = onTryUnlock ? () => onTryUnlock(row.kind, row.skin) : undefined;
+      if (row.kind === 'hero') {
+        const hero = (unlockedHeroes ?? unlocks?.heroes ?? [])[i];
+        return { key: `u-hero-${hero}`, tint: '#9EE37D', art: skinArt(hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.hero'), title: heroText(t, hero, 'name'), line: t('over.unlock.hero', { name: heroText(t, hero, 'name') }), onTry: tryIt };
+      }
+      if (row.kind === 'skin' && row.skin) {
+        return { key: `u-skin-${row.skin.hero}-${row.skin.skin}`, tint: '#F48FB1', art: skinArt(row.skin.hero, row.skin.skin as SkinId).playerImage, standing: true, kicker: t('parade.kicker.skin'), title: skinText(t, row.skin.skin as SkinId), line: heroText(t, row.skin.hero, 'name'), onTry: tryIt };
+      }
+      if (row.kind === 'depth') return { key: 'u-depth', tint: '#FF9A5C', art: DEPTH_ART, kicker: t('parade.kicker.unlock'), title: t(`ascension.label.${unlocks?.depth ?? 1}` as TranslationKey), line: row.text, onTry: tryIt };
+      return { key: 'u-endless', tint: '#7986CB', art: ENDLESS_ART, kicker: t('parade.kicker.unlock'), title: t('parade.endless'), line: row.text, onTry: tryIt };
+    }),
+    ...(rankUp ? [{ key: 'rank', tint: '#FFD54F', art: MEDAL_ART, kicker: t('parade.kicker.rank'), title: t(`rank.${rankUp}` as TranslationKey), line: t('parade.rankLine') }] : []),
+    ...(masteryUp
+      ? [{ key: 'mastery', tint: '#FFB74D', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') }]
+      : []),
+    ...(achievements ?? []).map((id): RewardItem => {
+      const def = ACHIEVEMENTS.find(a => a.id === id);
+      return {
+        key: `a-${id}`,
+        tint: TIER_TINT[def?.tier ?? 'easy'],
+        art: def ? achievementArt(def) : MEDAL_ART,
+        kicker: `${t('parade.kicker.achievement')} · ${t(`ach.tier.${def?.tier ?? 'easy'}` as TranslationKey)}`,
+        title: achievementText(t, id as AchievementId, 'name'),
+        line: achievementText(t, id as AchievementId, 'desc') || undefined,
+        embers: def ? ACHIEVEMENT_REWARD[def.tier] : undefined,
+      };
+    }),
+    ...(missionsDone ?? []).map((id): RewardItem => ({ key: `m-${id}`, tint: '#4FC3F7', art: FLAG_ART, kicker: t('parade.kicker.mission'), title: missionLabel(id), line: t('parade.missionLine'), embers: missionDef(id)?.reward })),
   ];
 
   // The left column, like the floor-cleared card: what happened in a few big words, the hero, and who struck.
@@ -469,6 +522,23 @@ const GameOverOverlay = ({
           })}
         </View>
       )}
+      {rewards.length > 0 && (
+        <Reveal delay={450} calm={calm}>
+          <TouchableOpacity onPress={() => setParade('grid')} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('parade.row', { n: rewards.length })} style={styles.rewardsRow}>
+            <View style={styles.rewardsArts}>
+              {rewards.slice(0, 4).map((r, k) => (
+                <View key={r.key} style={[styles.rewardsWell, { borderColor: r.tint, marginLeft: k === 0 ? 0 : -10, zIndex: 4 - k }]}>
+                  <SpriteImage source={r.art} style={styles.rewardsArt} resizeMode="contain" />
+                </View>
+              ))}
+            </View>
+            <Text style={styles.rewardsText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {t('parade.row', { n: rewards.length })}
+            </Text>
+            <Text style={styles.rewardsLink} maxFontSizeMultiplier={1.1}>{t('ghosts.look').toLocaleUpperCase()} ›</Text>
+          </TouchableOpacity>
+        </Reveal>
+      )}
     </>
   );
 
@@ -487,23 +557,6 @@ const GameOverOverlay = ({
             </Reveal>
           ))}
         </View>
-      )}
-      {unlockRows.length > 0 && (
-        <Reveal delay={1000} calm={calm}>
-        <View style={styles.unlockCard} accessibilityLiveRegion="polite">
-          <Text style={styles.unlockTitle} maxFontSizeMultiplier={1.2}><GlyphIcon name="padlock" size={13} /> {t('over.unlock.title').toLocaleUpperCase()}</Text>
-          {unlockRows.map(row => (
-            <View key={`${row.kind}${row.skin ? `-${row.skin.hero}-${row.skin.skin}` : ''}`} style={styles.unlockRow}>
-              <Text style={styles.unlockText} numberOfLines={2} maxFontSizeMultiplier={1.2}>{row.text}</Text>
-              {onTryUnlock ? (
-                <TouchableOpacity style={styles.tryButton} onPress={() => onTryUnlock(row.kind, row.skin)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={`${t('over.unlock.try')}: ${row.text}`}>
-                  <Text style={styles.tryText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.unlock.try').toLocaleUpperCase()}</Text>
-                </TouchableOpacity>
-              ) : null}
-            </View>
-          ))}
-        </View>
-        </Reveal>
       )}
       {demo && (
         <Text style={styles.demoBody} maxFontSizeMultiplier={1.2}>
@@ -620,6 +673,7 @@ const GameOverOverlay = ({
   const celebrate = !calm && victory;
 
   return (
+    <>
     <OverlayContainer>
       {!calm && <EmberParticles count={victory ? 18 : 8} />}
       <Animated.View
@@ -637,12 +691,20 @@ const GameOverOverlay = ({
       </Animated.View>
       {celebrate && <GemShower count={width >= 900 ? 38 : 26} look={celebration} />}
     </OverlayContainer>
+    {parade !== 'off' ? <RewardParade items={rewards} startOnGrid={parade === 'grid' || devParade === 'grid'} startIndex={typeof devParade === 'number' ? devParade : 0} calm={calm} onClose={() => setParade('off')} /> : null}
+    </>
   );
 };
 
 export default GameOverOverlay;
 
 const styles = StyleSheet.create({
+  rewardsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'stretch', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(255,213,79,0.1)', borderWidth: 1.5, borderColor: 'rgba(255,213,79,0.55)' },
+  rewardsArts: { flexDirection: 'row' },
+  rewardsWell: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2D2318', overflow: 'hidden' },
+  rewardsArt: { width: 22, height: 22 },
+  rewardsText: { flex: 1, color: '#FFE7A8', fontSize: 13.5, fontWeight: '900' },
+  rewardsLink: { color: '#FFD54F', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
   ghosts: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(144,202,249,0.12)', borderWidth: 1, borderColor: 'rgba(144,202,249,0.5)' },
   ghostsText: { flex: 1, color: '#E3F2FD', fontSize: 12, fontWeight: '800' },
   ghostsLink: { color: '#90CAF9', fontSize: 11, fontWeight: '900', letterSpacing: 1 },
