@@ -17,6 +17,7 @@ import RelicDraftOverlay from "../ui/components/game/RelicDraftOverlay";
 import IntermissionOverlay from "../ui/components/game/IntermissionOverlay";
 import { GAME_ROW_PADDING, MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import { arrowPath, gameReducer, initialState } from "../core/engine/reducer";
+import { secretDraftTiles, splitSecret } from "../core/engine/worldHelpers";
 import { Direction, GameAction, GameState } from "../core/engine/types";
 import { NO_PERKS } from "../core/engine/heroes";
 import { lineOfFire, stepTarget } from "../core/engine/travel";
@@ -79,8 +80,10 @@ export default function LessonScreen({ navigation, route }: Props) {
     let start = freshLesson(l);
     if (__DEV__ && route.params.devEntities) {
       // Screenshots only: the given entities, every tile explored.
-      const entities = route.params.devEntities as GameState["entities"];
-      start = { ...start, entities, entityMap: Object.fromEntries(entities.map(e => [e.index, e])), visited: Array.from({ length: start.rows * start.cols }, (_, i) => i) };
+      // A secret room is kept apart, as the game keeps it; the other tiles are explored except around it.
+      const { entities, secret } = splitSecret(route.params.devEntities as GameState["entities"]);
+      const hidden = new Set(secret === null ? [] : [secret, ...secretDraftTiles(secret, start.rows, start.cols).slice(1)]);
+      start = { ...start, entities, secret, entityMap: Object.fromEntries(entities.map(e => [e.index, e])), visited: Array.from({ length: start.rows * start.cols }, (_, i) => i).filter(i => !hidden.has(i)) };
     }
     if (!__DEV__ || !devMoves) return start;
     return devMoves.reduce<GameState>((s, direction) => gameReducer(s, { type: "MOVE", direction }), start);
@@ -380,6 +383,7 @@ export default function LessonScreen({ navigation, route }: Props) {
             visited={state.visited}
             playerIndex={state.playerIndex}
             facingDir={state.facingDir}
+            secretTile={state.secret ?? null}
             characterIndex={0}
             isAttacking={isAttacking}
             dying={state.isGameOver}

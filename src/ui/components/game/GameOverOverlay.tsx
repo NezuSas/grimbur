@@ -33,6 +33,7 @@ import { CountedScore, KILLERS, Reveal } from './overOverlayParts';
 import { ButtonGloss, PanelTrim, shade } from './popup';
 import RewardParade, { type RewardItem } from './RewardParade';
 import { nearMiss } from '../../../core/stats/nearMiss';
+import { ANCIENT_FRAMES } from '../BossSprite';
 import { MASTERY_TIERS, type MasteryTierId } from '../../../core/stats/mastery';
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
 import { achievementArt } from '../../achievementArt';
@@ -104,6 +105,8 @@ type Props = {
   masteryUp?: { hero: number; level: number; tier?: MasteryTierId } | null;
   /** The newest chronicle fragment a secret room unveiled. */
   chronicleUp?: number | null;
+  /** The Grimbur that struck was the Ancestral one. */
+  ancientKiller?: boolean;
   /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
   devParade?: number | 'grid';
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
@@ -165,6 +168,7 @@ const GameOverOverlay = ({
   rankUp,
   masteryUp,
   chronicleUp,
+  ancientKiller = false,
   devParade,
   gemsLeft,
   onShare,
@@ -262,7 +266,8 @@ const GameOverOverlay = ({
   // A landscape phone (height runs out): the same two rows of buttons, a little lower, so the run's rewards keep room.
   const snug = wide && height < 430;
   const accent = victory || demo ? '#FFD54F' : '#FF5252';
-  const killerSprite = !victory && deathCause ? KILLERS[deathCause] : undefined;
+  // The Ancestral Grimbur is filed apart: its own picture and name on the card.
+  const killerSprite = !victory && deathCause ? (deathCause === 'boss' && ancientKiller ? ANCIENT_FRAMES.idle : KILLERS[deathCause]) : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
   const sprite = heroSprite;
   // A defeat with a lesson gives the hero a little less room on short screens, so the lesson fits under it.
@@ -271,7 +276,7 @@ const GameOverOverlay = ({
   const usable = width - Math.max(insets.left, 12) - Math.max(insets.right, 12);
   const cardWidth = Math.min(usable * 0.98, wide ? 820 : 400);
 
-  const killerName = !victory && deathCause ? t(`over.killer.${deathCause}` as TranslationKey) : null;
+  const killerName = !victory && deathCause ? (deathCause === 'boss' && ancientKiller ? t('boss.ancient.name') : t(`over.killer.${deathCause}` as TranslationKey)) : null;
   const reviewText = !review
     ? ''
     : review.kind === 'hunter'

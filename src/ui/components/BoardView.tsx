@@ -16,6 +16,7 @@ import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
 import Text from "./Text";
 import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
+import { ANCIENT_FRAMES } from "./BossSprite";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
@@ -637,7 +638,7 @@ const BoardView: React.FC<Props> = memo(
             // The killer leans toward the hero (it is on the hero's own tile when the hero stepped onto it).
             const toward = { x: Math.sign(colIndex - kc), y: Math.sign(rowIndex - kr) };
             const isPit = killerEntityType === "pit";
-            const source = isPit ? ASSETS.pit : killerEntityType === "stalker" ? ASSETS.stalker : killerEntityType === "sleeper" ? ASSETS.sleeper : killerEntityType === "boss" ? ASSETS.boss : ASSETS.enemy;
+            const source = isPit ? ASSETS.pit : killerEntityType === "stalker" ? ASSETS.stalker : killerEntityType === "sleeper" ? ASSETS.sleeper : killerEntityType === "boss" ? (entityMap[killerTile]?.ancient ? ANCIENT_FRAMES.idle : ASSETS.boss) : ASSETS.enemy;
             const big = tileSize * (killerEntityType === "boss" ? 2.4 : 1.95);
             const slash = (angle: string, offset: number, key: string) => (
               <Animated.View

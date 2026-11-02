@@ -119,6 +119,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         time={time}
         character={character}
         deathCause={state.deathCause}
+        ancientKiller={state.deathCause === "boss" && state.entities.some(e => e.type === "boss" && !e.mini && e.ancient)}
         review={reviewDeath(state)}
         victory={state.isVictory}
         bestScore={result?.bestScore}
