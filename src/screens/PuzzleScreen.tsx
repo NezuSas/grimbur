@@ -25,8 +25,11 @@ import { NO_PERKS } from "../core/engine/heroes";
 import { stepTarget, travelPath } from "../core/engine/travel";
 import { provenByLevel } from "../core/puzzles/deduction";
 import { dailyKey } from "../core/engine/seed";
-import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, endlessPuzzle, isStrictTier, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
-import { recordPuzzle } from "../services/localStats";
+import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, endlessPuzzle, isStrictTier, legendTime, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { finishWeeklyTry, peekLocalStats, recordPuzzle, startWeeklyTry } from "../services/localStats";
+import { submitWeeklyScore } from "../services/weeklyScores";
+import { weekOf, weeklyNumber, weeklyPuzzle } from "../core/puzzles/weekly";
 import characters from "../data/characters";
 import { emitSound } from "../audio/audioEventBus";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
@@ -36,7 +39,7 @@ import type { TranslationKey } from "../i18n/en";
 import { analytics } from "../services/analytics";
 import { achievementText } from "../i18n/keys";
 import type { AchievementId } from "../core/stats/achievements";
-import { dailyPuzzleNumber, dailyPuzzleStreak } from "../core/stats/puzzleProgress";
+import { dailyPuzzleNumber, dailyPuzzleStreak, weeklyState } from "../core/stats/puzzleProgress";
 import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
 import { hintReason, type HintReason } from "../core/puzzles/hintReason";
 import { submitPuzzleScore } from "../services/puzzleScores";
@@ -89,6 +92,11 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   // A past puzzle of the day, replayed from the archive: stars only (no embers, no streak, not on the friends' board).
   const archiveDate = target === "archive" && route.params.date && /^\d{4}-\d{2}-\d{2}$/.test(route.params.date) ? route.params.date : null;
   const isArchive = !!archiveDate;
+  // The Grimbur's weekly challenge: its counted try (one mistake ends it, no hints, leaving it is a failed try) or practice.
+  const isWeekly = target === "weekly";
+  const week = useMemo(() => weekOf(today), [today]);
+  const practice = isWeekly && !!route.params.practice;
+  const counted = useRef(isWeekly && !practice);
   const isEndless = target === "endless";
   // A technique of the Manual: a small practice board, no stars or embers.
   const technique = target === "technique" ? techniqueOf(route.params.tech) : undefined;
@@ -96,11 +104,13 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const endlessN = Math.max(0, Math.trunc(route.params.n ?? 0));
   const index = typeof target === "number" ? Math.max(0, Math.min(PUZZLE_COUNT - 1, Math.trunc(target))) : -1;
   const puzzle = useMemo(
-    () => (technique ? technique.puzzle : isDaily ? dailyPuzzle(today) : archiveDate ? dailyPuzzle(archiveDate) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(Math.max(0, index))),
-    [technique, isDaily, archiveDate, isEndless, endlessN, today, index],
+    () => (technique ? technique.puzzle : isWeekly ? weeklyPuzzle(week) : isDaily ? dailyPuzzle(today) : archiveDate ? dailyPuzzle(archiveDate) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(Math.max(0, index))),
+    [technique, isWeekly, week, isDaily, archiveDate, isEndless, endlessN, today, index],
   );
   const gems = puzzle.entities.filter(e => e.type === "coin").length;
-  const strict = !technique && index >= 0 && isStrictTier(puzzle.tier);
+  const strict = isWeekly || (!technique && index >= 0 && isStrictTier(puzzle.tier));
+  // The path's puzzles have a legend time: three stars under it win the crown. The clock runs in the banner.
+  const legend = useMemo(() => (index >= 0 && !technique ? legendTime(puzzle) : 0), [index, technique, puzzle]);
 
   const [state, dispatch] = useReducer(puzzleReducer, puzzle, p => openingState(p, hero));
   const [mistakes, setMistakes] = useState(0);
@@ -111,11 +121,31 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   // A strict puzzle (the Legend): one mistake ends the try, and it is started again only by choice.
   const [failedOut, setFailedOut] = useState(false);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set(technique?.flags ?? []));
-  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number; record?: boolean; best?: number } | null>(null);
+  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number; record?: boolean; best?: number; crown?: boolean; weeklyWon?: boolean } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
   const startedAt = useRef(0);
   useEffect(() => {
     startedAt.current = Date.now();
+  }, []);
+  // The weekly challenge's counted try is spent from the moment the board opens; left before it ends, it ends as failed.
+  const weeklyOpen = useRef(false);
+  useEffect(() => {
+    if (!counted.current) return;
+    // Opened from a stale screen after the try was spent: it is practice.
+    if (weeklyState(peekLocalStats()?.puzzles, week).kind === "used") {
+      counted.current = false;
+      return;
+    }
+    weeklyOpen.current = true;
+    void startWeeklyTry(week);
+    return () => {
+      if (!weeklyOpen.current) return;
+      weeklyOpen.current = false;
+      const seconds = (Date.now() - startedAt.current) / 1000;
+      void finishWeeklyTry(week, false, seconds);
+      void submitWeeklyScore({ week, solved: false, seconds, characterIndex: hero });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const walking = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,12 +200,24 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
       return;
     }
+    if (isWeekly) {
+      if (!weeklyOpen.current) {
+        setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
+        return;
+      }
+      weeklyOpen.current = false;
+      void submitWeeklyScore({ week, solved: true, seconds, characterIndex: hero });
+      finishWeeklyTry(week, true, seconds)
+        .then(r => setTimeout(() => setResult({ stars, embers: r.embers, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), 650))
+        .catch(() => setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), 650));
+      return;
+    }
     // The day's try goes to the friends' board (kept only when better than an earlier one).
     if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
-    const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0, record = false, best = 0) =>
-      setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run, record, best }), 650);
-    recordPuzzle(isDaily ? { kind: "daily", date: today } : archiveDate ? { kind: "archive", date: archiveDate } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars, seconds)
-      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0, r.record, r.best))
+    const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0, record = false, best = 0, crown = false) =>
+      setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run, record, best, crown }), 650);
+    recordPuzzle(isDaily ? { kind: "daily", date: today } : archiveDate ? { kind: "archive", date: archiveDate } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars, seconds, legend)
+      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0, r.record, r.best, r.crown))
       .catch(() => show(0));
   }, [solved]);
 
@@ -198,7 +240,16 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         setMistakes(m => m + 1);
         haptic.notify(NotificationFeedbackType.Error);
         emitSound("GAME_OVER");
-        if (strict) failTimer.current = setTimeout(() => setFailedOut(true), 1300);
+        if (strict) {
+          // The weekly challenge's counted try ends here, failed.
+          if (weeklyOpen.current) {
+            weeklyOpen.current = false;
+            const seconds = (Date.now() - startedAt.current) / 1000;
+            void finishWeeklyTry(week, false, seconds);
+            void submitWeeklyScore({ week, solved: false, seconds, characterIndex: hero });
+          }
+          failTimer.current = setTimeout(() => setFailedOut(true), 1300);
+        }
         else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 2800);
         return false;
       }
@@ -274,7 +325,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }).catch(() => {});
   };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
-  const title = technique ? t("tech.label") : isDaily ? t("puzzle.daily") : archiveDate ? `${t("puzzle.daily")} #${dailyPuzzleNumber(archiveDate)}` : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
+  const title = technique ? t("tech.label") : isWeekly ? `${t("puzzle.weekly.title")} #${weeklyNumber(week)}${practice ? ` · ${t("puzzle.weekly.practiceTag")}` : ""}` : isDaily ? t("puzzle.daily") : archiveDate ? `${t("puzzle.daily")} #${dailyPuzzleNumber(archiveDate)}` : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
   const goal = technique ? t(`tech.${technique.id}.tip` as TranslationKey) : gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
   // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
@@ -309,15 +360,18 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             {failText ?? whyText ?? goal}
           </Text>
         </View>
+        {legend > 0 ? <LegendClock startedAt={startedAt} legend={legend} stopped={solved || failedOut} /> : null}
         <View style={styles.counter} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
           <Ionicons name="close-circle" size={15} color={mistakes > 0 ? "#FF8A80" : "#8d8178"} />
           <Text style={[styles.counterText, mistakes > 0 && { color: "#FF8A80" }]} maxFontSizeMultiplier={1.2}>
             {mistakes}
           </Text>
         </View>
-        <TouchableOpacity style={[styles.iconButton, styles.hintButton, hintTile !== null && styles.hintOn]} onPress={showHint} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.hint")} accessibilityHint={t("puzzle.hintCost")}>
-          <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#FFD54F"} />
-        </TouchableOpacity>
+        {isWeekly ? null : (
+          <TouchableOpacity style={[styles.iconButton, styles.hintButton, hintTile !== null && styles.hintOn]} onPress={showHint} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.hint")} accessibilityHint={t("puzzle.hintCost")}>
+            <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#FFD54F"} />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.iconButton} onPress={restart} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.restart")}>
           <Ionicons name="refresh" size={21} color="#fff" />
         </TouchableOpacity>
@@ -377,9 +431,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {t("puzzle.strict.failed").toLocaleUpperCase()}
             </Text>
             <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
-              {t("puzzle.strict.body")}
+              {isWeekly ? (practice ? t("puzzle.weekly.practiceFail") : t("puzzle.weekly.failed")) : t("puzzle.strict.body")}
             </Text>
-            <PopButton label={t("puzzle.strict.again")} icon="refresh" tint="#FF8A80" onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })} />
+            <PopButton
+              label={isWeekly ? t("puzzle.weekly.practice") : t("puzzle.strict.again")}
+              icon="refresh"
+              tint="#FF8A80"
+              onPress={() => navigation.replace("PuzzleScreen", isWeekly ? { target: "weekly", practice: true } : { target, date: route.params.date })}
+            />
             <View style={styles.resultLinks}>
               <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} />
             </View>
@@ -392,6 +451,11 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             <Text style={popupTitleStyle(TINT)} maxFontSizeMultiplier={1.15}>
               {t(isTechnique ? "tech.done" : "puzzle.solved").toLocaleUpperCase()}
             </Text>
+            {result.weeklyWon ? (
+              <Text style={styles.weeklyWon} maxFontSizeMultiplier={1.2}>
+                {t("puzzle.weekly.won")}
+              </Text>
+            ) : null}
             {isTechnique ? (
               <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
                 {t(`tech.${technique!.id}.learned` as TranslationKey)}
@@ -412,6 +476,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
               {isEndless && result.run > 1 ? `   ·   ⚡ ${t("puzzle.endless.run", { n: result.run })}` : ""}
             </Text>
+            {legend > 0 ? (
+              <View style={[styles.crownLine, result.crown && styles.crownWon]}>
+                <MaterialCommunityIcons name="crown" size={18} color={result.crown ? "#FFD54F" : "#8d8178"} />
+                <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
+                  {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
+                </Text>
+              </View>
+            ) : null}
               </>
             )}
             {result.embers > 0 ? (
@@ -459,7 +531,35 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   );
 }
 
+/** The banner's clock: time on this puzzle against its legend time (gold while within it, grey once past). */
+function LegendClock({ startedAt, legend, stopped }: { startedAt: React.MutableRefObject<number>; legend: number; stopped: boolean }) {
+  const { t } = useT();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (stopped) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [stopped]);
+  const seconds = Math.max(0, Math.floor((now - (startedAt.current || now)) / 1000));
+  const within = seconds <= legend;
+  return (
+    <View style={[styles.clock, !within && styles.clockLate]} accessible accessibilityLabel={t("puzzle.crown.clock", { time: formatSolveTime(seconds), legend: formatSolveTime(legend) })}>
+      <MaterialCommunityIcons name="crown" size={14} color={within ? "#FFD54F" : "#8d8178"} />
+      <Text style={[styles.clockText, !within && { color: "#a89c92" }]} maxFontSizeMultiplier={1.1}>
+        {`${formatSolveTime(seconds)} / ${formatSolveTime(legend)}`}
+      </Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  clock: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.1)" },
+  clockLate: { borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(255,255,255,0.05)" },
+  clockText: { color: "#FFE082", fontWeight: "900", fontSize: 12, fontVariant: ["tabular-nums"] },
+  crownLine: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.05)" },
+  crownWon: { backgroundColor: "rgba(255,213,79,0.15)", borderWidth: 1, borderColor: "#FFD54F" },
+  crownText: { color: "#bfb3a6", fontWeight: "800", fontSize: 13 },
+  weeklyWon: { color: "#FF8A80", fontWeight: "900", fontSize: 14, textAlign: "center" },
   container: { flex: 1, backgroundColor: "#000" },
   banner: {
     flexDirection: "row",

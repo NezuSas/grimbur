@@ -33,7 +33,7 @@ export type RootStackParamList = {
   /** One puzzle: the day's, or a number on the path (0-based). */
   /** `endless` plays endless puzzle number `n`. */
   /** `archive` replays the puzzle of the day of `date` (a past day, from the archive). */
-  PuzzleScreen: { target: "daily" | "endless" | "technique" | "archive" | number; n?: number; tech?: string; date?: string; devHold?: boolean };
+  PuzzleScreen: { target: "daily" | "endless" | "technique" | "archive" | "weekly" | number; n?: number; tech?: string; date?: string; /** The weekly challenge played again after its counted try. */ practice?: boolean; devHold?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

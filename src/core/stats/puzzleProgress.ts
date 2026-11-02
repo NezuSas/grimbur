@@ -21,9 +21,13 @@ export interface PuzzleProgress {
   archive: Record<string, number>;
   /** Chapters whose chest was opened (each chest opens once all its stars are won). */
   chests: number[];
+  /** Puzzles of the path crowned: three stars under the legend time. */
+  crowns: number[];
+  /** The Grimbur's weekly challenge of the latest week tried: its one counted try (`done` once it ended, solved or not). */
+  weekly: { week: string; done: boolean; solved: boolean; time: number } | null;
 }
 
-export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [] };
+export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [], crowns: [], weekly: null };
 /** How many days of the archive are kept (the oldest go first). */
 export const ARCHIVE_KEEP = 400;
 /** Embers an endless puzzle pays per star (less than the path: it never ends). */
@@ -61,7 +65,10 @@ export function parsePuzzles(raw: unknown): PuzzleProgress {
   }
   if (daily && daily.stars > 0) archive[daily.date] = Math.max(archive[daily.date] ?? 0, daily.stars);
   const chests = Array.isArray(r.chests) ? [...new Set(r.chests.filter((v): v is number => Number.isInteger(v) && v >= 0 && v < PUZZLE_TIERS.length))] : [];
-  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless, times, archive: trimArchive(archive), chests };
+  const crowns = Array.isArray(r.crowns) ? [...new Set(r.crowns.filter((v): v is number => Number.isInteger(v) && v >= 0 && v < PUZZLE_COUNT))].sort((a, b) => a - b) : [];
+  const w = r.weekly && typeof r.weekly === 'object' ? (r.weekly as Record<string, unknown>) : null;
+  const weekly = w && typeof w.week === 'string' && DATE.test(w.week) ? { week: w.week, done: w.done === true, solved: w.solved === true, time: count(w.time) } : null;
+  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless, times, archive: trimArchive(archive), chests, crowns, weekly };
 }
 
 /** The archive without its oldest days beyond what is kept. */
@@ -84,9 +91,30 @@ export const chapterStars = (p: PuzzleProgress | undefined, tier: number): numbe
   return n;
 };
 export const CHAPTER_STARS = PUZZLES_PER_TIER * 3;
+export const hasCrown = (p: PuzzleProgress | undefined, index: number): boolean => (p?.crowns ?? []).includes(index);
+/** Crowns won in one chapter of the path. */
+export const chapterCrowns = (p: PuzzleProgress | undefined, tier: number): number => (p?.crowns ?? []).filter(i => Math.floor(i / PUZZLES_PER_TIER) === tier).length;
 export const isChapterMastered = (p: PuzzleProgress | undefined, tier: number): boolean => chapterStars(p, tier) >= CHAPTER_STARS;
 /** A chapter's chest waits once all its stars are won, until it is opened. */
 export const isChestWaiting = (p: PuzzleProgress | undefined, tier: number): boolean => isChapterMastered(p, tier) && !(p?.chests ?? []).includes(tier);
+/** The week's challenge as it stands: never tried, its one try under way (or abandoned), or over (solved or failed). */
+export type WeeklyState = { kind: 'fresh' } | { kind: 'used'; solved: boolean; time: number };
+export const weeklyState = (p: PuzzleProgress | undefined, week: string): WeeklyState =>
+  p?.weekly?.week === week ? { kind: 'used', solved: p.weekly.solved, time: p.weekly.time } : { kind: 'fresh' };
+/** The counted try starts: from now on the week's challenge is spent (leaving it is a failed try). */
+export function withWeeklyStarted(p: PuzzleProgress | undefined, week: string): PuzzleProgress {
+  const base = p ?? EMPTY_PUZZLES;
+  if (base.weekly?.week === week) return base;
+  return { ...base, weekly: { week, done: false, solved: false, time: 0 } };
+}
+/** The counted try ends: solved pays `embers` (only for the try started this week and not ended yet). */
+export function withWeeklyResult(p: PuzzleProgress | undefined, week: string, solved: boolean, seconds: number, embers: number): { progress: PuzzleProgress; embers: number } {
+  const base = p ?? EMPTY_PUZZLES;
+  if (base.weekly?.week !== week || base.weekly.done) return { progress: base, embers: 0 };
+  const time = solved ? Math.max(1, Math.round(seconds)) : 0;
+  return { progress: { ...base, weekly: { week, done: true, solved, time } }, embers: solved ? embers : 0 };
+}
+
 export function withChestOpened(p: PuzzleProgress | undefined, tier: number): PuzzleProgress {
   const base = p ?? EMPTY_PUZZLES;
   if (!isChestWaiting(base, tier)) return base;
@@ -116,17 +144,19 @@ export const isEndlessOpen = (p: PuzzleProgress | undefined): boolean => (p?.sta
 
 /**
  * The progress after solving a puzzle with `stars` in `seconds`, and the embers it pays (only what is new). `record` says the
- * time beat the puzzle's best (a path puzzle solved before); `best` is the best time before this one (0: none).
+ * time beat the puzzle's best (a path puzzle solved before); `best` is the best time before this one (0: none). On the path,
+ * three stars within `legend` seconds win the puzzle's crown (`crown`: won just now).
  */
 export function withPuzzleResult(
   p: PuzzleProgress | undefined,
   target: PuzzleTarget,
   stars: number,
   seconds = 0,
-): { progress: PuzzleProgress; embers: number; record: boolean; best: number } {
+  legend = 0,
+): { progress: PuzzleProgress; embers: number; record: boolean; best: number; crown: boolean } {
   const base = p ?? EMPTY_PUZZLES;
   const got = starOf(stars);
-  const none = { progress: base, embers: 0, record: false, best: 0 };
+  const none = { progress: base, embers: 0, record: false, best: 0, crown: false };
   if (got === 0) return none;
   const secs = Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.round(seconds)) : 0;
   if (target.kind === 'path') {
@@ -138,8 +168,10 @@ export function withPuzzleResult(
     const faster = secs > 0 && (best === 0 || secs < best);
     const times = faster ? Array.from({ length: Math.max(base.times.length, index + 1) }, (_, i) => (i === index ? secs : base.times[i] ?? 0)) : base.times;
     const stars = got > before ? Array.from({ length: Math.max(base.stars.length, index + 1) }, (_, i) => (i === index ? got : base.stars[i] ?? 0)) : base.stars;
-    if (!faster && got <= before) return { ...none, best };
-    return { progress: { ...base, stars, times }, embers: Math.max(0, got - before) * EMBERS_PER_STAR, record: faster && best > 0, best };
+    const crown = got === MAX_STARS && legend > 0 && secs > 0 && secs <= legend && !hasCrown(base, index);
+    const crowns = crown ? [...base.crowns, index].sort((a, b) => a - b) : base.crowns;
+    if (!faster && got <= before && !crown) return { ...none, best };
+    return { progress: { ...base, stars, times, crowns }, embers: Math.max(0, got - before) * EMBERS_PER_STAR, record: faster && best > 0, best, crown };
   }
   if (target.kind === 'endless') {
     // Only the next one counts (a stale screen solving an old number pays nothing).
@@ -150,12 +182,13 @@ export function withPuzzleResult(
       embers: got * ENDLESS_EMBERS_PER_STAR,
       record: false,
       best: 0,
+      crown: false,
     };
   }
   const archived = archiveStars(base, target.date);
   const archive = got > archived ? trimArchive({ ...base.archive, [target.date]: got }) : base.archive;
   // A past day from the archive: its stars are kept, nothing is paid and the streak is not touched.
-  if (target.kind === 'archive') return got > archived ? { progress: { ...base, archive }, embers: 0, record: false, best: 0 } : none;
+  if (target.kind === 'archive') return got > archived ? { progress: { ...base, archive }, embers: 0, record: false, best: 0, crown: false } : none;
   const before = dailyPuzzleStars(base, target.date);
   const first = base.daily?.date !== target.date;
   if (!first && got <= before) return none;
@@ -168,5 +201,6 @@ export function withPuzzleResult(
     embers: first ? DAILY_PUZZLE_EMBERS + (isYuleDay(target.date) ? YULE_GIFT_EMBERS : 0) : 0,
     record: false,
     best: 0,
+    crown: false,
   };
 }

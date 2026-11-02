@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, ImageBackground, StyleSheet, View, type ImageSourcePropType } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import PressScale from "../../ui/components/PressScale";
@@ -8,7 +9,7 @@ import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 import { emitSound } from "../../audio/audioEventBus";
 import { PUZZLE_TIERS, PUZZLES_PER_TIER } from "../../core/puzzles/puzzles";
-import { CHAPTER_STARS, MAX_STARS, chapterStars, isChestWaiting, isPuzzleOpen, puzzleBestTime, puzzleStarsAt, type PuzzleProgress } from "../../core/stats/puzzleProgress";
+import { CHAPTER_STARS, MAX_STARS, chapterCrowns, chapterStars, hasCrown, isChestWaiting, isPuzzleOpen, puzzleBestTime, puzzleStarsAt, type PuzzleProgress } from "../../core/stats/puzzleProgress";
 import { formatSolveTime } from "./shareText";
 
 const STAR = require("../../assets/sprites/ui/Icon_Star.png");
@@ -84,6 +85,7 @@ export default function ChapterMap({ tier, width, height, puzzles, next, heroArt
   const total = CHAPTER_STARS;
   const mastered = stars === total;
   const chest = isChestWaiting(puzzles, tier);
+  const crowns = chapterCrowns(puzzles, tier);
   const size = PUZZLE_TIERS[tier];
   const moving = active && !calm;
 
@@ -235,6 +237,12 @@ export default function ChapterMap({ tier, width, height, puzzles, next, heroArt
             </View>
           ) : null}
           <View style={styles.scoreRow}>
+            {crowns > 0 ? (
+              <View style={styles.crownCount} accessible accessibilityLabel={t("puzzle.crowns", { n: crowns, total: PUZZLES_PER_TIER })}>
+                <MaterialCommunityIcons name="crown" size={16} color={GOLD} />
+                <Text style={styles.scoreText} maxFontSizeMultiplier={1.1}>{`${crowns}/${PUZZLES_PER_TIER}`}</Text>
+              </View>
+            ) : null}
             <SpriteImage source={STAR} style={{ width: 18, height: 18 }} resizeMode="contain" />
             <Text style={styles.scoreText} maxFontSizeMultiplier={1.1}>{`${stars}/${total}`}</Text>
           </View>
@@ -283,6 +291,7 @@ export default function ChapterMap({ tier, width, height, puzzles, next, heroArt
               popKey={fx?.key ?? 0}
               popDelay={starDelay}
               best={puzzleBestTime(puzzles, i)}
+              crown={hasCrown(puzzles, i)}
               here={heroHere && k === hereK}
               tile={art}
               moving={moving}
@@ -383,6 +392,8 @@ type StopProps = {
   popDelay: number;
   /** Best time in seconds (0: none). */
   best: number;
+  /** Three stars within the legend time. */
+  crown: boolean;
   here: boolean;
   tile: { open: ImageSourcePropType; shut: ImageSourcePropType };
   moving: boolean;
@@ -390,7 +401,7 @@ type StopProps = {
 };
 
 /** One puzzle on the trail: a floor tile with its number, its stars on an arc under it and its best time, a halo on the next one. */
-function Stop({ index, x, y, size: S, tint, open, stars, popFrom, popKey, popDelay, best, here, tile, moving, onPress }: StopProps) {
+function Stop({ index, x, y, size: S, tint, open, stars, popFrom, popKey, popDelay, best, crown, here, tile, moving, onPress }: StopProps) {
   const { t } = useT();
   const pulse = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -457,6 +468,11 @@ function Stop({ index, x, y, size: S, tint, open, stars, popFrom, popKey, popDel
           <SpriteImage source={PADLOCK} style={{ width: S * 0.42, height: S * 0.42, opacity: 0.85 }} resizeMode="contain" />
         )}
       </PressScale>
+      {crown ? (
+        <View pointerEvents="none" style={[styles.crown, { left: x + S / 2 - S * 0.3, top: y - S / 2 - S * 0.22, width: S * 0.48, height: S * 0.48, borderRadius: S * 0.24 }]}>
+          <MaterialCommunityIcons name="crown" size={S * 0.32} color={GOLD} />
+        </View>
+      ) : null}
       {open ? (
         <View pointerEvents="none" style={[styles.under, { left: x - star * 1.9, top: y + S / 2 - star * 0.35, width: star * 3.8 }]}>
           <View style={styles.stars}>
@@ -504,6 +520,8 @@ const styles = StyleSheet.create({
   stop: { position: "absolute", borderWidth: 2.5, alignItems: "center", justifyContent: "center", backgroundColor: "#1a1410" },
   number: { color: "#fff", fontWeight: "900", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   under: { position: "absolute", alignItems: "center" },
+  crown: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "#1a1410", borderWidth: 1.5, borderColor: GOLD },
+  crownCount: { flexDirection: "row", alignItems: "center", gap: 3, marginRight: 6 },
   stars: { flexDirection: "row", justifyContent: "center" },
   time: { color: "#E6D6C2", fontWeight: "800", marginTop: 1, textShadowColor: "#000", textShadowRadius: 3, textShadowOffset: { width: 0, height: 1 } },
   marker: { position: "absolute", alignItems: "center" },

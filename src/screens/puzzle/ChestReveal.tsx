@@ -11,6 +11,8 @@ import { emitSound } from "../../audio/audioEventBus";
 import { CHAPTER_STARS } from "../../core/stats/puzzleProgress";
 import type { CosmeticId } from "../../core/cosmetics/cosmetics";
 import { TIER_TINTS } from "./ChapterMap";
+import { LEGEND_TIER } from "../../core/puzzles/puzzles";
+import { FRAME_ART } from "../../ui/cosmeticArt";
 
 const GOLD = "#FFD54F";
 const SHUT = require("../../assets/sprites/items/Icon_Chest_Closed.png");
@@ -19,8 +21,8 @@ const OPEN = require("../../assets/sprites/items/Icon_Chest.png");
 type Props = {
   tier: number;
   calm: boolean;
-  /** Wear the chapter's title now. */
-  onEquip: (id: CosmeticId) => void;
+  /** Wear the chapter's prizes now (its title, and the Legend's frame). */
+  onEquip: (ids: CosmeticId[]) => void;
   onClose: () => void;
 };
 
@@ -58,6 +60,8 @@ export default function ChestReveal({ tier, calm, onEquip, onClose }: Props) {
   }, [calm, shake, glow, reveal]);
 
   const id = chapterTitle(tier);
+  // The Legend's chest also holds a frame.
+  const frame: CosmeticId | null = tier === LEGEND_TIER ? "frame_legend" : null;
   return (
     <OverlayContainer>
       <PopupPanel tint={GOLD} width={Math.min(width * 0.9, 420)}>
@@ -82,10 +86,18 @@ export default function ChestReveal({ tier, calm, onEquip, onClose }: Props) {
               {`«${t(`cosmetic.${id}.name` as TranslationKey)}»`}
             </Text>
           </View>
+          {frame && FRAME_ART[frame] ? (
+            <View style={styles.frameRow}>
+              <Text style={styles.body} maxFontSizeMultiplier={1.15}>
+                {t("puzzle.chest.frame")}
+              </Text>
+              <SpriteImage source={FRAME_ART[frame]!} style={{ width: 64, height: 64 }} resizeMode="contain" />
+            </View>
+          ) : null}
         </Animated.View>
         <View style={styles.actions}>
           <PopButton label={t("puzzle.chest.ok")} variant="secondary" onPress={onClose} disabled={!opened} style={{ flex: 1 }} />
-          <PopButton label={t("puzzle.chest.equip")} tint={GOLD} onPress={() => onEquip(id)} disabled={!opened} style={{ flex: 1 }} />
+          <PopButton label={t("puzzle.chest.equip")} tint={GOLD} onPress={() => onEquip(frame ? [id, frame] : [id])} disabled={!opened} style={{ flex: 1 }} />
         </View>
       </PopupPanel>
     </OverlayContainer>
@@ -100,4 +112,5 @@ const styles = StyleSheet.create({
   title: { alignSelf: "center", paddingHorizontal: 16, paddingVertical: 6, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.35)", maxWidth: "100%" },
   titleText: { fontWeight: "900", fontSize: 18 },
   actions: { flexDirection: "row", gap: 10, alignSelf: "stretch" },
+  frameRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 });

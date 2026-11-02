@@ -35,7 +35,7 @@ export type CosmeticId =
   | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard'
   | 'pet_firefly' | 'pet_bat' | 'pet_golem' | 'pet_fox' | 'pet_dragon' | 'pet_owl'
   | 'frame_yule' | 'title_yule' | 'pet_reindeer'
-  | 'title_puzzle0' | 'title_puzzle1' | 'title_puzzle2' | 'title_puzzle3' | 'title_puzzle4';
+  | 'title_puzzle0' | 'title_puzzle1' | 'title_puzzle2' | 'title_puzzle3' | 'title_puzzle4' | 'title_puzzle5' | 'frame_legend';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
 
@@ -199,6 +199,9 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('title_puzzle2', 'title', 'epic', 0, { kind: 'puzzleChapter', tier: 2 }),
   item('title_puzzle3', 'title', 'epic', 0, { kind: 'puzzleChapter', tier: 3 }),
   item('title_puzzle4', 'title', 'legendary', 0, { kind: 'puzzleChapter', tier: 4 }),
+  // The Legend's chest: a title and a frame of the frozen deep.
+  item('title_puzzle5', 'title', 'legendary', 0, { kind: 'puzzleChapter', tier: 5 }),
+  item('frame_legend', 'frame', 'legendary', 0, { kind: 'puzzleChapter', tier: 5 }),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));

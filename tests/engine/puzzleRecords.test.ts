@@ -6,6 +6,8 @@ import {
   chapterStars,
   isChapterMastered,
   isChestWaiting,
+  chapterCrowns,
+  hasCrown,
   parsePuzzles,
   puzzleBestTime,
   withChestOpened,
@@ -32,6 +34,20 @@ describe('puzzle records, the archive and chapter chests', () => {
     const slower = withPuzzleResult(faster.progress, path(0), 2, 90);
     expect(slower.progress).toBe(faster.progress);
     expect(slower.record).toBe(false);
+  });
+
+  it('three stars within the legend time win the crown, once; a slower or flawed solve does not', () => {
+    const slow = withPuzzleResult(EMPTY_PUZZLES, path(2), 3, 70, 60);
+    expect(slow.crown).toBe(false);
+    expect(hasCrown(slow.progress, 2)).toBe(false);
+    const flawed = withPuzzleResult(slow.progress, path(2), 2, 30, 60);
+    expect(flawed.crown).toBe(false);
+    const crowned = withPuzzleResult(flawed.progress, path(2), 3, 55, 60);
+    expect(crowned.crown).toBe(true);
+    expect(hasCrown(crowned.progress, 2)).toBe(true);
+    expect(chapterCrowns(crowned.progress, 0)).toBe(1);
+    expect(withPuzzleResult(crowned.progress, path(2), 3, 50, 60).crown).toBe(false);
+    expect(parsePuzzles({ crowns: [4, 4, 1, -1, 'x', 99] }).crowns).toEqual([1, 4]);
   });
 
   it('a past day from the archive keeps its stars but pays nothing and leaves the streak alone', () => {

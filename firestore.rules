@@ -206,6 +206,28 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // The Grimbur's weekly challenge among friends: one row per player and week (`weekly_scores/{week}_{pid}`), the week being its
+    // Monday. Only the first try counts, so a row is written once and never changed. Friends read each other's row by its id.
+    function validWeekly(d, id) {
+      return d.keys().hasOnly(['pid', 'name', 'week', 'solved', 'time', 'characterIndex'])
+        && d.keys().hasAll(['pid', 'name', 'week', 'solved', 'time', 'characterIndex'])
+        && validPid(d.pid)
+        && d.week is string && d.week.matches('^20[0-9]{2}-[01][0-9]-[0-3][0-9]$')
+        && id == d.week + '_' + d.pid
+        && d.solved is bool
+        && isInt(d.time) && ((d.solved && d.time >= 3 && d.time <= 86400) || (!d.solved && d.time == 0))
+        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
+        && validName(d.name);
+    }
+
+    match /weekly_scores/{id} {
+      allow list: if false;
+      allow get: if true;
+      allow create: if validWeekly(request.resource.data, id) && isOwner(request.resource.data.pid);
+      allow update, delete: if false;
+    }
+
     // Duel rooms: `duels/{code}` holds the stake the creator chose. It is written once and never changed, and every player of the room
     // must play for exactly that stake, so somebody who joins cannot raise the pot. A rematch room is created by whoever arrives first.
     match /duels/{code} {

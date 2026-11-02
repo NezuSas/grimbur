@@ -77,6 +77,7 @@ export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_questmira: require('../assets/sprites/cosmetics/Frame_QuestMira.png'),
   frame_questbram: require('../assets/sprites/cosmetics/Frame_QuestBram.png'),
   frame_yule: require('../assets/sprites/cosmetics/Frame_Yule.png'),
+  frame_legend: require('../assets/sprites/cosmetics/Frame_Legend.png'),
 };
 
 /** The same frames, drawn as a tall arch around the hero's whole figure (hero picker, shared picture). 3 wide by 4 tall. */
@@ -101,6 +102,7 @@ export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = 
   frame_questmira: require('../assets/sprites/cosmetics/FrameBody_QuestMira.png'),
   frame_questbram: require('../assets/sprites/cosmetics/FrameBody_QuestBram.png'),
   frame_yule: require('../assets/sprites/cosmetics/FrameBody_Yule.png'),
+  frame_legend: require('../assets/sprites/cosmetics/FrameBody_Legend.png'),
 };
 
 /** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */

@@ -13,7 +13,7 @@ import { RootStackParamList } from "../navigation/types";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { equipCosmeticFor, getLocalStats, openPuzzleChest, peekLocalStats } from "../services/localStats";
 import { ENDLESS_AFTER, PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzleTier } from "../core/puzzles/puzzles";
-import { EMBERS_PER_STAR, MAX_STARS, dailyPuzzleNumber, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, nextPuzzle, puzzleStarsAt, puzzlesSolved, totalPuzzleStars, type PuzzleProgress } from "../core/stats/puzzleProgress";
+import { EMBERS_PER_STAR, MAX_STARS, dailyPuzzleNumber, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, nextPuzzle, puzzleStarsAt, puzzlesSolved, totalPuzzleStars, weeklyState, type PuzzleProgress } from "../core/stats/puzzleProgress";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
 import { useT } from "../i18n/useT";
@@ -25,6 +25,8 @@ import ChapterMap, { TIER_TINTS, type MapFx } from "./puzzle/ChapterMap";
 import ArchiveModal from "./puzzle/ArchiveModal";
 import ChestReveal from "./puzzle/ChestReveal";
 import DailyCard from "./puzzle/DailyCard";
+import WeeklyCard from "./puzzle/WeeklyCard";
+import { msUntilWeekEnd, weekOf } from "../core/puzzles/weekly";
 import EndlessPortal from "./puzzle/EndlessPortal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
@@ -192,6 +194,16 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
         <View style={styles.body}>
           <ScrollView style={{ width: side, flexGrow: 0 }} contentContainerStyle={styles.sideContent} showsVerticalScrollIndicator={false}>
             {daily}
+            <WeeklyCard
+              week={weekOf(today)}
+              state={weeklyState(puzzles, weekOf(today))}
+              left={(() => {
+                const ms = msUntilWeekEnd(today, now);
+                return ms >= 86_400_000 ? t("puzzle.weekly.days", { n: Math.ceil(ms / 86_400_000) }) : formatCountdown(ms);
+              })()}
+              friends={stats.friends}
+              onPlay={practice => navigation.navigate("PuzzleScreen", practice ? { target: "weekly", practice: true } : { target: "weekly" })}
+            />
             <PressScale
               onPress={() => setArchive(true)}
               style={styles.techniques}
@@ -308,9 +320,13 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
           tier={chestTier}
           calm={calm}
           onClose={() => setChestTier(null)}
-          onEquip={id => {
+          onEquip={ids => {
             setChestTier(null);
-            void equipCosmeticFor("title", id).then(s => s && setStats(s));
+            void (async () => {
+              let last = null;
+              for (const id of ids) last = (await equipCosmeticFor(id.startsWith("frame_") ? "frame" : "title", id)) ?? last;
+              if (last) setStats(last);
+            })();
           }}
         />
       ) : null}

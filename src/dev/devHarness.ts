@@ -80,6 +80,9 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
       times: [41, 38, 52, 47, 63, 58, 72, 95, 88, 120, 101, 97, 134, 150],
       archive: { [previousDayKey(today)]: 3 },
       chests: [],
+      // Crowns on the first chapter: three stars under the legend time.
+      crowns: [0, 1, 3],
+      weekly: null,
     },
     dailyRuns: 9,
     dailyWins: 4,

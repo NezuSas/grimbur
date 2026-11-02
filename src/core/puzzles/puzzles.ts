@@ -183,6 +183,18 @@ export const dailyPuzzleTier = (dateKey: string): number => {
 };
 export const dailyPuzzle = (dateKey: string): Puzzle => generatePuzzle(dailySeed(`puzzle:${dateKey}`), dailyPuzzleTier(dateKey));
 
+/**
+ * The legend time of a board, in seconds: what a sharp reader needs (about a second a tile walked, more for every step of
+ * reasoning and much more for each one that reads the two kinds apart or compares clues), rounded up to five seconds.
+ * Three stars under it win the puzzle's crown.
+ */
+export function legendTime(p: Puzzle): number {
+  const r = rateDeduction(p.rows, p.cols, p.entities, p.visited);
+  const steps = r.uses.reduce((a, n) => a + n, 0);
+  const raw = 8 + r.explored * 0.9 + steps * 1 + (r.uses[1] + r.hard) * 6;
+  return Math.ceil(raw / 5) * 5;
+}
+
 /** Stars for a solved puzzle: three without a mistake or a hint, two with one of either, one otherwise. */
 export function puzzleStars(mistakes: number, hints: number): 1 | 2 | 3 {
   const slips = Math.max(0, mistakes) + Math.max(0, hints);

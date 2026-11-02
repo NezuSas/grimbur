@@ -605,3 +605,48 @@ describe('the puzzle of the day among friends', () => {
     await assertFails(getDocs(query(collection(db(), 'puzzle_scores'), limit(5))));
   });
 });
+
+describe("the Grimbur's weekly challenge among friends", () => {
+  const pid = UID;
+  const week = '2026-11-02';
+  const entry = (patch: Record<string, unknown> = {}) => ({ pid, name: 'Oscar', week, solved: true, time: 212, characterIndex: 1, ...patch });
+  const ref = (p = pid, w = week) => doc(authed(p), 'weekly_scores', `${w}_${p}`);
+
+  it('takes the first try only: written once, never changed or deleted', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertFails(setDoc(ref(), entry({ time: 100 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  it('takes a failed try with no time', async () => {
+    const other = 'P000000000000077';
+    await assertSucceeds(setDoc(doc(authed(other), 'weekly_scores', `${week}_${other}`), entry({ pid: other, solved: false, time: 0 })));
+  });
+
+  it("refuses a write without sign-in, under another pid, or under another week's id", async () => {
+    await assertFails(setDoc(doc(db(), 'weekly_scores', `${week}_${pid}`), entry()));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'weekly_scores', `${week}_${pid}`), entry()));
+    await assertFails(setDoc(doc(authed(pid), 'weekly_scores', `2026-11-09_${pid}`), entry()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['a solve too fast', { time: 1 }],
+    ['a failed try with a time', { solved: false, time: 30 }],
+    ['solved as text', { solved: 'yes' }],
+    ['an unknown hero', { characterIndex: 6 }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = `W${String(i).padStart(15, '0')}`;
+    await assertFails(setDoc(doc(authed(owner), 'weekly_scores', `${week}_${owner}`), entry({ pid: owner, ...patch })));
+  });
+
+  it('reads one row by id without sign-in, and lists nothing', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'weekly_scores', `${week}_${pid}`), entry());
+    });
+    await assertSucceeds(getDoc(doc(db(), 'weekly_scores', `${week}_${pid}`)));
+    await assertFails(getDocs(query(collection(db(), 'weekly_scores'), limit(5))));
+  });
+});
