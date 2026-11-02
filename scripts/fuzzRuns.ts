@@ -70,7 +70,8 @@ function check(s: GameState): string | null {
     if (s.entityMap[e.index] !== e) return `entityMap[${e.index}] is not the entity`;
     if (e.type === 'boss' && (e.hp === undefined || e.hp < 1)) return 'boss with no hearts is still on the board';
   }
-  const coinEntities = s.entities.filter(e => e.type === 'coin').length;
+  // A thief carries the gems it took: they still count until it is caught.
+  const coinEntities = s.entities.filter(e => e.type === 'coin').length + s.entities.reduce((n, e) => n + (e.type === 'thief' ? e.loot ?? 0 : 0), 0);
   if (!s.isGameOver && coinEntities !== s.coins) return `coins counter (${s.coins}) differs from gems on the board (${coinEntities})`;
   // An alive hero never shares a tile with something lethal.
   const here = s.entityMap[s.playerIndex];
@@ -184,7 +185,11 @@ function playRun(run: number): void {
       let action: GameAction | null = null;
       const roll = r();
 
-      if (state.pendingDraft) {
+      if (state.encounter && !state.encounter.outcome) {
+        action = { type: 'RESOLVE_ENCOUNTER', take: roll < 0.6 };
+      } else if (state.encounter && roll < 0.5) {
+        action = { type: 'DISMISS_ENCOUNTER' };
+      } else if (state.pendingDraft) {
         action = { type: 'PICK_RELIC', id: state.pendingDraft[Math.floor(r() * state.pendingDraft.length)] };
       } else if (state.isLevelUp) {
         // The shop and the altar, then down

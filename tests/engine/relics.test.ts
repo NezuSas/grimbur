@@ -53,6 +53,8 @@ describe('the draft flow', () => {
     state = gameReducer(state, { type: 'PICK_RELIC', id: choice });
     expect(state.relics).toEqual([choice]);
     expect(state.pendingDraft).toBeNull();
+    // The floor may open with an encounter: walking past it lets play go on.
+    if (state.encounter) state = gameReducer(state, { type: 'RESOLVE_ENCOUNTER', take: false });
     expect(gameReducer(state, move('RIGHT')).playerIndex).toBe(1);
   });
 

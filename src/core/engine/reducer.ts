@@ -12,6 +12,7 @@ import { SHOP_PRICES, SHOP_ARROWS, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, ab
 import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
 import { SECRET_ARROWS, SECRET_GEMS, secretScore } from './generator';
+import { encounterFor, resolveEncounter } from './encounters';
 import { createEntityMap, removeEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss } from './worldHelpers';
 import type { World } from './worldHelpers';
 
@@ -240,7 +241,11 @@ export function ensureWinnable(state: GameState): GameState {
   return { ...state, entities, entityMap: createEntityMap(entities), lairRescues: (state.lairRescues ?? 0) + 1 };
 }
 
+/** Actions held while the floor's encounter waits for a choice. */
+const HELD_BY_ENCOUNTER: readonly GameAction['type'][] = ['MOVE', 'ATTACK', 'USE_ITEM', 'USE_ABILITY', 'UNDO'];
+
 export function gameReducer(state: GameState, action: GameAction): GameState {
+  if (state.encounter && !state.encounter.outcome && HELD_BY_ENCOUNTER.includes(action.type)) return state;
   const core = reduceCore(state, action);
   // Blood Gems: the hero can never hold a shield, whatever would give one.
   const next = core.shield && relicCount(core.relics, 'blood_gems') > 0 ? { ...core, shield: false } : core;
@@ -705,6 +710,10 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarPending: draft ? state.altarPending || !!floorEffects(state.omen, state.event).extraRelic : false,
         altarUsed: false,
         omen: omen ?? null,
+        encounter: (() => {
+          const id = encounterFor(state.runSeed, state.level + 1 + skip, state.mode);
+          return id ? { id } : null;
+        })(),
         marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],
         // The Powder Belt's bomb and the explorers' set bonus (a detector charge) on every floor, never past the bag.
         items: {
@@ -728,6 +737,12 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         wasTeleported: false,
       };
     }
+
+    case 'RESOLVE_ENCOUNTER':
+      return resolveEncounter(state, action.take);
+
+    case 'DISMISS_ENCOUNTER':
+      return state.encounter?.outcome ? { ...state, encounter: null } : state;
 
     case 'PICK_RELIC': {
       if (!state.pendingDraft || !state.pendingDraft.includes(action.id)) return state;

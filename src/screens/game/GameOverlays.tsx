@@ -16,6 +16,7 @@ import type { GameState } from "../../core/engine/types";
 import type { RelicId } from "../../core/engine/relics";
 import type { Door, ShopItem } from "../../core/engine/shop";
 import type { RunResult } from "./types";
+import EncounterModal from "../../ui/components/game/EncounterModal";
 
 type Props = {
   state: GameState;
@@ -68,13 +69,15 @@ type Props = {
   };
   revive: { visible: boolean; price: number; embers: number; used: number; busy: boolean; onRevive: () => void; onDecline: () => void };
   highScore: { visible: boolean; daily?: boolean; challenge?: boolean; onSubmit: (name: string) => Promise<void>; onSkip: () => void };
+  /** The scene that opens the floor (see core/engine/encounters.ts). */
+  encounter: { visible: boolean; onChoose: (take: boolean) => void; onClose: () => void };
 };
 
 /**
  * Every overlay that covers the game screen: the shop between floors, the relic draft, the pause card, the result card and the
  * high-score entry. The screen decides when each is visible; this only draws them from the state.
  */
-const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop, onPickRelic, pause, gameOver, revive, highScore }) => {
+const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop, onPickRelic, pause, gameOver, revive, highScore, encounter }) => {
   const result = gameOver.result;
   const levelUpWindow = state.isLevelUp && !state.isVictory;
   return (
@@ -99,6 +102,8 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         onSell={shop.onSell}
         onGo={shop.onGo}
       />
+
+      {encounter.visible && state.encounter ? <EncounterModal encounter={state.encounter} state={state} onChoose={encounter.onChoose} onClose={encounter.onClose} /> : null}
 
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} owned={state.relics} />
 

@@ -45,6 +45,7 @@ import { haptic, ImpactFeedbackStyle } from "../shared/haptics";
 import { RELIC_FAMILY, RelicId, activeFamilies, relicCount, type RelicFamily } from "../core/engine/relics";
 import type { ImageSourcePropType } from "react-native";
 import Fanfare from "../ui/components/game/Fanfare";
+import EncounterModal from "../ui/components/game/EncounterModal";
 import { FAMILY_COLOR } from "../ui/familyLook";
 import { RELIC_IMAGES } from "../ui/relicImages";
 import { BEAST_ART, BEAST_TINT } from "../ui/beastArt";
@@ -132,7 +133,7 @@ export default function GameScreen({ navigation, route }: Props) {
   // The daily challenge fixes the board seed to today's local date (captured once per screen visit).
   const dailyDate = useRef(dailyKey()).current;
 
-  const { state, isAttacking, move, attack, reset, restore, levelUp, pickRelic, buy, useAltar: spendAltar, sellArrows, useItem: spendItem, useAbility: castAbility, undo, revive, refill } = useGameEngine();
+  const { state, isAttacking, move, attack, reset, restore, levelUp, pickRelic, buy, useAltar: spendAltar, sellArrows, useItem: spendItem, useAbility: castAbility, undo, revive, refill, resolveEncounter, dismissEncounter } = useGameEngine();
   // Expeditions and endless runs can be left and continued later; the daily is tied to its date, challenges and duels are live.
   const resumable = !challenge && !duelParam && !isDaily;
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
@@ -1112,6 +1113,7 @@ export default function GameScreen({ navigation, route }: Props) {
         bootCover={bootCover}
         shop={{ visible: intermission, preview: __DEV__ && !!route.params?.devIntermission, doors, chosen: door, onChoose: setDoor, onBuy: handleBuy, onAltar: handleAltar, onSell: handleSell, onGo: handleGo }}
         onPickRelic={handlePickRelic}
+        encounter={{ visible: !!state.encounter && !state.pendingDraft && !bannerUp && !runEnded && !paused && !state.isGameOver, onChoose: resolveEncounter, onClose: dismissEncounter }}
         pause={{ visible: paused, saveOnExit: resumable, canRestart: !duelParam, onResume: () => setPaused(false), onRestart: handleRetry, onMainMenu: handleMainMenu }}
         gameOver={{
           visible: showGameOver && !peek,
@@ -1143,6 +1145,7 @@ export default function GameScreen({ navigation, route }: Props) {
       />
 
       {/* Over everything, the pick and the shop included: the moment it marks often happens there. */}
+      {__DEV__ && route.params?.devEncounter ? <EncounterModal encounter={route.params.devEncounter} state={{ ...state, attack: 3, gems: 5 }} onChoose={() => {}} onClose={() => {}} /> : null}
       {fanfare && !showGameOver ? (
         <Fanfare fanfareKey={fanfare.key} tint={fanfare.tint} art={fanfare.art} kicker={fanfare.kicker} title={fanfare.title} line={fanfare.line} top={insets.top + 10} calm={reduceFlash} hold={__DEV__ && !!route.params?.devFanfare} onDone={() => setFanfare(null)} />
       ) : null}

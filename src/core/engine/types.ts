@@ -6,6 +6,7 @@ import type { MetaEffects } from '../stats/forge';
 import type { OmenId } from './omens';
 import type { EventId } from './events';
 import type { ShopItem } from './shop';
+import type { Encounter } from './encounters';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -133,6 +134,8 @@ export interface GameState {
   revives?: number;
   /** Arrow packs bought with embers in this run. */
   refills?: number;
+  /** The scene that opens this floor (see encounters.ts); it holds input until the player chooses. */
+  encounter?: Encounter | null;
   /** Secret rooms found in this run (see generator.ts: a hidden cache whose draft shows on the tiles beside it). */
   secretsFound?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
@@ -157,6 +160,10 @@ export type GameAction =
   | { type: 'USE_ABILITY' }
   /** Takes back the last step (once per floor). */
   | { type: 'UNDO' }
+  /** Takes (or walks past) the floor's encounter. */
+  | { type: 'RESOLVE_ENCOUNTER'; take: boolean }
+  /** Closes the encounter once its outcome was shown. */
+  | { type: 'DISMISS_ENCOUNTER' }
   /** Brings the hero back to just before the fatal action (see core/engine/revive.ts). */
   | { type: 'REVIVE' }
   /** Adds the arrows of an ember-bought pack (the embers are spent by the screen first). */
@@ -218,6 +225,8 @@ export interface GameEngineInterface {
   useItem: (item: 'detector' | 'bomb') => void;
   useAbility: () => void;
   undo: () => void;
+  resolveEncounter: (take: boolean) => void;
+  dismissEncounter: () => void;
   revive: () => void;
   refill: () => void;
   pickRelic: (id: RelicId) => void;

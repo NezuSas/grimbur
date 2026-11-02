@@ -228,6 +228,8 @@ export function useGameEngine(): GameEngineInterface {
   const useItem = useCallback((item: 'detector' | 'bomb') => pureDispatch({ type: 'USE_ITEM', item }), [pureDispatch]);
   const useAbility = useCallback(() => pureDispatch({ type: 'USE_ABILITY' }), [pureDispatch]);
   const undo = useCallback(() => pureDispatch({ type: 'UNDO' }), [pureDispatch]);
+  const resolveEncounter = useCallback((take: boolean) => pureDispatch({ type: 'RESOLVE_ENCOUNTER', take }), [pureDispatch]);
+  const dismissEncounter = useCallback(() => pureDispatch({ type: 'DISMISS_ENCOUNTER' }), [pureDispatch]);
   const revive = useCallback(() => pureDispatch({ type: 'REVIVE' }), [pureDispatch]);
   const refill = useCallback(() => pureDispatch({ type: 'REFILL' }), [pureDispatch]);
 
@@ -250,6 +252,8 @@ export function useGameEngine(): GameEngineInterface {
     useItem,
     useAbility,
     undo,
+    resolveEncounter,
+    dismissEncounter,
     revive,
     refill,
   };
