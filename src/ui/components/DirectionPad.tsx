@@ -12,6 +12,7 @@ import { useT } from "../../i18n/useT";
 import { ATTACK_ART as ATTACK_SKINS } from "../cosmeticArt";
 import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../../services/localStats";
+import { useTouchScale, useUiScale } from "../layout/scaledWindow";
 
 type Props = {
   onMove: (direction: Direction) => void;
@@ -65,8 +66,10 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
   const empty = arrows <= 0;
   const [aim, setAim] = useState<Direction | null>(null);
   const aimRef = useRef<Direction | null>(null);
-  const latest = useRef({ onAttack, onAim, empty });
-  latest.current = { onAttack, onAim, empty };
+  // A drag is measured on the real screen: on a scaled screen it is brought back to the pad's own units.
+  const ui = useUiScale();
+  const latest = useRef({ onAttack, onAim, empty, ui });
+  latest.current = { onAttack, onAim, empty, ui };
 
   const responder = useMemo(
     () =>
@@ -78,7 +81,7 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
           latest.current.onAim?.("facing");
         },
         onPanResponderMove: (_e, g) => {
-          const next = aimFromDrag(g.dx, g.dy);
+          const next = aimFromDrag(g.dx / latest.current.ui, g.dy / latest.current.ui);
           if (next !== aimRef.current) {
             aimRef.current = next;
             setAim(next);
@@ -162,7 +165,9 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, n
   // With the attack button in the middle, the dead zone has to cover it.
   const deadZone = splitAttack || noAttack ? 0.24 : 0.46;
 
-  const read = (e: GestureResponderEvent) => dpadDirection(e.nativeEvent.locationX, e.nativeEvent.locationY, D, deadZone);
+  // On the web a touch point is measured on the page, after the screen's scale: back to the pad's own units.
+  const touch = useTouchScale();
+  const read = (e: GestureResponderEvent) => dpadDirection(e.nativeEvent.locationX / touch, e.nativeEvent.locationY / touch, D, deadZone);
 
   // The step happens the moment the thumb lands (not when it lifts): it answers sooner, and a thumb that drifts off the disc
   // before lifting can no longer cancel the press.

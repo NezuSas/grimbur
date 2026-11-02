@@ -4,6 +4,7 @@ import Text from "./Text";
 import { useGameLayout } from "../layout/useGameLayout";
 import SpriteImage from "./SpriteImage";
 import { useRollTo } from "../useRollTo";
+import { useUiScale } from "../layout/scaledWindow";
 
 type Props = {
   icon?: ImageSourcePropType;
@@ -36,9 +37,11 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, suffix, lab
   const rolled = useRollTo(typeof value === "number" ? value : 0, calm || !roll || typeof value !== "number");
   const shown = roll && typeof value === "number" ? rolled : value;
   const box = useRef<ComponentRef<typeof View>>(null);
+  // The window position is on the real screen; the things that fly here are drawn in the (maybe scaled) screen's units.
+  const ui = useUiScale();
   const measure = () => {
     if (!onAnchor) return;
-    box.current?.measureInWindow((x, y, _w, h) => onAnchor({ x: x + iconDim / 2 + (compact ? 5 : 10), y: y + h / 2 }));
+    box.current?.measureInWindow((x, y, _w, h) => onAnchor({ x: x / ui + iconDim / 2 + (compact ? 5 : 10), y: (y + h / 2) / ui }));
   };
 
   useEffect(() => {

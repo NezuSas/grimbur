@@ -7,8 +7,8 @@ import {
   StyleSheet,
   TextInput,
   View,
-  useWindowDimensions,
 } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import Text from "../Text";
 import GlyphIcon from "../GlyphIcon";
 

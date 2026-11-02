@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { TUTORIAL_CHAPTERS } from "../core/tutorial/lessons";
-import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -15,8 +15,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
-  useWindowDimensions,
 } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { LinearGradient } from "expo-linear-gradient";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";

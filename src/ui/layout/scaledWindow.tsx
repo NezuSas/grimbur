@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from "react";
-import { View, useWindowDimensions as useRealWindowDimensions } from "react-native";
+import { Platform, View, useWindowDimensions as useRealWindowDimensions } from "react-native";
 import { uiScaleFor } from "./uiScale";
 
 /**
@@ -20,6 +20,16 @@ export function useWindowDimensions() {
 
 /** How much the current screen is scaled up (1 when it is not). */
 export const useUiScale = (): number => useContext(ScaleContext)?.scale ?? 1;
+
+/**
+ * What a touch's `locationX`/`locationY` must be divided by to be in the screen's own units. On the web they are measured on
+ * the page, after the scale (a pad drawn 180 wide but shown 360 wide reports 0-360); a native touch is already local.
+ * Positions from `measureInWindow` are page-sized on every platform and are divided by `useUiScale` instead.
+ */
+export const useTouchScale = (): number => {
+  const scale = useUiScale();
+  return Platform.OS === "web" ? scale : 1;
+};
 
 export function withUiScale<P extends object>(Screen: React.ComponentType<P>): React.FC<P> {
   const Scaled: React.FC<P> = props => {

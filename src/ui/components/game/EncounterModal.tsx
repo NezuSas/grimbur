@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import type { ImageSourcePropType } from "react-native";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";

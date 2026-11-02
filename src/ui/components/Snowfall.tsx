@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../layout/scaledWindow";
 
 /**
  * Snow drifting down over a screen while Christmas in the cave runs. Purely a look: it never touches anything (no touches,

@@ -18,8 +18,8 @@ import {
   AppState,
   BackHandler,
   ImageBackground,
-  useWindowDimensions,
 } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../layout/scaledWindow";
 
 type Props = {
   /** How many embers float at once. Kept low: this runs behind the menu on every phone. */

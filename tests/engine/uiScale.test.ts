@@ -12,7 +12,8 @@ describe('uiScaleFor', () => {
   it('grows with a tablet-sized window and stops at 1.8', () => {
     expect(uiScaleFor(1280, 800)).toBeCloseTo(1.42, 1);
     expect(uiScaleFor(1024, 600)).toBeGreaterThan(1.1);
-    expect(uiScaleFor(3840, 2160)).toBe(1.8);
+    expect(uiScaleFor(3840, 2160)).toBe(2.2);
+    expect(uiScaleFor(1920, 1080)).toBeCloseTo(2.08, 1);
   });
 
   it('is limited by the shorter side, so a wide but short window does not overflow', () => {

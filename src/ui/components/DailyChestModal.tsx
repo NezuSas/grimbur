@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../layout/scaledWindow";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";

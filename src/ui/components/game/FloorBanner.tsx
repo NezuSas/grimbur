@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import { LinearGradient } from "expo-linear-gradient";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";

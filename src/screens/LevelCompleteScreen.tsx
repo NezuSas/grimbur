@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Animated, ImageBackground, Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Animated, ImageBackground, Pressable, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import type { ImageSourcePropType } from "react-native";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";

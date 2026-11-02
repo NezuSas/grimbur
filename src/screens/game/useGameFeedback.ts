@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, View, useWindowDimensions } from "react-native";
+import { Animated, View } from "react-native";
+import { useUiScale, useWindowDimensions } from "../../ui/layout/scaledWindow";
 import type { ComponentRef, MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
 import { recordLatency } from "../../audio/audioDiagnostics";
@@ -72,11 +73,13 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
   // Everything the player sees, hears or feels after a move is derived from the DIFFERENCE between two states
   // (see core/feedback/diffFeedback.ts), so each event fires exactly once and buying, the detector or undo never
   // replay an old pickup.
+  // The window position is on the real screen; popups and flights are drawn in the (maybe scaled) screen's units.
+  const ui = useUiScale();
   const measureBoard = useCallback(() => {
     boardBox.current?.measureInWindow((x, y, w) => {
-      if (w > 0) boardOrigin.current = { x: x + 1, y: y + 1 };
+      if (w > 0) boardOrigin.current = { x: x / ui + 1, y: y / ui + 1 };
     });
-  }, []);
+  }, [ui]);
   const { tileSize: boardTile } = useGameLayout(state.cols, state.rows);
   useEffect(() => {
     measureBoard();

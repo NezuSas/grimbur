@@ -2,6 +2,7 @@ import React, { createContext, memo, useContext, useEffect, useMemo, useRef, use
 import { Animated, PanResponder, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
+import { useTouchScale } from "../../layout/scaledWindow";
 
 export const GOLD = "#FFD54F";
 export const CARD_BG = "rgba(34, 26, 18,0.9)";
@@ -99,14 +100,17 @@ type SliderProps = {
 /** A slider that snaps to a few levels: drag or tap anywhere on the track. */
 export const LevelSlider = memo(({ value, steps, onChange, onRelease, accessibilityLabel, valueLabel }: SliderProps) => {
   const [width, setWidth] = useState(0);
-  const latest = useRef({ steps, onChange, onRelease, width });
-  latest.current = { steps, onChange, onRelease, width };
+  // On the web a touch point is measured on the page, after the screen's scale: back to the slider's own units.
+  const touch = useTouchScale();
+  const latest = useRef({ steps, onChange, onRelease, width, touch });
+  latest.current = { steps, onChange, onRelease, width, touch };
   const index = Math.max(0, steps.indexOf(value));
   const last = steps.length - 1;
 
   const pick = (x: number) => {
-    const { steps: s, width: w, onChange: change } = latest.current;
+    const { steps: s, width: w, onChange: change, touch } = latest.current;
     if (w <= 0) return;
+    x /= touch;
     const i = Math.min(s.length - 1, Math.max(0, Math.round((x / w) * (s.length - 1))));
     change(s[i]);
   };

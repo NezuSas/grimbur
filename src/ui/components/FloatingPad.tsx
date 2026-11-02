@@ -8,6 +8,7 @@ import { useT } from "../../i18n/useT";
 import { AttackButton } from "./DirectionPad";
 import JoystickBase from "./JoystickBase";
 import { useSettingsStore } from "../../state/settings/store";
+import { useUiScale } from "../layout/scaledWindow";
 
 const NO_THUMB = { x: 0, y: 0 };
 
@@ -40,8 +41,10 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
   const [thumb, setThumb] = useState(NO_THUMB);
   const [active, setActive] = useState<Direction | null>(null);
 
-  const latest = useRef({ onMove, canRepeat, baseR });
-  latest.current = { onMove, canRepeat, baseR };
+  // The thumb's travel is measured on the real screen: on a scaled screen it is brought back to the pad's own units.
+  const ui = useUiScale();
+  const latest = useRef({ onMove, canRepeat, baseR, ui });
+  latest.current = { onMove, canRepeat, baseR, ui };
   const dirRef = useRef<Direction | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopRepeat = () => {
@@ -92,8 +95,9 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
           setThumb(NO_THUMB);
           setActive(null);
         },
-        onPanResponderMove: (_e, g) => {
+        onPanResponderMove: (_e, raw) => {
           const R = latest.current.baseR;
+          const g = { dx: raw.dx / latest.current.ui, dy: raw.dy / latest.current.ui };
           // The stick follows the thumb's travel (not where it landed) and stays inside the base.
           const len = Math.hypot(g.dx, g.dy);
           const k = len > R ? R / len : 1;

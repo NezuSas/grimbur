@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import Text from "../Text";
 import BossSprite, { ANCIENT_FRAMES, BOSS_FRAMES } from "../BossSprite";
 import SpriteImage from "../SpriteImage";

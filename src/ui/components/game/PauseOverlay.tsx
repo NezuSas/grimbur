@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import OverlayContainer from './OverlayContainer';
 import Text from '../Text';
 import { PopButton, PopupPanel, PopupTitle } from './popup';

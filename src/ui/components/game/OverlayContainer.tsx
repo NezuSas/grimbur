@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Keyboard, Platform, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { Animated, Keyboard, Platform, ScrollView, StyleSheet } from 'react-native';
+import { useWindowDimensions } from '../../layout/scaledWindow';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {

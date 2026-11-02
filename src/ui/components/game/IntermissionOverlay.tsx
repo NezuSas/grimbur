@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ImageBackground, Pressable, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import type { ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";

@@ -26,7 +26,7 @@ import PuzzlesScreen from "../screens/PuzzlesScreen";
 import PuzzleScreen from "../screens/PuzzleScreen";
 import { withUiScale } from "../ui/layout/scaledWindow";
 
-// Menu screens grow on big windows (tablets); on phones the scale is 1 and nothing changes.
+// Screens grow on big windows (tablets, desktop browsers); on phones the scale is 1 and nothing changes.
 const ScaledMissionsScreen = withUiScale(MissionsScreen);
 const ScaledCollectionScreen = withUiScale(CollectionScreen);
 const ScaledHighScoresScreen = withUiScale(HighScoresScreen);
@@ -37,6 +37,16 @@ const ScaledAchievementsScreen = withUiScale(AchievementsScreen);
 const ScaledForgeScreen = withUiScale(ForgeScreen);
 const ScaledStoryScreen = withUiScale(StoryScreen);
 const ScaledPuzzlesScreen = withUiScale(PuzzlesScreen);
+// The cover, the hero picker, the runs and puzzles, and their cards grow the same way, so a desktop browser shows the
+// whole game as a bigger phone instead of phone-sized text and cards in a sea of empty space.
+const ScaledCoverScreen = withUiScale(CoverScreen);
+const ScaledCharactersScreen = withUiScale(CharactersScreen);
+const ScaledTutorialScreen = withUiScale(TutorialScreen);
+const ScaledLessonScreen = withUiScale(LessonScreen);
+const ScaledPuzzleScreen = withUiScale(PuzzleScreen);
+const ScaledGameScreen = withUiScale(GameScreen);
+const ScaledLevelCompleteScreen = withUiScale(LevelCompleteScreen);
+const ScaledPaywallScreen = withUiScale(PaywallScreen);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -64,27 +74,27 @@ const StackNavigator: React.FC = () => {
           ...NO_SWIPE_BACK,
         }}
       >
-        <Stack.Screen name="CoverScreen" component={CoverScreen} />
+        <Stack.Screen name="CoverScreen" component={ScaledCoverScreen} />
         <Stack.Screen name="StoryScreen" component={ScaledStoryScreen} />
         <Stack.Screen name="MissionsScreen" component={ScaledMissionsScreen} />
-        <Stack.Screen name="CharactersScreen" component={CharactersScreen} />
+        <Stack.Screen name="CharactersScreen" component={ScaledCharactersScreen} />
         <Stack.Screen name="CollectionScreen" component={ScaledCollectionScreen} />
-        <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
-        <Stack.Screen name="LessonScreen" component={LessonScreen} />
+        <Stack.Screen name="TutorialScreen" component={ScaledTutorialScreen} />
+        <Stack.Screen name="LessonScreen" component={ScaledLessonScreen} />
         <Stack.Screen name="PuzzlesScreen" component={ScaledPuzzlesScreen} />
-        <Stack.Screen name="PuzzleScreen" component={PuzzleScreen} />
-        <Stack.Screen name="GameScreen" component={GameScreen} />
+        <Stack.Screen name="PuzzleScreen" component={ScaledPuzzleScreen} />
+        <Stack.Screen name="GameScreen" component={ScaledGameScreen} />
         <Stack.Screen name="HighScoresScreen" component={ScaledHighScoresScreen} />
         <Stack.Screen name="FriendsScreen" component={FriendsScreen} />
         <Stack.Screen name="ChallengeScreen" component={ChallengeScreen} />
         <Stack.Screen name="DuelScreen" component={DuelScreen} />
         <Stack.Screen name="ProgressScreen" component={ScaledProgressScreen} />
-        <Stack.Screen name="LevelCompleteScreen" component={LevelCompleteScreen} />
+        <Stack.Screen name="LevelCompleteScreen" component={ScaledLevelCompleteScreen} />
         <Stack.Screen name="InstructionsScreen" component={ScaledInstructionsScreen} />
         <Stack.Screen name="SettingsScreen" component={ScaledSettingsScreen} />
         <Stack.Screen name="AchievementsScreen" component={ScaledAchievementsScreen} />
         <Stack.Screen name="ForgeScreen" component={ScaledForgeScreen} />
-        <Stack.Screen name="PaywallScreen" component={PaywallScreen} />
+        <Stack.Screen name="PaywallScreen" component={ScaledPaywallScreen} />
       </Stack.Navigator>
     </>
   );

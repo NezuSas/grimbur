@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Snowfall from "../ui/components/Snowfall";
 import { isYuleDay } from "../core/events/yule";
-import { ImageBackground, Share, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, Share, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";

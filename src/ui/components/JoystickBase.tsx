@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { Direction } from "../../core/engine/types";
 import { floatingDirection } from "../../core/input/floatingPad";
 import type { JoystickSkin } from "../../state/settings/types";
+import { useUiScale } from "../layout/scaledWindow";
 
 type Side = { dir: Direction; icon: keyof typeof Ionicons.glyphMap; dx: number; dy: number };
 const SIDES: Side[] = [
@@ -159,6 +160,9 @@ export const JoystickPreview = memo(({ skin, radius = 54, onActiveChange }: { sk
   const R = radius;
   const latestActive = useRef(onActiveChange);
   latestActive.current = onActiveChange;
+  // Settings is a scaled screen: the finger's travel is brought back to the stick's own units.
+  const ui = useRef(1);
+  ui.current = useUiScale();
   const responder = useMemo(
     () =>
       PanResponder.create({
@@ -170,7 +174,8 @@ export const JoystickPreview = memo(({ skin, radius = 54, onActiveChange }: { sk
           setThumb({ x: 0, y: 0 });
           latestActive.current?.(true);
         },
-        onPanResponderMove: (_e, g) => {
+        onPanResponderMove: (_e, raw) => {
+          const g = { dx: raw.dx / ui.current, dy: raw.dy / ui.current };
           setThumb({ x: g.dx, y: g.dy });
           prev.current = floatingDirection(g.dx, g.dy, R, prev.current);
           setActive(prev.current);

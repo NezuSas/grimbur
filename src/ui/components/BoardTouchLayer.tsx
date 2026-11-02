@@ -3,6 +3,7 @@ import { PanResponder, StyleSheet, View } from 'react-native';
 import type { Direction } from '../../core/engine/types';
 import { SWIPE_MIN_DISTANCE, TAP_MAX_DISTANCE, classifyGesture, heroAimFromDrag } from '../../core/input/swipe';
 import { haptic } from '../../shared/haptics';
+import { useTouchScale, useUiScale } from '../layout/scaledWindow';
 
 const LONG_PRESS_MS = 450;
 
@@ -30,8 +31,12 @@ type Props = {
  * let go to shoot, or drag back onto the hero to cancel. A plain tap on the hero stays a tap.
  */
 const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire }) => {
-  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire });
-  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire };
+  // On a scaled screen (a big window) drags are measured on the real screen and, on the web, touch points too: both are
+  // brought back to the board's own units, so a tile and a swipe are the same size to the finger as they look.
+  const ui = useUiScale();
+  const touch = useTouchScale();
+  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, ui, touch });
+  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, ui, touch };
   const start = useRef({ x: 0, y: 0 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longFired = useRef(false);
@@ -62,7 +67,7 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onPanResponderGrant: e => {
-          start.current = { x: e.nativeEvent.locationX, y: e.nativeEvent.locationY };
+          start.current = { x: e.nativeEvent.locationX / latest.current.touch, y: e.nativeEvent.locationY / latest.current.touch };
           longFired.current = false;
           aimed.current = null;
           clearTimer();
@@ -79,7 +84,8 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
             }, LONG_PRESS_MS);
           }
         },
-        onPanResponderMove: (_e, g) => {
+        onPanResponderMove: (_e, raw) => {
+          const g = { dx: raw.dx / latest.current.ui, dy: raw.dy / latest.current.ui };
           // Moving the finger turns the touch into a swipe or a drag: it is no longer a long press.
           if (Math.max(Math.abs(g.dx), Math.abs(g.dy)) > TAP_MAX_DISTANCE) clearTimer();
           if (aiming.current) {
@@ -95,7 +101,8 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
           clearTimer();
           endAim();
         },
-        onPanResponderRelease: (_e, g) => {
+        onPanResponderRelease: (_e, raw) => {
+          const g = { dx: raw.dx / latest.current.ui, dy: raw.dy / latest.current.ui };
           clearTimer();
           if (aiming.current) {
             const direction = aimed.current;

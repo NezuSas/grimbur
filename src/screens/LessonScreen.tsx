@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import PauseOverlay from "../ui/components/game/PauseOverlay";
 import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import ReviveOverlay from "../ui/components/game/ReviveOverlay";
-import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

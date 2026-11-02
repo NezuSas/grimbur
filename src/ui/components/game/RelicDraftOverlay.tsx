@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import GlyphIcon from '../GlyphIcon';
-import { Animated, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import { LinearGradient } from "expo-linear-gradient";
 import Text from "../Text";
 

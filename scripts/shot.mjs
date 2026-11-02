@@ -1,7 +1,7 @@
 // Screenshots of the web build through the Chrome DevTools protocol, in real time (no virtual time budget, so a
 // request that never settles, like Firebase retrying, cannot stall it). It shoots once every request to the dev
 // server (bundle, images) has finished and the network has been quiet a moment, or at `maxWaitMs` at the latest.
-// Also prints the page's console errors.
+// Also prints the page's console errors. SHOT_CLICKS clicks the page first (see below).
 //
 //   node scripts/shot.mjs <out.png> <WxH> <url> [maxWaitMs] [scale]
 // The url may also come from SHOT_URL (a Windows node shim can split an argument at '&').
@@ -81,6 +81,15 @@ while (Date.now() - started < maxWait) {
   if (Date.now() - started > MIN_WAIT && inflight.size === 0 && Date.now() - lastNetwork > 6000 && (await rendered())) break;
 }
 await sleep(2500); // entrance animations
+// SHOT_CLICKS="x,y;x,y": mouse clicks (page pixels) before the shot, 700 ms apart, to check what a tap does.
+for (const c of (process.env.SHOT_CLICKS ?? '').split(';').filter(Boolean)) {
+  const [x, y] = c.split(',').map(Number);
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
+  await sleep(80);
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', buttons: 0, clickCount: 1 });
+  await sleep(700);
+}
 const probe = await send('Runtime.evaluate', { expression: `JSON.stringify({ ready: document.readyState, root: document.getElementById('root')?.innerHTML.length ?? -1, scripts: [...document.scripts].map(s => s.src.slice(0, 60)) })`, returnByValue: true });
 if (process.env.SHOT_DEBUG) console.log('PAGE', probe.result?.result?.value);
 const shot = await send('Page.captureScreenshot', { format: 'png' });

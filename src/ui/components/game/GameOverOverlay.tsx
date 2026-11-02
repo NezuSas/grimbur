@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { DeathReview } from '../../../core/engine/deathReview';
-import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { Animated, ImageBackground, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useWindowDimensions } from "../../layout/scaledWindow";
 import Text from "../Text";
 import EmberIcon from "../EmberIcon";
 import GlyphIcon from "../GlyphIcon";

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, ScrollView, StyleSheet, TouchableOpacity, Animated, Easing, useWindowDimensions } from "react-native";
+import { View, ScrollView, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
+import { useWindowDimensions } from "../layout/scaledWindow";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
