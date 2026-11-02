@@ -25,6 +25,9 @@ export const forceYule = (on: boolean | null): void => {
   forced = on;
 };
 
+/** Whether the event is being forced on for testing (development builds only). */
+export const isYuleForced = (): boolean => forced === true;
+
 /** The event runs on this local day (`YYYY-MM-DD`). */
 export const isYuleDay = (dateKey: string | undefined): boolean => {
   if (forced !== null) return forced;

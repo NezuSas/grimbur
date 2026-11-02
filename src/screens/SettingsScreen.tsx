@@ -1,4 +1,5 @@
 import React from "react";
+import { forceYule, isYuleForced } from "../core/events/yule";
 import GlyphIcon from "../ui/components/GlyphIcon";
 import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
@@ -60,6 +61,8 @@ const LANGUAGE_BADGE: Record<LanguagePreference, string> = { auto: "A", en: "EN"
 const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
+  // Development only: Christmas in the cave forced on to try it before December.
+  const [yuleTest, setYuleTest] = React.useState(() => isYuleForced());
   // Development only (web): `?cat=controls` opens that category, for screenshots.
   const devCategory = __DEV__ && typeof location !== "undefined" ? (new URLSearchParams(location.search).get("cat") as CategoryId | null) : null;
   // The joystick try-out must not scroll the page while it is being used.
@@ -654,6 +657,18 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <SettingCard title={t("settings.group.support")}>
           <SettingRow label={t("settings.audioLog")} hint={t("settings.audioLogHint")} icon="bug-outline" tint="#B0BEC5">
             <RoundAction icon="share-outline" label={t("settings.audioLog")} onPress={() => Share.share({ message: getAudioLog() || "(empty)" }).catch(() => {})} />
+          </SettingRow>
+          <RowDivider />
+          {/* Christmas in the cave before December, to try it on a phone (until the app is closed). */}
+          <SettingRow label="Probar Navidad en la cueva" hint="Solo pruebas: enciende el evento aunque no sea diciembre, hasta cerrar la app." icon="snow-outline" tint="#81C784">
+            <ToggleSwitch
+              value={yuleTest}
+              onValueChange={v => {
+                forceYule(v ? true : null);
+                setYuleTest(v);
+              }}
+              accessibilityLabel="Probar Navidad en la cueva"
+            />
           </SettingRow>
         </SettingCard>
       ) : null}
