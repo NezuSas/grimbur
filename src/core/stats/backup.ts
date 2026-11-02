@@ -169,8 +169,18 @@ export function sanitizeSettings(value: unknown): BackupSettings {
   };
 }
 
+/**
+ * The progress a backup carries. The maps of past runs and the daily's ghost path are left out: they are only pictures, and a busy
+ * history of maps alone made the code several times longer than a backup (or a cloud copy) may be.
+ */
+export function backupStats(stats: LocalStats): LocalStats {
+  const history = stats.history.map(({ board: _board, ...rest }) => rest);
+  const daily = stats.daily ? (({ ghost: _ghost, ...rest }) => rest)(stats.daily) : null;
+  return { ...stats, history, daily };
+}
+
 export function encodeBackup(stats: LocalStats, settings: Partial<BackupSettings>): string {
-  const body = toBase64Url(JSON.stringify({ v: BACKUP_VERSION, s: stats, c: sanitizeSettings(settings) }));
+  const body = toBase64Url(JSON.stringify({ v: BACKUP_VERSION, s: backupStats(stats), c: sanitizeSettings(settings) }));
   return `${PREFIX}.${body}.${checksum(body)}`;
 }
 
