@@ -27,6 +27,10 @@ export type RootStackParamList = {
   /** `resume`: continue the expedition saved on disk instead of starting a new run (see services/savedRun.ts). */
   GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; resume?: boolean; challenge?: ChallengeParam; duel?: { code: string; name: string; stake: number; members: string[]; matchId: string }; devBiome?: "cave" | "crystal" | "magma" | "lair"; devReveal?: boolean; devUnveil?: boolean; devIntermission?: boolean; devBanner?: boolean; devHint?: boolean; devFanfare?: "family" | "beast"; devEncounter?: import("../core/engine/encounters").Encounter; devDoors?: [import("../core/engine/shop").Door, import("../core/engine/shop").Door] } | undefined;
   HighScoresScreen: undefined;
+  /** The cave's puzzles: the day's one and the numbered path. */
+  PuzzlesScreen: undefined;
+  /** One puzzle: the day's, or a number on the path (0-based). */
+  PuzzleScreen: { target: "daily" | number; devHold?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

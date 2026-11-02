@@ -4,6 +4,7 @@ import { EMPTY_CHEST, parseChest, type ChestState } from './dailyChest';
 import { EMPTY_ENCOUNTER_BOOK, addRunEncounters, parseEncounterBook, type EncounterBook } from './encounterBook';
 import { QUEST_EMBERS, newQuests, parseQuests, withQuests } from './heroQuests';
 import { addPetFloors, parsePetFloors } from '../cosmetics/petGrowth';
+import { EMPTY_PUZZLES, parsePuzzles, type PuzzleProgress } from './puzzleProgress';
 import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
@@ -93,6 +94,8 @@ export interface LocalStats {
   /** Quick descents won and the best score of one (they never count as an expedition: see mergeRun). */
   quickWins: number;
   bestQuickScore: number;
+  /** The cave's puzzles: stars on the path and the daily one (see puzzleProgress.ts). */
+  puzzles: PuzzleProgress;
   /** Every ember ever earned (the balance goes down when spending; this never does). */
   lifetimeEmbers: number;
   /** Expeditions and dailies won with each hero (same order as the roster). */
@@ -238,6 +241,7 @@ export const EMPTY_STATS: LocalStats = {
   secretsFound: 0,
   quickWins: 0,
   bestQuickScore: 0,
+  puzzles: EMPTY_PUZZLES,
   encounterBook: EMPTY_ENCOUNTER_BOOK,
   heroQuests: [0, 0, 0, 0, 0, 0],
   petFloors: {},
@@ -624,6 +628,7 @@ export function parseStats(raw: string | null): LocalStats {
       bestEndlessFloor: Math.trunc(num(data.bestEndlessFloor)),
       quickWins: Math.trunc(num(data.quickWins)),
       bestQuickScore: Math.trunc(num(data.bestQuickScore)),
+      puzzles: parsePuzzles(data.puzzles),
       // Saves from before this counter existed hold embers but a lifetime of 0: it can never be below what was earned and kept.
       lifetimeEmbers: Math.max(Math.trunc(num(data.lifetimeEmbers)), Math.trunc(num(data.embers))),
       heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),

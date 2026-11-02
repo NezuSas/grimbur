@@ -4,6 +4,7 @@ import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ModeCard from "./ModeCard";
+import GlyphIcon from "./GlyphIcon";
 import PlayButton from "./PlayButton";
 import EmberParticles from "./EmberParticles";
 import { useSettingsStore } from "../../state/settings/store";
@@ -74,6 +75,9 @@ type Props = {
   onPressAchievements: () => void;
   onPressCollection: () => void;
   onPressMissions: () => void;
+  /** The cave's puzzles, and whether today's puzzle still waits (a dot on its pill). */
+  onPressPuzzles?: () => void;
+  puzzleWaiting?: boolean;
   onPressSettings: () => void;
 };
 
@@ -161,6 +165,8 @@ const CoverCard: React.FC<Props> = ({
   onPressInstructions,
   onPressForge,
   onPressMissions,
+  onPressPuzzles,
+  puzzleWaiting = false,
   missionsBadge,
   onPressAchievements,
   onPressCollection,
@@ -273,6 +279,24 @@ const CoverCard: React.FC<Props> = ({
   const menu = (
     <View style={[styles.menu, { width: menuWidth, gap: short ? 6 : 8 }]}>
       <View style={[styles.chips, chipClear > 0 && { marginRight: chipClear }]}>
+        {!firstRun && onPressPuzzles ? (
+          <PressScale
+            style={[styles.chip, styles.puzzleChip]}
+            onPress={() => {
+              emitSound("UI_TAP");
+              onPressPuzzles();
+            }}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={puzzleWaiting ? `${t("puzzle.title")}. ${t("puzzle.dailyWaiting")}` : t("puzzle.title")}
+          >
+            <GlyphIcon name="riddle" size={20} />
+            <Text style={[styles.chipText, styles.puzzleChipText]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {t("cover.puzzles").toLocaleUpperCase()}
+            </Text>
+            {puzzleWaiting ? <View style={styles.puzzleDot} /> : null}
+          </PressScale>
+        ) : null}
         <View style={styles.chip} accessible accessibilityLabel={`${embers} ${t("cover.embers")}`}>
           <EmberIcon size={18} />
           <Text style={styles.chipText} maxFontSizeMultiplier={1.15}>
@@ -460,7 +484,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(242,193,78,0.6)",
   },
-  chips: { flexDirection: "row", justifyContent: "flex-end" },
+  chips: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
+  puzzleChip: { borderColor: "rgba(77,208,225,0.7)", paddingHorizontal: 10 },
+  puzzleChipText: { color: "#80DEEA", fontSize: 13, letterSpacing: 1 },
+  puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#FF5252", borderWidth: 2, borderColor: "#1a120a" },
   chip: {
     flexDirection: "row",
     alignItems: "center",

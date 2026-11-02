@@ -10,6 +10,7 @@ import { endlessProgress, isEndlessUnlocked } from "../core/stats/unlocks";
 import { nextGoals } from "../core/stats/goals";
 import { getLocalStats, openDailyChest, peekLocalStats, syncAchievements } from "../services/localStats";
 import { chestStatus } from "../core/stats/dailyChest";
+import { dailyPuzzleStars } from "../core/stats/puzzleProgress";
 import DailyChestModal from "../ui/components/DailyChestModal";
 import WhatsNewModal, { WHATS_NEW_ID } from "../ui/components/WhatsNewModal";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
@@ -159,6 +160,8 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
           collectionBadge={collectionBadge(stats) || collectionMilestonesReached(stats) > collectionRewardsSeen}
           missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0}
           onPressMissions={() => navigation.navigate("MissionsScreen")}
+          onPressPuzzles={() => navigation.navigate("PuzzlesScreen")}
+          puzzleWaiting={dailyPuzzleStars(stats.puzzles, today) === 0}
           onPressCollection={() => navigation.navigate("CollectionScreen")}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
           onPressFriends={() => navigation.navigate("FriendsScreen")}

@@ -19,6 +19,8 @@ type Props = {
   onAim?: (aim: Direction | "facing" | null) => void;
   /** Arrows left, shown on the attack button. */
   arrows: number;
+  /** No attack at all (the puzzles): the middle of the disc stays empty. */
+  noAttack?: boolean;
 };
 
 const GOLD = "#FFD54F";
@@ -151,14 +153,14 @@ const ARROWS: { dir: Direction; icon: keyof typeof Ionicons.glyphMap; dx: number
  * One round direction pad. The whole disc is the touch area, split into four quadrants along its diagonals,
  * so a thumb that drifts a little still lands on the intended arrow (a pad of four small buttons has gaps).
  */
-const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows }) => {
+const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, noAttack = false }) => {
   const { t } = useT();
   const { padDiameter: D, splitAttack, attackSize } = useGameLayout();
   const [active, setActive] = useState<Direction | null>(null);
   const pressed = useRef<Direction | null>(null);
 
   // With the attack button in the middle, the dead zone has to cover it.
-  const deadZone = splitAttack ? 0.24 : 0.46;
+  const deadZone = splitAttack || noAttack ? 0.24 : 0.46;
 
   const read = (e: GestureResponderEvent) => dpadDirection(e.nativeEvent.locationX, e.nativeEvent.locationY, D, deadZone);
 
@@ -256,7 +258,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows })
         importantForAccessibility="no"
       />
 
-      {!splitAttack && (
+      {!splitAttack && !noAttack && (
         <View style={styles.center} pointerEvents="box-none">
           <AttackButton size={attackSize} arrows={arrows} label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`} onAttack={onAttack} onAim={onAim} />
         </View>

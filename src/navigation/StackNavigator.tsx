@@ -22,6 +22,8 @@ import SettingsScreen from "../screens/SettingsScreen";
 import AchievementsScreen from "../screens/AchievementsScreen";
 import ForgeScreen from "../screens/ForgeScreen";
 import PaywallScreen from "../screens/PaywallScreen";
+import PuzzlesScreen from "../screens/PuzzlesScreen";
+import PuzzleScreen from "../screens/PuzzleScreen";
 import { withUiScale } from "../ui/layout/scaledWindow";
 
 // Menu screens grow on big windows (tablets); on phones the scale is 1 and nothing changes.
@@ -34,6 +36,7 @@ const ScaledSettingsScreen = withUiScale(SettingsScreen);
 const ScaledAchievementsScreen = withUiScale(AchievementsScreen);
 const ScaledForgeScreen = withUiScale(ForgeScreen);
 const ScaledStoryScreen = withUiScale(StoryScreen);
+const ScaledPuzzlesScreen = withUiScale(PuzzlesScreen);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -68,6 +71,8 @@ const StackNavigator: React.FC = () => {
         <Stack.Screen name="CollectionScreen" component={ScaledCollectionScreen} />
         <Stack.Screen name="TutorialScreen" component={TutorialScreen} />
         <Stack.Screen name="LessonScreen" component={LessonScreen} />
+        <Stack.Screen name="PuzzlesScreen" component={ScaledPuzzlesScreen} />
+        <Stack.Screen name="PuzzleScreen" component={PuzzleScreen} />
         <Stack.Screen name="GameScreen" component={GameScreen} />
         <Stack.Screen name="HighScoresScreen" component={ScaledHighScoresScreen} />
         <Stack.Screen name="FriendsScreen" component={FriendsScreen} />

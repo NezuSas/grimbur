@@ -68,6 +68,46 @@ export function isSolvableByDeduction(
   return gems.every(g => visited.has(g));
 }
 
+/**
+ * How many rounds of reading the clues a careful player needs to reach every gem (one round = deduce from what is explored,
+ * then walk everywhere proven safe), or -1 when deduction alone never gets there. The cave's puzzles use it to rate a board:
+ * more rounds, a longer chain of reasoning.
+ */
+export function deductionRounds(
+  rows: number,
+  cols: number,
+  entities: readonly GameEntity[],
+  startVisited: readonly number[],
+): number {
+  const hazards = new Set<number>();
+  const gems: number[] = [];
+  const marks = new Map<number, Mark>();
+  for (const e of entities) {
+    if (isClueHazard(e.type)) hazards.add(e.index);
+    else if (e.type === 'coin') {
+      gems.push(e.index);
+      marks.set(e.index, 'safe');
+    } else if (e.type === 'shield' || e.type === 'ammo') marks.set(e.index, 'safe');
+  }
+  const clue = (index: number) => neighbours(index, rows, cols).filter(n => hazards.has(n)).length;
+  const visited = new Set<number>(startVisited);
+  for (let round = 1; ; round++) {
+    deduce(visited, marks, clue, rows, cols);
+    const queue = [...visited];
+    let grew = false;
+    for (let head = 0; head < queue.length; head++) {
+      for (const n of neighbours(queue[head], rows, cols)) {
+        if (visited.has(n) || marks.get(n) !== 'safe') continue;
+        visited.add(n);
+        queue.push(n);
+        grew = true;
+      }
+    }
+    if (gems.every(g => visited.has(g))) return round;
+    if (!grew) return -1;
+  }
+}
+
 /** Applies the clue rules over the explored tiles until nothing new is proven (marks are updated in place). */
 function deduce(
   visited: ReadonlySet<number>,

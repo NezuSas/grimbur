@@ -4,6 +4,8 @@ import { UPGRADES } from './forge';
 import { BEASTS, type BeastId } from './bestiary';
 import { masteryOf } from './mastery';
 import { ENCOUNTERS } from '../engine/encounters';
+import { PUZZLE_COUNT } from '../puzzles/puzzles';
+import { MAX_STARS, puzzlesSolved, totalPuzzleStars } from './puzzleProgress';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -117,10 +119,20 @@ export type AchievementId =
   // The encounter journal
   | 'enc_all'
   | 'enc_gambler'
-  | 'enc_miner';
+  | 'enc_miner'
+  // The cave's puzzles
+  | 'puzzle_1'
+  | 'puzzle_15'
+  | 'puzzle_all'
+  | 'puzzle_stars'
+  | 'puzzle_daily_7'
+  | 'puzzle_daily_30'
+  // The quick descent
+  | 'quick_1'
+  | 'quick_10';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters' | 'puzzles' | 'puzzleStars' | 'puzzleDaily' | 'quickWins';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -355,6 +367,16 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('enc_all', '🛤️', 'hard', 'encounters', ENCOUNTERS.length, s => s.encounterBook?.seen.length ?? 0),
   { ...counted('enc_gambler', '🃏', 'medium', 'encounters', 5, s => s.encounterBook?.gamblesWon ?? 0), desc: undefined },
   { ...counted('enc_miner', '⛑️', 'medium', 'encounters', 3, s => s.encounterBook?.minersFreed ?? 0), desc: undefined },
+  // ── The cave's puzzles ──────────────────────────────────────────────────
+  counted('puzzle_1', '💡', 'easy', 'puzzles', 1, s => puzzlesSolved(s.puzzles)),
+  counted('puzzle_15', '🔎', 'medium', 'puzzles', 15, s => puzzlesSolved(s.puzzles)),
+  counted('puzzle_all', '🧠', 'hard', 'puzzles', PUZZLE_COUNT, s => puzzlesSolved(s.puzzles)),
+  counted('puzzle_stars', '💫', 'legend', 'puzzleStars', PUZZLE_COUNT * MAX_STARS, s => totalPuzzleStars(s.puzzles)),
+  counted('puzzle_daily_7', '🔍', 'medium', 'puzzleDaily', 7, s => s.puzzles?.dailySolved ?? 0),
+  counted('puzzle_daily_30', '🎓', 'hard', 'puzzleDaily', 30, s => s.puzzles?.dailySolved ?? 0),
+  // ── The quick descent ───────────────────────────────────────────────────
+  counted('quick_1', '🏃', 'easy', 'quickWins', 1, s => s.quickWins ?? 0),
+  counted('quick_10', '⏱️', 'medium', 'quickWins', 10, s => s.quickWins ?? 0),
 ];
 
 /** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */

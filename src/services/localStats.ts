@@ -38,6 +38,7 @@ import { openChest } from '../core/stats/dailyChest';
 import { chronicleUp } from '../core/stats/chronicle';
 import { allQuestsDone, questDone } from '../core/stats/heroQuests';
 import { petStage } from '../core/cosmetics/petGrowth';
+import { withPuzzleResult, type PuzzleTarget } from '../core/stats/puzzleProgress';
 
 /** The companion a run grew into a new stage, if it did. */
 const petGrown = (before: LocalStats, after: LocalStats, pet: string | null | undefined): { pet: string; stage: number } | null => {
@@ -296,6 +297,21 @@ export const syncAchievements = (): Promise<{ stats: LocalStats; achievements: A
     const stats = claimUnlockedSkins(withAchievements(before, achievements, dailyKey())).stats;
     await save(stats);
     return { stats, achievements };
+  });
+
+/**
+ * Saves a solved puzzle (its best stars) and pays what is new: embers for new stars on the path, or for the day's puzzle the
+ * first time. Puzzles are playing, so their embers count for the rank like any run's. Evaluates the puzzle achievements.
+ */
+export const recordPuzzle = (target: PuzzleTarget, stars: number): Promise<{ stats: LocalStats; embers: number; achievementEmbers: number; achievements: AchievementId[] }> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const { progress, embers } = withPuzzleResult(before.puzzles, target, stars);
+    const solved: LocalStats = { ...before, puzzles: progress, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
+    const achievements = newAchievements(solved, { score: 0, level: 1 });
+    const stats = claimUnlockedSkins(withAchievements(solved, achievements, dailyKey())).stats;
+    await save(stats);
+    return { stats, embers, achievementEmbers: rewardFor(achievements), achievements };
   });
 
 /**

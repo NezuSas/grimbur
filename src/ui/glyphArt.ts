@@ -13,6 +13,7 @@ export const GLYPHS = {
   padlock: require('../assets/sprites/ui/Icon_Padlock.png'),
   hammer: require('../assets/sprites/ui/Icon_Hammer.png'),
   puzzle: require('../assets/sprites/ui/Icon_Puzzle.png'),
+  riddle: require('../assets/sprites/ui/Icon_Riddle.png'),
   skull: require('../assets/sprites/ui/Icon_Skull.png'),
   trap: require('../assets/sprites/ui/Icon_Trap.png'),
   monster: require('../assets/sprites/ui/Icon_Monster.png'),
