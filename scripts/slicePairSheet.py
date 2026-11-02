@@ -61,7 +61,8 @@ def figures(cut: Image.Image, count: int, rows: int) -> list[Image.Image]:
 
 def main(sheet: str, cols: int, rows: int, size: int, names: list[str]) -> None:
     im = Image.open(sheet).convert('RGB')
-    cut = white_background_to_alpha(im, hole_min_area=int(im.width * im.height * 0.0008))
+    # Only the white around the creatures goes: white inside them (a muzzle, a cheek) is part of the art.
+    cut = white_background_to_alpha(im)
     cells = figures(cut, cols * rows, rows)
     for k, name in enumerate(names):
         pair = cells[2 * k: 2 * k + 2]
