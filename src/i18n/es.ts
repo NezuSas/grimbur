@@ -2054,4 +2054,13 @@ export const es: Record<TranslationKey, string> = {
   'scores.endlessSub': 'piso más hondo',
   'scores.empty.endless': 'Nadie ha bajado al descenso infinito todavía. ¡Sé el primero!',
   'scores.endlessNote': 'El piso más hondo que cada jugador alcanzó en el descenso infinito.',
+  'collection.cat.pet': 'Compañeros',
+  'cosmetic.kind.pet': 'Compañero',
+  'cosmetic.shown.pet': 'Flota junto a tu héroe en el tablero',
+  'cosmetic.pet_firefly.name': 'Luciérnaga',
+  'cosmetic.pet_bat.name': 'Murcielaguito',
+  'cosmetic.pet_golem.name': 'Gólem de guijarro',
+  'cosmetic.pet_fox.name': 'Zorro de cristal',
+  'cosmetic.pet_dragon.name': 'Dragoncito',
+  'cosmetic.pet_owl.name': 'Búho sabio',
 };

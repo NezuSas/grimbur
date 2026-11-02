@@ -53,6 +53,7 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
   { id: "flag", art: require("../assets/sprites/ui/Icon_Flag.png") },
   { id: "attack", art: require("../assets/sprites/ui/Attack_Ready.png") },
   { id: "celebration", art: require("../assets/sprites/ui/Icon_Sparkles.png") },
+  { id: "pet", art: require("../assets/sprites/cosmetics/Pet_Firefly_A.png") },
 ];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);

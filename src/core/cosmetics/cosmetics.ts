@@ -11,8 +11,8 @@ import { allQuestsDone } from '../stats/heroQuests';
  * (rankings, duels), a board theme, the flag that marks a tile, the attack button and the celebration that plays on a
  * victory. None of them changes the game, so none of them can buy ranking power.
  */
-export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'flag' | 'attack' | 'celebration';
-export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'flag', 'attack', 'celebration'];
+export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'flag' | 'attack' | 'celebration' | 'pet';
+export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'flag', 'attack', 'celebration', 'pet'];
 
 export type CosmeticId =
   | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars' | 'trail_venom' | 'trail_void' | 'trail_royal'
@@ -30,7 +30,8 @@ export type CosmeticId =
   | 'title_seasonjan' | 'title_seasonfeb' | 'title_seasonmar' | 'title_seasonapr' | 'title_seasonmay' | 'title_seasonjun' | 'title_seasonjul' | 'title_seasonaug' | 'title_seasonsep' | 'title_seasonoct' | 'title_seasonnov' | 'title_seasondec'
   | 'title_mastervael' | 'title_mastersera' | 'title_masterborin' | 'title_masterauric' | 'title_mastermira' | 'title_masterbram'
   | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair' | 'board_frost' | 'board_moss' | 'board_vault'
-  | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard';
+  | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard'
+  | 'pet_firefly' | 'pet_bat' | 'pet_golem' | 'pet_fox' | 'pet_dragon' | 'pet_owl';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
 
@@ -172,6 +173,14 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('celeb_relics', 'celebration', 'legendary', 1300),
   item('celeb_skulls', 'celebration', 'epic', 0, ach('second_lair')),
   item('celeb_hoard', 'celebration', 'legendary', 0, share(50)),
+
+  // Companions: a little creature floating by the hero on the board (a look only: it never reacts to what the fog hides).
+  item('pet_firefly', 'pet', 'rare', 600),
+  item('pet_bat', 'pet', 'rare', 700),
+  item('pet_golem', 'pet', 'epic', 1000),
+  item('pet_fox', 'pet', 'epic', 1100),
+  item('pet_owl', 'pet', 'epic', 0, ach('bestiary_all')),
+  item('pet_dragon', 'pet', 'legendary', 0, ach('hunt_500')),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));

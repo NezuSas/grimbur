@@ -12,6 +12,7 @@ import BoardTouchLayer from "./BoardTouchLayer";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
+import Companion, { type CompanionLook } from "./game/Companion";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
 import Text from "./Text";
@@ -125,6 +126,8 @@ type Props = {
   trail?: TrailLook | null;
   /** The equipped flag, if any. */
   flag?: ImageSourcePropType | null;
+  /** The companion floating by the hero (Collection), or null. */
+  pet?: CompanionLook | null;
   /** The floor is over: every hidden creature, vortex and trap shows where it was. */
   unveil?: boolean;
   /** Practice help: hidden tiles the clues prove safe or dangerous. */
@@ -138,7 +141,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -571,6 +574,12 @@ const BoardView: React.FC<Props> = memo(
             ]}
             pointerEvents="none"
           >
+            {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
+            {pet && !dying ? (
+              <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, [lastSide.current === "left" ? "right" : "left"]: 0, zIndex: 3 }}>
+                <Companion look={pet} size={tileSize * 0.52} calm={!!calm || paused} mirror={lastSide.current === "left"} />
+              </Animated.View>
+            ) : null}
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
             {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
             {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}

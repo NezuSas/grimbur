@@ -97,7 +97,7 @@ import { getPlayerName } from "../services/playerProfile";
 import { lookOf } from "../core/cosmetics/look";
 import { rankOf } from "../core/stats/rank";
 import { cosmeticText } from "../i18n/keys";
-import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS } from "../ui/cosmeticArt";
+import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS, PET_ART } from "../ui/cosmeticArt";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
@@ -190,7 +190,8 @@ export default function GameScreen({ navigation, route }: Props) {
     const trail = saved ? equippedCosmetic(saved, "trail") : null;
     const board = saved ? equippedCosmetic(saved, "board") : null;
     const flag = saved ? equippedCosmetic(saved, "flag") : null;
-    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null, flag: flag ? FLAG_ART[flag] ?? null : null };
+    const pet = saved ? equippedCosmetic(saved, "pet") : null;
+    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null, flag: flag ? FLAG_ART[flag] ?? null : null, pet: pet ? PET_ART[pet] ?? null : null };
   });
   const artBiome = looks.board ?? floorBiome;
   // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
@@ -1013,6 +1014,7 @@ export default function GameScreen({ navigation, route }: Props) {
             biome={artBiome}
             trail={looks.trail}
             flag={looks.flag}
+            pet={looks.pet}
             // A cleared or lost floor shows what the fog hid: the creatures finally seen, the deductions checked.
             unveil={state.isLevelUp || (state.isGameOver && !state.isVictory) || (__DEV__ && !!route.params?.devUnveil)}
             isAttacking={isAttacking}

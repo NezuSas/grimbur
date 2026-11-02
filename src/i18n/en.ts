@@ -2053,6 +2053,15 @@ export const en = {
   'scores.endlessSub': 'deepest floor',
   'scores.empty.endless': 'Nobody has gone down the endless descent yet. Be the first!',
   'scores.endlessNote': 'The deepest floor each player reached in the endless descent.',
+  'collection.cat.pet': 'Companions',
+  'cosmetic.kind.pet': 'Companion',
+  'cosmetic.shown.pet': 'Floats by your hero on the board',
+  'cosmetic.pet_firefly.name': 'Firefly',
+  'cosmetic.pet_bat.name': 'Baby bat',
+  'cosmetic.pet_golem.name': 'Pebble golem',
+  'cosmetic.pet_fox.name': 'Crystal fox',
+  'cosmetic.pet_dragon.name': 'Baby dragon',
+  'cosmetic.pet_owl.name': 'Scholar owl',
 } as const;
 
 export type TranslationKey = keyof typeof en;

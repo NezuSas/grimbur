@@ -19,6 +19,16 @@ export const TRAIL_LOOKS: Partial<Record<CosmeticId, TrailLook>> = {
   trail_royal: { arrow: require('../assets/sprites/cosmetics/Arrow_Royal.png'), colors: ['#FFD54F', '#BA68C8'] },
 };
 
+/** The two frames of each companion (cut from one sheet: scripts/sliceIconGrid.py). */
+export const PET_ART: Partial<Record<CosmeticId, readonly [ImageSourcePropType, ImageSourcePropType]>> = {
+  pet_firefly: [require('../assets/sprites/cosmetics/Pet_Firefly_A.png'), require('../assets/sprites/cosmetics/Pet_Firefly_B.png')],
+  pet_bat: [require('../assets/sprites/cosmetics/Pet_Bat_A.png'), require('../assets/sprites/cosmetics/Pet_Bat_B.png')],
+  pet_golem: [require('../assets/sprites/cosmetics/Pet_Golem_A.png'), require('../assets/sprites/cosmetics/Pet_Golem_B.png')],
+  pet_fox: [require('../assets/sprites/cosmetics/Pet_Fox_A.png'), require('../assets/sprites/cosmetics/Pet_Fox_B.png')],
+  pet_dragon: [require('../assets/sprites/cosmetics/Pet_Dragon_A.png'), require('../assets/sprites/cosmetics/Pet_Dragon_B.png')],
+  pet_owl: [require('../assets/sprites/cosmetics/Pet_Owl_A.png'), require('../assets/sprites/cosmetics/Pet_Owl_B.png')],
+};
+
 /** The painted ring drawn around a player's portrait (in rankings, duels and the collection). */
 export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_bronze: require('../assets/sprites/cosmetics/Frame_Bronze.png'),

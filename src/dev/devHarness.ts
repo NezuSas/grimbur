@@ -68,7 +68,7 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     dailyRuns: 9,
     dailyWins: 4,
     skins: { owned: ["0:ember", "0:royal", "1:frost"], equipped: { "0": "royal", "1": "frost" } },
-    cosmetics: { owned: ["frame_gold", "title_explorer"], equipped: { frame: "frame_gold", title: "title_explorer" }, deals: { date: null, bought: [] } },
+    cosmetics: { owned: ["frame_gold", "title_explorer", "pet_fox"], equipped: { frame: "frame_gold", title: "title_explorer", pet: "pet_fox" }, deals: { date: null, bought: [] } },
     achievements: { first_blood: "2026-09-02", explorer: "2026-09-03", hoarder: "2026-09-10", grimbur_slayer: "2026-09-18" },
     history: Array.from({ length: 14 }, (_, i) => ({
       day: `2026-10-${String(i + 1).padStart(2, "0")}`,
