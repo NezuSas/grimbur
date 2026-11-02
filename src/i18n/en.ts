@@ -1968,6 +1968,10 @@ export const en = {
   'chronicle.12.title': 'What lies beneath',
   'chronicle.12.body': 'Under the treasure beats the crystal mountain, still alive. The Grimbur does not guard it out of greed: it guards it so it never splits again.',
   'ghost.you': 'You',
+  'boss.ancient.name': 'The Ancestral Grimbur',
+  'boss.ancient.title': 'Older than the caves, colder than the dark',
+  'bestiary.ancient.name': 'The Ancestral Grimbur',
+  'bestiary.ancient.lore': 'The Grimbur as it was long ago, frozen in ice and runes. It rules the lair on the hardest depths.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

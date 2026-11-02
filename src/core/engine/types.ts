@@ -46,6 +46,8 @@ export interface GameEntity {
   mini?: boolean;
   /** Gems a thief carries. */
   loot?: number;
+  /** The Ancestral Grimbur: the lair's master on the hardest depths and deep in the endless descent (its own look and name). */
+  ancient?: boolean;
 }
 
 export interface GameState {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import Text from "../Text";
-import BossSprite, { BOSS_FRAMES } from "../BossSprite";
+import BossSprite, { ANCIENT_FRAMES, BOSS_FRAMES } from "../BossSprite";
 import SpriteImage from "../SpriteImage";
 
 type Props = {
@@ -9,6 +9,8 @@ type Props = {
   name: string;
   /** The epithet under the name. */
   title: string;
+  /** The Ancestral Grimbur rises instead (its own frames). */
+  ancient?: boolean;
   /** Spoken hint: a tap skips the introduction. */
   skipLabel: string;
   /** Reduced motion: the card only fades in and out (no bars, no rise, no shake). */
@@ -28,7 +30,7 @@ const CALM_HOLD = 1600;
  * Black bars close in, the Grimbur rises out of the dark, roars, and its name slams down with its epithet under it;
  * then it all clears for the hunt. A tap skips it. Native-driven; when calm, the card simply fades in and out.
  */
-const BossIntro = ({ name, title, skipLabel, calm, onDone }: Props) => {
+const BossIntro = ({ name, title, skipLabel, calm, onDone, ancient = false }: Props) => {
   const { width, height } = useWindowDimensions();
   const bars = useRef(new Animated.Value(0)).current;
   const rise = useRef(new Animated.Value(0)).current;
@@ -112,9 +114,9 @@ const BossIntro = ({ name, title, skipLabel, calm, onDone }: Props) => {
           >
             <View style={[styles.glow, { width: size, height: size, borderRadius: size / 2 }]} />
             {calm ? (
-              <SpriteImage source={BOSS_FRAMES.idle} style={{ width: size, height: size }} resizeMode="contain" />
+              <SpriteImage source={ancient ? ANCIENT_FRAMES.idle : BOSS_FRAMES.idle} style={{ width: size, height: size }} resizeMode="contain" />
             ) : (
-              <BossSprite hp={3} charged={roaring} style={{ width: size, height: size }} />
+              <BossSprite hp={3} charged={roaring} style={{ width: size, height: size }} ancient={ancient} />
             )}
           </Animated.View>
           <Animated.View

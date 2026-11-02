@@ -178,7 +178,9 @@ export function generateBoard(
       }
       const pool = far.length > 0 ? far : free;
       const bossIndex = pool[Math.floor(prng() * pool.length)];
-      entities.push({ index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp + mods.bossHpBonus + (options.bossHeartBonus ?? 0) });
+      const boss: GameEntity = { index: bossIndex, type: 'boss', hp: GAME_CONFIG.boss.hp + mods.bossHpBonus + (options.bossHeartBonus ?? 0) };
+      if (isAncientLair(options.ascension ?? 0, level, options.endless === true)) boss.ancient = true;
+      entities.push(boss);
       usedIndices.add(bossIndex);
     }
 
@@ -258,6 +260,12 @@ export function generateBoard(
 }
 
 /** The floor of the Grimbur's lieutenant, its hearts, and from which floors (and how often) the other extras show up. */
+/** From this depth (and from this floor of the endless descent) the lair belongs to the Ancestral Grimbur. */
+export const ANCIENT_DEPTH = 3;
+export const ANCIENT_ENDLESS_FLOOR = 20;
+export const isAncientLair = (ascension: number, level: number, endless: boolean): boolean =>
+  ascension >= ANCIENT_DEPTH || (endless && level >= ANCIENT_ENDLESS_FLOOR);
+
 export const MID_BOSS_FLOOR = 5;
 export const MID_BOSS_HP = 2;
 export const MIMIC_FROM = 4;

@@ -4,11 +4,11 @@ import type { GameState } from '../engine/types';
  * The bestiary: the creatures and dangers of the cave, unlocked by meeting them (every floor that ends unveils what it held)
  * and counted when defeated. A run tallies them in its state; finished runs add them to the stats for good.
  */
-export const BEASTS = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss', 'pit', 'trap', 'chest'] as const;
+export const BEASTS = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss', 'ancient', 'pit', 'trap', 'chest'] as const;
 export type BeastId = (typeof BEASTS)[number];
 
 /** The ones that can be defeated (the others are only met). */
-export const SLAYABLE: readonly BeastId[] = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss'];
+export const SLAYABLE: readonly BeastId[] = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss', 'ancient'];
 
 export interface Bestiary {
   met: BeastId[];
@@ -20,8 +20,8 @@ export const EMPTY_BESTIARY: Bestiary = { met: [], slain: {} };
 const isBeast = (v: unknown): v is BeastId => typeof v === 'string' && (BEASTS as readonly string[]).includes(v);
 
 /** The bestiary id of an entity: the lieutenant is a boss with `mini`. */
-export const beastOf = (e: { type: string; mini?: boolean }): BeastId | null => {
-  if (e.type === 'boss') return e.mini ? 'brute' : 'boss';
+export const beastOf = (e: { type: string; mini?: boolean; ancient?: boolean }): BeastId | null => {
+  if (e.type === 'boss') return e.mini ? 'brute' : e.ancient ? 'ancient' : 'boss';
   return isBeast(e.type) ? e.type : null;
 };
 
@@ -108,6 +108,7 @@ export const HUNT_STARS: Partial<Record<BeastId, readonly [number, number, numbe
   thief: [3, 15, 40],
   brute: [3, 15, 40],
   boss: [1, 10, 30],
+  ancient: [1, 5, 15],
 };
 
 /** How many stars a creature has (0..3) and the count that earns the next one (null once all three are won). */

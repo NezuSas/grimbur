@@ -824,6 +824,8 @@ export default function GameScreen({ navigation, route }: Props) {
   // Grimbur's entrance card, a roar, a heavy thump in the hand and a dark red veil that lifts. Once per lair.
   const lairVeil = useRef(new Animated.Value(0)).current;
   const [bossIntro, setBossIntro] = useState(false);
+  // The Ancestral Grimbur holds the lair on the hardest depths and deep in the endless descent.
+  const lairAncient = state.entities.some(e => e.type === 'boss' && !e.mini && e.ancient);
   const lairShown = useRef("");
   const lairInSight = isLair && state.turn === 0 && !state.pendingDraft && !levelUpWindow && !runEnded && !bootCover;
   useEffect(() => {
@@ -1098,7 +1100,14 @@ export default function GameScreen({ navigation, route }: Props) {
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: "#2B0008", opacity: lairVeil, zIndex: 30 }]} />
 
       {bossIntro && (
-        <BossIntro name={t("boss.intro.name")} title={t("boss.intro.title")} skipLabel={t("boss.intro.skip")} calm={reduceFlash} onDone={() => setBossIntro(false)} />
+        <BossIntro
+          name={t(lairAncient ? "boss.ancient.name" : "boss.intro.name")}
+          title={t(lairAncient ? "boss.ancient.title" : "boss.intro.title")}
+          skipLabel={t("boss.intro.skip")}
+          calm={reduceFlash}
+          ancient={lairAncient}
+          onDone={() => setBossIntro(false)}
+        />
       )}
 
       {toast && (

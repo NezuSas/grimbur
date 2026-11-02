@@ -1969,4 +1969,8 @@ export const es: Record<TranslationKey, string> = {
   'chronicle.12.title': 'Lo que hay debajo',
   'chronicle.12.body': 'Bajo el tesoro late la montaña de cristal, todavía viva. El Grimbur no la guarda por codicia: la guarda para que no vuelva a partirse.',
   'ghost.you': 'Tú',
+  'boss.ancient.name': 'El Grimbur Ancestral',
+  'boss.ancient.title': 'Más viejo que las cuevas, más frío que la oscuridad',
+  'bestiary.ancient.name': 'El Grimbur Ancestral',
+  'bestiary.ancient.lore': 'El Grimbur como fue hace siglos, helado entre cristales y runas. Reina en la guarida de las profundidades más duras.',
 };

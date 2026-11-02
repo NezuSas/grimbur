@@ -429,6 +429,7 @@ const GridCell = memo(({
             hp={entity.hp ?? 0}
             charged={charged}
             mini={!!entity.mini}
+            ancient={!!entity.ancient}
           />
           <View style={styles.bossHp} pointerEvents="none">
             <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>

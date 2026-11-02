@@ -10,6 +10,14 @@ export const BOSS_FRAMES = {
   hurt: require("../../assets/sprites/enemies/Grimbur_Boss_Hurt.png"),
 } as const;
 
+/** The Ancestral Grimbur: the same four poses, frozen into ice and runes (cut from one sheet, like the Grimbur's). */
+export const ANCIENT_FRAMES = {
+  idle: require("../../assets/sprites/enemies/Ancient_Boss.png"),
+  breathe: require("../../assets/sprites/enemies/Ancient_Boss_Breathe.png"),
+  attack: require("../../assets/sprites/enemies/Ancient_Boss_Attack.png"),
+  hurt: require("../../assets/sprites/enemies/Ancient_Boss_Hurt.png"),
+} as const;
+
 /** The Grimbur's lieutenant: two frames (it rears on the breath frame when it winds up or is hit). */
 const MINI_FRAMES = {
   idle: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
@@ -24,7 +32,7 @@ const HURT_MS = 600;
  * winds up, and flinches (with a squash the spring undoes) when an arrow lands. Purely visual: the real
  * danger signals (aura, "!" mark) stay, this only makes them felt.
  */
-export default memo(function BossSprite({ hp, charged, style, mini = false }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle>; mini?: boolean }) {
+export default memo(function BossSprite({ hp, charged, style, mini = false, ancient = false }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle>; mini?: boolean; ancient?: boolean }) {
   const [breathIn, setBreathIn] = useState(false);
   const [hurt, setHurt] = useState(false);
   const prevHp = useRef(hp);
@@ -49,7 +57,10 @@ export default memo(function BossSprite({ hp, charged, style, mini = false }: { 
 
   const source = mini
     ? hurt || charged || breathIn ? MINI_FRAMES.breathe : MINI_FRAMES.idle
-    : hurt ? BOSS_FRAMES.hurt : charged ? BOSS_FRAMES.attack : breathIn ? BOSS_FRAMES.breathe : BOSS_FRAMES.idle;
+    : (() => {
+        const f = ancient ? ANCIENT_FRAMES : BOSS_FRAMES;
+        return hurt ? f.hurt : charged ? f.attack : breathIn ? f.breathe : f.idle;
+      })();
   return (
     <Animated.View style={[style, { transform: [{ scaleY: squash }] }]} pointerEvents="none">
       <SpriteImage style={{ width: "100%", height: "100%" }} source={source} resizeMode="contain" />
