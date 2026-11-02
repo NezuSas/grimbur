@@ -1,4 +1,4 @@
-import { ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, resolveEncounter } from '../../src/core/engine/encounters';
+import { MAP_GEMS, SMITH_ARROWS, ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, resolveEncounter } from '../../src/core/engine/encounters';
 import { gameReducer } from '../../src/core/engine/reducer';
 import { coin, createState } from '../helpers/state';
 import type { GameState } from '../../src/core/engine/types';
@@ -59,5 +59,45 @@ describe('encounters', () => {
     const after = resolveEncounter(withEncounter('shrine', { attack: 3, items: { detector: 0, bomb: 0 } }), true);
     expect(after.attack).toBe(2);
     expect(after.items.detector).toBe(1);
+  });
+});
+
+describe('the second wave of encounters', () => {
+  const s = (id: 'miner' | 'map' | 'echo' | 'smith', extra: Partial<GameState> = {}): GameState =>
+    ({ ...createState({ entities: [coin(30), { index: 12, type: 'enemy' }] }), level: 4, runSeed: 91, encounter: { id }, ...extra });
+
+  it('the trapped miner takes a bomb and gives a relic that is never cursed', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const after = resolveEncounter(s('miner', { runSeed: seed, items: { detector: 0, bomb: 1 } }), true);
+      expect(after.items.bomb).toBe(0);
+      expect(after.encounter?.relic).toBeDefined();
+      expect(after.relics).toContain(after.encounter!.relic);
+      expect(after.encounter!.relic).not.toBe('gambler');
+    }
+    expect(canTake('miner', s('miner', { items: { detector: 0, bomb: 0 } }))).toBe(false);
+  });
+
+  it('the torn map lights the nearest hidden gem for gems', () => {
+    const after = resolveEncounter(s('map', { gems: 5 }), true);
+    expect(after.gems).toBe(5 - MAP_GEMS);
+    expect(after.visited).toContain(30);
+  });
+
+  it('the echo flags a danger or costs an arrow', () => {
+    const seen = new Set<string>();
+    for (let seed = 1; seed <= 40; seed++) {
+      const after = resolveEncounter(s('echo', { runSeed: seed, attack: 3, marked: [] }), true);
+      seen.add(after.encounter!.outcome!);
+      if (after.encounter?.outcome === 'win') expect(after.marked).toEqual([12]);
+      else expect(after.attack).toBe(2);
+    }
+    expect(seen).toEqual(new Set(['win', 'lose']));
+  });
+
+  it('the smith melts the shield into arrows, and needs one', () => {
+    const after = resolveEncounter(s('smith', { shield: true, attack: 1 }), true);
+    expect(after.shield).toBe(false);
+    expect(after.attack).toBe(1 + SMITH_ARROWS);
+    expect(canTake('smith', s('smith', { shield: false }))).toBe(false);
   });
 });

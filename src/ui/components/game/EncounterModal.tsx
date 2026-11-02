@@ -14,6 +14,9 @@ import {
   SCOUT_TILES,
   SHRINE_ARROWS,
   SPRING_LOSS,
+  MINER_GEMS,
+  MAP_GEMS,
+  SMITH_ARROWS,
   canTake,
   type Encounter,
   type EncounterId,
@@ -26,14 +29,27 @@ export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
   spring: require("../../../assets/sprites/encounters/Encounter_Spring.png"),
   gambler: require("../../../assets/sprites/encounters/Encounter_Gambler.png"),
   shrine: require("../../../assets/sprites/encounters/Encounter_Shrine.png"),
+  miner: require("../../../assets/sprites/encounters/Encounter_Miner.png"),
+  map: require("../../../assets/sprites/encounters/Encounter_Map.png"),
+  echo: require("../../../assets/sprites/encounters/Encounter_Echo.png"),
+  smith: require("../../../assets/sprites/encounters/Encounter_Smith.png"),
 };
-const TINT: Record<EncounterId, string> = { scout: "#9EE37D", spring: "#4FC3F7", gambler: "#FFD54F", shrine: "#CE93D8" };
+const TINT: Record<EncounterId, string> = {
+  scout: "#9EE37D",
+  spring: "#4FC3F7",
+  gambler: "#FFD54F",
+  shrine: "#CE93D8",
+  miner: "#FFB74D",
+  map: "#E8C07D",
+  echo: "#80DEEA",
+  smith: "#FF8A65",
+};
 
-const PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS };
+const PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
 
 type Props = {
   encounter: Encounter;
-  state: Pick<GameState, "attack" | "gems" | "items">;
+  state: Pick<GameState, "attack" | "gems" | "items" | "shield" | "entities" | "rows" | "cols" | "visited" | "playerIndex">;
   onChoose: (take: boolean) => void;
   onClose: () => void;
 };
@@ -52,7 +68,8 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
   const artSize = Math.min(height * 0.36, 150);
   const wide = width > height;
 
-  const resultText = outcome === "skip" ? t("encounter.skipped") : outcome ? t(k(outcome), PARAMS) : null;
+  const relicName = encounter.relic ? t(`relic.${encounter.relic}.name` as TranslationKey) : "";
+  const resultText = outcome === "skip" ? t("encounter.skipped") : outcome ? t(k(outcome), { ...PARAMS, relic: relicName }) : null;
 
   return (
     <OverlayContainer>
