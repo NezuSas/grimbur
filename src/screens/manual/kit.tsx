@@ -29,6 +29,7 @@ export type TopicId =
   | "encounters"
   | "explore"
   | "hazards"
+  | "techniques"
   | "combat"
   | "powerups"
   | "heroes"

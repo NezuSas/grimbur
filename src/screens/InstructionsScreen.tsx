@@ -22,6 +22,7 @@ import { BORDER, CARD } from "../ui/components/manual/ManualParts";
 import { asKey, buildKit } from "./manual/kit";
 import type { TopicId } from "./manual/kit";
 import { StartPane } from "./manual/StartPane";
+import { TechniquesPane } from "./manual/TechniquesPane";
 import { CombatPane, ControlsPane, ExplorePane, HazardsPane, MissionPane, PowerupsPane } from "./manual/BasicsPanes";
 import { HeroesPane, RelicsPane, ToolsPane } from "./manual/CollectionPanes";
 import { ForgePane, ModesPane, ScoringPane, TipsPane, WorldsPane } from "./manual/ProgressPanes";
@@ -35,6 +36,7 @@ const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string
   { id: "controls", icon: "game-controller", color: "#ffd54f", art: require("../assets/sprites/ui/Attack_Ready.png") },
   { id: "explore", icon: "map", color: "#4fc3f7", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
   { id: "hazards", icon: "warning", color: "#ffa726", art: require("../assets/sprites/tiles/Danger_Vortex.png") },
+  { id: "techniques", icon: "bulb", color: "#4dd0e1", art: require("../assets/sprites/ui/Icon_Riddle.png") },
   { id: "bestiary", icon: "paw", color: "#80cbc4", art: require("../assets/sprites/enemies/Mimic_Enemy.png") },
   { id: "combat", icon: "flash", color: "#ff5252", art: require("../assets/sprites/items/Icon_Arrows.png") },
   { id: "powerups", icon: "shield", color: "#4fc3f7", art: require("../assets/sprites/items/Icon_Shield.png") },
@@ -80,6 +82,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     controls: <ControlsPane kit={kit} />,
     explore: <ExplorePane kit={kit} />,
     hazards: <HazardsPane kit={kit} />,
+    techniques: <TechniquesPane kit={kit} />,
     bestiary: <BestiaryPane kit={kit} />,
     relicbook: <RelicBookPane kit={kit} />,
     chronicle: <ChroniclePane kit={kit} />,

@@ -31,7 +31,7 @@ export type RootStackParamList = {
   PuzzlesScreen: undefined;
   /** One puzzle: the day's, or a number on the path (0-based). */
   /** `endless` plays endless puzzle number `n`. */
-  PuzzleScreen: { target: "daily" | "endless" | number; n?: number; devHold?: boolean };
+  PuzzleScreen: { target: "daily" | "endless" | "technique" | number; n?: number; tech?: string; devHold?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

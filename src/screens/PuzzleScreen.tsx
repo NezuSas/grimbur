@@ -37,6 +37,7 @@ import { dailyPuzzleNumber, dailyPuzzleStreak } from "../core/stats/puzzleProgre
 import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
 import { hintReason, type HintReason } from "../core/puzzles/hintReason";
 import { submitPuzzleScore } from "../services/puzzleScores";
+import { techniqueOf } from "../core/puzzles/techniques";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzleScreen">;
 
@@ -83,9 +84,15 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const today = useMemo(() => dailyKey(), []);
   const isDaily = target === "daily";
   const isEndless = target === "endless";
+  // A technique of the Manual: a small practice board, no stars or embers.
+  const technique = target === "technique" ? techniqueOf(route.params.tech) : undefined;
+  const isTechnique = !!technique;
   const endlessN = Math.max(0, Math.trunc(route.params.n ?? 0));
   const index = typeof target === "number" ? Math.max(0, Math.min(PUZZLE_COUNT - 1, Math.trunc(target))) : -1;
-  const puzzle = useMemo(() => (isDaily ? dailyPuzzle(today) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(index)), [isDaily, isEndless, endlessN, today, index]);
+  const puzzle = useMemo(
+    () => (technique ? technique.puzzle : isDaily ? dailyPuzzle(today) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(Math.max(0, index))),
+    [technique, isDaily, isEndless, endlessN, today, index],
+  );
   const gems = puzzle.entities.filter(e => e.type === "coin").length;
 
   const [state, dispatch] = useReducer(puzzleReducer, puzzle, p => openingState(p, hero));
@@ -94,7 +101,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [hintTile, setHintTile] = useState<number | null>(null);
   const [hintWhy, setHintWhy] = useState<HintReason | null>(null);
   const [fail, setFail] = useState<{ tile: number; kind: string } | null>(null);
-  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set(technique?.flags ?? []));
   const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
   const startedAt = useRef(0);
@@ -125,8 +132,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     dispatch({ type: "PUZZLE_SET", state: openingState(puzzle, hero) });
     setFail(null);
     setHintTile(null);
-    setFlags(new Set());
-  }, [puzzle, hero]);
+    setFlags(new Set(technique?.flags ?? []));
+  }, [puzzle, hero, technique]);
 
   // Same sounds as a run for the few things a puzzle does.
   const lastState = useRef(state);
@@ -148,8 +155,12 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     const stars = puzzleStars(mistakes, hints);
     haptic.notify(NotificationFeedbackType.Success);
     emitSound("LEVEL_UP");
-    analytics.track("puzzle_solved", { puzzle: isDaily ? "daily" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
+    analytics.track("puzzle_solved", { puzzle: isTechnique ? "technique" : isDaily ? "daily" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
     const seconds = (Date.now() - startedAt.current) / 1000;
+    if (isTechnique) {
+      setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
+      return;
+    }
     // The day's try goes to the friends' board (kept only when better than an earlier one).
     if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
     const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run }), 650);
@@ -249,8 +260,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }).catch(() => {});
   };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
-  const title = isDaily ? t("puzzle.daily") : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
-  const goal = gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
+  const title = technique ? t("tech.label") : isDaily ? t("puzzle.daily") : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
+  const goal = technique ? t(`tech.${technique.id}.tip` as TranslationKey) : gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
   // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
   const whyText =
@@ -278,7 +289,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         </TouchableOpacity>
         <View style={styles.bannerText}>
           <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {`${title}  ·  ${tierName}`.toLocaleUpperCase()}
+            {(isTechnique ? title : `${title}  ·  ${tierName}`).toLocaleUpperCase()}
           </Text>
           <Text style={[styles.goal, fail ? styles.goalFail : whyText ? styles.goalWhy : null, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
             {failText ?? whyText ?? goal}
@@ -348,8 +359,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         <OverlayContainer>
           <PopupPanel tint={TINT} width={Math.min(winWidth * 0.9, 420)}>
             <Text style={popupTitleStyle(TINT)} maxFontSizeMultiplier={1.15}>
-              {t("puzzle.solved").toLocaleUpperCase()}
+              {t(isTechnique ? "tech.done" : "puzzle.solved").toLocaleUpperCase()}
             </Text>
+            {isTechnique ? (
+              <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
+                {t(`tech.${technique!.id}.learned` as TranslationKey)}
+              </Text>
+            ) : (
+              <>
             <View style={styles.stars} accessible accessibilityLabel={t("puzzle.stars", { n: result.stars })}>
               {[1, 2, 3].map(n => (
                 <SpriteImage key={n} source={STAR} style={[styles.star, n === 2 && styles.starMid, n > result.stars && styles.starOff]} resizeMode="contain" />
@@ -363,6 +380,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
               {isEndless && result.run > 1 ? `   ·   ⚡ ${t("puzzle.endless.run", { n: result.run })}` : ""}
             </Text>
+              </>
+            )}
             {result.embers > 0 ? (
               <View style={styles.embers}>
                 <EmberIcon size={16} />
@@ -376,7 +395,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                 {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
               </Text>
             ) : null}
-            {isDaily ? (
+            {isTechnique ? (
+              <PopButton label={t("tech.back")} tint={TINT} onPress={() => navigation.goBack()} />
+            ) : isDaily ? (
               <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} />
             ) : isEndless ? (
               <PopButton label={t("puzzle.endless.another")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })} />
