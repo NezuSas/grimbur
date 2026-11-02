@@ -8,12 +8,14 @@ export type Side = 'up' | 'down' | 'left' | 'right';
  * Why the hint's tile is safe, in words a player can reuse:
  * - `empty`: an explored neighbour senses nothing at all around it;
  * - `full`: an explored neighbour's danger count is already used up by hazards the clues place elsewhere;
+ * - `typed`: guardians and vortices read apart rule out both kinds (one clue has no guardian left for it, another no vortex);
  * - `combined`: no single clue says it, several together do;
  * - `gem`: it is a gem in plain sight.
  */
 export type HintReason =
   | { kind: 'empty'; side: Side }
   | { kind: 'full'; side: Side; count: number }
+  | { kind: 'typed' }
   | { kind: 'combined' }
   | { kind: 'gem' };
 
@@ -31,8 +33,11 @@ const neighbours = (i: number, rows: number, cols: number): number[] => {
 const sideOf = (from: number, to: number, cols: number): Side => (to === from - cols ? 'up' : to === from + cols ? 'down' : to === from - 1 ? 'left' : 'right');
 
 /** The simplest reason the clues give for `tile` being safe (the one-clue reasons first: those are the ones worth learning). */
-export function hintReason(rows: number, cols: number, entities: readonly GameEntity[], visited: readonly number[], tile: number): HintReason {
+export function hintReason(rows: number, cols: number, entities: readonly GameEntity[], visited: readonly number[], tile: number, level = 1): HintReason {
   if (entities.some(e => e.index === tile && e.type === 'coin')) return { kind: 'gem' };
+  // Proven only by reading the kinds apart, or only by several clues at once: said as such.
+  if (level === 2) return { kind: 'typed' };
+  if (level >= 3) return { kind: 'combined' };
   const hazards = new Set(entities.filter(e => isClueHazard(e.type)).map(e => e.index));
   const marks = provenMarks(rows, cols, entities, visited);
   const seen = new Set(visited);

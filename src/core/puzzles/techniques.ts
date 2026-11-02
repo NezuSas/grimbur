@@ -5,9 +5,11 @@ import type { Puzzle } from './puzzles';
  * scripts/findTechniques.ts; the tests check that again). They are played like a puzzle, without stars or embers.
  *  - quiet: a tile that senses nothing makes all its neighbours safe;
  *  - cornered: a clue with as many unexplored neighbours as dangers has them all as dangers (flag them);
- *  - full: once a clue's dangers are placed (a flag), every other neighbour of it is safe.
+ *  - full: once a clue's dangers are placed (a flag), every other neighbour of it is safe;
+ *  - typed: guardians and vortices are counted apart: a tile no clue can make a guardian and no clue can make a vortex is safe
+ *    (found with scripts/findTypedTechnique.ts).
  */
-export type TechniqueId = 'quiet' | 'cornered' | 'full';
+export type TechniqueId = 'quiet' | 'cornered' | 'full' | 'typed';
 
 export interface Technique {
   id: TechniqueId;
@@ -33,6 +35,11 @@ export const TECHNIQUES: readonly Technique[] = [
     id: 'full',
     puzzle: board(4, [4, 9, 3, 2], [{ index: 17, type: 'coin' }, { index: 8, type: 'enemy' }, { index: 10, type: 'enemy' }, { index: 1, type: 'pit' }, { index: 11, type: 'enemy' }], 3, 'magma'),
     flags: [8],
+  },
+  {
+    id: 'typed',
+    puzzle: board(4, [4, 3, 9], [{ index: 15, type: 'coin' }, { index: 18, type: 'enemy' }, { index: 2, type: 'pit' }, { index: 10, type: 'pit' }, { index: 14, type: 'enemy' }], 5, 'lair'),
+    flags: [],
   },
 ];
 

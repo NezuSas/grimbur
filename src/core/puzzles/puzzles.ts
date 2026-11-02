@@ -1,6 +1,6 @@
 import { createPRNG } from '../random/prng';
 import { dailySeed } from '../engine/seed';
-import { deductionRounds } from '../engine/solver';
+import { rateDeduction, type DeductionReport } from './deduction';
 import type { BiomeId } from '../engine/biomes';
 import type { GameEntity } from '../engine/types';
 
@@ -21,9 +21,9 @@ export interface Puzzle {
   visited: number[];
   /** Gems (`coin`) and hazards (`enemy`, `pit`) only. */
   entities: GameEntity[];
-  /** 0 (apprentice) .. 4 (master). */
+  /** 0 (apprentice) .. 5 (legend). */
   tier: number;
-  /** Rounds of reasoning the board needs (see deductionRounds): the longer the chain, the harder. */
+  /** Steps of reasoning the board needs (see rateDeduction): the longer the chain, the harder. */
   rounds: number;
   /** The cave it is drawn in. */
   biome: BiomeId;
@@ -35,25 +35,36 @@ interface TierSpec {
   hazards: number;
   gems: number;
   reveal: number;
-  /** A board is kept only when it needs at least this many rounds (then the one needing most is kept). */
+  /** Steps of reasoning the board needs at least (see rateDeduction): the longer the chain, the harder. */
   minRounds: number;
+  /** Times the board needs guardians and vortices read apart (level 2) at least: a clue read only as a total is not enough. */
+  minTyped: number;
 }
 
-/** From the apprentice's first board to the master's. */
+/**
+ * From the apprentice's first board to the legend's. The apprentice reads one clue at a time; from the tracker on, some tile can
+ * only be proven by reading guardians and vortices apart, and the deeper chapters need it again and again over longer chains.
+ */
 export const PUZZLE_TIERS: readonly TierSpec[] = [
-  { rows: 5, cols: 6, hazards: 6, gems: 1, reveal: 3, minRounds: 2 },
-  { rows: 5, cols: 7, hazards: 8, gems: 1, reveal: 3, minRounds: 3 },
-  { rows: 6, cols: 8, hazards: 11, gems: 2, reveal: 4, minRounds: 4 },
-  { rows: 6, cols: 9, hazards: 14, gems: 2, reveal: 4, minRounds: 5 },
-  { rows: 7, cols: 10, hazards: 18, gems: 3, reveal: 5, minRounds: 6 },
+  { rows: 5, cols: 6, hazards: 6, gems: 1, reveal: 3, minRounds: 2, minTyped: 0 },
+  { rows: 5, cols: 7, hazards: 8, gems: 1, reveal: 3, minRounds: 3, minTyped: 1 },
+  { rows: 6, cols: 8, hazards: 11, gems: 2, reveal: 4, minRounds: 4, minTyped: 1 },
+  { rows: 6, cols: 9, hazards: 14, gems: 2, reveal: 3, minRounds: 5, minTyped: 2 },
+  { rows: 7, cols: 10, hazards: 18, gems: 3, reveal: 4, minRounds: 6, minTyped: 2 },
+  { rows: 8, cols: 11, hazards: 24, gems: 3, reveal: 3, minRounds: 7, minTyped: 3 },
 ];
+/** The last chapter, the Legend: the biggest boards, and a single mistake ends the try. */
+export const LEGEND_TIER = PUZZLE_TIERS.length - 1;
+export const isStrictTier = (tier: number): boolean => tier >= LEGEND_TIER;
 
 /** Puzzles on the path, in order; each opens once the one before it is solved. */
 export const PUZZLES_PER_TIER = 6;
 export const PUZZLE_COUNT = PUZZLE_TIERS.length * PUZZLES_PER_TIER;
+/** The endless puzzles open once the five first chapters are solved (the Legend is a peak of its own, not a gate). */
+export const ENDLESS_AFTER = LEGEND_TIER * PUZZLES_PER_TIER;
 
-const BIOMES: readonly BiomeId[] = ['cave', 'crystal', 'magma', 'cave', 'lair'];
-const ATTEMPTS = 220;
+const BIOMES: readonly BiomeId[] = ['cave', 'crystal', 'magma', 'cave', 'lair', 'lair'];
+const ATTEMPTS = 160;
 
 const neighbours = (i: number, rows: number, cols: number): number[] => {
   const r = Math.floor(i / cols);
@@ -66,6 +77,9 @@ const neighbours = (i: number, rows: number, cols: number): number[] => {
   return out;
 };
 
+/** How hard a rated board is, to keep the best when none meets its tier: typed reading and deep steps weigh most. */
+const weight = (r: DeductionReport): number => r.hard * 20 + r.uses[1] * 8 + r.uses[0];
+
 /** Builds the puzzle of this seed and tier (always the same board for the same pair). */
 export function generatePuzzle(seed: number, tier: number): Puzzle {
   const t = Math.max(0, Math.min(PUZZLE_TIERS.length - 1, Math.trunc(tier)));
@@ -75,16 +89,16 @@ export function generatePuzzle(seed: number, tier: number): Puzzle {
   const next = createPRNG(((seed >>> 0) % 2147483646) + 1);
   next(); // the first sample of a fresh generator is weakly mixed
   const pick = <T,>(list: readonly T[]): T => list[Math.floor(next() * list.length)];
-  let best: Puzzle | null = null;
+  let best: { puzzle: Puzzle; weight: number } | null = null;
+  const edge: number[] = [];
+  for (let i = 0; i < cells; i++) {
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    if (r === 0 || c === 0 || r === rows - 1 || c === cols - 1) edge.push(i);
+  }
 
   for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
     // The hero starts on the board's edge, so the fog opens in front of them.
-    const edge: number[] = [];
-    for (let i = 0; i < cells; i++) {
-      const r = Math.floor(i / cols);
-      const c = i % cols;
-      if (r === 0 || c === 0 || r === rows - 1 || c === cols - 1) edge.push(i);
-    }
     const start = pick(edge);
     const hazards = new Set<number>();
     const startRing = new Set([start, ...neighbours(start, rows, cols)]);
@@ -105,34 +119,50 @@ export function generatePuzzle(seed: number, tier: number): Puzzle {
       seen.add(n);
       visited.push(n);
     }
-    // Gems lie far from the start, on safe tiles still in the fog.
+    const dangers: GameEntity[] = [...hazards].map(index => ({ index, type: next() < 0.5 ? ('enemy' as const) : ('pit' as const) }));
+    // Gems lie far from the start, on safe tiles still in the fog, where reaching them takes the deepest reading: every such
+    // tile is rated on its own and the hardest are taken (a gem is never next to another).
     const far = (i: number) => Math.abs(Math.floor(i / cols) - Math.floor(start / cols)) + Math.abs((i % cols) - (start % cols));
-    const pool: number[] = [];
-    for (let i = 0; i < cells; i++) if (!hazards.has(i) && !seen.has(i) && far(i) >= Math.floor((rows + cols) / 2)) pool.push(i);
-    if (pool.length < spec.gems) continue;
-    const gems: number[] = [];
-    while (gems.length < spec.gems) {
-      const g = pool.splice(Math.floor(next() * pool.length), 1)[0];
-      gems.push(g);
+    const spots: { index: number; weight: number }[] = [];
+    for (let i = 0; i < cells; i++) {
+      if (hazards.has(i) || seen.has(i) || far(i) < Math.floor((rows + cols) / 2)) continue;
+      const r = rateDeduction(rows, cols, [{ index: i, type: 'coin' }, ...dangers], visited);
+      if (r.solvable) spots.push({ index: i, weight: weight(r) + next() * 0.5 });
     }
-    const entities: GameEntity[] = [
-      ...gems.map(index => ({ index, type: 'coin' as const })),
-      ...[...hazards].map(index => ({ index, type: next() < 0.5 ? ('enemy' as const) : ('pit' as const) })),
-    ];
-    const rounds = deductionRounds(rows, cols, entities, visited);
-    if (rounds < 0) continue;
+    if (spots.length < spec.gems) continue;
+    spots.sort((a, b) => b.weight - a.weight);
+    const gems: number[] = [];
+    for (const s of spots) {
+      if (gems.length === spec.gems) break;
+      if (gems.some(g => neighbours(g, rows, cols).includes(s.index))) continue;
+      gems.push(s.index);
+    }
+    if (gems.length < spec.gems) continue;
+    const entities: GameEntity[] = [...gems.map(index => ({ index, type: 'coin' as const })), ...dangers];
+    const report = rateDeduction(rows, cols, entities, visited);
+    if (!report.solvable) continue;
+    const rounds = report.uses.reduce((a, n) => a + n, 0);
     const puzzle: Puzzle = { rows, cols, start, visited, entities, tier: t, rounds, biome: BIOMES[t] };
-    // The first board long enough for its tier is taken (a longer chain is not always a better puzzle); until one shows up,
-    // the longest so far is kept.
-    if (rounds >= spec.minRounds) return puzzle;
-    if (!best || rounds > best.rounds) best = puzzle;
+    if (rounds >= spec.minRounds && report.uses[1] + report.hard >= spec.minTyped) return puzzle;
+    const w = weight(report) + rounds * 0.1;
+    if (!best || w > best.weight) best = { puzzle, weight: w };
   }
-  // A board is always found within the attempts (the tests check every one of the path and a year of dailies).
-  return best as Puzzle;
+  // A board is always found within the attempts (the tests check every one of the path and many dailies).
+  return best!.puzzle;
 }
 
-/** The seed of a numbered puzzle on the path (fixed: changing it would change a puzzle players already solved). */
-export const pathSeed = (index: number): number => 7919 * (index + 1) + 104729;
+/**
+ * Seeds of the path where the default one gives a board short of its tier (found by scripts/findPathSeeds.ts). Fixed, like
+ * every seed of the path: changing one would change a puzzle players already solved.
+ */
+const PATH_SEEDS: Readonly<Record<number, number>> = {
+  32: 1366059,
+  33: 7373996,
+  34: 4381906,
+};
+
+/** The seed of a numbered puzzle on the path. */
+export const pathSeed = (index: number): number => PATH_SEEDS[index] ?? 7919 * (index + 1) + 104729;
 
 /** The numbered puzzle `index` (0-based) of the path. */
 export const pathPuzzle = (index: number): Puzzle => generatePuzzle(pathSeed(index), Math.floor(index / PUZZLES_PER_TIER));

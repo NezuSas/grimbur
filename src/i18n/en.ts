@@ -2215,7 +2215,7 @@ export const en = {
   'puzzle.endless.number': 'Endless #{n}',
   'puzzle.endless.body': 'Fresh master puzzles, one after another. {n} embers per star.',
   'puzzle.endless.stats': 'Solved: {solved} · Best run of 3 stars: {best}',
-  'puzzle.endless.locked': 'Solve all 30 puzzles of the path to open the endless puzzles.',
+  'puzzle.endless.locked': 'Solve the 30 puzzles of the first five chapters to open the endless puzzles.',
   'puzzle.endless.play': 'Play',
   'puzzle.endless.another': 'Another one',
   'puzzle.endless.run': '{n} three-star solves in a row',
@@ -2286,6 +2286,16 @@ export const en = {
   'puzzle.archive.today': 'Today',
   'puzzle.archive.prev': 'Previous month',
   'puzzle.archive.next': 'Next month',
+  'puzzle.why.typed': 'The lit tile is safe: read guardians and vortices apart. One clue has no guardian left for it, another no vortex.',
+  'puzzle.tier.5': 'Legend',
+  'puzzle.strict.tag': 'No mistakes',
+  'puzzle.strict.failed': 'Try over',
+  'puzzle.strict.body': 'In the Legend a single mistake ends the try. Read the clues again: the board is the same.',
+  'puzzle.strict.again': 'Try again',
+  'tech.typed.name': 'Two kinds of danger',
+  'tech.typed.body': 'Every clue counts guardians and vortices apart. A tile next to two clues that cannot be a guardian (one clue has none) and cannot be a vortex (the other has none) is safe, though no clue alone says so.',
+  'tech.typed.tip': 'Look at the two clues by the corner: one senses only a vortex, the other only a guardian. The tile they share can be neither.',
+  'tech.typed.learned': 'Reading guardians and vortices apart opens tiles the total never opens. From the Tracker chapter on, the puzzles demand it.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

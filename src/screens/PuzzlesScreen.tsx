@@ -12,7 +12,7 @@ import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { RootStackParamList } from "../navigation/types";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { equipCosmeticFor, getLocalStats, openPuzzleChest, peekLocalStats } from "../services/localStats";
-import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzleTier } from "../core/puzzles/puzzles";
+import { ENDLESS_AFTER, PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzleTier } from "../core/puzzles/puzzles";
 import { EMBERS_PER_STAR, MAX_STARS, dailyPuzzleNumber, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, nextPuzzle, puzzleStarsAt, puzzlesSolved, totalPuzzleStars, type PuzzleProgress } from "../core/stats/puzzleProgress";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
@@ -105,7 +105,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
   const endlessOpen = isEndlessOpen(puzzles);
   const pages = PUZZLE_TIERS.length + 1;
   // Where the player is: the chapter of the next puzzle, or the portal once all thirty are solved.
-  const home = endlessOpen ? pages - 1 : Math.floor(next / (PUZZLE_COUNT / PUZZLE_TIERS.length));
+  const home = puzzlesSolved(puzzles) >= PUZZLE_COUNT ? pages - 1 : Math.floor(next / PER_CHAPTER);
   const hero = characters[lastHero] ?? characters[0];
 
   const side = Math.round(Math.max(200, Math.min(260, width * 0.27)));
@@ -145,7 +145,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
     const at = Math.floor(won / PER_CHAPTER);
     setPage(at);
     scroller.current?.scrollTo({ x: at * box.w, animated: false });
-    const then = fx.unlocked ?? (won === PUZZLE_COUNT - 1 && endlessOpen ? pages - 1 : null);
+    const then = fx.unlocked;
     if (then === null || then === at) return;
     const timer = setTimeout(() => goTo(then), 1500);
     return () => clearTimeout(timer);
@@ -253,7 +253,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
                       width={box.w}
                       height={mapH}
                       open={endlessOpen}
-                      solvedPath={puzzlesSolved(puzzles)}
+                      solvedPath={(puzzles?.stars ?? []).slice(0, ENDLESS_AFTER).filter(s => s > 0).length}
                       solved={endless.solved}
                       bestRun={endless.bestRun}
                       calm={calm || page !== pages - 1}

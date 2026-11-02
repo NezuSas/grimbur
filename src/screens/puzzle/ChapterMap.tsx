@@ -17,7 +17,7 @@ const MEDAL = require("../../assets/sprites/ui/Icon_Medal.png");
 const CHEST = require("../../assets/sprites/items/Icon_Chest_Closed.png");
 const GOLD = "#FFD54F";
 
-export const TIER_TINTS = ["#9EE37D", "#4FC3F7", "#B39DDB", "#FF9A3C", "#FF5252"];
+export const TIER_TINTS = ["#9EE37D", "#4FC3F7", "#B39DDB", "#FF9A3C", "#FF5252", "#E1F5FE"];
 
 /** Each chapter is a part of the cave: its floor tiles and its backdrop, from the game's own biomes. */
 const CHAPTER_ART: { open: ImageSourcePropType; shut: ImageSourcePropType; bg: ImageSourcePropType }[] = [
@@ -31,6 +31,8 @@ const CHAPTER_ART: { open: ImageSourcePropType; shut: ImageSourcePropType; bg: I
   { open: require("../../assets/sprites/tiles/Tile_Revealed_Vault.png"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Vault.png"), bg: require("../../assets/sprites/backgrounds/Cover_Background.png") },
   // Master: the magma at the bottom.
   { open: require("../../assets/sprites/tiles/Tile_Revealed_Magma.png"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Magma.png"), bg: require("../../assets/sprites/backgrounds/Bg_Magma.jpg") },
+  // Legend: the frozen deep under the lair, where one mistake ends the try.
+  { open: require("../../assets/sprites/tiles/Tile_Revealed_Frost.png"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Frost.png"), bg: require("../../assets/sprites/backgrounds/Bg_Lair.jpg") },
 ];
 
 /** Where each stop of a chapter sits down the path (0 top, 1 bottom): a trail that winds down into the cave. */

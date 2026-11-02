@@ -1,4 +1,4 @@
-import { PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER } from '../puzzles/puzzles';
+import { ENDLESS_AFTER, PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER } from '../puzzles/puzzles';
 import { daysBetween, previousDayKey } from '../engine/seed';
 import { YULE_GIFT_EMBERS, isYuleDay } from '../events/yule';
 
@@ -112,7 +112,7 @@ export const dailyPuzzleStreak = (p: PuzzleProgress | undefined, today: string):
 
 export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string } | { kind: 'endless'; n: number } | { kind: 'archive'; date: string };
 /** Endless puzzles open once every puzzle of the path is solved. */
-export const isEndlessOpen = (p: PuzzleProgress | undefined): boolean => puzzlesSolved(p) >= PUZZLE_COUNT;
+export const isEndlessOpen = (p: PuzzleProgress | undefined): boolean => (p?.stars ?? []).slice(0, ENDLESS_AFTER).filter(s => s > 0).length >= ENDLESS_AFTER;
 
 /**
  * The progress after solving a puzzle with `stars` in `seconds`, and the embers it pays (only what is new). `record` says the

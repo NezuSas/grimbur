@@ -23,9 +23,9 @@ import { gameReducer, initialState } from "../core/engine/reducer";
 import { Direction, GameAction, GameState } from "../core/engine/types";
 import { NO_PERKS } from "../core/engine/heroes";
 import { stepTarget, travelPath } from "../core/engine/travel";
-import { provenSafeTiles } from "../core/engine/solver";
+import { provenByLevel } from "../core/puzzles/deduction";
 import { dailyKey } from "../core/engine/seed";
-import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, endlessPuzzle, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
+import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, endlessPuzzle, isStrictTier, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
 import { recordPuzzle } from "../services/localStats";
 import characters from "../data/characters";
 import { emitSound } from "../audio/audioEventBus";
@@ -100,6 +100,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     [technique, isDaily, archiveDate, isEndless, endlessN, today, index],
   );
   const gems = puzzle.entities.filter(e => e.type === "coin").length;
+  const strict = !technique && index >= 0 && isStrictTier(puzzle.tier);
 
   const [state, dispatch] = useReducer(puzzleReducer, puzzle, p => openingState(p, hero));
   const [mistakes, setMistakes] = useState(0);
@@ -107,6 +108,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [hintTile, setHintTile] = useState<number | null>(null);
   const [hintWhy, setHintWhy] = useState<HintReason | null>(null);
   const [fail, setFail] = useState<{ tile: number; kind: string } | null>(null);
+  // A strict puzzle (the Legend): one mistake ends the try, and it is started again only by choice.
+  const [failedOut, setFailedOut] = useState(false);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set(technique?.flags ?? []));
   const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number; record?: boolean; best?: number } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
@@ -195,13 +198,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         setMistakes(m => m + 1);
         haptic.notify(NotificationFeedbackType.Error);
         emitSound("GAME_OVER");
-        if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 2800);
+        if (strict) failTimer.current = setTimeout(() => setFailedOut(true), 1300);
+        else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 2800);
         return false;
       }
       dispatch({ type: "MOVE", direction });
       return true;
     },
-    [fail, flags, restart],
+    [fail, flags, restart, strict],
   );
 
   const move = useCallback((direction: Direction) => {
@@ -243,18 +247,21 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     });
   }, []);
 
-  // The hint: one tile next to the explored ground that the clues already prove safe (never a gem, which is in plain sight).
+  // The hint: one tile next to the explored ground that the clues already prove safe (never a gem, which is in plain sight),
+  // the one proven by the simplest reading, so the hint teaches the easiest move left.
   const showHint = useCallback(() => {
     const s = stateRef.current;
     const seen = new Set(s.visited);
-    const safe = provenSafeTiles(s.rows, s.cols, s.entities, s.visited);
+    const { safe } = provenByLevel(s.rows, s.cols, s.entities, s.visited);
     const gemsAt = new Set(s.entities.filter(e => e.type === "coin").map(e => e.index));
-    const frontier = [...safe].filter(i => !seen.has(i) && !gemsAt.has(i) && s.visited.some(v => Math.abs(Math.floor(v / s.cols) - Math.floor(i / s.cols)) + Math.abs((v % s.cols) - (i % s.cols)) === 1));
-    const pick = frontier[0] ?? [...gemsAt].find(g => !seen.has(g)) ?? null;
+    const frontier = [...safe.entries()]
+      .filter(([i]) => !seen.has(i) && !gemsAt.has(i) && s.visited.some(v => Math.abs(Math.floor(v / s.cols) - Math.floor(i / s.cols)) + Math.abs((v % s.cols) - (i % s.cols)) === 1))
+      .sort((a, b) => a[1] - b[1]);
+    const pick = frontier[0]?.[0] ?? [...gemsAt].find(g => !seen.has(g)) ?? null;
     if (pick === null) return;
     haptic.impact();
     setHintTile(pick);
-    setHintWhy(hintReason(s.rows, s.cols, s.entities, s.visited, pick));
+    setHintWhy(hintReason(s.rows, s.cols, s.entities, s.visited, pick, frontier[0]?.[1] ?? 1));
     if (hintTile === null) setHints(h => h + 1);
   }, [hintTile]);
 
@@ -296,7 +303,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         </TouchableOpacity>
         <View style={styles.bannerText}>
           <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
-            {(isTechnique ? title : `${title}  ·  ${tierName}`).toLocaleUpperCase()}
+            {(isTechnique ? title : `${title}  ·  ${tierName}${strict ? `  ·  ${t("puzzle.strict.tag")}` : ""}`).toLocaleUpperCase()}
           </Text>
           <Text style={[styles.goal, fail ? styles.goalFail : whyText ? styles.goalWhy : null, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
             {failText ?? whyText ?? goal}
@@ -363,6 +370,22 @@ export default function PuzzleScreen({ navigation, route }: Props) {
 
       {isYuleDay(today) ? <Snowfall count={18} calm={calm} /> : null}
       <DangerVignette roar={here.enemy && danger} vortex={here.pit && danger} intensity={Math.max(here.enemyCount, here.pitCount)} calm={calm} beat={heartbeat} />
+      {failedOut ? (
+        <OverlayContainer>
+          <PopupPanel tint="#FF5252" width={Math.min(winWidth * 0.9, 420)}>
+            <Text style={popupTitleStyle("#FF5252")} maxFontSizeMultiplier={1.15}>
+              {t("puzzle.strict.failed").toLocaleUpperCase()}
+            </Text>
+            <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
+              {t("puzzle.strict.body")}
+            </Text>
+            <PopButton label={t("puzzle.strict.again")} icon="refresh" tint="#FF8A80" onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })} />
+            <View style={styles.resultLinks}>
+              <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} />
+            </View>
+          </PopupPanel>
+        </OverlayContainer>
+      ) : null}
       {result ? (
         <OverlayContainer>
           <PopupPanel tint={TINT} width={Math.min(winWidth * 0.9, 420)}>

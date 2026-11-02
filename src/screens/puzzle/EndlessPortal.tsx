@@ -5,7 +5,7 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import PressScale from "../../ui/components/PressScale";
 import { useT } from "../../i18n/useT";
-import { PUZZLE_COUNT } from "../../core/puzzles/puzzles";
+import { ENDLESS_AFTER } from "../../core/puzzles/puzzles";
 import { ENDLESS_EMBERS_PER_STAR } from "../../core/stats/puzzleProgress";
 
 const TINT = "#CE93D8";
@@ -79,10 +79,10 @@ export default function EndlessPortal({ width, height, open, solvedPath, solved,
           ) : (
             <View style={styles.progress}>
               <View style={styles.bar}>
-                <View style={[styles.fill, { width: `${Math.round((solvedPath / PUZZLE_COUNT) * 100)}%` }]} />
+                <View style={[styles.fill, { width: `${Math.round((solvedPath / ENDLESS_AFTER) * 100)}%` }]} />
               </View>
               <Text style={styles.stats} maxFontSizeMultiplier={1.1}>
-                {t("puzzle.endless.progress", { n: solvedPath, total: PUZZLE_COUNT })}
+                {t("puzzle.endless.progress", { n: solvedPath, total: ENDLESS_AFTER })}
               </Text>
             </View>
           )}

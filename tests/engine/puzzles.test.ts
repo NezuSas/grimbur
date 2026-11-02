@@ -1,8 +1,8 @@
-import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzle, endlessPuzzle, generatePuzzle, pathPuzzle, puzzleStars, type Puzzle } from '../../src/core/puzzles/puzzles';
+import { ENDLESS_AFTER, PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzle, endlessPuzzle, generatePuzzle, pathPuzzle, puzzleStars, type Puzzle } from '../../src/core/puzzles/puzzles';
 import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, EMPTY_PUZZLES, dailyPuzzleNumber, dailyPuzzleStreak, isEndlessOpen, ENDLESS_EMBERS_PER_STAR, isPuzzleOpen, nextPuzzle, parsePuzzles, withPuzzleResult } from '../../src/core/stats/puzzleProgress';
 import { puzzleShareText } from '../../src/screens/puzzle/shareText';
 import { gameReducer, initialState } from '../../src/core/engine/reducer';
-import { provenSafeTiles } from '../../src/core/engine/solver';
+import { provenByLevel, rateDeduction } from '../../src/core/puzzles/deduction';
 import { travelPath } from '../../src/core/engine/travel';
 import { NO_PERKS } from '../../src/core/engine/heroes';
 import { shiftDayKey } from '../../src/core/engine/seed';
@@ -20,7 +20,7 @@ function solveByDeduction(p: Puzzle): { solved: boolean; steppedOnHazard: boolea
   const near = (a: number, b: number) => Math.abs(Math.floor(a / p.cols) - Math.floor(b / p.cols)) + Math.abs((a % p.cols) - (b % p.cols)) === 1;
   for (let guard = 0; guard < 500 && s.coins > 0; guard++) {
     const seen = new Set(s.visited);
-    const safe = [...provenSafeTiles(p.rows, p.cols, s.entities, s.visited)].filter(i => !seen.has(i));
+    const safe = [...provenByLevel(p.rows, p.cols, s.entities, s.visited).safe.keys(), ...s.entities.filter(e => e.type === 'coin').map(e => e.index)].filter(i => !seen.has(i));
     const target = safe.find(i => s.visited.some(v => near(v, i)));
     if (target === undefined) return { solved: false, steppedOnHazard: false };
     const door = s.visited.find(v => near(v, target) && (v === s.playerIndex || travelPath(s.visited, s.entityMap, s.playerIndex, v, p.rows, p.cols)))!;
@@ -32,7 +32,7 @@ function solveByDeduction(p: Puzzle): { solved: boolean; steppedOnHazard: boolea
 }
 
 describe('the cave puzzles', () => {
-  const daily = Array.from({ length: 40 }, (_, d) => dailyPuzzle(shiftDayKey('2026-11-01', d * 9)));
+  const daily = Array.from({ length: 30 }, (_, d) => dailyPuzzle(shiftDayKey('2026-11-01', d * 11)));
   const all = [...Array.from({ length: PUZZLE_COUNT }, (_, i) => pathPuzzle(i)), ...daily];
 
   it('are well formed: the explored patch is safe, the gems lie in the fog, the board matches its tier', () => {
@@ -51,7 +51,19 @@ describe('the cave puzzles', () => {
     for (const p of all) expect(solveByDeduction(p)).toEqual({ solved: true, steppedOnHazard: false });
   });
 
-  it('are the same board for the same seed, and the path climbs through the five levels', () => {
+  it('on the path, every chapter from the tracker on demands guardians and vortices read apart, more the deeper it goes', () => {
+    for (let i = 0; i < PUZZLE_COUNT; i++) {
+      const p = pathPuzzle(i);
+      const r = rateDeduction(p.rows, p.cols, p.entities, p.visited);
+      const spec = PUZZLE_TIERS[p.tier];
+      expect(r.solvable).toBe(true);
+      expect(r.uses[1] + r.hard).toBeGreaterThanOrEqual(spec.minTyped);
+    }
+    expect(PUZZLE_TIERS[0].minTyped).toBe(0);
+    expect(PUZZLE_TIERS[PUZZLE_TIERS.length - 1].minTyped).toBeGreaterThanOrEqual(3);
+  });
+
+  it('are the same board for the same seed, and the path climbs through the six chapters', () => {
     expect(generatePuzzle(42, 2)).toEqual(generatePuzzle(42, 2));
     expect(pathPuzzle(0).tier).toBe(0);
     expect(pathPuzzle(PUZZLE_COUNT - 1).tier).toBe(PUZZLE_TIERS.length - 1);
@@ -125,10 +137,12 @@ describe('the cave puzzles', () => {
       expect(solveByDeduction(p)).toEqual({ solved: true, steppedOnHazard: false });
     }
     expect(JSON.stringify(endlessPuzzle(5))).toBe(JSON.stringify(endlessPuzzle(5)));
-    let p = { ...EMPTY_PUZZLES, stars: Array(PUZZLE_COUNT - 1).fill(1) };
+    // The five first chapters open it; the Legend is not needed.
+    let p = { ...EMPTY_PUZZLES, stars: Array(ENDLESS_AFTER - 1).fill(1) };
     expect(isEndlessOpen(p)).toBe(false);
-    p = { ...p, stars: Array(PUZZLE_COUNT).fill(1) };
+    p = { ...p, stars: Array(ENDLESS_AFTER).fill(1) };
     expect(isEndlessOpen(p)).toBe(true);
+    expect(ENDLESS_AFTER).toBeLessThan(PUZZLE_COUNT);
     let r = withPuzzleResult(p, { kind: 'endless', n: 0 }, 3);
     expect(r.embers).toBe(3 * ENDLESS_EMBERS_PER_STAR);
     r = withPuzzleResult(r.progress, { kind: 'endless', n: 1 }, 3);

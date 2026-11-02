@@ -12,6 +12,7 @@ const ART: Record<TechniqueId, ReturnType<typeof require>> = {
   quiet: require("../../assets/sprites/tiles/Tile_Hidden.png"),
   cornered: require("../../assets/sprites/ui/Icon_Flag.png"),
   full: require("../../assets/sprites/ui/Clue_Guardian.png"),
+  typed: require("../../assets/sprites/ui/Clue_Vortex.png"),
 };
 
 /** The deduction techniques: what each move is, and a small board to practise it (played like a puzzle, without stars). */
