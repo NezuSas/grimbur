@@ -12,8 +12,8 @@ import type { RunFeatures } from './newcomer';
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
 export type EntityType = 'coin' | 'pit' | 'enemy' | 'trap' | 'shield' | 'ammo' | 'boss' | 'stalker' | 'sleeper' | 'mimic' | 'thief' | 'chest' | 'secret';
-/** What ended a run: a creature, or the Grimbur's lieutenant (a `boss` entity with `mini`). */
-export type DeathCause = EntityType | 'brute';
+/** What ended a run: a creature, the Grimbur's lieutenant (a `boss` entity with `mini`) or the Magma Colossus (`warden`). */
+export type DeathCause = EntityType | 'brute' | 'warden';
 
 /** Entities that kill the player on contact. */
 export const LETHAL_TYPES: readonly EntityType[] = ['pit', 'enemy', 'boss', 'stalker', 'sleeper', 'mimic'];
@@ -49,6 +49,11 @@ export interface GameEntity {
   loot?: number;
   /** The Ancestral Grimbur: the lair's master on the hardest depths and deep in the endless descent (its own look and name). */
   ancient?: boolean;
+  /** The Magma Colossus: the magma caves' guardian (a `mini` boss); every step it takes leaves a pool of lava behind it. */
+  warden?: boolean;
+  /** A pool of lava (a `pit` left by the Colossus): seen through the fog, it cools down and is gone after `ttl` more actions. */
+  lava?: boolean;
+  ttl?: number;
 }
 
 export interface GameState {

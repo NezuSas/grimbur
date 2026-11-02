@@ -6,7 +6,7 @@ import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../sha
 import { gameReducer, initialState } from './reducer';
 import { Direction, GameEngineInterface, GameAction } from './types';
 import { Character } from '../../data/characters';
-import { generateBoard, MID_BOSS_FLOOR } from './generator';
+import { generateBoard, MID_BOSS_FLOOR, WARDEN_FLOOR } from './generator';
 import { GameMode, deriveLevelSeed } from './seed';
 import { clampAscension, modifiersFor } from './ascension';
 import { omenFor, omenEffects, OmenId } from './omens';
@@ -207,6 +207,7 @@ export function useGameEngine(): GameEngineInterface {
       bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),
       endless: stateRef.current.mode === 'endless',
       midBoss: isFullRun(stateRef.current.mode) && nextLevel === MID_BOSS_FLOOR,
+      warden: isFullRun(stateRef.current.mode) && nextLevel === WARDEN_FLOOR,
     });
 
     pureDispatch({

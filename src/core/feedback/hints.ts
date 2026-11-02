@@ -15,12 +15,12 @@ export interface HintFacts {
 }
 
 /** Things a floor can hold that change how it is played: each one is explained the first time it is met. */
-export type FloorNovelty = 'lieutenant' | 'mimic' | 'dark' | 'thief' | 'elite' | 'chest' | 'sleeper' | 'stalker' | 'secret';
+export type FloorNovelty = 'lieutenant' | 'warden' | 'mimic' | 'dark' | 'thief' | 'elite' | 'chest' | 'sleeper' | 'stalker' | 'secret';
 
 export type HintId = 'ability' | 'undo' | 'detector' | 'bomb' | 'clues' | 'travel' | 'flag' | 'aim' | FloorNovelty;
 
 /** The order novelties are explained in when a floor holds several: what can kill first. */
-const NOVELTY_ORDER: readonly FloorNovelty[] = ['lieutenant', 'mimic', 'dark', 'stalker', 'sleeper', 'thief', 'elite', 'chest', 'secret'];
+const NOVELTY_ORDER: readonly FloorNovelty[] = ['lieutenant', 'warden', 'mimic', 'dark', 'stalker', 'sleeper', 'thief', 'elite', 'chest', 'secret'];
 
 /**
  * The next first-time hint to show, or null. A hint is returned until it is marked seen, in priority order, so the
@@ -44,10 +44,11 @@ export function nextHint(facts: HintFacts, seen: readonly string[]): HintId | nu
 }
 
 /** The novelties of a floor, read from what it holds (the mimic is hidden, but the floor announces it holds one). */
-export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean }[]; omen?: string | null; visited?: readonly number[]; cols?: number; rows?: number; secret?: number | null }): FloorNovelty[] {
+export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean; warden?: boolean }[]; omen?: string | null; visited?: readonly number[]; cols?: number; rows?: number; secret?: number | null }): FloorNovelty[] {
   const out: FloorNovelty[] = [];
   const has = (type: string) => s.entities.some(e => e.type === type);
-  if (s.entities.some(e => e.type === 'boss' && e.mini)) out.push('lieutenant');
+  if (s.entities.some(e => e.type === 'boss' && e.mini && !e.warden)) out.push('lieutenant');
+  if (s.entities.some(e => e.type === 'boss' && e.warden)) out.push('warden');
   if (has('mimic')) out.push('mimic');
   if (s.omen === 'dark') out.push('dark');
   if (has('stalker')) out.push('stalker');

@@ -2168,6 +2168,20 @@ export const en = {
   'puzzle.tierUp': 'New level open: {tier}',
   'puzzle.hereLabel': 'Where you stand',
   'puzzle.here': 'Where you stand: {guardians} guardians and {vortexes} vortexes nearby',
+  'bestiary.warden.name': 'Magma Colossus',
+  'bestiary.warden.lore': 'Guards the heart of the magma caves. Every step it takes leaves a pool of lava behind.',
+  'over.killer.warden': 'Magma Colossus',
+  'roster.warden': 'magma colossus',
+  'ach.hunt_warden.name': 'Cold blood',
+  'hint.warden': 'The Magma Colossus guards this floor! 2 hearts, it hunts you, and every step leaves a pool of lava that throws you away like a vortex. The lava cools after a few moves. It must fall before you go down.',
+  'a11y.tile.lava': 'a pool of lava',
+  'whatsnew.tryPuzzle': 'Try a puzzle',
+  'whatsnew.puzzles.title': 'Cave puzzles',
+  'whatsnew.puzzles.body': 'Pure logic, no luck: 30 puzzles in five levels and a new one every day. Three stars for no mistakes.',
+  'whatsnew.quick.title': 'Quick descent',
+  'whatsnew.quick.body': 'Short on time? Choose Quick on the hero screen: one floor of each cave and the Grimbur, in a few minutes.',
+  'whatsnew.warden.title': 'The Magma Colossus',
+  'whatsnew.warden.body': 'A new guardian rules floor 8: it hunts you, and every step it takes leaves a pool of lava behind.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

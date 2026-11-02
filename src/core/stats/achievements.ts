@@ -107,6 +107,7 @@ export type AchievementId =
   | 'hunt_mimic'
   | 'hunt_thief'
   | 'hunt_brute'
+  | 'hunt_warden'
   // Mastery ranks (any hero)
   | 'mastery_silver'
   | 'mastery_gold'
@@ -354,6 +355,7 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   hunt('hunt_mimic', '📦', 'hard', 'mimic', 20),
   hunt('hunt_thief', '🪤', 'hard', 'thief', 15),
   hunt('hunt_brute', '⚔️', 'hard', 'brute', 15),
+  hunt('hunt_warden', '♨️', 'hard', 'warden', 10),
   // ── Mastery ranks ───────────────────────────────────────────────────────
   counted('mastery_silver', '🔘', 'hard', 'mastery', 20, topMastery),
   counted('mastery_gold', '🟡', 'hard', 'mastery', 30, topMastery),

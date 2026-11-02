@@ -31,6 +31,7 @@ const HUNT: Record<string, ImageSourcePropType> = {
   hunt_mimic: BEAST_ART.mimic,
   hunt_thief: BEAST_ART.thief,
   hunt_brute: BEAST_ART.brute,
+  hunt_warden: BEAST_ART.warden,
 };
 
 /** Achievements whose shared description does not name their theme. */

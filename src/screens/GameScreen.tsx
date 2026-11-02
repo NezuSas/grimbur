@@ -109,6 +109,7 @@ import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
 /** The Grimbur's lieutenant on the floor banner. */
 const LIEUTENANT_ART = require("../assets/sprites/enemies/Lieutenant_Boss.png");
+const WARDEN_ART = require("../assets/sprites/enemies/Warden_Boss.png");
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 
@@ -355,11 +356,12 @@ export default function GameScreen({ navigation, route }: Props) {
       { key: "mimic", art: ASSETS.mimic, label: t("roster.mimic") },
       { key: "thief", art: ASSETS.thief, label: t("roster.thief") },
       { key: "brute", art: LIEUTENANT_ART, label: t("roster.brute") },
+      { key: "warden", art: WARDEN_ART, label: t("roster.warden") },
       { key: "pit", art: ASSETS.pit, label: t("roster.pit") },
       { key: "chest", art: ASSETS.chest, label: t("roster.chest") },
     ] as const;
     return kinds
-      .map(k => ({ ...k, count: state.entities.filter(e => (k.key === "brute" ? e.type === "boss" && e.mini : e.type === k.key)).length }))
+      .map(k => ({ ...k, count: state.entities.filter(e => (k.key === "brute" ? e.type === "boss" && e.mini && !e.warden : k.key === "warden" ? e.type === "boss" && e.warden : e.type === k.key)).length }))
       .filter(k => k.count > 0);
     // Counted when the floor starts; kills during the floor do not rewrite the banner.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -477,7 +479,7 @@ export default function GameScreen({ navigation, route }: Props) {
       // A newcomer meets the extras one run at a time (secret rooms, then encounters).
       features: featuresFor(peekLocalStats()?.gamesPlayed ?? 0, isDaily ? "daily" : mode, !!challenge || !!duelParam),
     });
-  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta, hintAllowed]);
+  }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta, hintAllowed, mode]);
 
   /** Writes the run to disk so "Continuar" (or Android killing the process) does not cost it. */
   const saveCurrentRun = useCallback(() => {

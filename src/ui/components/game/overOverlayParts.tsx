@@ -12,6 +12,7 @@ export const KILLERS: Partial<Record<DeathCause, number>> = {
   pit: require('../../../assets/sprites/tiles/Danger_Vortex.png'),
   mimic: require('../../../assets/sprites/enemies/Mimic_Enemy.png'),
   brute: require('../../../assets/sprites/enemies/Lieutenant_Boss.png'),
+  warden: require('../../../assets/sprites/enemies/Warden_Boss.png'),
 };
 
 /** Counts a number up to its value (a small reward moment for the score). */

@@ -4,7 +4,7 @@ import { isLairFloor, runFloors } from './lair';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import type { GameMode } from './seed';
 import type { OmenId } from './omens';
-import { MID_BOSS_FLOOR } from './generator';
+import { MID_BOSS_FLOOR, WARDEN_FLOOR } from './generator';
 import type { AbilityId } from './abilities';
 
 /** What gems buy between floors. */
@@ -73,7 +73,7 @@ export function forkDoors(runSeed: number, level: number, mode: GameMode): [Door
   // and never lands past the lair.
   const pool: Door[] = level >= DARK_FROM ? [...DOORS, 'dark'] : [...DOORS];
   // The quick descent is too short to skip a floor of it.
-  if (mode !== 'quick' && level >= SHORTCUT_FROM && level !== MID_BOSS_FLOOR && (mode === 'endless' || level + 1 <= GAME_CONFIG.expedition.floors)) pool.push('shortcut');
+  if (mode !== 'quick' && level >= SHORTCUT_FROM && level !== MID_BOSS_FLOOR && level !== WARDEN_FLOOR && (mode === 'endless' || level + 1 <= GAME_CONFIG.expedition.floors)) pool.push('shortcut');
   const first = pool.splice(Math.floor(next() * pool.length), 1)[0];
   const second = pool[Math.floor(next() * pool.length)];
   // From the third floor one fork in three swaps a door for the elite floor: the risk is always a choice, never forced.

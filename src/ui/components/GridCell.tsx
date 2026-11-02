@@ -13,6 +13,8 @@ import GlyphIcon from "./GlyphIcon";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 
+const LAVA_ART = require("../../assets/sprites/tiles/Lava_Pool.png");
+import { LAVA_TURNS } from "../../core/engine/generator";
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
 
 export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" | "chest" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
@@ -341,6 +343,7 @@ const GridCell = memo(({
   const a11y = (() => {
     const where = t("a11y.tile.where", { row: row + 1, col: col + 1 });
     if (isPlayerHere) return `${where}: ${t("a11y.tile.hero")}`;
+    if (entity?.lava) return `${where}: ${t("a11y.tile.lava")}`;
     if (!lit) return `${where}: ${t(flagged ? "a11y.tile.flagged" : "a11y.tile.hidden")}`;
     const parts: string[] = [];
     if (entity && seen) parts.push(t(`a11y.thing.${entity.type}` as TranslationKey));
@@ -421,7 +424,7 @@ const GridCell = memo(({
         />
       )}
 
-      {entity?.type === 'pit' && (seen || killer) && (
+      {entity?.type === 'pit' && !entity.lava && (seen || killer) && (
         <VortexSprite size={tileSize * 0.9} calm={calm} pulse={pulse} />
       )}
       {entity && (entity.type === 'enemy' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'mimic') && (seen || killer) && (
@@ -449,6 +452,7 @@ const GridCell = memo(({
             charged={charged}
             mini={!!entity.mini}
             ancient={!!entity.ancient}
+            warden={!!entity.warden}
           />
           <View style={styles.bossHp} pointerEvents="none">
             <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
@@ -463,6 +467,11 @@ const GridCell = memo(({
         <GlyphIcon name="trap" size={tileSize * 0.6} />
       )}
       </Animated.View>
+
+      {/* A pool of lava left by the Magma Colossus: seen through the fog (it is no secret), dimmer as it cools. */}
+      {entity?.lava ? (
+        <SpriteImage source={LAVA_ART} style={{ position: "absolute", width: tileSize * 0.92, height: tileSize * 0.92, opacity: 0.45 + 0.55 * Math.min(1, (entity.ttl ?? 1) / LAVA_TURNS) }} resizeMode="contain" />
+      ) : null}
 
       {/* Wind-up warning: an icon too, so the danger never depends on colour alone. Drawn in the fog as well: a hunter only winds
           up beside the hero, and a strike from an unexplored tile must never come without warning. */}

@@ -4,11 +4,11 @@ import type { GameState } from '../engine/types';
  * The bestiary: the creatures and dangers of the cave, unlocked by meeting them (every floor that ends unveils what it held)
  * and counted when defeated. A run tallies them in its state; finished runs add them to the stats for good.
  */
-export const BEASTS = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss', 'ancient', 'pit', 'trap', 'chest'] as const;
+export const BEASTS = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'warden', 'boss', 'ancient', 'pit', 'trap', 'chest'] as const;
 export type BeastId = (typeof BEASTS)[number];
 
 /** The ones that can be defeated (the others are only met). */
-export const SLAYABLE: readonly BeastId[] = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'boss', 'ancient'];
+export const SLAYABLE: readonly BeastId[] = ['enemy', 'stalker', 'sleeper', 'mimic', 'thief', 'brute', 'warden', 'boss', 'ancient'];
 
 export interface Bestiary {
   met: BeastId[];
@@ -20,8 +20,10 @@ export const EMPTY_BESTIARY: Bestiary = { met: [], slain: {} };
 const isBeast = (v: unknown): v is BeastId => typeof v === 'string' && (BEASTS as readonly string[]).includes(v);
 
 /** The bestiary id of an entity: the lieutenant is a boss with `mini`. */
-export const beastOf = (e: { type: string; mini?: boolean; ancient?: boolean }): BeastId | null => {
-  if (e.type === 'boss') return e.mini ? 'brute' : e.ancient ? 'ancient' : 'boss';
+export const beastOf = (e: { type: string; mini?: boolean; ancient?: boolean; warden?: boolean; lava?: boolean }): BeastId | null => {
+  if (e.type === 'boss') return e.warden ? 'warden' : e.mini ? 'brute' : e.ancient ? 'ancient' : 'boss';
+  // A pool of lava is the Colossus's doing, not a vortex of the cave.
+  if (e.lava) return null;
   return isBeast(e.type) ? e.type : null;
 };
 
@@ -66,7 +68,7 @@ export function tallyBestiary(prev: Tally, next: Tally): { met: BeastId[]; slain
     meet(prev.entities.map(beastOf).filter((b): b is BeastId => !!b));
     if (next.isGameOver && next.deathCause) {
       const ancientKiller = next.deathCause === 'boss' && prev.entities.some(e => e.type === 'boss' && !e.mini && (e as { ancient?: boolean }).ancient);
-      const cause = next.deathCause === 'brute' ? 'brute' : ancientKiller ? 'ancient' : beastOf({ type: next.deathCause });
+      const cause = next.deathCause === 'brute' || next.deathCause === 'warden' ? next.deathCause : ancientKiller ? 'ancient' : beastOf({ type: next.deathCause });
       if (cause) meet([cause]);
     }
   }
@@ -108,6 +110,7 @@ export const HUNT_STARS: Partial<Record<BeastId, readonly [number, number, numbe
   mimic: [5, 20, 60],
   thief: [3, 15, 40],
   brute: [3, 15, 40],
+  warden: [1, 8, 25],
   boss: [1, 10, 30],
   ancient: [1, 5, 15],
 };

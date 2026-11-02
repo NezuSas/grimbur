@@ -9,21 +9,20 @@ import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 
 /** Bump when a new set of news ships: a returning player sees the card once per version. */
-export const WHATS_NEW_ID = "whatsnew-1";
+export const WHATS_NEW_ID = "whatsnew-2";
 
 const GOLD = "#FFD54F";
 const ITEMS: { key: string; art: ImageSourcePropType; tint: string }[] = [
-  { key: "secrets", art: require("../../assets/sprites/ui/Icon_Sparkles.png"), tint: "#FFE082" },
-  { key: "encounters", art: require("../../assets/sprites/encounters/Encounter_Gambler.png"), tint: "#9EE37D" },
+  { key: "puzzles", art: require("../../assets/sprites/ui/Icon_Riddle.png"), tint: "#4DD0E1" },
+  { key: "quick", art: require("../../assets/sprites/ui/Icon_Bolt.png"), tint: "#FFD54F" },
+  { key: "warden", art: require("../../assets/sprites/enemies/Warden_Boss.png"), tint: "#FF8A65" },
   { key: "pets", art: require("../../assets/sprites/cosmetics/PetAdult_Fox_A.png"), tint: "#81D4FA" },
-  { key: "quests", art: require("../../assets/sprites/cosmetics/Frame_QuestMira.png"), tint: "#F48FB1" },
-  { key: "ancient", art: require("../../assets/sprites/enemies/Ancient_Boss.png"), tint: "#80DEEA" },
 ];
 
-type Props = { onClose: () => void; onSeePets: () => void };
+type Props = { onClose: () => void; onSeePuzzles: () => void };
 
 /** What is new in the cave, shown once to a player who already knew it (a newcomer meets it all by playing). */
-const WhatsNewModal = ({ onClose, onSeePets }: Props) => {
+const WhatsNewModal = ({ onClose, onSeePuzzles }: Props) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const wide = width >= 640;
@@ -52,7 +51,7 @@ const WhatsNewModal = ({ onClose, onSeePets }: Props) => {
         </ScrollView>
         {/* Side by side: every line of height goes to the news on a small phone. */}
         <View style={styles.actions}>
-          <PopLink label={t("whatsnew.pets")} onPress={onSeePets} />
+          <PopLink label={t("whatsnew.tryPuzzle")} onPress={onSeePuzzles} />
           <PopButton label={t("whatsnew.go")} onPress={onClose} tint={GOLD} style={styles.button} />
         </View>
       </PopupPanel>

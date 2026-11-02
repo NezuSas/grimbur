@@ -27,7 +27,7 @@ export function snapshotBoard(s: Pick<GameState, 'rows' | 'cols' | 'playerIndex'
     cols: s.cols,
     player: s.playerIndex,
     visited: [...s.visited],
-    things: s.entities.map(e => [e.index, e.type === 'boss' && (e as { mini?: boolean }).mini ? 'brute' : e.type] as [number, string]),
+    things: s.entities.map(e => [e.index, e.type === 'boss' && (e as { warden?: boolean }).warden ? 'warden' : e.type === 'boss' && (e as { mini?: boolean }).mini ? 'brute' : e.type] as [number, string]),
   };
 }
 

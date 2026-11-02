@@ -65,6 +65,8 @@ export interface GenerateOptions {
   extraPits?: number;
   /** The middle of the expedition: the Grimbur's lieutenant guards this floor. */
   midBoss?: boolean;
+  /** The magma caves' guardian, the Magma Colossus, guards this floor. */
+  warden?: boolean;
 }
 
 export function generateBoard(
@@ -243,7 +245,7 @@ export function generateBoard(
 
   // Extras rolled apart from the board (so the board itself is the same with or without them): the lieutenant in the middle of
   // the expedition, a mimic (a guardian that looks like a gem, given away only by the clues), a thief and a chest.
-  entities = addExtras(entities, level, seed, diff.rows, diff.cols, spawnIndex, safeSet, { withBoss, midBoss: options.midBoss === true, lethalRoom: room });
+  entities = addExtras(entities, level, seed, diff.rows, diff.cols, spawnIndex, safeSet, { withBoss, midBoss: options.midBoss === true, warden: options.warden === true, lethalRoom: room });
 
   return {
     level,
@@ -254,7 +256,7 @@ export function generateBoard(
     // Report the coins actually placed so the level can always be completed.
     coins: entities.filter(e => e.type === 'coin').length,
     // The lair is a fight: always arrows for every guardian there and every heart of the Grimbur (plus a miss to spare).
-    attack: (withBoss ? Math.max(diff.attackCharges, enemyBudget + GAME_CONFIG.boss.hp + 1) : diff.attackCharges) + omen.arrowBonus + (options.midBoss ? MID_BOSS_HP + 1 : 0),
+    attack: (withBoss ? Math.max(diff.attackCharges, enemyBudget + GAME_CONFIG.boss.hp + 1) : diff.attackCharges) + omen.arrowBonus + (options.midBoss ? MID_BOSS_HP + 1 : 0) + (options.warden ? WARDEN_HP + 1 : 0),
     seed
   };
 }
@@ -268,6 +270,10 @@ export const isAncientLair = (ascension: number, level: number, endless: boolean
 
 export const MID_BOSS_FLOOR = 5;
 export const MID_BOSS_HP = 2;
+/** The Magma Colossus: the floor it guards (the middle of the magma caves), its hearts, and how long its lava stays hot. */
+export const WARDEN_FLOOR = 8;
+export const WARDEN_HP = 2;
+export const LAVA_TURNS = 6;
 export const MIMIC_FROM = 4;
 export const MIMIC_CHANCE = 0.4;
 export const THIEF_FROM = 3;
@@ -294,7 +300,7 @@ function addExtras(
   cols: number,
   spawn: number,
   safe: ReadonlySet<number>,
-  opts: { withBoss: boolean; midBoss: boolean; lethalRoom: number },
+  opts: { withBoss: boolean; midBoss: boolean; warden?: boolean; lethalRoom: number },
 ): GameEntity[] {
   const roll = createPRNG((seed ^ 0x3c6ef372) >>> 0);
   roll(); // discard the weakly-mixed first sample
@@ -331,20 +337,22 @@ function addExtras(
     return false;
   };
 
-  if (opts.midBoss) {
+  if (opts.midBoss || opts.warden) {
     const pits = () => entities.filter(e => e.type === 'pit').map(e => e.index);
     const pool = free(GAME_CONFIG.boss.minSpawnDistance);
     while (pool.length > 0) {
       const at = pool.splice(Math.floor(roll() * pool.length), 1)[0];
       if (!canReachNeighbourOf(spawn, at, pits(), rows, cols)) continue;
-      entities = [...entities, { index: at, type: 'boss', hp: MID_BOSS_HP, mini: true, calls: GAME_CONFIG.boss.maxCalls }];
+      entities = [...entities, opts.warden
+        ? { index: at, type: 'boss', hp: WARDEN_HP, mini: true, warden: true, calls: GAME_CONFIG.boss.maxCalls }
+        : { index: at, type: 'boss', hp: MID_BOSS_HP, mini: true, calls: GAME_CONFIG.boss.maxCalls }];
       break;
     }
   }
   if (opts.withBoss) return entities;
   // The mimic never pushes the floor past its share of lethal tiles.
   if (level >= MIMIC_FROM && want.mimic && lethal().length < opts.lethalRoom) tryAdd(index => ({ index, type: 'mimic' }), 4, true);
-  if (level >= THIEF_FROM && !opts.midBoss && want.thief) tryAdd(index => ({ index, type: 'thief', loot: 0 }), 4, false);
+  if (level >= THIEF_FROM && !opts.midBoss && !opts.warden && want.thief) tryAdd(index => ({ index, type: 'thief', loot: 0 }), 4, false);
   if (level >= CHEST_FROM && want.chest) tryAdd(index => ({ index, type: 'chest' }), 3, false);
   // Its own roll, so the extras above stay where they were before secret rooms existed (same daily for every version).
   const secretRoll = createPRNG((seed ^ 0x5be0cd19) >>> 0);

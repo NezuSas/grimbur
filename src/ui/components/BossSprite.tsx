@@ -24,6 +24,12 @@ const MINI_FRAMES = {
   breathe: require("../../assets/sprites/enemies/Lieutenant_Boss_Breathe.png"),
 } as const;
 
+/** The Magma Colossus: two frames, like the lieutenant (it rears and its lava flares on the second). */
+const WARDEN_FRAMES = {
+  idle: require("../../assets/sprites/enemies/Warden_Boss.png"),
+  breathe: require("../../assets/sprites/enemies/Warden_Boss_Breathe.png"),
+} as const;
+
 const BREATH_MS = 850;
 const HURT_MS = 600;
 
@@ -32,7 +38,7 @@ const HURT_MS = 600;
  * winds up, and flinches (with a squash the spring undoes) when an arrow lands. Purely visual: the real
  * danger signals (aura, "!" mark) stay, this only makes them felt.
  */
-export default memo(function BossSprite({ hp, charged, style, mini = false, ancient = false }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle>; mini?: boolean; ancient?: boolean }) {
+export default memo(function BossSprite({ hp, charged, style, mini = false, ancient = false, warden = false }: { hp: number; charged: boolean; style?: StyleProp<ViewStyle>; mini?: boolean; ancient?: boolean; warden?: boolean }) {
   const [breathIn, setBreathIn] = useState(false);
   const [hurt, setHurt] = useState(false);
   const prevHp = useRef(hp);
@@ -55,7 +61,9 @@ export default memo(function BossSprite({ hp, charged, style, mini = false, anci
     prevHp.current = hp;
   }, [hp, squash]);
 
-  const source = mini
+  const source = warden
+    ? hurt || charged || breathIn ? WARDEN_FRAMES.breathe : WARDEN_FRAMES.idle
+    : mini
     ? hurt || charged || breathIn ? MINI_FRAMES.breathe : MINI_FRAMES.idle
     : (() => {
         const f = ancient ? ANCIENT_FRAMES : BOSS_FRAMES;

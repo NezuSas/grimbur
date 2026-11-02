@@ -11,7 +11,7 @@
  * often a guess killed the bot. Use it to tune `core/difficulty/difficulty.ts`.
  */
 import { arrowPath, gameReducer, initialState } from '../src/core/engine/reducer';
-import { generateBoard, MID_BOSS_FLOOR } from '../src/core/engine/generator';
+import { generateBoard, MID_BOSS_FLOOR, WARDEN_FLOOR } from '../src/core/engine/generator';
 import { omenFor } from '../src/core/engine/omens';
 import { getNearbyHazards } from '../src/core/engine/proximity';
 import { Direction, GameState } from '../src/core/engine/types';
@@ -241,7 +241,7 @@ interface FloorResult {
 }
 
 function playFloor(floor: number, seed: number): FloorResult {
-  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR });
+  const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR, warden: floor === WARDEN_FLOOR });
   let state: GameState = gameReducer(
     { ...initialState },
     {
@@ -316,7 +316,7 @@ for (let floor = FIRST; floor <= LAST; floor++) {
 
   for (let i = 0; i < RUNS; i++) {
     const seed = floor * 100003 + i * 7919 + 1;
-    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR });
+    const board = generateBoard(floor, seed, { ascension: DEPTH, omen: omenFor(seed, floor, floor > 10 ? "endless" : "expedition"), endless: floor > 10, midBoss: floor === MID_BOSS_FLOOR, warden: floor === WARDEN_FLOOR });
     dims = `${board.rows}x${board.cols}`;
     cells = board.rows * board.cols;
     gems += board.coins;

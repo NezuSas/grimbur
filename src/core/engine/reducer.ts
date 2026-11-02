@@ -336,7 +336,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
             newScore = state.score;
           } else {
             newIsGameOver = true;
-            newDeathCause = entityAtPoint.mini ? 'brute' : 'boss';
+            newDeathCause = entityAtPoint.warden ? 'warden' : entityAtPoint.mini ? 'brute' : 'boss';
           }
           break;
 

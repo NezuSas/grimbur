@@ -5,6 +5,7 @@ import { createPRNG } from '../random/prng';
 import { floorEffects } from './events';
 import { RelicId, relicCount, removeRelic, hasFamilyBonus } from './relics';
 import { MAX_ITEMS } from './shop';
+import { LAVA_TURNS } from './generator';
 
 export const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
   const map: Record<number, GameEntity> = {};
@@ -22,6 +23,12 @@ export const removeEntityAt = (world: World, index: number): World => {
   delete entityMap[index];
   return { entities: world.entities.filter(e => e.index !== index), entityMap };
 };
+
+/** Returns a new world with `entity` added on its (free) tile. */
+export const addEntity = (world: World, entity: GameEntity): World => ({
+  entities: [...world.entities, entity],
+  entityMap: { ...world.entityMap, [entity.index]: entity },
+});
 
 /** Returns a new world where the entity at `index` is replaced by `next`. */
 export const replaceEntityAt = (world: World, index: number, next: GameEntity): World => {
@@ -192,6 +199,17 @@ export const hunterAct = (
   return { world, hit: false };
 };
 
+/** Every pool of lava cools by one action; a cold one is gone. */
+export const coolLava = (world: World): World => {
+  if (!world.entities.some(e => e.lava)) return world;
+  let current = world;
+  for (const pool of world.entities.filter(e => e.lava)) {
+    const ttl = (pool.ttl ?? 1) - 1;
+    current = ttl <= 0 ? removeEntityAt(current, pool.index) : replaceEntityAt(current, pool.index, { ...pool, ttl });
+  }
+  return current;
+};
+
 /**
  * Lets every hunter that is due on `turn` act. Returns the types of the hunters that struck
  * (each one has to be absorbed or kills the player).
@@ -206,9 +224,9 @@ export const huntersAct = (
   /** Stalkers (not the Grimbur) act this many actions sooner on the deepest depths. */
   haste = 0,
 ): { world: World; hits: DeathCause[] } => {
-  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp, mini: e.mini }));
+  const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp, mini: e.mini, warden: e.warden }));
   const hits: DeathCause[] = [];
-  let current = world;
+  let current = coolLava(world);
 
   for (const hunter of hunters) {
     // A Grimbur down to its last heart is furious: it acts after every action (Frost Charm still slows it).
@@ -218,8 +236,10 @@ export const huntersAct = (
     const every = Math.max(1, base + slowdown);
     if (turn % every !== 0) continue;
     const acted = hunterAct(current, hunter.index, playerIndex, rows, cols);
-    current = acted.world;
-    if (acted.hit) hits.push(hunter.mini ? 'brute' : hunter.type);
+    // The Magma Colossus leaves a pool of lava on the tile it just left.
+    const moved = hunter.warden && !acted.hit && !acted.world.entityMap[hunter.index];
+    current = moved ? addEntity(acted.world, { index: hunter.index, type: 'pit', lava: true, ttl: LAVA_TURNS }) : acted.world;
+    if (acted.hit) hits.push(hunter.warden ? 'warden' : hunter.mini ? 'brute' : hunter.type);
   }
   // Thieves are not hunters: every few actions they run for a gem, or away from a hero who gets close.
   if (turn % THIEF_EVERY === 0) {

@@ -175,9 +175,9 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
       {!chest && !newsSeen && (stats.gamesPlayed > 0 || (__DEV__ && !!route.params?.devNews)) ? (
         <WhatsNewModal
           onClose={() => markHintSeen(WHATS_NEW_ID)}
-          onSeePets={() => {
+          onSeePuzzles={() => {
             markHintSeen(WHATS_NEW_ID);
-            navigation.navigate("CollectionScreen", { category: "pet" });
+            navigation.navigate("PuzzlesScreen");
           }}
         />
       ) : null}
