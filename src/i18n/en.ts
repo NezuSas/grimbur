@@ -2096,6 +2096,19 @@ export const en = {
   'a11y.thing.thief': 'thief',
   'a11y.thing.chest': 'chest',
   'a11y.thing.secret': 'secret room',
+  'whatsnew.title': 'New in the cave',
+  'whatsnew.go': 'To the cave!',
+  'whatsnew.pets': 'See the companions',
+  'whatsnew.secrets.title': 'Secret rooms',
+  'whatsnew.secrets.body': 'A golden glint on a tile gives away a hidden room beside it: gems, an arrow and a page of the chronicle.',
+  'whatsnew.encounters.title': 'Encounters',
+  'whatsnew.encounters.body': 'Some floors open with a scene: a gambler, a trapped miner, a smith… Your call.',
+  'whatsnew.pets.title': 'Companions that grow',
+  'whatsnew.pets.body': 'A creature floats by your hero and grows with the floors you play together.',
+  'whatsnew.quests.title': 'Hero challenges',
+  'whatsnew.quests.body': 'Three challenges for every hero, played their way. Complete them for the hero title and frame.',
+  'whatsnew.ancient.title': 'The Ancestral Grimbur',
+  'whatsnew.ancient.body': 'On the hardest depths an older, frozen Grimbur awaits.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

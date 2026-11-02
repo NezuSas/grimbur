@@ -688,7 +688,9 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       // Only a cleared, non-final floor with no draft pending can advance (guards double dispatches).
       if (!state.isLevelUp || state.isVictory || state.pendingDraft || state.isGameOver) return state;
       const { rows, cols, coins, attack, seed, omen, skip = 0 } = action.payload;
-      const { entities, secret } = splitSecret(action.payload.entities);
+      const split = splitSecret(action.payload.entities);
+      const entities = split.entities;
+      const secret = state.features && !state.features.secrets ? null : split.secret;
       let arrows = attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver');
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
@@ -722,6 +724,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarUsed: false,
         omen: omen ?? null,
         encounter: (() => {
+          if (state.features && !state.features.encounters) return null;
           const id = encounterFor(state.runSeed, state.level + 1 + skip, state.mode, state.event);
           return id ? { id } : null;
         })(),
@@ -959,7 +962,9 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
     case 'RESET': {
       const { character, rows, cols, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic, event } = action;
-      const { entities, secret } = splitSecret(action.entities);
+      const split = splitSecret(action.entities);
+      const entities = split.entities;
+      const secret = action.features && !action.features.secrets ? null : split.secret;
       const heroPerks = perks ?? NO_PERKS;
       const startingRelics: RelicId[] = startRelics ? [...startRelics] : [];
       const withRelic = (id: RelicId) => relicCount(startingRelics, id) > 0;
@@ -969,6 +974,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         rows,
         cols,
         secret,
+        features: action.features,
         entities,
         entityMap: createEntityMap(entities),
         coins,

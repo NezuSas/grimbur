@@ -11,6 +11,7 @@ import { nextGoals } from "../core/stats/goals";
 import { getLocalStats, openDailyChest, peekLocalStats, syncAchievements } from "../services/localStats";
 import { chestStatus } from "../core/stats/dailyChest";
 import DailyChestModal from "../ui/components/DailyChestModal";
+import WhatsNewModal, { WHATS_NEW_ID } from "../ui/components/WhatsNewModal";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { claimableCount, syncMissions } from "../core/stats/missions";
 import { syncReminders } from "../services/reminders";
@@ -31,6 +32,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
 const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
   const calm = useSettingsStore(s => s.reduceFlash);
   const storySeen = useSettingsStore(s => s.storySeen);
+  // What is new: once, for a player who already knew the cave (a newcomer meets it all by playing), after the daily chest.
+  const newsSeen = useSettingsStore(s => s.hintsSeen.includes(WHATS_NEW_ID));
+  const markHintSeen = useSettingsStore(s => s.markHintSeen);
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   // The daily chest: offered once a day after the first run ever, when the cover is reached with nothing else pressing.
@@ -165,6 +169,15 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
         />
         <NewsBanner />
       </ImageBackground>
+      {!chest && !newsSeen && (stats.gamesPlayed > 0 || (__DEV__ && !!route.params?.devNews)) ? (
+        <WhatsNewModal
+          onClose={() => markHintSeen(WHATS_NEW_ID)}
+          onSeePets={() => {
+            markHintSeen(WHATS_NEW_ID);
+            navigation.navigate("CollectionScreen", { category: "pet" });
+          }}
+        />
+      ) : null}
       {chest ? <DailyChestModal day={chest.day} opened={chest.opened} busy={chest.busy} onOpen={openChest} onClose={() => setChest(null)} calm={calm} /> : null}
     </View>
   );

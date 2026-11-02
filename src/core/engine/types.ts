@@ -7,6 +7,7 @@ import type { OmenId } from './omens';
 import type { EventId } from './events';
 import type { ShopItem } from './shop';
 import type { Encounter } from './encounters';
+import type { RunFeatures } from './newcomer';
 
 export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 
@@ -136,6 +137,8 @@ export interface GameState {
   revives?: number;
   /** Arrow packs bought with embers in this run. */
   refills?: number;
+  /** The extras this run may hold (a newcomer meets them one at a time, see newcomer.ts); absent = all. */
+  features?: RunFeatures;
   /** The scene that opens this floor (see encounters.ts); it holds input until the player chooses. */
   encounter?: Encounter | null;
   /** Every scene this run met and how it went (for the encounter journal). */
@@ -197,6 +200,8 @@ export type GameAction =
       startShield?: boolean;
       /** Relics the run begins with (Forge: Phoenix Feather). */
       startRelics?: RelicId[];
+      /** The extras this run may hold (a newcomer's first runs hold fewer). */
+      features?: RunFeatures;
     }
   /** Replaces the whole state with a run loaded from disk (continue a saved expedition). */
   | { type: 'RESTORE'; state: GameState }
@@ -222,7 +227,7 @@ export interface GameEngineInterface {
   isAttacking: boolean;
   move: (direction: Direction) => void;
   attack: (direction?: Direction) => void;
-  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null }) => void;
+  reset: (character: Character, options?: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null; features?: RunFeatures }) => void;
   /** Continues a saved run: the given state becomes the current one, with no side-effects fired. */
   restore: (state: GameState) => void;
   levelUp: (omen?: OmenId | null) => void;

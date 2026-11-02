@@ -1,4 +1,5 @@
 import { useReducer, useCallback, useRef, useEffect, useState } from 'react';
+import type { RunFeatures } from './newcomer';
 import { dailyKey } from './seed';
 import { seasonKeyOf, seasonRelicFor } from '../stats/season';
 import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from '../../shared/haptics';
@@ -145,7 +146,7 @@ export function useGameEngine(): GameEngineInterface {
   /** The final floor of an expedition (and of a daily) is the Grimbur' lair. */
   const isBossFloor = isLairFloor;
 
-  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null } = {}) => {
+  const reset = useCallback((character: Character, options: { mode?: GameMode; runSeed?: number; heroIndex?: number; ascension?: number; meta?: MetaEffects; event?: EventId | null; features?: RunFeatures } = {}) => {
     const mode = options.mode ?? 'expedition';
     // The daily challenge is the same cave for everyone, so it never uses a harder depth.
     const ascension = mode === 'daily' ? 0 : clampAscension(options.ascension ?? 0);
@@ -176,6 +177,7 @@ export function useGameEngine(): GameEngineInterface {
       draftBonus: meta.draftBonus,
       startShield: meta.shield,
       startRelics: meta.startRelics,
+      features: options.features,
     });
   }, [pureDispatch]);
 

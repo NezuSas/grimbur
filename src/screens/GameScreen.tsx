@@ -3,6 +3,7 @@ import { provenMarks } from "../core/engine/solver";
 import { loadDailyGhosts, type DailyGhost } from "../services/dailyScores";
 import { weekKey } from "../core/leaderboard/daily";
 import { reviewDeath } from "../core/engine/deathReview";
+import { featuresFor } from "../core/engine/newcomer";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../ui/components/Text";
 import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } from "react";
@@ -473,6 +474,8 @@ export default function GameScreen({ navigation, route }: Props) {
       ...(mode === "endless" ? { mode: "endless" as const } : {}),
       // The week's event: every expedition this week (never a challenge or a duel, nor a newcomer's first runs).
       event: !challenge && (peekLocalStats()?.gamesPlayed ?? 0) >= EVENT_MIN_RUNS ? eventForWeek(weekKey(dailyKey())) : null,
+      // A newcomer meets the extras one run at a time (secret rooms, then encounters).
+      features: featuresFor(peekLocalStats()?.gamesPlayed ?? 0, isDaily ? "daily" : mode, !!challenge || !!duelParam),
     });
   }, [reset, selectedCharacter, characterIndex, ascension, isDaily, dailyDate, challenge, route.params?.meta, hintAllowed]);
 
