@@ -145,6 +145,10 @@ export interface RunRecord {
   event?: string;
   /** The last floor as it was when the run ended. */
   board?: RunBoard;
+  /** The scenes of the run, in order: [encounter, outcome, floor]. */
+  encounters?: [string, string, number][];
+  /** Secret rooms the run found. */
+  secrets?: number;
 }
 
 export const HISTORY_LIMIT = 30;
@@ -199,7 +203,7 @@ export interface RunResult {
   /** Secret rooms found in the run. */
   secrets?: number;
   /** The scenes the run met and how each went. */
-  encounters?: readonly { id: string; outcome?: string }[];
+  encounters?: readonly { id: string; outcome?: string; floor?: number }[];
   /** The daily only: the path walked on each floor and where the run fell (kept when it is today's best). */
   ghost?: DailyGhostPath;
   /** What killed the hero (a defeat). */
@@ -315,6 +319,8 @@ function historyRecord(run: RunResult): RunRecord {
   if (run.ascension) rec.depth = run.ascension;
   if (run.event) rec.event = run.event;
   if (run.board) rec.board = run.board;
+  if (run.encounters && run.encounters.length > 0) rec.encounters = run.encounters.slice(0, 20).map(e => [e.id, e.outcome ?? 'skip', e.floor ?? 0]);
+  if (run.secrets) rec.secrets = Math.max(0, Math.trunc(run.secrets));
   return rec;
 }
 
@@ -493,6 +499,13 @@ function parseHistory(value: unknown): RunRecord[] {
     if (typeof x.event === 'string' && x.event.length <= 16) rec.event = x.event;
     const board = parseRunBoard(x.board);
     if (board) rec.board = board;
+    if (Array.isArray(x.encounters)) {
+      const scenes = x.encounters
+        .filter((e: unknown): e is [string, string, number] => Array.isArray(e) && typeof e[0] === 'string' && e[0].length <= 16 && typeof e[1] === 'string' && e[1].length <= 8 && Number.isInteger(e[2]))
+        .slice(0, 20);
+      if (scenes.length > 0) rec.encounters = scenes;
+    }
+    if (Number.isInteger(x.secrets) && (x.secrets as number) > 0) rec.secrets = Math.min(99, x.secrets as number);
     out.push(rec);
   }
   return out.slice(-HISTORY_LIMIT);

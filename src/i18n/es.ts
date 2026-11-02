@@ -2006,4 +2006,11 @@ export const es: Record<TranslationKey, string> = {
   'encounters.unknown': 'Aún no lo has vivido. Algunos pisos desde el segundo empiezan con una escena.',
   'event.wanderers.name': 'Semana de los errantes',
   'event.wanderers.rule': 'Casi todos los pisos empiezan con un encuentro en la cueva, y cada gema paga un 25% más.',
+  'history.story': 'Lo que pasó',
+  'history.outcome.win': 'salió bien',
+  'history.outcome.lose': 'salió mal',
+  'history.outcome.done': 'aceptado',
+  'history.outcome.skip': 'seguiste de largo',
+  'history.secret.one': 'Encontraste una sala secreta',
+  'history.secret.other': 'Encontraste {n} salas secretas',
 };

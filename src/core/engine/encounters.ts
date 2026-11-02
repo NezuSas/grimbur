@@ -112,7 +112,7 @@ export function resolveEncounter(state: GameState, take: boolean): GameState {
   if (!enc || enc.outcome) return state;
   const after = resolveScene(state, enc, take);
   const done = after.encounter ?? enc;
-  return { ...after, encounterLog: [...(state.encounterLog ?? []), { id: done.id, outcome: done.outcome }] };
+  return { ...after, encounterLog: [...(state.encounterLog ?? []), { id: done.id, outcome: done.outcome, floor: state.level }] };
 }
 
 function resolveScene(state: GameState, enc: Encounter, take: boolean): GameState {

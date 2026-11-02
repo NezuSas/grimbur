@@ -18,6 +18,8 @@ import characters from "../../data/characters";
 import { useT } from "../../i18n/useT";
 import { heroText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
+import { ENCOUNTERS, type EncounterId } from "../../core/engine/encounters";
+import { ENCOUNTER_ART, ENCOUNTER_TINT } from "../../ui/components/game/EncounterModal";
 
 const GEM = require("../../assets/sprites/items/Icon_Gem.png");
 const WIN = "#F2C14E";
@@ -137,6 +139,39 @@ const RunDetail = ({ run, onClose }: Props) => {
               {t("event.played", { name: t(`event.${run.event}.name` as TranslationKey) })}
             </Text>
           ) : null}
+          {(run.encounters?.length ?? 0) > 0 || run.secrets ? (
+            <>
+              <Text style={styles.section} maxFontSizeMultiplier={1.1}>
+                {t("history.story").toLocaleUpperCase()}
+              </Text>
+              <View style={styles.story}>
+                {(run.encounters ?? []).map(([id, outcome, floor], k) => {
+                  const known = (ENCOUNTERS as readonly string[]).includes(id);
+                  if (!known) return null;
+                  const eid = id as EncounterId;
+                  return (
+                    <View key={`${id}-${k}`} style={styles.storyRow}>
+                      <SpriteImage source={ENCOUNTER_ART[eid]} style={styles.storyArt} resizeMode="contain" />
+                      <Text style={styles.storyText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                        <Text style={{ color: ENCOUNTER_TINT[eid], fontWeight: "900" }}>{floor > 0 ? `${t("scores.floorShort", { n: floor })} · ` : ""}</Text>
+                        {t(`encounter.${eid}.title` as TranslationKey)}
+                        {"  —  "}
+                        {t(`history.outcome.${outcome === "win" || outcome === "lose" || outcome === "done" ? outcome : "skip"}` as TranslationKey)}
+                      </Text>
+                    </View>
+                  );
+                })}
+                {run.secrets ? (
+                  <View style={styles.storyRow}>
+                    <Ionicons name="sparkles" size={18} color="#FFE082" style={styles.storyIcon} />
+                    <Text style={styles.storyText} maxFontSizeMultiplier={1.1}>
+                      {run.secrets === 1 ? t("history.secret.one") : t("history.secret.other", { n: run.secrets })}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </>
+          ) : null}
           <Text style={styles.section} maxFontSizeMultiplier={1.1}>
             {t("history.relics", { n: relics.length }).toLocaleUpperCase()}
           </Text>
@@ -193,4 +228,9 @@ const styles = StyleSheet.create({
   relic: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.4)" },
   relicArt: { width: 30, height: 30 },
   none: { color: "#A8927D", fontSize: 12, fontStyle: "italic" },
+  story: { gap: 4 },
+  storyRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  storyArt: { width: 26, height: 26 },
+  storyIcon: { width: 26, textAlign: "center" },
+  storyText: { flex: 1, color: "#E6D6C4", fontSize: 12.5, fontWeight: "700" },
 });

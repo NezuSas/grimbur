@@ -81,6 +81,8 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
       time: 300 + i * 41,
       gems: 8 + i * 3,
       event: i > 10 ? "vortex" : undefined,
+      encounters: [["scout", "done", 2], ["gambler", "win", 4], ["echo", "lose", 6]].slice(0, 1 + (i % 3)) as [string, string, number][],
+      secrets: i % 3,
       board: {
         rows: 5,
         cols: 15,

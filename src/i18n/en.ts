@@ -2005,6 +2005,13 @@ export const en = {
   'encounters.unknown': 'Not met yet. Some floors from the second open with a scene.',
   'event.wanderers.name': 'Week of the wanderers',
   'event.wanderers.rule': 'Most floors open with an encounter in the cave, and every gem pays 25% more.',
+  'history.story': 'What happened',
+  'history.outcome.win': 'it went well',
+  'history.outcome.lose': 'it went wrong',
+  'history.outcome.done': 'taken',
+  'history.outcome.skip': 'walked past',
+  'history.secret.one': 'Found a secret room',
+  'history.secret.other': 'Found {n} secret rooms',
 } as const;
 
 export type TranslationKey = keyof typeof en;

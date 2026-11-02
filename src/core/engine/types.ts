@@ -139,7 +139,7 @@ export interface GameState {
   /** The scene that opens this floor (see encounters.ts); it holds input until the player chooses. */
   encounter?: Encounter | null;
   /** Every scene this run met and how it went (for the encounter journal). */
-  encounterLog?: { id: string; outcome?: string }[];
+  encounterLog?: { id: string; outcome?: string; floor?: number }[];
   /** The tile of this floor's secret room (not an entity: monsters walk over it, nothing on the board gives it away); null once found. */
   secret?: number | null;
   /** Secret rooms found in this run (see generator.ts: a hidden cache whose draft shows on the tiles beside it). */
