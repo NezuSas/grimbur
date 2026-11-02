@@ -1,5 +1,6 @@
 import { PUZZLE_COUNT } from '../puzzles/puzzles';
 import { daysBetween, previousDayKey } from '../engine/seed';
+import { YULE_GIFT_EMBERS, isYuleDay } from '../events/yule';
 
 /** What the player has done with the cave's puzzles. */
 export interface PuzzleProgress {
@@ -100,6 +101,7 @@ export function withPuzzleResult(p: PuzzleProgress | undefined, target: PuzzleTa
       const streak = first ? (base.daily?.date === previousDayKey(target.date) ? base.streak + 1 : 1) : base.streak;
       return { ...base, daily: { date: target.date, stars: Math.max(got, before) }, dailySolved: base.dailySolved + (first ? 1 : 0), streak, bestStreak: Math.max(base.bestStreak, streak) };
     })(),
-    embers: first ? DAILY_PUZZLE_EMBERS : 0,
+    // During Christmas in the cave the first solve of the day also carries a gift.
+    embers: first ? DAILY_PUZZLE_EMBERS + (isYuleDay(target.date) ? YULE_GIFT_EMBERS : 0) : 0,
   };
 }

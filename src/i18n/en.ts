@@ -2239,6 +2239,22 @@ export const en = {
   'tech.full.body': 'When a clue’s dangers are already placed (by a flag or by another clue), every other neighbour of it is safe.',
   'tech.full.tip': 'The flag already places a danger. The clue next to it senses only that one: its other neighbours are safe.',
   'tech.full.learned': 'A clue whose dangers are all placed is full: everything else around it is safe. Chain this with the cornered danger and few floors resist you.',
+  'cosmetic.frame_yule.name': 'Yule Frame',
+  'cosmetic.pet_reindeer.name': 'Crystal reindeer',
+  'cosmetic.title_yule.name': 'Light of the Cave',
+  'cosmetic.unlock.yule.floors': 'Christmas in the cave: clear {floors} floors in December',
+  'cosmetic.unlock.yule.puzzles': 'Christmas in the cave: solve {puzzles} puzzles of the day in December',
+  'cosmetic.unlock.yule.both': 'Christmas in the cave: earn the frame and the reindeer in the same December',
+  'yule.title': 'Christmas in the cave',
+  'yule.chip': 'Christmas',
+  'yule.sub': 'All December long. {n} days left to earn what only this month gives.',
+  'yule.goal.floors': 'Clear {n} floors in December',
+  'yule.goal.puzzles': 'Solve {n} puzzles of the day in December',
+  'yule.goal.both': 'Earn the frame and the reindeer this December',
+  'yule.gift': 'Gift: the puzzle of the day pays 10 extra embers every day of December.',
+  'yule.puzzle': 'Puzzle of the day',
+  'yule.go': 'To the cave!',
+  'yule.subShort': 'All December · {n} days left · the puzzle of the day pays 10 extra embers',
 } as const;
 
 export type TranslationKey = keyof typeof en;

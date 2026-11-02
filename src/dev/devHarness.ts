@@ -1,4 +1,5 @@
 import { Platform } from "react-native";
+import { forceYule } from "../core/events/yule";
 import { COSMETICS } from "../core/cosmetics/cosmetics";
 import { EMPTY_MISSIONS, missionDef, syncMissions } from "../core/stats/missions";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
@@ -113,6 +114,8 @@ export function readDevHarness(): DevLaunch | null {
     const q = new URLSearchParams(window.location.search);
     const screen = q.get("screen");
     const preset = q.get("preset");
+    // `event=yule`: Christmas in the cave whatever the date (snow, the cover card, the gift).
+    if (q.get("event") === "yule") forceYule(true);
     if (!screen && !preset && !q.get("lang")) return null;
 
     if (preset && PRESETS[preset]) {

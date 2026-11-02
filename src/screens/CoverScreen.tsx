@@ -1,4 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
+import Snowfall from "../ui/components/Snowfall";
+import YuleModal from "../ui/components/YuleModal";
+import { isYuleDay } from "../core/events/yule";
 import { ImageBackground, View, StyleSheet } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -103,6 +106,9 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
   );
   const today = dailyKey(now);
   const streak = useMemo(() => streakStatus(stats, today), [stats, today]);
+  // Christmas in the cave (December): snow on the cover and a card with the month's keepsakes.
+  const yule = isYuleDay(today);
+  const [yuleOpen, setYuleOpen] = useState(() => __DEV__ && !!route.params?.devYule);
   const goal = useMemo(() => nextGoals(stats, 1)[0] ?? null, [stats]);
   const achievementsSeen = useSettingsStore(st => st.achievementsSeen);
   const collectionRewardsSeen = useSettingsStore(st => st.collectionRewardsSeen);
@@ -161,6 +167,7 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
           missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0}
           onPressMissions={() => navigation.navigate("MissionsScreen")}
           onPressPuzzles={() => navigation.navigate("PuzzlesScreen")}
+          onPressEvent={yule ? () => setYuleOpen(true) : undefined}
           puzzleWaiting={dailyPuzzleStars(stats.puzzles, today) === 0}
           onPressCollection={() => navigation.navigate("CollectionScreen")}
           onPressScores={() => navigation.navigate("HighScoresScreen")}
@@ -171,7 +178,19 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
           onPressSettings={() => navigation.navigate("SettingsScreen")}
         />
         <NewsBanner />
+        {yule ? <Snowfall calm={calm} /> : null}
       </ImageBackground>
+      {yuleOpen ? (
+        <YuleModal
+          events={stats.events}
+          today={today}
+          onClose={() => setYuleOpen(false)}
+          onPuzzles={() => {
+            setYuleOpen(false);
+            navigation.navigate("PuzzlesScreen");
+          }}
+        />
+      ) : null}
       {!chest && !newsSeen && (stats.gamesPlayed > 0 || (__DEV__ && !!route.params?.devNews)) ? (
         <WhatsNewModal
           onClose={() => markHintSeen(WHATS_NEW_ID)}

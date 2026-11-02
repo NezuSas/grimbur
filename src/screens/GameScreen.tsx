@@ -1,4 +1,6 @@
 import { EVENT_MIN_RUNS, eventForWeek, floorEffects } from "../core/engine/events";
+import Snowfall from "../ui/components/Snowfall";
+import { isYuleDay } from "../core/events/yule";
 import { provenMarks } from "../core/engine/solver";
 import { loadDailyGhosts, type DailyGhost } from "../services/dailyScores";
 import { weekKey } from "../core/leaderboard/daily";
@@ -966,6 +968,8 @@ export default function GameScreen({ navigation, route }: Props) {
       </View>
 
 
+      {/* Christmas in the cave: a light snow over the floor (a look only). */}
+      {isYuleDay(dailyKey()) ? <Snowfall count={18} calm={reduceFlash} /> : null}
       <DangerVignette
         roar={nearby.enemy && !runEnded && !levelUpWindow}
         vortex={nearby.pit && !runEnded && !levelUpWindow}

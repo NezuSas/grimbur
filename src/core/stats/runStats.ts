@@ -5,6 +5,7 @@ import { EMPTY_ENCOUNTER_BOOK, addRunEncounters, parseEncounterBook, type Encoun
 import { QUEST_EMBERS, newQuests, parseQuests, withQuests } from './heroQuests';
 import { addPetFloors, parsePetFloors } from '../cosmetics/petGrowth';
 import { EMPTY_PUZZLES, parsePuzzles, type PuzzleProgress } from './puzzleProgress';
+import { addYuleFloors, parseEvents, type EventProgress } from '../events/yule';
 import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
@@ -96,6 +97,8 @@ export interface LocalStats {
   bestQuickScore: number;
   /** The cave's puzzles: stars on the path and the daily one (see puzzleProgress.ts). */
   puzzles: PuzzleProgress;
+  /** Seasonal events (Christmas in the cave): progress per event and year, see core/events/yule.ts. */
+  events: EventProgress;
   /** Every ember ever earned (the balance goes down when spending; this never does). */
   lifetimeEmbers: number;
   /** Expeditions and dailies won with each hero (same order as the roster). */
@@ -242,6 +245,7 @@ export const EMPTY_STATS: LocalStats = {
   quickWins: 0,
   bestQuickScore: 0,
   puzzles: EMPTY_PUZZLES,
+  events: {},
   encounterBook: EMPTY_ENCOUNTER_BOOK,
   heroQuests: [0, 0, 0, 0, 0, 0],
   petFloors: {},
@@ -309,6 +313,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     encounterBook: addRunEncounters(stats.encounterBook ?? EMPTY_ENCOUNTER_BOOK, run.encounters),
     heroQuests: questsDone.length > 0 && run.heroIndex !== undefined ? withQuests(stats.heroQuests, run.heroIndex, questsDone) : stats.heroQuests ?? [0, 0, 0, 0, 0, 0],
     petFloors: played ? addPetFloors(stats.petFloors, run.pet, Math.max(1, Math.trunc(run.level))) : stats.petFloors ?? {},
+    events: played ? addYuleFloors(stats.events, run.day, Math.max(1, Math.trunc(run.level))) : stats.events ?? {},
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
     heroXp: stats.heroXp.map((n, i) => n + (run.heroIndex === i ? masteryXpFor(run, progressed) : 0)),
@@ -629,6 +634,7 @@ export function parseStats(raw: string | null): LocalStats {
       quickWins: Math.trunc(num(data.quickWins)),
       bestQuickScore: Math.trunc(num(data.bestQuickScore)),
       puzzles: parsePuzzles(data.puzzles),
+      events: parseEvents(data.events),
       // Saves from before this counter existed hold embers but a lifetime of 0: it can never be below what was earned and kept.
       lifetimeEmbers: Math.max(Math.trunc(num(data.lifetimeEmbers)), Math.trunc(num(data.embers))),
       heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),

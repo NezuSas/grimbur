@@ -1,4 +1,5 @@
 import type { AchievementId } from '../stats/achievements';
+import { yuleGoalMet, type YuleGoal } from '../events/yule';
 import { completedMonth } from '../stats/season';
 import type { LocalStats } from '../stats/runStats';
 import { SKINS_BY_HERO } from '../skins/skins';
@@ -31,7 +32,8 @@ export type CosmeticId =
   | 'title_mastervael' | 'title_mastersera' | 'title_masterborin' | 'title_masterauric' | 'title_mastermira' | 'title_masterbram'
   | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair' | 'board_frost' | 'board_moss' | 'board_vault'
   | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard'
-  | 'pet_firefly' | 'pet_bat' | 'pet_golem' | 'pet_fox' | 'pet_dragon' | 'pet_owl';
+  | 'pet_firefly' | 'pet_bat' | 'pet_golem' | 'pet_fox' | 'pet_dragon' | 'pet_owl'
+  | 'frame_yule' | 'title_yule' | 'pet_reindeer';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
 
@@ -46,7 +48,9 @@ export type CosmeticUnlock =
   /** Finish the season of that month (1-12): each month has a title of its own. */
   | { kind: 'seasonMonth'; month: number }
   /** Complete the three challenges of that hero (see stats/heroQuests.ts). */
-  | { kind: 'quests'; hero: number };
+  | { kind: 'quests'; hero: number }
+  /** Christmas in the cave: met in some December (see core/events/yule.ts). */
+  | { kind: 'event'; event: 'yule'; goal: YuleGoal };
 
 /** The shares of the collection that each give a reward of their own. */
 export const COLLECTION_MILESTONES = [25, 50, 75, 100] as const;
@@ -181,6 +185,10 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('pet_fox', 'pet', 'epic', 1100),
   item('pet_owl', 'pet', 'epic', 0, ach('bestiary_all')),
   item('pet_dragon', 'pet', 'legendary', 0, ach('hunt_500')),
+  // Christmas in the cave: only earned in December, kept forever.
+  item('frame_yule', 'frame', 'epic', 0, { kind: 'event', event: 'yule', goal: 'floors' }),
+  item('pet_reindeer', 'pet', 'epic', 0, { kind: 'event', event: 'yule', goal: 'puzzles' }),
+  item('title_yule', 'title', 'legendary', 0, { kind: 'event', event: 'yule', goal: 'both' }),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));
@@ -208,6 +216,8 @@ export function collectionProgress(stats: LocalStats): { owned: number; total: n
   });
   for (const c of COSMETICS) {
     if (isCollectionReward(c)) continue;
+    // Event keepsakes can only be earned in their month: they never hold back a full collection.
+    if (c.unlock?.kind === 'event') continue;
     total++;
     if (ownsCosmetic(stats, c.id)) owned++;
   }
@@ -232,6 +242,7 @@ const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean => {
   if (unlock.kind === 'season') return (stats.season?.completed ?? 0) > 0;
   if (unlock.kind === 'seasonMonth') return completedMonth(stats.season, unlock.month);
   if (unlock.kind === 'quests') return allQuestsDone(stats.heroQuests?.[unlock.hero]);
+  if (unlock.kind === 'event') return yuleGoalMet(stats.events, unlock.goal);
   return !!stats.achievements[unlock.id];
 };
 

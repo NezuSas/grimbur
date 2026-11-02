@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { YULE_FLOORS, YULE_PUZZLES } from "../../core/events/yule";
 import GlyphIcon from "../../ui/components/GlyphIcon";
 import { Animated, ScrollView, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -140,6 +141,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             ? t("cosmetic.unlock.seasonMonth", { month: t(`season.month.${unlock.month}` as TranslationKey) })
           : unlock.kind === "quests"
             ? t("cosmetic.unlock.quests", { name: heroText(t, unlock.hero, "name") })
+          : unlock.kind === "event"
+            ? t(`cosmetic.unlock.yule.${unlock.goal}` as TranslationKey, { floors: YULE_FLOORS, puzzles: YULE_PUZZLES })
           : t("cosmetic.unlock.achievement", { name: achievementText(t, unlock.id, "name") });
   const unlockLine = howToEarn(info?.unlock);
 

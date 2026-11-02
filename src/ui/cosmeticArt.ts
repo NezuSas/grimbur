@@ -27,6 +27,7 @@ export const PET_ART: Partial<Record<CosmeticId, readonly [ImageSourcePropType, 
   pet_fox: [require('../assets/sprites/cosmetics/Pet_Fox_A.png'), require('../assets/sprites/cosmetics/Pet_Fox_B.png')],
   pet_dragon: [require('../assets/sprites/cosmetics/Pet_Dragon_A.png'), require('../assets/sprites/cosmetics/Pet_Dragon_B.png')],
   pet_owl: [require('../assets/sprites/cosmetics/Pet_Owl_A.png'), require('../assets/sprites/cosmetics/Pet_Owl_B.png')],
+  pet_reindeer: [require('../assets/sprites/cosmetics/Pet_Reindeer_A.png'), require('../assets/sprites/cosmetics/Pet_Reindeer_B.png')],
 };
 
 /** The grown-up form of each companion (its stage 2, scripts/slicePairSheet.py). */
@@ -37,6 +38,7 @@ export const PET_ADULT_ART: Partial<Record<CosmeticId, readonly [ImageSourceProp
   pet_fox: [require('../assets/sprites/cosmetics/PetAdult_Fox_A.png'), require('../assets/sprites/cosmetics/PetAdult_Fox_B.png')],
   pet_dragon: [require('../assets/sprites/cosmetics/PetAdult_Dragon_A.png'), require('../assets/sprites/cosmetics/PetAdult_Dragon_B.png')],
   pet_owl: [require('../assets/sprites/cosmetics/PetAdult_Owl_A.png'), require('../assets/sprites/cosmetics/PetAdult_Owl_B.png')],
+  pet_reindeer: [require('../assets/sprites/cosmetics/PetAdult_Reindeer_A.png'), require('../assets/sprites/cosmetics/PetAdult_Reindeer_B.png')],
 };
 
 /** The colour of each companion's aura once it is young. */
@@ -47,6 +49,7 @@ export const PET_TINT: Partial<Record<CosmeticId, string>> = {
   pet_fox: '#81D4FA',
   pet_dragon: '#FF8A65',
   pet_owl: '#FFD54F',
+  pet_reindeer: '#FFB74D',
 };
 
 /** The two frames a companion shows at a stage (adult art from stage 2). */
@@ -73,6 +76,7 @@ export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_questauric: require('../assets/sprites/cosmetics/Frame_QuestAuric.png'),
   frame_questmira: require('../assets/sprites/cosmetics/Frame_QuestMira.png'),
   frame_questbram: require('../assets/sprites/cosmetics/Frame_QuestBram.png'),
+  frame_yule: require('../assets/sprites/cosmetics/Frame_Yule.png'),
 };
 
 /** The same frames, drawn as a tall arch around the hero's whole figure (hero picker, shared picture). 3 wide by 4 tall. */
@@ -96,6 +100,7 @@ export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = 
   frame_questauric: require('../assets/sprites/cosmetics/FrameBody_QuestAuric.png'),
   frame_questmira: require('../assets/sprites/cosmetics/FrameBody_QuestMira.png'),
   frame_questbram: require('../assets/sprites/cosmetics/FrameBody_QuestBram.png'),
+  frame_yule: require('../assets/sprites/cosmetics/FrameBody_Yule.png'),
 };
 
 /** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */

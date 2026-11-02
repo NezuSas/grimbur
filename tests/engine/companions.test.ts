@@ -4,8 +4,9 @@ import { EMPTY_STATS } from '../../src/core/stats/runStats';
 describe('companions', () => {
   const pets = COSMETICS.filter(c => c.kind === 'pet');
 
-  it('come six, some for embers and some earned by achievements', () => {
-    expect(pets).toHaveLength(6);
+  it('come seven, some for embers, some earned by achievements and one by Christmas in the cave', () => {
+    expect(pets).toHaveLength(7);
+    expect(pets.filter(p => p.unlock?.kind === 'event').map(p => p.id)).toEqual(['pet_reindeer']);
     expect(pets.filter(p => p.price > 0).length).toBeGreaterThan(0);
     expect(pets.filter(p => p.unlock?.kind === 'achievement').length).toBeGreaterThan(0);
   });

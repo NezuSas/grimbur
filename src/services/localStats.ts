@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addYulePuzzle } from '../core/events/yule';
 import { addFriend, markSeen, removeFriend } from '../core/social/friends';
 import { claimSeason, syncSeason } from '../core/stats/season';
 import {
@@ -307,7 +308,10 @@ export const recordPuzzle = (target: PuzzleTarget, stars: number): Promise<{ sta
   serialized(async () => {
     const before = await getLocalStats();
     const { progress, embers } = withPuzzleResult(before.puzzles, target, stars);
-    const solved: LocalStats = { ...before, puzzles: progress, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
+    // A first solve of the puzzle of the day counts toward Christmas in the cave (only while it runs).
+    const firstDaily = target.kind === 'daily' && before.puzzles?.daily?.date !== target.date && progress.daily?.date === target.date;
+    const events = firstDaily ? addYulePuzzle(before.events, target.date) : before.events;
+    const solved: LocalStats = { ...before, puzzles: progress, events, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
     const achievements = newAchievements(solved, { score: 0, level: 1 });
     const stats = claimUnlockedSkins(withAchievements(solved, achievements, dailyKey())).stats;
     await save(stats);

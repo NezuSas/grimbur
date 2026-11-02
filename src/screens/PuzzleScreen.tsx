@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import Snowfall from "../ui/components/Snowfall";
+import { isYuleDay } from "../core/events/yule";
 import { ImageBackground, Share, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -354,6 +356,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         </View>
       </View>
 
+      {isYuleDay(today) ? <Snowfall count={18} calm={calm} /> : null}
       <DangerVignette roar={here.enemy && danger} vortex={here.pit && danger} intensity={Math.max(here.enemyCount, here.pitCount)} calm={calm} beat={heartbeat} />
       {result ? (
         <OverlayContainer>

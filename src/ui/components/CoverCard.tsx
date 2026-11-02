@@ -77,6 +77,8 @@ type Props = {
   onPressMissions: () => void;
   /** The cave's puzzles, and whether today's puzzle still waits (a dot on its pill). */
   onPressPuzzles?: () => void;
+  /** Christmas in the cave is on: a chip opens its card. */
+  onPressEvent?: () => void;
   puzzleWaiting?: boolean;
   onPressSettings: () => void;
 };
@@ -166,6 +168,7 @@ const CoverCard: React.FC<Props> = ({
   onPressForge,
   onPressMissions,
   onPressPuzzles,
+  onPressEvent,
   puzzleWaiting = false,
   missionsBadge,
   onPressAchievements,
@@ -279,6 +282,25 @@ const CoverCard: React.FC<Props> = ({
   const menu = (
     <View style={[styles.menu, { width: menuWidth, gap: short ? 6 : 8 }]}>
       <View style={[styles.chips, chipClear > 0 && { marginRight: chipClear }]}>
+        {!firstRun && onPressEvent ? (
+          <PressScale
+            style={[styles.chip, styles.eventChip]}
+            onPress={() => {
+              emitSound("UI_TAP");
+              onPressEvent();
+            }}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={t("yule.title")}
+          >
+            <Text style={styles.eventChipIcon} maxFontSizeMultiplier={1.1}>
+              ❄
+            </Text>
+            <Text style={[styles.chipText, styles.eventChipText]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {t("yule.chip").toLocaleUpperCase()}
+            </Text>
+          </PressScale>
+        ) : null}
         {!firstRun && onPressPuzzles ? (
           <PressScale
             style={[styles.chip, styles.puzzleChip]}
@@ -485,6 +507,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(242,193,78,0.6)",
   },
   chips: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
+  eventChip: { borderColor: "#81C784AA", backgroundColor: "rgba(27, 60, 32, 0.85)" },
+  eventChipText: { color: "#C8E6C9" },
+  eventChipIcon: { color: "#E3F2FD", fontSize: 15, fontWeight: "900" },
   puzzleChip: { borderColor: "rgba(77,208,225,0.7)", paddingHorizontal: 10 },
   puzzleChipText: { color: "#80DEEA", fontSize: 13, letterSpacing: 1 },
   puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#FF5252", borderWidth: 2, borderColor: "#1a120a" },
