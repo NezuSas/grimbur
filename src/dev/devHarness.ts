@@ -3,7 +3,7 @@ import { forceYule } from "../core/events/yule";
 import { COSMETICS } from "../core/cosmetics/cosmetics";
 import { EMPTY_MISSIONS, missionDef, syncMissions } from "../core/stats/missions";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { dailyKey } from "../core/engine/seed";
+import { dailyKey, previousDayKey } from "../core/engine/seed";
 import { setMonetizationOverride } from "../services/entitlements";
 import { makeChallengeCode } from "../core/challenge/code";
 
@@ -68,6 +68,15 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
       };
     })(),
     bestEndlessFloor: 14,
+    // Puzzles: the first two chapters well under way (one with every star), the third begun, a 4-day streak up to yesterday.
+    puzzles: {
+      stars: [3, 3, 3, 3, 3, 3, 3, 2, 3, 1, 3, 2, 2, 3],
+      daily: { date: previousDayKey(today), stars: 3 },
+      dailySolved: 9,
+      streak: 4,
+      bestStreak: 6,
+      endless: { solved: 0, run: 0, bestRun: 0 },
+    },
     dailyRuns: 9,
     dailyWins: 4,
     skins: { owned: ["0:ember", "0:royal", "1:frost"], equipped: { "0": "royal", "1": "frost" } },

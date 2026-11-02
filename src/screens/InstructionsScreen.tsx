@@ -53,12 +53,12 @@ const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string
   { id: "tips", icon: "bulb", color: "#4db6ac", art: require("../assets/sprites/ui/Icon_Star.png") },
 ];
 
-const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
+const InstructionsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useT();
   const { width } = useWindowDimensions();
   // Development only (web): `?cat=hazards` opens that topic, for screenshots.
   const devTopic = __DEV__ && typeof location !== "undefined" ? (new URLSearchParams(location.search).get("cat") as TopicId | null) : null;
-  const [topic, setTopic] = useState<TopicId>(devTopic ?? "start");
+  const [topic, setTopic] = useState<TopicId>(devTopic ?? route.params?.topic ?? "start");
 
   const wide = width >= 640;
   const railWidth = Math.min(230, Math.max(180, width * 0.24));

@@ -44,7 +44,8 @@ export type RootStackParamList = {
     totalEnemies: number;
     time: number;
   };
-  InstructionsScreen: undefined;
+  /** `topic` opens the manual on that topic (the puzzles screen opens the deduction techniques). */
+  InstructionsScreen: { topic?: import("../screens/manual/kit").TopicId } | undefined;
   AchievementsScreen: undefined;
   ForgeScreen: undefined;
   /** `source` says where the offer was opened from (analytics + the sentence above the pitch); `floor` is the last cleared one. */

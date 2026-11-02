@@ -2255,6 +2255,17 @@ export const en = {
   'yule.puzzle': 'Puzzle of the day',
   'yule.go': 'To the cave!',
   'yule.subShort': 'All December · {n} days left · the puzzle of the day pays 10 extra embers',
+  'puzzle.chapter': 'Chapter {n}',
+  'puzzle.chapterLocked': 'Finish the {tier} chapter to come in',
+  'puzzle.chapterDone': 'Mastered',
+  'puzzle.chapterPrev': 'Previous chapter',
+  'puzzle.chapterNext': 'Next chapter',
+  'puzzle.you': 'You',
+  'puzzle.streakStart': 'Solve it today to start a streak',
+  'puzzle.streakBest': 'Best: {n} days',
+  'puzzle.techniques': 'Learn deduction techniques',
+  'puzzle.endless.progress': 'Path: {n} of {total} solved',
+  'puzzle.weekdays': 'SMTWTFS',
 } as const;
 
 export type TranslationKey = keyof typeof en;
