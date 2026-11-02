@@ -5,9 +5,9 @@ import { omenEffects, type OmenEffects, type OmenId } from './omens';
  * It stacks on the floor's omen. The daily challenge, friend challenges, duels and the endless descent never get it: they
  * must stay the same cave for everyone whatever the week.
  */
-export type EventId = 'vortex' | 'hunt' | 'gold' | 'dark';
+export type EventId = 'vortex' | 'hunt' | 'gold' | 'dark' | 'wanderers';
 
-export const EVENT_IDS: readonly EventId[] = ['vortex', 'hunt', 'gold', 'dark'];
+export const EVENT_IDS: readonly EventId[] = ['vortex', 'hunt', 'gold', 'dark', 'wanderers'];
 
 /** What an event adds to every floor (on top of the omen). */
 export const EVENTS: Record<EventId, Partial<OmenEffects>> = {
@@ -19,6 +19,8 @@ export const EVENTS: Record<EventId, Partial<OmenEffects>> = {
   gold: { coinDelta: 1, shopGemEvery: 2, stalkerDelta: 1 },
   // The dark week: every floor is dark (clues only beside the hero); every gem pays double.
   dark: { dark: true, gemMultiplier: 2 },
+  // The week of the wanderers: the cave is crowded with scenes (see ENCOUNTER_CHANCE_WANDERERS in encounters.ts); gems pay 25% more.
+  wanderers: { gemMultiplier: 1.25 },
 };
 
 /** Runs a newcomer plays before the week's event joins in (the first caves stay the plain ones the guide explains). */

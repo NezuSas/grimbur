@@ -1994,6 +1994,17 @@ export const en = {
   'encounter.smith.take': 'Trade the shield',
   'encounter.smith.cant': 'You need a shield.',
   'encounter.smith.done': 'Hammer and sparks: your shield is now {smith} arrows.',
+  'ach.d.encounters': 'Meet all {n} cave encounters.',
+  'ach.enc_all.name': 'Every road walked',
+  'ach.enc_gambler.name': 'Beat the dice',
+  'ach.enc_gambler.desc': 'Win {n} bets against the gambler.',
+  'ach.enc_miner.name': 'Rescuer',
+  'ach.enc_miner.desc': 'Free {n} trapped miners.',
+  'manual.encounters.title': 'Encounter journal',
+  'encounters.progress': 'You have met {n} of {total} encounters.',
+  'encounters.unknown': 'Not met yet. Some floors from the second open with a scene.',
+  'event.wanderers.name': 'Week of the wanderers',
+  'event.wanderers.rule': 'Most floors open with an encounter in the cave, and every gem pays 25% more.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

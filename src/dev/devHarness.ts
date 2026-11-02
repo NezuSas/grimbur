@@ -46,6 +46,7 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     chest: { last: today, day: 3 },
     // Five secret rooms found: five chronicle fragments read.
     secretsFound: 5,
+    encounterBook: { seen: ["scout", "gambler", "shrine", "miner"], gamblesWon: 2, minersFreed: 1 },
     // A daily already tried today: its best path shows as footprints on the next try, and where it fell.
     daily: { date: today, bestScore: 2100, bestLevel: 2, attempts: 1, ghost: { paths: { "1": [0, 1, 2, 10, 11, 12, 20] }, fell: [1, 21] } },
     // Missions with some progress: one done and waiting, one partly done, one claimed

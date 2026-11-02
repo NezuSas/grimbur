@@ -3,6 +3,7 @@ import { isLairFloor } from './lair';
 import { MAX_ITEMS } from './shop';
 import { chestRelic, relicCount, type RelicId } from './relics';
 import type { GameMode } from './seed';
+import type { EventId } from './events';
 import type { GameEntity, GameState } from './types';
 import { isClueHazard } from './types';
 
@@ -25,6 +26,8 @@ export interface Encounter {
 
 export const ENCOUNTER_FROM = 2;
 export const ENCOUNTER_CHANCE = 0.25;
+/** The week of the wanderers: most floors open with a scene. */
+export const ENCOUNTER_CHANCE_WANDERERS = 0.7;
 /** The scout's price and how many safe tiles it shows. */
 export const SCOUT_ARROWS = 2;
 export const SCOUT_TILES = 3;
@@ -55,10 +58,10 @@ const prngFor = (runSeed: number, level: number, salt: number) => {
 };
 
 /** The scene that opens a floor, or null (never the first floors nor the lair). */
-export function encounterFor(runSeed: number, level: number, mode: GameMode): EncounterId | null {
+export function encounterFor(runSeed: number, level: number, mode: GameMode, event?: EventId | null): EncounterId | null {
   if (level < ENCOUNTER_FROM || isLairFloor(mode, level)) return null;
   const roll = prngFor(runSeed, level, 0x2545f491);
-  if (roll() >= ENCOUNTER_CHANCE) return null;
+  if (roll() >= (event === 'wanderers' ? ENCOUNTER_CHANCE_WANDERERS : ENCOUNTER_CHANCE)) return null;
   return ENCOUNTERS[Math.floor(roll() * ENCOUNTERS.length)];
 }
 
@@ -128,6 +131,12 @@ export function scoutTiles(s: Pick<GameState, 'rows' | 'cols' | 'visited' | 'ent
 export function resolveEncounter(state: GameState, take: boolean): GameState {
   const enc = state.encounter;
   if (!enc || enc.outcome) return state;
+  const after = resolveScene(state, enc, take);
+  const done = after.encounter ?? enc;
+  return { ...after, encounterLog: [...(state.encounterLog ?? []), { id: done.id, outcome: done.outcome }] };
+}
+
+function resolveScene(state: GameState, enc: Encounter, take: boolean): GameState {
   if (!take || !canTake(enc.id, state)) return { ...state, encounter: { ...enc, outcome: 'skip' } };
   const roll = prngFor(state.runSeed, state.level, 0x6a09e667);
   switch (enc.id) {

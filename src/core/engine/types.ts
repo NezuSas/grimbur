@@ -138,6 +138,8 @@ export interface GameState {
   refills?: number;
   /** The scene that opens this floor (see encounters.ts); it holds input until the player chooses. */
   encounter?: Encounter | null;
+  /** Every scene this run met and how it went (for the encounter journal). */
+  encounterLog?: { id: string; outcome?: string }[];
   /** Secret rooms found in this run (see generator.ts: a hidden cache whose draft shows on the tiles beside it). */
   secretsFound?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */

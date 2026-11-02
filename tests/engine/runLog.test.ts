@@ -75,7 +75,7 @@ describe('per-hero records', () => {
 
 describe('the week event', () => {
   it('takes turns week after week and knows no event for garbage', () => {
-    const seen = new Set(Array.from({ length: 4 }, (_, i) => eventForWeek(`2026-W${String(10 + i).padStart(2, '0')}`)));
+    const seen = new Set(Array.from({ length: EVENT_IDS.length }, (_, i) => eventForWeek(`2026-W${String(10 + i).padStart(2, '0')}`)));
     expect(seen.size).toBe(EVENT_IDS.length);
     expect(eventForWeek('nope')).toBeNull();
     expect(eventForWeek(null)).toBeNull();

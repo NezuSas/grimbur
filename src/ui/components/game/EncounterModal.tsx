@@ -34,7 +34,7 @@ export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
   echo: require("../../../assets/sprites/encounters/Encounter_Echo.png"),
   smith: require("../../../assets/sprites/encounters/Encounter_Smith.png"),
 };
-const TINT: Record<EncounterId, string> = {
+export const ENCOUNTER_TINT: Record<EncounterId, string> = {
   scout: "#9EE37D",
   spring: "#4FC3F7",
   gambler: "#FFD54F",
@@ -45,7 +45,7 @@ const TINT: Record<EncounterId, string> = {
   smith: "#FF8A65",
 };
 
-const PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
+export const ENCOUNTER_PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
 
 type Props = {
   encounter: Encounter;
@@ -62,14 +62,14 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const { id, outcome } = encounter;
-  const tint = TINT[id];
+  const tint = ENCOUNTER_TINT[id];
   const affordable = canTake(id, state);
   const k = (part: string) => `encounter.${id}.${part}` as TranslationKey;
   const artSize = Math.min(height * 0.36, 150);
   const wide = width > height;
 
   const relicName = encounter.relic ? t(`relic.${encounter.relic}.name` as TranslationKey) : "";
-  const resultText = outcome === "skip" ? t("encounter.skipped") : outcome ? t(k(outcome), { ...PARAMS, relic: relicName }) : null;
+  const resultText = outcome === "skip" ? t("encounter.skipped") : outcome ? t(k(outcome), { ...ENCOUNTER_PARAMS, relic: relicName }) : null;
 
   return (
     <OverlayContainer>
@@ -85,16 +85,16 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
             {t(k("title")).toLocaleUpperCase()}
           </Text>
           <Text style={[styles.line, wide && { textAlign: "left" }]} maxFontSizeMultiplier={1.15}>
-            {resultText ?? t(k("body"), PARAMS)}
+            {resultText ?? t(k("body"), ENCOUNTER_PARAMS)}
           </Text>
           {outcome ? (
             <PopButton label={t("encounter.go")} onPress={onClose} style={styles.button} />
           ) : (
             <>
-              <PopButton label={t(k("take"), PARAMS)} onPress={() => onChoose(true)} disabled={!affordable} tint={tint} style={styles.button} />
+              <PopButton label={t(k("take"), ENCOUNTER_PARAMS)} onPress={() => onChoose(true)} disabled={!affordable} tint={tint} style={styles.button} />
               {!affordable ? (
                 <Text style={styles.cant} maxFontSizeMultiplier={1.1}>
-                  {t(k("cant"), PARAMS)}
+                  {t(k("cant"), ENCOUNTER_PARAMS)}
                 </Text>
               ) : null}
               <PopLink label={t("encounter.leave")} onPress={() => onChoose(false)} />

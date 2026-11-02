@@ -713,7 +713,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         altarUsed: false,
         omen: omen ?? null,
         encounter: (() => {
-          const id = encounterFor(state.runSeed, state.level + 1 + skip, state.mode);
+          const id = encounterFor(state.runSeed, state.level + 1 + skip, state.mode, state.event);
           return id ? { id } : null;
         })(),
         marked: relicCount(state.relics, 'raven_eye') > 0 ? nearestDanger(entities, cols) : [],

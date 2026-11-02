@@ -93,6 +93,7 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       slain: s.slain,
       relicIds: s.relics.slice(startRelics),
       secrets: s.secretsFound ?? 0,
+      encounters: s.encounterLog ?? [],
       cause: s.isVictory ? null : s.deathCause,
       board: snapshotBoard(s),
       event: s.event ?? null,

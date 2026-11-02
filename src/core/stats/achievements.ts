@@ -3,6 +3,7 @@ import { MAX_ASCENSION } from '../engine/ascension';
 import { UPGRADES } from './forge';
 import { BEASTS, type BeastId } from './bestiary';
 import { masteryOf } from './mastery';
+import { ENCOUNTERS } from '../engine/encounters';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -112,10 +113,14 @@ export type AchievementId =
   // Secret rooms
   | 'secret_1'
   | 'secret_10'
-  | 'secret_50';
+  | 'secret_50'
+  // The encounter journal
+  | 'enc_all'
+  | 'enc_gambler'
+  | 'enc_miner';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -346,6 +351,10 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('secret_1', '🗝️', 'easy', 'secrets', 1, s => s.secretsFound ?? 0),
   counted('secret_10', '🔑', 'medium', 'secrets', 10, s => s.secretsFound ?? 0),
   counted('secret_50', '📜', 'hard', 'secrets', 50, s => s.secretsFound ?? 0),
+  // ── The encounter journal ───────────────────────────────────────────────
+  counted('enc_all', '🛤️', 'hard', 'encounters', ENCOUNTERS.length, s => s.encounterBook?.seen.length ?? 0),
+  { ...counted('enc_gambler', '🃏', 'medium', 'encounters', 5, s => s.encounterBook?.gamblesWon ?? 0), desc: undefined },
+  { ...counted('enc_miner', '⛑️', 'medium', 'encounters', 3, s => s.encounterBook?.minersFreed ?? 0), desc: undefined },
 ];
 
 /** Embers paid when an achievement is unlocked: a reason to go after them and spend them in the Forge. */

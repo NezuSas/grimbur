@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { BestiaryPane } from "./manual/BestiaryPane";
 import { RelicBookPane } from "./manual/RelicBookPane";
 import { ChroniclePane } from "./manual/ChroniclePane";
+import { EncountersPane } from "./manual/EncountersPane";
 import { View, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import characters from "../data/characters";
@@ -41,6 +42,7 @@ const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string
   { id: "relics", icon: "sparkles", color: "#ce93d8", art: require("../assets/sprites/relics/phoenix.png") },
   { id: "relicbook", icon: "book", color: "#ffca28", art: require("../assets/sprites/relics/lantern.png") },
   { id: "chronicle", icon: "document-text", color: "#e8c07d", art: require("../assets/sprites/ui/Icon_Book.png") },
+  { id: "encounters", icon: "compass", color: "#9ee37d", art: require("../assets/sprites/encounters/Encounter_Scout.png") },
   { id: "tools", icon: "construct", color: "#ffd54f", art: require("../assets/sprites/tools/Tool_Bomb.png") },
   { id: "worlds", icon: "planet", color: "#80cbc4", art: require("../assets/sprites/achievements/Ach_Depth.png") },
   { id: "modes", icon: "layers", color: "#7986cb", art: require("../assets/sprites/achievements/Ach_Endless.png") },
@@ -81,6 +83,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation }) => {
     bestiary: <BestiaryPane kit={kit} />,
     relicbook: <RelicBookPane kit={kit} />,
     chronicle: <ChroniclePane kit={kit} />,
+    encounters: <EncountersPane kit={kit} />,
     combat: <CombatPane kit={kit} />,
     powerups: <PowerupsPane kit={kit} />,
     heroes: <HeroesPane kit={kit} />,
