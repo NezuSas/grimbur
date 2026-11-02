@@ -307,12 +307,12 @@ export const activeFamilies = (relics: readonly RelicId[]): RelicFamily[] => REL
 export const CHEST_CURSE_CHANCE = 0.3;
 
 /** The relic a chest at `tile` holds, the same for everyone on the same run (null when nothing useful is left). */
-export function chestRelic(runSeed: number, floor: number, tile: number, owned: readonly RelicId[]): RelicId | null {
+export function chestRelic(runSeed: number, floor: number, tile: number, owned: readonly RelicId[], ctx: DraftContext = {}): RelicId | null {
   const roll = createPRNG(deriveLevelSeed(runSeed, 7000 + floor * 131 + tile));
   roll();
   const cursed = !hasCursed(owned) && roll() < CHEST_CURSE_CHANCE;
-  const pool = (cursed ? CURSED_RELICS : NORMAL_RELICS).filter(id => isUsefulRelic(id, owned));
-  const fallback = NORMAL_RELICS.filter(id => isUsefulRelic(id, owned));
+  const pool = (cursed ? CURSED_RELICS : NORMAL_RELICS).filter(id => isUsefulRelic(id, owned, ctx));
+  const fallback = NORMAL_RELICS.filter(id => isUsefulRelic(id, owned, ctx));
   const from = pool.length > 0 ? pool : fallback;
   return from.length > 0 ? from[Math.floor(roll() * from.length)] : null;
 }

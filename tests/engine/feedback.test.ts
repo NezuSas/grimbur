@@ -179,8 +179,7 @@ describe('nextHint', () => {
 
 describe('the secret room hint', () => {
   it('waits until the glint of a secret room is on an explored tile', () => {
-    const entities = [{ type: 'secret', index: 9 }];
-    expect(floorNovelties({ entities, visited: [0], cols: 8, rows: 5 })).not.toContain('secret');
-    expect(floorNovelties({ entities, visited: [0, 1], cols: 8, rows: 5 })).toContain('secret');
+    expect(floorNovelties({ entities: [], secret: 9, visited: [0], cols: 8, rows: 5 })).not.toContain('secret');
+    expect(floorNovelties({ entities: [], secret: 9, visited: [0, 1], cols: 8, rows: 5 })).toContain('secret');
   });
 });

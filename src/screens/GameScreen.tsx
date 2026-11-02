@@ -200,16 +200,18 @@ export default function GameScreen({ navigation, route }: Props) {
 
   const runOver = state.isGameOver || state.isVictory;
   // ── Your own ghost on the daily: the path of today's best attempt as footprints, and where it fell ──
+  // The tiles the hero really stood on, floor by floor (not the ones a lantern or a scout only lit), for this attempt alone.
   const pathsRef = useRef<Record<number, number[]>>({});
-  const pathsSeed = useRef(state.runSeed);
+  const pathsRun = useRef(runNumber);
   useEffect(() => {
     if (!isDaily) return;
-    if (pathsSeed.current !== state.runSeed) {
-      pathsSeed.current = state.runSeed;
+    if (pathsRun.current !== runNumber) {
+      pathsRun.current = runNumber;
       pathsRef.current = {};
     }
-    pathsRef.current[state.level] = state.visited;
-  }, [isDaily, state.runSeed, state.level, state.visited]);
+    const floor = pathsRef.current[state.level] ?? (pathsRef.current[state.level] = []);
+    if (floor[floor.length - 1] !== state.playerIndex) floor.push(state.playerIndex);
+  }, [isDaily, runNumber, state.level, state.playerIndex]);
   const [myGhost, setMyGhost] = useState<DailyGhostPath | null>(null);
   useEffect(() => {
     if (!isDaily) return;
@@ -243,6 +245,7 @@ export default function GameScreen({ navigation, route }: Props) {
     () => (runOver ? dailyGhosts.filter(g => g.level === state.level && g.fell < state.rows * state.cols).map(g => ({ tile: g.fell, name: g.name, art: characters[g.characterIndex]?.scoreImage ?? characters[0].scoreImage })) : []),
     [runOver, dailyGhosts, state.level, state.rows, state.cols],
   );
+  const boardGhosts = useMemo(() => [...myFall, ...ghostsHere], [myFall, ghostsHere]);
 
   // ── Fanfares: a relic family completed, a creature new to the bestiary ──
   const [fanfare, setFanfare] = useState<{ key: number; tint: string; art: ImageSourcePropType | ImageSourcePropType[]; kicker: string; title: string; line?: string } | null>(null);
@@ -994,7 +997,8 @@ export default function GameScreen({ navigation, route }: Props) {
           <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
             deduced={deduced}
-            friendGhosts={[...myFall, ...ghostsHere]}
+            friendGhosts={boardGhosts}
+            secretTile={state.secret ?? null}
             pastSteps={pastSteps}
             dark={!!floorEffects(state.omen, state.event).dark}
             level={state.level}

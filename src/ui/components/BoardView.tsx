@@ -7,6 +7,7 @@ import type { SkinId } from "../../data/skinArt";
 import type { ArtTheme } from "../biomeArt";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
+import { secretDraftTiles } from "../../core/engine/worldHelpers";
 import BoardTouchLayer from "./BoardTouchLayer";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
@@ -131,10 +132,12 @@ type Props = {
   friendGhosts?: readonly { tile: number; name: string; art: ImageSourcePropType }[];
   /** The daily: the tiles today's best attempt walked on this floor, drawn as faint footprints where not yet explored. */
   pastSteps?: readonly number[];
+  /** The tile of the floor's secret room (its neighbours glint once explored). */
+  secretTile?: number | null;
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -424,21 +427,8 @@ const BoardView: React.FC<Props> = memo(
     }, [level, visited.length]);
     const highlightSet = useMemo(() => new Set(highlight ?? []), [highlight]);
     const gridIndices = useMemo(() => Array.from({ length: rows * cols }, (_, i) => i), [rows, cols]);
-    // The draft of a secret room: the tiles beside a hidden cache glint (the cache itself is never drawn).
-    const draftSet = useMemo(() => {
-      const out = new Set<number>();
-      for (const key of Object.keys(entityMap)) {
-        const at = Number(key);
-        if (entityMap[at]?.type !== "secret") continue;
-        const r = Math.floor(at / cols);
-        const c = at % cols;
-        if (r > 0) out.add(at - cols);
-        if (r < rows - 1) out.add(at + cols);
-        if (c > 0) out.add(at - 1);
-        if (c < cols - 1) out.add(at + 1);
-      }
-      return out;
-    }, [entityMap, rows, cols]);
+    // The draft of a secret room: the tiles beside the hidden cache glint (the cache itself is never drawn).
+    const draftSet = useMemo(() => new Set(secretDraftTiles(secretTile, rows, cols)), [secretTile, rows, cols]);
 
     const killerEntityType = killerTile != null ? entityMap[killerTile]?.type : undefined;
     const heroArt = characterWithSkin(characterIndex, skin);
@@ -486,7 +476,7 @@ const BoardView: React.FC<Props> = memo(
                   cols={cols}
                   isVisited={visitedSet.has(i)}
                   isPlayerHere={i === playerIndex}
-                  entity={shown[i]?.type === "secret" ? undefined : shown[i]}
+                  entity={shown[i]}
                   draft={draftSet.has(i) && visitedSet.has(i)}
                   enemyCount={near.enemyCount}
                   pitCount={near.pitCount}

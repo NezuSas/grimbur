@@ -4,6 +4,7 @@ import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { floorEffects } from './events';
 import { RelicId, relicCount, removeRelic, hasFamilyBonus } from './relics';
+import { MAX_ITEMS } from './shop';
 
 export const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
   const map: Record<number, GameEntity> = {};
@@ -290,6 +291,53 @@ export const stalkerStep = (
 /** Hunters wait longer with a Frost Charm and act sooner in Hasty Boots. */
 export const hunterSlowdown = (relics: readonly RelicId[]): number =>
   relicCount(relics, 'frost') - relicCount(relics, 'hasty_boots') + (hasFamilyBonus(relics, 'survivor') ? 1 : 0);
+
+/**
+ * A floor as the generator builds it holds its secret room as an entity; the game keeps it apart (see GameState.secret), so it
+ * never blocks a monster nor shows on the board. Returns the entities without it and its tile.
+ */
+export function splitSecret(entities: readonly GameEntity[]): { entities: GameEntity[]; secret: number | null } {
+  const at = entities.find(e => e.type === 'secret');
+  return { entities: entities.filter(e => e.type !== 'secret'), secret: at ? at.index : null };
+}
+
+/** The tiles beside a secret room: an explored one among them shows the glint. */
+export function secretDraftTiles(secret: number | null | undefined, rows: number, cols: number): number[] {
+  if (secret === null || secret === undefined || secret < 0) return [];
+  const r = Math.floor(secret / cols);
+  const c = secret % cols;
+  const out: number[] = [];
+  if (r > 0) out.push(secret - cols);
+  if (r < rows - 1) out.push(secret + cols);
+  if (c > 0) out.push(secret - 1);
+  if (c < cols - 1) out.push(secret + 1);
+  return out;
+}
+
+/** What a relic does at once when it is gained mid-floor (a draft pick, a chest, a gift): arrows, a bomb, a shield, light. */
+export function gainRelicNow(state: Pick<GameState, 'relics' | 'attack' | 'items' | 'shield' | 'visited' | 'cols' | 'rows' | 'entities'>, id: RelicId) {
+  return {
+    relics: [...state.relics, id],
+    attack: id === 'quiver' ? state.attack + 2 : state.attack,
+    items: id === 'bomb_belt' ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
+    shield: id === 'bulwark' ? true : state.shield,
+    visited: id === 'lantern' ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true, state.entities)])) : state.visited,
+  };
+}
+
+/** The tile closest to `from` among `tiles` (ties to the lowest index), or null. */
+export function nearestTile(tiles: Iterable<number>, from: number, cols: number): number | null {
+  let best: number | null = null;
+  let bestD = Infinity;
+  for (const t of tiles) {
+    const d = manhattan(t, from, cols);
+    if (d < bestD || (d === bestD && t < (best ?? Infinity))) {
+      best = t;
+      bestD = d;
+    }
+  }
+  return best;
+}
 
 export const manhattan = (a: number, b: number, cols: number): number =>
   Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));

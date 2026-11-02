@@ -1,3 +1,4 @@
+import { secretDraftTiles } from '../engine/worldHelpers';
 export interface HintFacts {
   turn: number;
   ability: string | null;
@@ -43,7 +44,7 @@ export function nextHint(facts: HintFacts, seen: readonly string[]): HintId | nu
 }
 
 /** The novelties of a floor, read from what it holds (the mimic is hidden, but the floor announces it holds one). */
-export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean; index?: number }[]; omen?: string | null; visited?: readonly number[]; cols?: number; rows?: number }): FloorNovelty[] {
+export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean }[]; omen?: string | null; visited?: readonly number[]; cols?: number; rows?: number; secret?: number | null }): FloorNovelty[] {
   const out: FloorNovelty[] = [];
   const has = (type: string) => s.entities.some(e => e.type === type);
   if (s.entities.some(e => e.type === 'boss' && e.mini)) out.push('lieutenant');
@@ -55,16 +56,9 @@ export function floorNovelties(s: { entities: readonly { type: string; mini?: bo
   if (s.omen === 'elite') out.push('elite');
   if (has('chest')) out.push('chest');
   // A secret room is explained once its glint shows (an explored tile beside it), not before: there is nothing to see yet.
-  if (s.visited && s.cols && s.rows) {
+  if (s.cols && s.rows && s.visited) {
     const seen = new Set(s.visited);
-    const { cols, rows } = s;
-    const glints = s.entities.some(e => {
-      if (e.type !== 'secret' || e.index === undefined) return false;
-      const r = Math.floor(e.index / cols);
-      const c = e.index % cols;
-      return (r > 0 && seen.has(e.index - cols)) || (r < rows - 1 && seen.has(e.index + cols)) || (c > 0 && seen.has(e.index - 1)) || (c < cols - 1 && seen.has(e.index + 1));
-    });
-    if (glints) out.push('secret');
+    if (secretDraftTiles(s.secret, s.rows, s.cols).some(t => seen.has(t))) out.push('secret');
   }
   return out;
 }

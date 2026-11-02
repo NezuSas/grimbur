@@ -65,7 +65,8 @@ export function tallyBestiary(prev: Tally, next: Tally): { met: BeastId[]; slain
   if (floorEnded) {
     meet(prev.entities.map(beastOf).filter((b): b is BeastId => !!b));
     if (next.isGameOver && next.deathCause) {
-      const cause = next.deathCause === 'brute' ? 'brute' : beastOf({ type: next.deathCause });
+      const ancientKiller = next.deathCause === 'boss' && prev.entities.some(e => e.type === 'boss' && !e.mini && (e as { ancient?: boolean }).ancient);
+      const cause = next.deathCause === 'brute' ? 'brute' : ancientKiller ? 'ancient' : beastOf({ type: next.deathCause });
       if (cause) meet([cause]);
     }
   }

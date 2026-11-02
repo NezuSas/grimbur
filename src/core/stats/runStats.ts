@@ -555,7 +555,10 @@ export function parseStats(raw: string | null): LocalStats {
         : [],
       achievements: parseAchievements(data.achievements),
       daily: dailyDate
-        ? { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts), ...(parseGhostPath(d.ghost) ? { ghost: parseGhostPath(d.ghost) } : {}) }
+        ? (() => {
+            const ghost = parseGhostPath(d.ghost);
+            return { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts), ...(ghost ? { ghost } : {}) };
+          })()
         : null,
       streak: num(data.streak),
       lastDailyDate: str(data.lastDailyDate),

@@ -6,6 +6,7 @@ import type { GameMode } from './seed';
 import type { EventId } from './events';
 import type { GameEntity, GameState } from './types';
 import { isClueHazard } from './types';
+import { draftContext, gainRelicNow, nearestTile } from './worldHelpers';
 
 /**
  * Encounters: some floors open with a quick choice told as a scene (a wounded scout, a strange spring, a gambler, a forgotten
@@ -66,50 +67,28 @@ export function encounterFor(runSeed: number, level: number, mode: GameMode, eve
 }
 
 /** Whether the player can pay for the scene right now (walking past is always possible). */
-export function canTake(id: EncounterId, s: Pick<GameState, 'attack' | 'gems' | 'items'> & Partial<Pick<GameState, 'shield' | 'entities' | 'rows' | 'cols' | 'visited' | 'playerIndex'>>): boolean {
+export function canTake(id: EncounterId, s: Pick<GameState, 'attack' | 'gems' | 'items'> & Partial<Pick<GameState, 'shield' | 'entities' | 'rows' | 'cols' | 'visited' | 'playerIndex' | 'marked'>>): boolean {
   if (id === 'scout') return s.attack >= SCOUT_ARROWS;
   if (id === 'gambler') return s.gems >= GAMBLER_STAKE;
   if (id === 'shrine') return s.attack >= SHRINE_ARROWS && (s.items.detector < MAX_ITEMS || s.items.bomb < MAX_ITEMS);
   if (id === 'miner') return s.items.bomb >= MINER_BOMBS;
   if (id === 'map') return s.gems >= MAP_GEMS && !!s.entities && hiddenGem(s as GameState) !== null;
   if (id === 'smith') return !!s.shield;
+  // The echo stakes an arrow, and has to have something left to give away.
+  if (id === 'echo') return s.attack >= 1 && !!s.entities && echoDanger(s as GameState) !== null;
   return true;
 }
 
 /** The nearest gem the hero has not seen yet (the torn map points at it), or null. */
-export function hiddenGem(s: Pick<GameState, 'rows' | 'cols' | 'visited' | 'entities' | 'playerIndex'>): number | null {
+export function hiddenGem(s: Pick<GameState, 'cols' | 'visited' | 'entities' | 'playerIndex'>): number | null {
   const seen = new Set(s.visited);
-  const pr = Math.floor(s.playerIndex / s.cols);
-  const pc = s.playerIndex % s.cols;
-  let best: number | null = null;
-  let bestD = Infinity;
-  for (const e of s.entities) {
-    if (e.type !== 'coin' || seen.has(e.index)) continue;
-    const d = Math.abs(Math.floor(e.index / s.cols) - pr) + Math.abs((e.index % s.cols) - pc);
-    if (d < bestD || (d === bestD && e.index < (best ?? Infinity))) {
-      best = e.index;
-      bestD = d;
-    }
-  }
-  return best;
+  return nearestTile(s.entities.filter(e => e.type === 'coin' && !seen.has(e.index)).map(e => e.index), s.playerIndex, s.cols);
 }
 
 /** The nearest danger the echo gives away: a clue hazard not explored and not already flagged. */
 export function echoDanger(s: Pick<GameState, 'cols' | 'visited' | 'entities' | 'playerIndex' | 'marked'>): number | null {
   const skip = new Set([...s.visited, ...s.marked]);
-  const pr = Math.floor(s.playerIndex / s.cols);
-  const pc = s.playerIndex % s.cols;
-  let best: number | null = null;
-  let bestD = Infinity;
-  for (const e of s.entities) {
-    if (!isClueHazard(e.type) || e.type === 'boss' || skip.has(e.index)) continue;
-    const d = Math.abs(Math.floor(e.index / s.cols) - pr) + Math.abs((e.index % s.cols) - pc);
-    if (d < bestD || (d === bestD && e.index < (best ?? Infinity))) {
-      best = e.index;
-      bestD = d;
-    }
-  }
-  return best;
+  return nearestTile(s.entities.filter(e => isClueHazard(e.type) && e.type !== 'boss' && !skip.has(e.index)).map(e => e.index), s.playerIndex, s.cols);
 }
 
 /** The safe tiles the scout shows: unexplored, holding no danger, the closest to the hero first. */
@@ -121,7 +100,7 @@ export function scoutTiles(s: Pick<GameState, 'rows' | 'cols' | 'visited' | 'ent
   for (let i = 0; i < s.rows * s.cols; i++) {
     if (seen.has(i)) continue;
     const e: GameEntity | undefined = s.entityMap[i];
-    if (e && (isClueHazard(e.type) || e.type === 'trap' || e.type === 'thief' || e.type === 'secret')) continue;
+    if (e && (isClueHazard(e.type) || e.type === 'trap' || e.type === 'thief')) continue;
     out.push({ i, d: Math.abs(Math.floor(i / s.cols) - pr) + Math.abs((i % s.cols) - pc) });
   }
   return out.sort((a, b) => a.d - b.d || a.i - b.i).slice(0, SCOUT_TILES).map(o => o.i);
@@ -164,9 +143,9 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
     case 'miner': {
       const items = { ...state.items, bomb: state.items.bomb - MINER_BOMBS };
       // A grateful miner never hands over a cursed relic: the owned list is read as if one were already held.
-      const relic = chestRelic(state.runSeed, state.level, 9973, [...state.relics, 'gambler']);
+      const relic = chestRelic(state.runSeed, state.level, 9973, [...state.relics, 'gambler'], draftContext(state));
       if (!relic) return { ...state, items, gems: state.gems + MINER_GEMS, encounter: { ...enc, outcome: 'lose' } };
-      return { ...state, items, relics: [...state.relics, relic], attack: state.attack + (relic === 'quiver' ? 2 : 0), encounter: { ...enc, outcome: 'win', relic } };
+      return { ...state, ...gainRelicNow({ ...state, items }, relic), encounter: { ...enc, outcome: 'win', relic } };
     }
     case 'map': {
       const gem = hiddenGem(state);
@@ -175,7 +154,7 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
     case 'echo': {
       const danger = echoDanger(state);
       if (danger !== null && roll() < ECHO_LUCK) return { ...state, marked: [...state.marked, danger], encounter: { ...enc, outcome: 'win' } };
-      return { ...state, attack: Math.max(0, state.attack - 1), encounter: { ...enc, outcome: 'lose' } };
+      return { ...state, attack: state.attack - 1, encounter: { ...enc, outcome: 'lose' } };
     }
     case 'smith':
       return { ...state, shield: false, attack: state.attack + SMITH_ARROWS, encounter: { ...enc, outcome: 'done' } };

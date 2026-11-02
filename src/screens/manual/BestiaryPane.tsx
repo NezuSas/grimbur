@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getLocalStats, peekLocalStats } from "../../services/localStats";
 import type { Kit } from "./kit";
 import { BEAST_ART, BEAST_TINT } from "../../ui/beastArt";
+import { totalSlain } from "../../core/stats/achievements";
 
 const ART = BEAST_ART;
 const TINT = BEAST_TINT;
@@ -23,7 +24,7 @@ export const BestiaryPane = ({ kit }: { kit: Kit }) => {
     void getLocalStats().then(s => setBook(s.bestiary ?? EMPTY_BESTIARY)).catch(() => {});
   }, []);
   const found = BEASTS.filter(b => book.met.includes(b)).length;
-  const total = Object.values(book.slain).reduce((sum: number, n) => sum + (n ?? 0), 0);
+  const total = totalSlain({ bestiary: book } as never);
 
   return (
     <>

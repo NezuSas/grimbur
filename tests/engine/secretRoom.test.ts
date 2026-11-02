@@ -34,15 +34,31 @@ describe('secret rooms', () => {
     }
   });
 
+  it('is kept apart from the entities, so nothing on the board (no monster, no thief) can walk around it', () => {
+    const board = Array.from({ length: 200 }, (_, i) => generateBoard(4, i + 1)).find(b => b.entities.some(e => e.type === 'secret'))!;
+    const state = gameReducer(createState(), { type: 'RESET', character: { playerName: 'T' } as never, rows: board.rows, cols: board.cols, entities: board.entities, coins: board.coins, attack: board.attack, seed: 1 });
+    expect(state.entities.some(e => e.type === 'secret')).toBe(false);
+    expect(state.secret).toBe(board.entities.find(e => e.type === 'secret')!.index);
+  });
+
   it('pays its cache when the hero walks in, without ending the floor', () => {
-    const base = { ...createState({ entities: [{ index: 1, type: 'secret' }, coin(30)] }), level: 3, gems: 0, attack: 2, score: 0 };
+    const base = { ...createState({ entities: [coin(30)] }), secret: 1, level: 3, gems: 0, attack: 2, score: 0 };
     const next = gameReducer(base, { type: 'MOVE', direction: 'RIGHT' });
     expect(next.gems).toBe(SECRET_GEMS);
     expect(next.attack).toBe(2 + SECRET_ARROWS);
     expect(next.score).toBeGreaterThanOrEqual(secretScore(3));
     expect(next.secretsFound).toBe(1);
     expect(next.lastPickup).toBe('secret');
-    expect(next.entityMap[1]).toBeUndefined();
+    expect(next.secret).toBeNull();
     expect(next.isLevelUp).toBe(false);
+  });
+});
+
+describe('the glint of a secret room', () => {
+  it('is on the four tiles beside it, inside the board', () => {
+    const { secretDraftTiles } = jest.requireActual('../../src/core/engine/worldHelpers') as typeof import('../../src/core/engine/worldHelpers');
+    expect(secretDraftTiles(9, 5, 8).sort((a, b) => a - b)).toEqual([1, 8, 10, 17]);
+    expect(secretDraftTiles(0, 5, 8).sort((a, b) => a - b)).toEqual([1, 8]);
+    expect(secretDraftTiles(null, 5, 8)).toEqual([]);
   });
 });

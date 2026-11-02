@@ -140,6 +140,8 @@ export interface GameState {
   encounter?: Encounter | null;
   /** Every scene this run met and how it went (for the encounter journal). */
   encounterLog?: { id: string; outcome?: string }[];
+  /** The tile of this floor's secret room (not an entity: monsters walk over it, nothing on the board gives it away); null once found. */
+  secret?: number | null;
   /** Secret rooms found in this run (see generator.ts: a hidden cache whose draft shows on the tiles beside it). */
   secretsFound?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */

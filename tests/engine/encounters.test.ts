@@ -69,7 +69,8 @@ describe('the second wave of encounters', () => {
   it('the trapped miner takes a bomb and gives a relic that is never cursed', () => {
     for (let seed = 1; seed <= 30; seed++) {
       const after = resolveEncounter(s('miner', { runSeed: seed, items: { detector: 0, bomb: 1 } }), true);
-      expect(after.items.bomb).toBe(0);
+      // A Powder Belt brings its bomb at once, like any relic gained mid-floor.
+      expect(after.items.bomb).toBe(after.encounter?.relic === 'bomb_belt' ? 1 : 0);
       expect(after.encounter?.relic).toBeDefined();
       expect(after.relics).toContain(after.encounter!.relic);
       expect(after.encounter!.relic).not.toBe('gambler');
@@ -86,7 +87,7 @@ describe('the second wave of encounters', () => {
   it('the echo flags a danger or costs an arrow', () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40; seed++) {
-      const after = resolveEncounter(s('echo', { runSeed: seed, attack: 3, marked: [] }), true);
+      const after = resolveEncounter(s('echo', { runSeed: seed, attack: 3, marked: [], visited: [0] }), true);
       seen.add(after.encounter!.outcome!);
       if (after.encounter?.outcome === 'win') expect(after.marked).toEqual([12]);
       else expect(after.attack).toBe(2);

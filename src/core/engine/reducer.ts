@@ -13,7 +13,7 @@ import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
 import { SECRET_ARROWS, SECRET_GEMS, secretScore } from './generator';
 import { encounterFor, resolveEncounter } from './encounters';
-import { createEntityMap, removeEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss } from './worldHelpers';
+import { createEntityMap, removeEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss, splitSecret, gainRelicNow } from './worldHelpers';
 import type { World } from './worldHelpers';
 
 /** The state without its undo slot: what a step back restores. */
@@ -293,6 +293,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let newLastPickup: PickupKind | null = null;
       let newVortexCost: 'arrow' | 'gem' | null = null;
       let newChestRelic: RelicId | null = null;
+      let chestItems = state.items;
       let newSecrets = state.secretsFound ?? 0;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
@@ -356,10 +357,14 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
         case 'chest': {
           // A chest holds a relic, now and for the rest of the run; sometimes a cursed one (never a second).
-          const found = chestRelic(state.runSeed, state.level, nextIndex, newRelics);
+          const found = chestRelic(state.runSeed, state.level, nextIndex, newRelics, draftContext(state));
           if (found) {
-            newRelics = [...newRelics, found];
-            if (found === 'quiver') newAttack += 2;
+            const gained = gainRelicNow({ ...state, relics: newRelics, attack: newAttack, shield: newShield, items: chestItems, visited: newVisited }, found);
+            newRelics = gained.relics;
+            newAttack = gained.attack;
+            newShield = gained.shield;
+            chestItems = gained.items;
+            newVisited = gained.visited;
             newChestRelic = found;
           }
           newScore += GAME_CONFIG.scoring.pickup;
@@ -424,16 +429,17 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           newLastPickup = 'ammo';
           consumeEntity();
           break;
+      }
 
-        case 'secret':
-          // A secret room: its cache, found by following the draft on the tiles beside it.
-          newGems += SECRET_GEMS;
-          newAttack += SECRET_ARROWS;
-          newScore += secretScore(state.level);
-          newSecrets += 1;
-          newLastPickup = 'secret';
-          consumeEntity();
-          break;
+      // A secret room: its cache, found by following the glint on the tiles beside it (stepped onto, or landed on by a vortex).
+      let newSecret = state.secret ?? null;
+      if (!newIsGameOver && newSecret !== null && nextIndex === newSecret) {
+        newGems += SECRET_GEMS;
+        newAttack += SECRET_ARROWS;
+        newScore += secretScore(state.level);
+        newSecrets += 1;
+        newLastPickup = newLastPickup ?? 'secret';
+        newSecret = null;
       }
 
       // Gem Magnet: gems on the four tiles beside where the hero ends up are taken too, even unseen.
@@ -452,7 +458,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       }
 
       // Owl Totem: every OWL_EVERY tiles explored on a floor give a detector charge.
-      let newItems = state.items;
+      let newItems = chestItems;
       if (has('owl') && Math.floor(newVisited.length / OWL_EVERY) > Math.floor(state.visited.length / OWL_EVERY) && newItems.detector < MAX_ITEMS) {
         newItems = { ...newItems, detector: newItems.detector + 1 };
       }
@@ -512,6 +518,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         lastPickup: newLastPickup,
         chestRelic: newChestRelic,
         secretsFound: newSecrets,
+        secret: newSecret,
         turn: newTurn,
         // Retracing with the Wayfarer Boots is not an action for the clocks: the ability does not recharge either.
         abilityCd: retracing ? state.abilityCd : Math.max(0, state.abilityCd - 1),
@@ -680,7 +687,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     case 'LEVEL_UP': {
       // Only a cleared, non-final floor with no draft pending can advance (guards double dispatches).
       if (!state.isLevelUp || state.isVictory || state.pendingDraft || state.isGameOver) return state;
-      const { rows, cols, entities, coins, attack, seed, omen, skip = 0 } = action.payload;
+      const { rows, cols, coins, attack, seed, omen, skip = 0 } = action.payload;
+      const { entities, secret } = splitSecret(action.payload.entities);
       let arrows = attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver');
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
@@ -699,6 +707,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         cols,
         entities,
         entityMap: createEntityMap(entities),
+        secret,
         coins,
         attack: arrows + state.pendingArrows,
         pendingArrows: 0,
@@ -749,7 +758,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     case 'PICK_RELIC': {
       if (!state.pendingDraft || !state.pendingDraft.includes(action.id)) return state;
 
-      const relics = [...state.relics, action.id];
+      const gained = gainRelicNow(state, action.id);
+      const relics = gained.relics;
       // The altar buys a second pick right after the first.
       const second = state.altarPending
         ? nonEmpty(draftRelics(state.runSeed, 500 + state.level, relics, modifiersFor(state.ascension).draftSize + state.draftBonus, draftContext(state)))
@@ -760,12 +770,10 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         pendingDraft: second,
         altarPending: false,
         // Relics with an immediate effect on the floor that is already loaded:
-        attack: action.id === 'quiver' ? state.attack + 2 : state.attack,
-        items: action.id === 'bomb_belt' ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
-        shield: action.id === 'bulwark' ? true : state.shield,
-        visited: action.id === 'lantern'
-          ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true, state.entities)]))
-          : state.visited,
+        attack: gained.attack,
+        items: gained.items,
+        shield: gained.shield,
+        visited: gained.visited,
       };
     }
 
@@ -950,7 +958,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     }
 
     case 'RESET': {
-      const { character, rows, cols, entities, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic, event } = action;
+      const { character, rows, cols, coins, attack, seed, mode, runSeed, perks, ascension, draftBonus, startShield, startRelics, seasonRelic, event } = action;
+      const { entities, secret } = splitSecret(action.entities);
       const heroPerks = perks ?? NO_PERKS;
       const startingRelics: RelicId[] = startRelics ? [...startRelics] : [];
       const withRelic = (id: RelicId) => relicCount(startingRelics, id) > 0;
@@ -959,6 +968,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         selectedCharacter: character,
         rows,
         cols,
+        secret,
         entities,
         entityMap: createEntityMap(entities),
         coins,
@@ -982,8 +992,12 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       };
     }
 
-    case 'RESTORE':
-      return action.state;
+    case 'RESTORE': {
+      const loaded = action.state;
+      if (!loaded.entities.some(e => e.type === 'secret')) return loaded;
+      const { entities, secret } = splitSecret(loaded.entities);
+      return { ...loaded, entities, entityMap: createEntityMap(entities), secret };
+    }
 
     default:
       return state;
