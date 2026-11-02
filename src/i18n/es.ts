@@ -1973,4 +1973,5 @@ export const es: Record<TranslationKey, string> = {
   'boss.ancient.title': 'Más viejo que las cuevas, más frío que la oscuridad',
   'bestiary.ancient.name': 'El Grimbur Ancestral',
   'bestiary.ancient.lore': 'El Grimbur como fue hace siglos, helado entre cristales y runas. Reina en la guarida de las profundidades más duras.',
+  'hint.secret': '¿Ves ese destello dorado en la esquina de una casilla? Una sala secreta se esconde en una de las cuatro casillas de al lado. Encuéntrala antes de tomar la última gema: guarda gemas, una flecha y una página de la crónica.',
 };

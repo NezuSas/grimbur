@@ -1972,6 +1972,7 @@ export const en = {
   'boss.ancient.title': 'Older than the caves, colder than the dark',
   'bestiary.ancient.name': 'The Ancestral Grimbur',
   'bestiary.ancient.lore': 'The Grimbur as it was long ago, frozen in ice and runes. It rules the lair on the hardest depths.',
+  'hint.secret': 'See that golden glint in the corner of a tile? A secret room hides on one of the four tiles beside it. Find it before taking the last gem: it holds gems, an arrow and a page of the chronicle.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

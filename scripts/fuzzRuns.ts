@@ -153,6 +153,7 @@ function playRun(run: number): void {
   };
   const fail = (what: string, step: number, last: string): void => {
     failures.push({ run, mode, hero, depth: ascension, step, floor: state.level, what, last });
+    if (process.env.FUZZ_DUMP) console.log(JSON.stringify({ what, attack: state.attack, rescues: state.lairRescues, player: state.playerIndex, rows: state.rows, cols: state.cols, ents: state.entities.map(e => [e.index, e.type, e.hp]), encounter: state.encounter, draft: state.pendingDraft, levelUp: state.isLevelUp }));
   };
 
   try {

@@ -38,6 +38,13 @@ describe('the lair never leaves a fight that cannot be won', () => {
     expect(ensureWinnable(s).entities.some(e => e.type === 'ammo')).toBe(false);
   });
 
+  it('still sends arrows to a hero hemmed in between the Grimbur and a vortex (the way out is the vortex)', () => {
+    const entities = [boss(102, 1), { index: 90, type: 'pit' as const }];
+    const hemmed = { ...createState({ entities, coins: 0, attack: 0 }), rows: 8, cols: 13, playerIndex: 103, coins: 0 };
+    const s = ensureWinnable(hemmed);
+    expect(s.entities.filter(e => e.type === 'ammo').length).toBeGreaterThan(0);
+  });
+
   it('only exists where there is a Grimbur', () => {
     const plain = createState({ entities: [{ index: 100, type: 'coin' }], attack: 0 });
     expect(ensureWinnable(plain)).toBe(plain);

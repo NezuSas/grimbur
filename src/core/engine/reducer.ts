@@ -229,10 +229,12 @@ export function ensureWinnable(state: GameState): GameState {
       queue.push(n);
     }
   }
+  // Hemmed in (between the Grimbur and a vortex, say) nothing is walkable from here: any free tile will do, the way out is the vortex.
+  const walkable = [...reachable].some(i => !taken.has(i));
   const placed: GameEntity[] = [];
   for (let tries = 0; placed.length < wanted && tries < total * 4; tries++) {
     const index = Math.floor(rnd() * total);
-    if (taken.has(index) || !reachable.has(index)) continue;
+    if (taken.has(index) || (walkable && !reachable.has(index))) continue;
     taken.add(index);
     placed.push({ index, type: 'ammo' });
   }

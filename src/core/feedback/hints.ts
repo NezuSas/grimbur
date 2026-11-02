@@ -14,12 +14,12 @@ export interface HintFacts {
 }
 
 /** Things a floor can hold that change how it is played: each one is explained the first time it is met. */
-export type FloorNovelty = 'lieutenant' | 'mimic' | 'dark' | 'thief' | 'elite' | 'chest' | 'sleeper' | 'stalker';
+export type FloorNovelty = 'lieutenant' | 'mimic' | 'dark' | 'thief' | 'elite' | 'chest' | 'sleeper' | 'stalker' | 'secret';
 
 export type HintId = 'ability' | 'undo' | 'detector' | 'bomb' | 'clues' | 'travel' | 'flag' | 'aim' | FloorNovelty;
 
 /** The order novelties are explained in when a floor holds several: what can kill first. */
-const NOVELTY_ORDER: readonly FloorNovelty[] = ['lieutenant', 'mimic', 'dark', 'stalker', 'sleeper', 'thief', 'elite', 'chest'];
+const NOVELTY_ORDER: readonly FloorNovelty[] = ['lieutenant', 'mimic', 'dark', 'stalker', 'sleeper', 'thief', 'elite', 'chest', 'secret'];
 
 /**
  * The next first-time hint to show, or null. A hint is returned until it is marked seen, in priority order, so the
@@ -43,7 +43,7 @@ export function nextHint(facts: HintFacts, seen: readonly string[]): HintId | nu
 }
 
 /** The novelties of a floor, read from what it holds (the mimic is hidden, but the floor announces it holds one). */
-export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean }[]; omen?: string | null }): FloorNovelty[] {
+export function floorNovelties(s: { entities: readonly { type: string; mini?: boolean; index?: number }[]; omen?: string | null; visited?: readonly number[]; cols?: number; rows?: number }): FloorNovelty[] {
   const out: FloorNovelty[] = [];
   const has = (type: string) => s.entities.some(e => e.type === type);
   if (s.entities.some(e => e.type === 'boss' && e.mini)) out.push('lieutenant');
@@ -54,5 +54,17 @@ export function floorNovelties(s: { entities: readonly { type: string; mini?: bo
   if (has('thief')) out.push('thief');
   if (s.omen === 'elite') out.push('elite');
   if (has('chest')) out.push('chest');
+  // A secret room is explained once its glint shows (an explored tile beside it), not before: there is nothing to see yet.
+  if (s.visited && s.cols && s.rows) {
+    const seen = new Set(s.visited);
+    const { cols, rows } = s;
+    const glints = s.entities.some(e => {
+      if (e.type !== 'secret' || e.index === undefined) return false;
+      const r = Math.floor(e.index / cols);
+      const c = e.index % cols;
+      return (r > 0 && seen.has(e.index - cols)) || (r < rows - 1 && seen.has(e.index + cols)) || (c > 0 && seen.has(e.index - 1)) || (c < cols - 1 && seen.has(e.index + 1));
+    });
+    if (glints) out.push('secret');
+  }
   return out;
 }
