@@ -20,6 +20,7 @@ import { formatCountdown } from "../core/stats/countdown";
 import { useT } from "../i18n/useT";
 import type { TranslationKey } from "../i18n/en";
 import { analytics } from "../services/analytics";
+import FriendsToday from "./puzzle/FriendsToday";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 
@@ -113,6 +114,8 @@ export default function PuzzlesScreen({ navigation }: Props) {
     </PressScale>
   );
 
+  const friendsToday = <FriendsToday date={today} friends={stats.friends} onAddFriends={() => navigation.navigate("HighScoresScreen")} />;
+
   const path = useMemo(
     () =>
       PUZZLE_TIERS.map((_, tier) => (
@@ -181,9 +184,15 @@ export default function PuzzlesScreen({ navigation }: Props) {
           }
         />
         <View style={[styles.body, wide && styles.bodyWide]}>
-          {wide ? daily : null}
+          {wide ? (
+            <ScrollView style={styles.side} contentContainerStyle={styles.sideContent} showsVerticalScrollIndicator={false}>
+              {daily}
+              {friendsToday}
+            </ScrollView>
+          ) : null}
           <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.pathContent} showsVerticalScrollIndicator={false}>
             {!wide ? daily : null}
+            {!wide ? friendsToday : null}
             <Text style={styles.pathNote} maxFontSizeMultiplier={1.15}>
               {t("puzzle.pathNote", { n: EMBERS_PER_STAR })}
             </Text>
@@ -211,7 +220,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(20, 40, 46, 0.9)",
     alignItems: "center",
   },
-  dailyWide: { width: 220, alignSelf: "flex-start", marginTop: 4 },
+  dailyWide: { alignSelf: "stretch", marginTop: 4 },
+  side: { width: 220, flexGrow: 0 },
+  sideContent: { gap: 10, paddingBottom: 16 },
   dailyHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   streak: { marginLeft: "auto", paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9, backgroundColor: "rgba(255,138,101,0.18)", borderWidth: 1, borderColor: "#FF8A6588" },
   streakText: { color: "#FFCCBC", fontWeight: "900", fontSize: 12 },

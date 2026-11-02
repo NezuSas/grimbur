@@ -36,6 +36,7 @@ import type { AchievementId } from "../core/stats/achievements";
 import { dailyPuzzleNumber, dailyPuzzleStreak } from "../core/stats/puzzleProgress";
 import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
 import { hintReason, type HintReason } from "../core/puzzles/hintReason";
+import { submitPuzzleScore } from "../services/puzzleScores";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzleScreen">;
 
@@ -94,7 +95,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
   const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
-  const startedAt = useRef(Date.now());
+  const startedAt = useRef(0);
+  useEffect(() => {
+    startedAt.current = Date.now();
+  }, []);
   const walking = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
@@ -144,6 +148,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     emitSound("LEVEL_UP");
     analytics.track("puzzle_solved", { puzzle: isDaily ? "daily" : index + 1, stars, mistakes, hints });
     const seconds = (Date.now() - startedAt.current) / 1000;
+    // The day's try goes to the friends' board (kept only when better than an earlier one).
+    if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
     const show = (embers: number, achievements: AchievementId[] = [], streak = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak }), 650);
     recordPuzzle(isDaily ? { kind: "daily", date: today } : { kind: "path", index }, stars)
       .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today)))

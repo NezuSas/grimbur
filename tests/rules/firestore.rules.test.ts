@@ -560,3 +560,48 @@ describe('the endless board', () => {
     await assertSucceeds(getDoc(doc(db(), 'endless_scores', pid)));
   });
 });
+
+describe('the puzzle of the day among friends', () => {
+  const pid = UID;
+  const date = '2026-11-02';
+  const entry = (patch: Record<string, unknown> = {}) => ({ pid, name: 'Oscar', date, stars: 2, mistakes: 1, hints: 0, time: 140, characterIndex: 0, ...patch });
+  const ref = (p = pid, d = date) => doc(authed(p), 'puzzle_scores', `${d}_${p}`);
+
+  it('keeps a better try only: more stars, or as many in less time; never deletes', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertFails(setDoc(ref(), entry({ time: 200 })));
+    await assertFails(setDoc(ref(), entry({ stars: 1, time: 20 })));
+    await assertSucceeds(setDoc(ref(), entry({ time: 90 })));
+    await assertSucceeds(setDoc(ref(), entry({ stars: 3, mistakes: 0, time: 300 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  it("refuses a write without sign-in, under another pid, or under another day's id", async () => {
+    await assertFails(setDoc(doc(db(), 'puzzle_scores', `${date}_${pid}`), entry()));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'puzzle_scores', `${date}_${pid}`), entry()));
+    await assertFails(setDoc(doc(authed(pid), 'puzzle_scores', `2026-11-03_${pid}`), entry()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['no stars', { stars: 0 }],
+    ['four stars', { stars: 4 }],
+    ['three stars with a slip', { stars: 3, mistakes: 1 }],
+    ['too fast', { time: 1 }],
+    ['a fractional time', { time: 12.5 }],
+    ['an unknown hero', { characterIndex: 6 }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = `P${String(i).padStart(15, '0')}`;
+    await assertFails(setDoc(doc(authed(owner), 'puzzle_scores', `${date}_${owner}`), entry({ pid: owner, ...patch })));
+  });
+
+  it('reads one row by id without sign-in, and lists nothing', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'puzzle_scores', `${date}_${pid}`), entry());
+    });
+    await assertSucceeds(getDoc(doc(db(), 'puzzle_scores', `${date}_${pid}`)));
+    await assertFails(getDocs(query(collection(db(), 'puzzle_scores'), limit(5))));
+  });
+});

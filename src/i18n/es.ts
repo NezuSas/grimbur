@@ -2203,4 +2203,8 @@ export const es: Record<TranslationKey, string> = {
   'puzzle.side.down': 'de abajo',
   'puzzle.side.left': 'a su izquierda',
   'puzzle.side.right': 'a su derecha',
+  'puzzle.friends.title': 'Amigos hoy',
+  'puzzle.friends.none': 'Ninguno de tus amigos lo ha resuelto todavía.',
+  'puzzle.friends.you': 'Tú',
+  'puzzle.friends.invite': 'Compárate con amigos: agrégalos en la clasificación',
 };

@@ -2202,6 +2202,10 @@ export const en = {
   'puzzle.side.down': 'below it',
   'puzzle.side.left': 'to its left',
   'puzzle.side.right': 'to its right',
+  'puzzle.friends.title': 'Friends today',
+  'puzzle.friends.none': 'None of your friends has solved it yet.',
+  'puzzle.friends.you': 'You',
+  'puzzle.friends.invite': 'Compare with friends: add them in the rankings',
 } as const;
 
 export type TranslationKey = keyof typeof en;
