@@ -40,6 +40,7 @@ import { skinArt } from '../../../data/skinArt';
 
 const MEDAL_ART = require('../../../assets/sprites/ui/Icon_Medal.png');
 const FLAG_ART = require('../../../assets/sprites/ui/Icon_Flag.png');
+const BOOK_ART = require('../../../assets/sprites/ui/Icon_Book.png');
 const DEPTH_ART = require('../../../assets/sprites/achievements/Ach_Depth.png');
 const ENDLESS_ART = require('../../../assets/sprites/achievements/Ach_Endless.png');
 const TIER_TINT: Record<string, string> = { easy: '#A5D6A7', medium: '#90CAF9', hard: '#FFAB91', legend: '#CE93D8' };
@@ -101,6 +102,8 @@ type Props = {
   missionsDone?: string[];
   rankUp?: number | null;
   masteryUp?: { hero: number; level: number; tier?: MasteryTierId } | null;
+  /** The newest chronicle fragment a secret room unveiled. */
+  chronicleUp?: number | null;
   /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
   devParade?: number | 'grid';
   /** One of the first runs: a line says gems stay in the run while embers are kept for good. */
@@ -161,6 +164,7 @@ const GameOverOverlay = ({
   missionsDone,
   rankUp,
   masteryUp,
+  chronicleUp,
   devParade,
   gemsLeft,
   onShare,
@@ -216,7 +220,7 @@ const GameOverOverlay = ({
   // The parade of rewards: once per card, as soon as the run's rewards are known (they come a moment after the card).
   const rewardCount =
     (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
-    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
+    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
   const [parade, setParade] = useState<'off' | 'cards' | 'grid'>('off');
   const paradeShown = useRef(false);
   useEffect(() => {
@@ -352,6 +356,9 @@ const GameOverOverlay = ({
               }
             : { key: 'mastery', tint: '#FFB74D', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') },
         ]
+      : []),
+    ...(chronicleUp
+      ? [{ key: 'chronicle', tint: '#E8C07D', art: BOOK_ART, kicker: t('parade.kicker.chronicle'), title: t(`chronicle.${chronicleUp}.title` as TranslationKey), line: t('parade.chronicleLine') }]
       : []),
     ...(achievements ?? []).map((id): RewardItem => {
       const def = ACHIEVEMENTS.find(a => a.id === id);

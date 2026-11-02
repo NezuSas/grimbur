@@ -63,6 +63,8 @@ export type RunResult = {
   missionsDone?: string[];
   rankUp?: number | null;
   masteryUp?: { hero: number; level: number } | null;
+  /** The newest chronicle fragment a secret room unveiled. */
+  chronicleUp?: number | null;
   /** One of the first runs: the game over explains gems versus embers. */
   early?: boolean;
 };

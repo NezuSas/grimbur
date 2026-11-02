@@ -35,6 +35,7 @@ import type { SkinId } from '../core/skins/skins';
 import { buyCosmetic, equipCosmetic, type CosmeticId, type CosmeticKind } from '../core/cosmetics/cosmetics';
 import { buyDeal } from '../core/cosmetics/dailyShop';
 import { openChest } from '../core/stats/dailyChest';
+import { chronicleUp } from '../core/stats/chronicle';
 
 const STORAGE_KEY = 'grimbur.stats.v1';
 
@@ -200,6 +201,8 @@ async function recordRunNow(run: RunResult) {
     /** The new rank when this run raised it. */
     rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
     masteryUp: masteryRaised(before, stats, run.heroIndex),
+    /** The newest chronicle fragment a secret room unveiled. */
+    chronicleUp: chronicleUp(before, stats),
     /** Skins unlocked by playing (their goal was just met). */
     newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
@@ -234,6 +237,7 @@ async function recordDailyRunNow(run: RunResult, key: string) {
     missionsDone: missioned.done,
     rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
     masteryUp: masteryRaised(before, stats, run.heroIndex),
+    chronicleUp: chronicleUp(before, stats),
     newSkins: claim.claimed,
     achievements,
     payout,
