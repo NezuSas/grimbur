@@ -8,7 +8,7 @@ describe('the encounter journal', () => {
   it('logs every scene a run meets, taken or walked past', () => {
     const s = { ...createState({ entities: [coin(30)] }), level: 3, runSeed: 5, encounter: { id: 'spring' as const } };
     const after = resolveEncounter(s, false);
-    expect(after.encounterLog).toEqual([{ id: 'spring', outcome: 'skip' }]);
+    expect(after.encounterLog).toEqual([{ id: 'spring', outcome: 'skip', floor: 3 }]);
   });
 
   it('adds a run to the book and counts gambles won and miners freed', () => {
