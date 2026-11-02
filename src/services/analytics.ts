@@ -35,6 +35,7 @@ export interface AnalyticsEvents {
   tutorial_skip: { step: number };
   lesson_complete: { lesson: string };
   puzzle_solved: { puzzle: number | 'daily'; stars: number; mistakes: number; hints: number };
+  puzzle_shared: { stars: number };
   forge_purchase: { upgrade: string; level: number; cost: number };
   /** `source`: where the paywall was opened from (cover, floor, demo, endless). */
   paywall_view: { source: string };

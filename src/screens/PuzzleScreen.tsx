@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
+import { ImageBackground, Share, StatusBar, StyleSheet, TouchableOpacity, View, useWindowDimensions } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +33,9 @@ import type { TranslationKey } from "../i18n/en";
 import { analytics } from "../services/analytics";
 import { achievementText } from "../i18n/keys";
 import type { AchievementId } from "../core/stats/achievements";
+import { dailyPuzzleNumber, dailyPuzzleStreak } from "../core/stats/puzzleProgress";
+import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
+import { hintReason, type HintReason } from "../core/puzzles/hintReason";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzleScreen">;
 
@@ -86,9 +89,12 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [mistakes, setMistakes] = useState(0);
   const [hints, setHints] = useState(0);
   const [hintTile, setHintTile] = useState<number | null>(null);
+  const [hintWhy, setHintWhy] = useState<HintReason | null>(null);
   const [fail, setFail] = useState<{ tile: number; kind: string } | null>(null);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
-  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[] } | null>(null);
+  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number } | null>(null);
+  // The whole time spent on it, restarts included: what a shared result tells.
+  const startedAt = useRef(Date.now());
   const walking = useRef<ReturnType<typeof setTimeout> | null>(null);
   const failTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
@@ -137,9 +143,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     haptic.notify(NotificationFeedbackType.Success);
     emitSound("LEVEL_UP");
     analytics.track("puzzle_solved", { puzzle: isDaily ? "daily" : index + 1, stars, mistakes, hints });
-    const show = (embers: number, achievements: AchievementId[] = []) => setTimeout(() => setResult({ stars, embers, achievements }), 650);
+    const seconds = (Date.now() - startedAt.current) / 1000;
+    const show = (embers: number, achievements: AchievementId[] = [], streak = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak }), 650);
     recordPuzzle(isDaily ? { kind: "daily", date: today } : { kind: "path", index }, stars)
-      .then(r => show(r.embers, r.achievements))
+      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today)))
       .catch(() => show(0));
   }, [solved]);
 
@@ -221,14 +228,31 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     if (pick === null) return;
     haptic.impact();
     setHintTile(pick);
+    setHintWhy(hintReason(s.rows, s.cols, s.entities, s.visited, pick));
     if (hintTile === null) setHints(h => h + 1);
   }, [hintTile]);
 
   const hasNext = !isDaily && index + 1 < PUZZLE_COUNT;
+  const share = () => {
+    if (!result) return;
+    analytics.track("puzzle_shared", { stars: result.stars });
+    Share.share({
+      message: puzzleShareText(t, { number: dailyPuzzleNumber(today), tier: tierName, stars: result.stars, seconds: result.seconds, mistakes, hints, streak: result.streak }),
+    }).catch(() => {});
+  };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
   const title = isDaily ? t("puzzle.daily") : t("puzzle.number", { n: index + 1 });
   const goal = gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
+  // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
+  const whyText =
+    hintTile === null || !hintWhy
+      ? null
+      : hintWhy.kind === "empty"
+        ? t("puzzle.why.empty", { side: t(`puzzle.side.${hintWhy.side}` as TranslationKey) })
+        : hintWhy.kind === "full"
+          ? t(hintWhy.count === 1 ? "puzzle.why.full1" : "puzzle.why.full", { side: t(`puzzle.side.${hintWhy.side}` as TranslationKey), n: hintWhy.count })
+          : t(`puzzle.why.${hintWhy.kind}` as TranslationKey);
   const bannerHeight = hudHeight + insets.top;
   const visited = fail ? [...state.visited, fail.tile] : state.visited;
   // The clue of the hero's own tile is under the hero on the board: it is read out beside the pad (the most needed clue of all).
@@ -248,8 +272,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {`${title}  ·  ${tierName}`.toLocaleUpperCase()}
           </Text>
-          <Text style={[styles.goal, fail && styles.goalFail, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
-            {failText ?? goal}
+          <Text style={[styles.goal, fail ? styles.goalFail : whyText ? styles.goalWhy : null, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
+            {failText ?? whyText ?? goal}
           </Text>
         </View>
         <View style={styles.counter} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
@@ -326,6 +350,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
               {mistakes === 0 && hints === 0 ? t("puzzle.flawless") : t("puzzle.slips", { mistakes, hints })}
             </Text>
+            <Text style={styles.resultTime} maxFontSizeMultiplier={1.2}>
+              {`⏱ ${formatSolveTime(result.seconds)}`}
+              {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
+            </Text>
             {result.embers > 0 ? (
               <View style={styles.embers}>
                 <EmberIcon size={16} />
@@ -339,7 +367,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                 {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
               </Text>
             ) : null}
-            {hasNext ? (
+            {isDaily ? (
+              <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} />
+            ) : hasNext ? (
               <PopButton label={t("puzzle.next")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: index + 1 })} />
             ) : (
               <PopButton label={t("puzzle.back")} tint={TINT} onPress={() => navigation.goBack()} />
@@ -351,7 +381,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                   onPress={() => navigation.replace("PuzzleScreen", { target })}
                 />
               ) : null}
-              {hasNext ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}
+              {hasNext || isDaily ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}
             </View>
             {!isDaily && (index + 1) % PUZZLES_PER_TIER === 0 && hasNext ? (
               <Text style={styles.tierUp} maxFontSizeMultiplier={1.2}>
@@ -381,6 +411,7 @@ const styles = StyleSheet.create({
   label: { color: TINT, fontWeight: "900", letterSpacing: 2 },
   goal: { color: "#fff", fontWeight: "700" },
   goalFail: { color: "#FF8A80" },
+  goalWhy: { color: "#FFE082" },
   iconButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, alignItems: "center", justifyContent: "center" },
   hintButton: { borderWidth: 1.5, borderColor: "#FFD54F88", backgroundColor: "rgba(255,213,79,0.12)" },
   hintOn: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
@@ -401,6 +432,7 @@ const styles = StyleSheet.create({
   starMid: { width: 66, height: 66, marginBottom: 6 },
   starOff: { opacity: 0.18 },
   resultLine: { color: "#E6D6C2", fontSize: 13, textAlign: "center" },
+  resultTime: { color: "#FFE0B2", fontSize: 14, fontWeight: "800", textAlign: "center" },
   embers: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 4 },
   achievements: { color: "#FFD54F", fontSize: 12, fontWeight: "800", textAlign: "center", marginBottom: 4 },
   embersText: { color: "#FFB74D", fontWeight: "900", fontSize: 16 },

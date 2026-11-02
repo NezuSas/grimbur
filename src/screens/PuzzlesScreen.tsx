@@ -14,7 +14,7 @@ import { RootStackParamList } from "../navigation/types";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER, dailyPuzzleTier } from "../core/puzzles/puzzles";
-import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, MAX_STARS, dailyPuzzleStars, isPuzzleOpen, nextPuzzle, puzzleStarsAt, totalPuzzleStars } from "../core/stats/puzzleProgress";
+import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, MAX_STARS, dailyPuzzleStars, dailyPuzzleStreak, isPuzzleOpen, nextPuzzle, puzzleStarsAt, totalPuzzleStars } from "../core/stats/puzzleProgress";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
 import { useT } from "../i18n/useT";
@@ -63,6 +63,7 @@ export default function PuzzlesScreen({ navigation }: Props) {
   const puzzles = stats.puzzles;
   const dailyStars = dailyPuzzleStars(puzzles, today);
   const dailyTier = dailyPuzzleTier(today);
+  const streak = dailyPuzzleStreak(puzzles, today);
   const next = nextPuzzle(puzzles);
   const stars = totalPuzzleStars(puzzles);
   const wide = width >= 720;
@@ -80,6 +81,11 @@ export default function PuzzlesScreen({ navigation }: Props) {
         <Text style={styles.dailyKicker} numberOfLines={1} maxFontSizeMultiplier={1.15}>
           {t("puzzle.daily").toLocaleUpperCase()}
         </Text>
+        {streak > 0 ? (
+          <View style={styles.streak} accessible accessibilityLabel={streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: streak })}>
+            <Text style={styles.streakText} maxFontSizeMultiplier={1.15}>{`🔥 ${streak}`}</Text>
+          </View>
+        ) : null}
       </View>
       <Text style={[styles.dailyTier, { color: TIER_TINTS[dailyTier] }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
         {t(`puzzle.tier.${dailyTier}` as TranslationKey)}
@@ -207,6 +213,8 @@ const styles = StyleSheet.create({
   },
   dailyWide: { width: 220, alignSelf: "flex-start", marginTop: 4 },
   dailyHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  streak: { marginLeft: "auto", paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9, backgroundColor: "rgba(255,138,101,0.18)", borderWidth: 1, borderColor: "#FF8A6588" },
+  streakText: { color: "#FFCCBC", fontWeight: "900", fontSize: 12 },
   dailyKicker: { color: TINT, fontWeight: "900", letterSpacing: 2, fontSize: 12 },
   dailyTier: { fontWeight: "900", fontSize: 20 },
   dailyNote: { color: "#cfe9ee", fontSize: 12, textAlign: "center" },

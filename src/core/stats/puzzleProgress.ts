@@ -1,4 +1,5 @@
 import { PUZZLE_COUNT } from '../puzzles/puzzles';
+import { daysBetween, previousDayKey } from '../engine/seed';
 
 /** What the player has done with the cave's puzzles. */
 export interface PuzzleProgress {
@@ -8,9 +9,16 @@ export interface PuzzleProgress {
   daily: { date: string; stars: number } | null;
   /** Daily puzzles solved over all days. */
   dailySolved: number;
+  /** Days in a row with the day's puzzle solved (as of `daily.date`), and the longest such run. */
+  streak: number;
+  bestStreak: number;
 }
 
-export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0 };
+export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0 };
+
+/** The first day of the puzzle of the day: it numbers them (#1 that day) for sharing. */
+export const PUZZLE_EPOCH = '2026-11-01';
+export const dailyPuzzleNumber = (date: string): number => Math.max(1, daysBetween(PUZZLE_EPOCH, date) + 1);
 
 /** Embers for every new star on the path (a better try pays the difference), and for the day's puzzle the first time. */
 export const EMBERS_PER_STAR = 5;
@@ -26,8 +34,11 @@ export function parsePuzzles(raw: unknown): PuzzleProgress {
   const stars = Array.isArray(r.stars) ? r.stars.slice(0, PUZZLE_COUNT).map(starOf) : [];
   const d = r.daily as Record<string, unknown> | null | undefined;
   const daily = d && typeof d === 'object' && typeof d.date === 'string' && DATE.test(d.date) ? { date: d.date, stars: starOf(d.stars) } : null;
-  const n = typeof r.dailySolved === 'number' && Number.isFinite(r.dailySolved) ? Math.max(0, Math.trunc(r.dailySolved)) : 0;
-  return { stars, daily, dailySolved: n };
+  const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.trunc(v)) : 0);
+  const n = count(r.dailySolved);
+  // Saves from before the streak start it at the last day solved.
+  const streak = daily ? Math.max(1, count(r.streak)) : 0;
+  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)) };
 }
 
 export const puzzleStarsAt = (p: PuzzleProgress | undefined, index: number): number => p?.stars[index] ?? 0;
@@ -41,6 +52,11 @@ export const nextPuzzle = (p: PuzzleProgress | undefined): number => {
   return PUZZLE_COUNT - 1;
 };
 export const dailyPuzzleStars = (p: PuzzleProgress | undefined, date: string): number => (p?.daily?.date === date ? p.daily.stars : 0);
+/** The streak that still stands on `today`: solved today or yesterday keeps it, a missed day ends it. */
+export const dailyPuzzleStreak = (p: PuzzleProgress | undefined, today: string): number => {
+  if (!p?.daily) return 0;
+  return p.daily.date === today || p.daily.date === previousDayKey(today) ? p.streak : 0;
+};
 
 export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string };
 
@@ -62,7 +78,10 @@ export function withPuzzleResult(p: PuzzleProgress | undefined, target: PuzzleTa
   const first = base.daily?.date !== target.date;
   if (!first && got <= before) return { progress: base, embers: 0 };
   return {
-    progress: { ...base, daily: { date: target.date, stars: Math.max(got, before) }, dailySolved: base.dailySolved + (first ? 1 : 0) },
+    progress: (() => {
+      const streak = first ? (base.daily?.date === previousDayKey(target.date) ? base.streak + 1 : 1) : base.streak;
+      return { ...base, daily: { date: target.date, stars: Math.max(got, before) }, dailySolved: base.dailySolved + (first ? 1 : 0), streak, bestStreak: Math.max(base.bestStreak, streak) };
+    })(),
     embers: first ? DAILY_PUZZLE_EMBERS : 0,
   };
 }

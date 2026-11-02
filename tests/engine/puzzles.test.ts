@@ -1,5 +1,6 @@
 import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzle, generatePuzzle, pathPuzzle, puzzleStars, type Puzzle } from '../../src/core/puzzles/puzzles';
-import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, EMPTY_PUZZLES, isPuzzleOpen, nextPuzzle, parsePuzzles, withPuzzleResult } from '../../src/core/stats/puzzleProgress';
+import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, EMPTY_PUZZLES, dailyPuzzleNumber, dailyPuzzleStreak, isPuzzleOpen, nextPuzzle, parsePuzzles, withPuzzleResult } from '../../src/core/stats/puzzleProgress';
+import { puzzleShareText } from '../../src/screens/puzzle/shareText';
 import { gameReducer, initialState } from '../../src/core/engine/reducer';
 import { provenSafeTiles } from '../../src/core/engine/solver';
 import { travelPath } from '../../src/core/engine/travel';
@@ -84,6 +85,36 @@ describe('the cave puzzles', () => {
 
   it('read back from a save, cleaning anything malformed', () => {
     expect(parsePuzzles(null)).toEqual(EMPTY_PUZZLES);
-    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4 });
+    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4, streak: 0, bestStreak: 0 });
+    // A save from before the streak starts it at the last day solved.
+    expect(parsePuzzles({ stars: [], daily: { date: '2026-11-02', stars: 3 }, dailySolved: 9 })).toMatchObject({ streak: 1, bestStreak: 1 });
+  });
+
+  it('keeps a streak of days in a row with the puzzle of the day solved, and ends it on a missed day', () => {
+    const day = (n: number) => shiftDayKey('2026-11-02', n);
+    let p = EMPTY_PUZZLES;
+    for (const n of [0, 1, 2]) p = withPuzzleResult(p, { kind: 'daily', date: day(n) }, 2).progress;
+    expect(p).toMatchObject({ streak: 3, bestStreak: 3 });
+    // A better try the same day does not count twice.
+    p = withPuzzleResult(p, { kind: 'daily', date: day(2) }, 3).progress;
+    expect(p.streak).toBe(3);
+    expect(dailyPuzzleStreak(p, day(3))).toBe(3);
+    expect(dailyPuzzleStreak(p, day(4))).toBe(0);
+    p = withPuzzleResult(p, { kind: 'daily', date: day(5) }, 1).progress;
+    expect(p).toMatchObject({ streak: 1, bestStreak: 3 });
+  });
+
+  it('shares the day as a few lines with its number, stars, time, slips, streak and a dare', () => {
+    const t = (k: string, p?: Record<string, string | number>) => `${k}${p ? JSON.stringify(p) : ''}`;
+    expect(dailyPuzzleNumber('2026-11-01')).toBe(1);
+    expect(dailyPuzzleNumber('2026-11-12')).toBe(12);
+    const clean = puzzleShareText(t as never, { number: 12, tier: 'Experto', stars: 3, seconds: 102, mistakes: 0, hints: 0, streak: 5 });
+    expect(clean).toContain('⭐⭐⭐  ⏱ 1:42');
+    expect(clean).toContain('puzzle.shareClean');
+    expect(clean).toContain('puzzle.shareStreak{"n":5}');
+    const slips = puzzleShareText(t as never, { number: 3, tier: 'x', stars: 1, seconds: 59, mistakes: 2, hints: 1, streak: 1 });
+    expect(slips).toContain('⭐▫️▫️  ⏱ 0:59');
+    expect(slips).toContain('❌ 2  💡 1');
+    expect(slips).not.toContain('shareStreak');
   });
 });

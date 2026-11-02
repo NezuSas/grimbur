@@ -2186,6 +2186,22 @@ export const en = {
   'whatsnew.prev': 'Previous',
   'whatsnew.next': 'Next',
   'whatsnew.close': 'Close',
+  'puzzle.share': 'Share',
+  'puzzle.shareTitle': 'Grimbur · Puzzle of the day #{n} ({tier})',
+  'puzzle.shareClean': 'No mistakes, no hints',
+  'puzzle.shareStreak': '{n} days in a row',
+  'puzzle.shareDare': 'Can you solve it?',
+  'puzzle.streak': '{n}-day streak',
+  'puzzle.streak1': 'first day of a streak',
+  'puzzle.why.empty': 'The lit tile is safe: the tile {side} senses no danger at all.',
+  'puzzle.why.full': 'The lit tile is safe: the tile {side} senses {n} dangers, and the clues already place all of them elsewhere.',
+  'puzzle.why.full1': 'The lit tile is safe: the tile {side} senses one danger, and the clues already place it elsewhere.',
+  'puzzle.why.combined': 'The lit tile is safe: no single clue says it, but the clues around it, read together, rule out any danger there.',
+  'puzzle.why.gem': 'Go for the gem: a gem in plain sight is never a danger.',
+  'puzzle.side.up': 'above it',
+  'puzzle.side.down': 'below it',
+  'puzzle.side.left': 'to its left',
+  'puzzle.side.right': 'to its right',
 } as const;
 
 export type TranslationKey = keyof typeof en;
