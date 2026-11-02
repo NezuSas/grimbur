@@ -18,10 +18,10 @@ export const WHATS_NEW_ID = "whatsnew-2";
 type Action = "puzzles" | "pets";
 /** Any number of news fit: one per page. `action` adds a quiet link to try it right away. */
 const ITEMS: { key: string; art: ImageSourcePropType; tint: string; action?: Action }[] = [
-  { key: "puzzles", art: require("../../assets/sprites/ui/Icon_Riddle.png"), tint: "#4DD0E1", action: "puzzles" },
-  { key: "quick", art: require("../../assets/sprites/ui/Icon_Bolt.png"), tint: "#FFD54F" },
-  { key: "warden", art: require("../../assets/sprites/enemies/Warden_Boss.png"), tint: "#FF8A65" },
-  { key: "pets", art: require("../../assets/sprites/cosmetics/PetAdult_Fox_A.png"), tint: "#81D4FA", action: "pets" },
+  { key: "puzzles", art: require("../../assets/sprites/news/News_Puzzles.png"), tint: "#4DD0E1", action: "puzzles" },
+  { key: "quick", art: require("../../assets/sprites/news/News_Quick.png"), tint: "#FFD54F" },
+  { key: "warden", art: require("../../assets/sprites/news/News_Warden.png"), tint: "#FF8A65" },
+  { key: "pets", art: require("../../assets/sprites/news/News_Pets.png"), tint: "#81D4FA", action: "pets" },
 ];
 const ACTION_LABEL: Record<Action, TranslationKey> = { puzzles: "whatsnew.tryPuzzle", pets: "whatsnew.pets" };
 
@@ -30,7 +30,7 @@ type Props = { onClose: () => void; onSeePuzzles: () => void; onSeePets: () => v
 
 /**
  * The art as a lit scene rather than an icon in a frame: a soft pool of the news' colour bleeding in from the card's edge,
- * a shadow on the floor, and the art floating gently above it.
+ * and a painted diorama of it floating gently in the middle.
  */
 const ArtScene = ({ item, width, height, active, calm }: { item: Item; width: number; height: number; active: boolean; calm: boolean }) => {
   const float = useRef(new Animated.Value(0)).current;
@@ -48,7 +48,7 @@ const ArtScene = ({ item, width, height, active, calm }: { item: Item; width: nu
     loop.start();
     return () => loop.stop();
   }, [active, calm, enter, float]);
-  const art = Math.min(width * 0.68, height * 0.54);
+  const art = Math.min(width * 0.86, height * 0.72);
   const glow = art * 1.5;
   return (
     <View style={{ width, height, alignItems: "center", justifyContent: "center" }}>
@@ -59,24 +59,9 @@ const ArtScene = ({ item, width, height, active, calm }: { item: Item; width: nu
       ))}
       <Animated.View
         style={{
-          position: "absolute",
-          top: height / 2 + art * 0.4,
-          width: art * 0.5,
-          height: art * 0.07,
-          borderRadius: art,
-          backgroundColor: "rgba(0,0,0,0.28)",
-          shadowColor: "#000",
-          shadowOpacity: 0.6,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 0 },
-          transform: [{ scaleX: float.interpolate({ inputRange: [0, 1], outputRange: [1, 0.86] }) }],
-        }}
-      />
-      <Animated.View
-        style={{
           opacity: enter,
           transform: [
-            { translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -6] }) },
+            { translateY: float.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) },
             { scale: enter.interpolate({ inputRange: [0, 1], outputRange: [0.82, 1] }) },
           ],
         }}
@@ -84,6 +69,21 @@ const ArtScene = ({ item, width, height, active, calm }: { item: Item; width: nu
         <SpriteImage source={item.art} style={{ width: art, height: art }} resizeMode="contain" />
       </Animated.View>
     </View>
+  );
+};
+
+/** The words of a page slide in a beat after its art, so the eye goes picture first, then title. */
+const Reveal = ({ active, calm, children }: { active: boolean; calm: boolean; children: React.ReactNode }) => {
+  const enter = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (calm || !active) return;
+    enter.setValue(0);
+    Animated.timing(enter, { toValue: 1, duration: 380, delay: 140, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [active, calm, enter]);
+  return (
+    <Animated.View style={{ opacity: enter, transform: [{ translateX: enter.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }], gap: 8 }}>
+      {children}
+    </Animated.View>
   );
 };
 
@@ -100,16 +100,27 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
   const item = ITEMS[page];
   const last = page === ITEMS.length - 1;
 
+  // The rim glides from one news' colour to the next instead of jumping.
+  const rim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(rim, { toValue: page, duration: calm ? 0 : 380, easing: Easing.inOut(Easing.quad), useNativeDriver: false }).start();
+  }, [calm, page, rim]);
+  const rimColor = ITEMS.length > 1 ? rim.interpolate({ inputRange: ITEMS.map((_, i) => i), outputRange: ITEMS.map(it => it.tint) }) : ITEMS[0].tint;
+
   const goTo = (next: number) => {
     const to = Math.max(0, Math.min(ITEMS.length - 1, next));
     if (to === page) return;
+    emitSound("UI_TAP");
     setPage(to);
     scroller.current?.scrollTo({ x: to * cardWidth, animated: !calm });
   };
   // A swipe turns the page too.
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const at = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
-    if (at !== page && at >= 0 && at < ITEMS.length) setPage(at);
+    if (at !== page && at >= 0 && at < ITEMS.length) {
+      emitSound("UI_TAP");
+      setPage(at);
+    }
   };
   const act = (a: Action) => (a === "puzzles" ? onSeePuzzles() : onSeePets());
 
@@ -121,6 +132,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
             <View key={it.key} style={[styles.page, { width: cardWidth, height: cardHeight }]}>
               <ArtScene item={it} width={artWidth} height={cardHeight} active={i === page} calm={calm} />
               <View style={styles.copy}>
+                <Reveal active={i === page} calm={calm}>
                 <Text style={[styles.eyebrow, { color: it.tint }]} maxFontSizeMultiplier={1.1}>
                   {t("whatsnew.title").toLocaleUpperCase()}
                 </Text>
@@ -139,6 +151,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
                     <Ionicons name="arrow-forward" size={15} color={it.tint} />
                   </Pressable>
                 ) : null}
+                </Reveal>
               </View>
             </View>
           ))}
@@ -161,12 +174,13 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
           ) : null}
           <PopButton
             label={last ? t("whatsnew.go") : t("whatsnew.next")}
-            onPress={() => (last ? onClose() : (emitSound("UI_TAP"), goTo(page + 1)))}
+            onPress={() => (last ? onClose() : goTo(page + 1))}
             tint={item.tint}
             style={styles.next}
           />
         </View>
 
+        <Animated.View pointerEvents="none" style={[styles.rim, { borderColor: rimColor }]} />
         <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("whatsnew.close")} style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}>
           <Ionicons name="close" size={20} color="#CDBBA5" />
         </Pressable>
@@ -176,7 +190,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
 };
 
 const styles = StyleSheet.create({
-  panel: { paddingHorizontal: 0, paddingVertical: 0, gap: 0, alignItems: "stretch" },
+  panel: { paddingHorizontal: 0, paddingVertical: 0, gap: 0, alignItems: "stretch", borderWidth: 0 },
   page: { flexDirection: "row" },
   copy: { flex: 1, justifyContent: "center", paddingLeft: 24, paddingRight: 40, paddingBottom: 64, paddingTop: 20, gap: 8 },
   eyebrow: { fontSize: 11, fontWeight: "900", letterSpacing: 2.2, opacity: 0.9 },
@@ -190,6 +204,8 @@ const styles = StyleSheet.create({
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.22)" },
   back: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)" },
   next: { width: 150 },
+  // The panel's own border is off: this one, drawn on top, carries the gliding colour.
+  rim: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 26, borderWidth: 2 },
   close: { position: "absolute", top: 14, right: 16, width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.06)" },
 });
 
