@@ -10,6 +10,8 @@ import SpriteImage, { AnimatedSprite } from "./SpriteImage";
 import BossSprite from "./BossSprite";
 import FogPuff from "./game/FogPuff";
 import GlyphIcon from "./GlyphIcon";
+import { useT } from "../../i18n/useT";
+import type { TranslationKey } from "../../i18n/en";
 
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
 
@@ -309,6 +311,7 @@ const GridCell = memo(({
     if (unveiled) Animated.timing(unveil, { toValue: 1, duration: calm ? 0 : 450, delay: calm ? 0 : 120 + ((index * 37) % 260), useNativeDriver: true }).start();
     else unveil.setValue(0);
   }, [unveiled, unveil, calm, index]);
+  const { t } = useT();
   const lit = isVisited || isPlayerHere;
   const seen = lit || unveiled;
   const hazard = !!entity && (entity.type === 'enemy' || entity.type === 'pit' || entity.type === 'stalker' || entity.type === 'sleeper' || entity.type === 'mimic' || entity.type === 'trap' || entity.type === 'boss');
@@ -334,8 +337,24 @@ const GridCell = memo(({
   const badge = compact ? Math.max(15, tileSize * (roar && vortex ? 0.46 : 0.6)) : Math.max(10, tileSize * (roar && vortex ? 0.4 : 0.5));
   const countSize = Math.max(11, tileSize * 0.24);
 
+  // What a screen reader says about the tile: only what the player can see (never what the fog still hides).
+  const a11y = (() => {
+    const where = t("a11y.tile.where", { row: row + 1, col: col + 1 });
+    if (isPlayerHere) return `${where}: ${t("a11y.tile.hero")}`;
+    if (!lit) return `${where}: ${t(flagged ? "a11y.tile.flagged" : "a11y.tile.hidden")}`;
+    const parts: string[] = [];
+    if (entity && seen) parts.push(t(`a11y.thing.${entity.type}` as TranslationKey));
+    if (showHints && enemyCount > 0) parts.push(t(enemyCount === 1 ? "a11y.tile.guardians.one" : "a11y.tile.guardians", { n: enemyCount }));
+    if (showHints && pitCount > 0) parts.push(t(pitCount === 1 ? "a11y.tile.vortexes.one" : "a11y.tile.vortexes", { n: pitCount }));
+    if (draft && !hideClue) parts.push(t("a11y.tile.secret"));
+    if (parts.length === 0) parts.push(t("a11y.tile.clear"));
+    return `${where}: ${parts.join(", ")}`;
+  })();
+
   return (
     <Animated.View
+      accessible
+      accessibilityLabel={a11y}
       style={[
         styles.cell,
         { width: tileSize, height: tileSize, position: "absolute", left: col * tileSize, top: row * tileSize, transform: flipTransform },
