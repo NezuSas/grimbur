@@ -179,6 +179,10 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
             markHintSeen(WHATS_NEW_ID);
             navigation.navigate("PuzzlesScreen");
           }}
+          onSeePets={() => {
+            markHintSeen(WHATS_NEW_ID);
+            navigation.navigate("CollectionScreen", { category: "pet" });
+          }}
         />
       ) : null}
       {chest ? <DailyChestModal day={chest.day} opened={chest.opened} busy={chest.busy} onOpen={openChest} onClose={() => setChest(null)} calm={calm} /> : null}

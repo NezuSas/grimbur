@@ -2185,6 +2185,7 @@ export const en = {
   'whatsnew.new': 'New',
   'whatsnew.prev': 'Previous',
   'whatsnew.next': 'Next',
+  'whatsnew.close': 'Close',
 } as const;
 
 export type TranslationKey = keyof typeof en;

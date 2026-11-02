@@ -2186,4 +2186,5 @@ export const es: Record<TranslationKey, string> = {
   'whatsnew.new': 'Nuevo',
   'whatsnew.prev': 'Anterior',
   'whatsnew.next': 'Siguiente',
+  'whatsnew.close': 'Cerrar',
 };
