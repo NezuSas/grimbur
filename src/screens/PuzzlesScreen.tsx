@@ -70,6 +70,11 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
   const [fx, setFx] = useState<MapFx | null>(null);
   const [chestTier, setChestTier] = useState<number | null>(null);
   const [archive, setArchive] = useState(false);
+  // Continue (from a solved puzzle): once the map has played what changed (the stars, the walk, a chapter opening), the next
+  // puzzle opens by itself on its card.
+  const continueTo = useRef<number | undefined>(undefined);
+  continueTo.current = route.params?.continueTo;
+  const continueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useFocusEffect(
     useCallback(() => {
       let alive = true;
@@ -88,10 +93,17 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
         setStats(s);
         const change = before ? fxBetween(before, s.puzzles) : null;
         if (change) setFx({ ...change, key: Date.now() });
+        const go = continueTo.current;
+        if (go !== undefined) {
+          navigation.setParams({ continueTo: undefined });
+          const wait = change?.unlocked != null ? 3900 : change ? 2700 : 800;
+          continueTimer.current = setTimeout(() => navigation.navigate("PuzzleScreen", { target: go }), wait);
+        }
       });
       setNow(new Date());
       return () => {
         alive = false;
+        if (continueTimer.current) clearTimeout(continueTimer.current);
       };
     }, []),
   );

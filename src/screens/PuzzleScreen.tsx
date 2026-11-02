@@ -41,15 +41,22 @@ import { achievementText } from "../i18n/keys";
 import type { AchievementId } from "../core/stats/achievements";
 import { dailyPuzzleNumber, dailyPuzzleStreak, weeklyState } from "../core/stats/puzzleProgress";
 import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
-import { hintReason, type HintReason } from "../core/puzzles/hintReason";
+import { besideOf, failWarning, hintReason, type HintReason } from "../core/puzzles/hintReason";
+import PuzzleIntro from "./puzzle/PuzzleIntro";
+import LiveStars from "./puzzle/LiveStars";
+import { CountUp, DropIn, FlyingStars, numbersAt } from "./puzzle/resultParts";
+import GemShower from "../ui/components/game/GemShower";
+import { TIER_TINTS } from "./puzzle/ChapterMap";
+import { hasCrown, puzzleBestTime } from "../core/stats/puzzleProgress";
 import { submitPuzzleScore } from "../services/puzzleScores";
 import { techniqueOf } from "../core/puzzles/techniques";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzleScreen">;
 
 const TINT = "#4DD0E1";
-const STAR = require("../assets/sprites/ui/Icon_Star.png");
 const HAZARDS = new Set(["enemy", "pit"]);
+/** The pause after the last gem, while the board shows where the hazards were, before the result card. */
+const REVEAL_MS = 1500;
 
 /** A puzzle restarts from its own opening board, which the game reducer does not know about. */
 type PuzzleAction = GameAction | { type: "PUZZLE_SET"; state: GameState };
@@ -113,6 +120,16 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const legend = useMemo(() => (index >= 0 && !technique ? legendTime(puzzle) : 0), [index, technique, puzzle]);
 
   const [state, dispatch] = useReducer(puzzleReducer, puzzle, p => openingState(p, hero));
+  // The opening card first (not for a Manual technique, which teaches from its banner); the board then opens from the fog in a
+  // ripple, and opens that way again after every restart.
+  const [introDone, setIntroDone] = useState(isTechnique);
+  const [boardLevel, setBoardLevel] = useState(isTechnique ? 1 : 0);
+  const [introInfo] = useState(() => {
+    const saved = peekLocalStats()?.puzzles;
+    return { best: index >= 0 ? puzzleBestTime(saved, index) : 0, crowned: index >= 0 && hasCrown(saved, index) };
+  });
+  // Why the last step was a mistake: the clue that warned of it (shown as a red ray while the hazard shows).
+  const [failWhy, setFailWhy] = useState<ReturnType<typeof failWarning>>(null);
   const [mistakes, setMistakes] = useState(0);
   const [hints, setHints] = useState(0);
   const [hintTile, setHintTile] = useState<number | null>(null);
@@ -170,7 +187,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     stopWalking();
     dispatch({ type: "PUZZLE_SET", state: openingState(puzzle, hero) });
     setFail(null);
+    setFailWhy(null);
     setHintTile(null);
+    setBoardLevel(l => l + 1);
     setFlags(new Set(technique?.flags ?? []));
   }, [puzzle, hero, technique]);
 
@@ -194,28 +213,29 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     const stars = puzzleStars(mistakes, hints);
     haptic.notify(NotificationFeedbackType.Success);
     emitSound("LEVEL_UP");
+    // The board shows where every hazard was (and whether each flag was right) before the card comes up.
     analytics.track("puzzle_solved", { puzzle: isTechnique ? "technique" : isDaily ? "daily" : isArchive ? "archive" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
     const seconds = (Date.now() - startedAt.current) / 1000;
     if (isTechnique) {
-      setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
+      setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), REVEAL_MS);
       return;
     }
     if (isWeekly) {
       if (!weeklyOpen.current) {
-        setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
+        setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), REVEAL_MS);
         return;
       }
       weeklyOpen.current = false;
       void submitWeeklyScore({ week, solved: true, seconds, characterIndex: hero });
       finishWeeklyTry(week, true, seconds)
-        .then(r => setTimeout(() => setResult({ stars, embers: r.embers, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), 650))
-        .catch(() => setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), 650));
+        .then(r => setTimeout(() => setResult({ stars, embers: r.embers, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), REVEAL_MS))
+        .catch(() => setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), REVEAL_MS));
       return;
     }
     // The day's try goes to the friends' board (kept only when better than an earlier one).
     if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
     const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0, record = false, best = 0, crown = false) =>
-      setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run, record, best, crown }), 650);
+      setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run, record, best, crown }), REVEAL_MS);
     recordPuzzle(isDaily ? { kind: "daily", date: today } : archiveDate ? { kind: "archive", date: archiveDate } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars, seconds, legend)
       .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0, r.record, r.best, r.crown))
       .catch(() => show(0));
@@ -237,6 +257,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         if (flags.has(to)) return false;
         stopWalking();
         setFail({ tile: to, kind: thing.type });
+        setFailWhy(failWarning(s.rows, s.cols, s.entities, s.visited, to));
         setMistakes(m => m + 1);
         haptic.notify(NotificationFeedbackType.Error);
         emitSound("GAME_OVER");
@@ -250,7 +271,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           }
           failTimer.current = setTimeout(() => setFailedOut(true), 1300);
         }
-        else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 2800);
+        else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 3600);
         return false;
       }
       dispatch({ type: "MOVE", direction });
@@ -327,7 +348,22 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
   const title = technique ? t("tech.label") : isWeekly ? `${t("puzzle.weekly.title")} #${weeklyNumber(week)}${practice ? ` · ${t("puzzle.weekly.practiceTag")}` : ""}` : isDaily ? t("puzzle.daily") : archiveDate ? `${t("puzzle.daily")} #${dailyPuzzleNumber(archiveDate)}` : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
   const goal = technique ? t(`tech.${technique.id}.tip` as TranslationKey) : gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
-  const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
+  const failWhat = (g: number, v: number) =>
+    [g ? (g === 1 ? t("puzzle.what.guardian1") : t("puzzle.what.guardians", { n: g })) : "", v ? (v === 1 ? t("puzzle.what.vortex1") : t("puzzle.what.vortices", { n: v })) : ""].filter(Boolean).join(t("puzzle.what.and"));
+  const failText = fail
+    ? `${t(fail.kind === "pit" ? "puzzle.fail.pitShort" : "puzzle.fail.enemyShort")} ${
+        failWhy ? t("puzzle.failWhy", { side: t(`puzzle.side.${failWhy.side}` as TranslationKey), what: failWhat(failWhy.guardians, failWhy.vortices) }) : t("puzzle.failGuess")
+      }`
+    : null;
+  // A ray from the clue that proves the hint's tile (gold), or from the clue that warned of the hazard just stepped on (red).
+  const beam =
+    fail && failWhy
+      ? { from: failWhy.from, to: fail.tile, color: "#FF5252" }
+      : hintTile !== null && hintWhy && (hintWhy.kind === "empty" || hintWhy.kind === "full")
+        ? { from: besideOf(hintTile, hintWhy.side, state.cols), to: hintTile, color: "#FFD54F" }
+        : null;
+  const possible = puzzleStars(mistakes, hints);
+  const tierTint = TIER_TINTS[puzzle.tier] ?? TINT;
   // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
   const whyText =
     hintTile === null || !hintWhy
@@ -360,8 +396,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             {failText ?? whyText ?? goal}
           </Text>
         </View>
-        {legend > 0 ? <LegendClock startedAt={startedAt} legend={legend} stopped={solved || failedOut} /> : null}
-        <View style={styles.counter} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
+        {legend > 0 ? <LegendClock startedAt={startedAt} legend={legend} stopped={!introDone || solved || failedOut} /> : null}
+        {!isTechnique && !isWeekly ? <LiveStars possible={possible} calm={calm} /> : null}
+        <View style={[styles.counter, !isTechnique && !isWeekly && { display: "none" }]} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
           <Ionicons name="close-circle" size={15} color={mistakes > 0 ? "#FF8A80" : "#8d8178"} />
           <Text style={[styles.counterText, mistakes > 0 && { color: "#FF8A80" }]} maxFontSizeMultiplier={1.2}>
             {mistakes}
@@ -379,11 +416,13 @@ export default function PuzzleScreen({ navigation, route }: Props) {
 
       <View style={[styles.gameContent, { flexDirection: controlPosition === "left" ? "row-reverse" : "row", paddingLeft: insets.left + GAME_ROW_PADDING, paddingRight: insets.right + GAME_ROW_PADDING, paddingBottom: insets.bottom }]}>
         <BoardView
-          level={1}
+          level={boardLevel}
           rows={state.rows}
           cols={state.cols}
           entityMap={state.entityMap}
-          visited={visited}
+          visited={introDone ? visited : []}
+          beam={beam}
+          unveil={solved}
           playerIndex={state.playerIndex}
           facingDir={state.facingDir}
           characterIndex={hero}
@@ -424,6 +463,48 @@ export default function PuzzleScreen({ navigation, route }: Props) {
 
       {isYuleDay(today) ? <Snowfall count={18} calm={calm} /> : null}
       <DangerVignette roar={here.enemy && danger} vortex={here.pit && danger} intensity={Math.max(here.enemyCount, here.pitCount)} calm={calm} beat={heartbeat} />
+      {solved && !calm ? <GemShower count={22} /> : null}
+      {!introDone ? (
+        <PuzzleIntro
+          title={title}
+          tier={tierName}
+          tint={isWeekly ? "#FF5252" : tierTint}
+          rows={puzzle.rows}
+          cols={puzzle.cols}
+          gems={gems}
+          best={introInfo.best}
+          legend={legend}
+          crowned={introInfo.crowned}
+          strict={strict}
+          noHints={isWeekly}
+          onStart={() => {
+            emitSound("UI_TAP");
+            startedAt.current = Date.now();
+            setIntroDone(true);
+            setBoardLevel(1);
+            // Development only: the end of a solve, or a mistake, without playing (for screenshots).
+            if (__DEV__ && route.params.devWin !== undefined) {
+              const slips = route.params.devWin;
+              setTimeout(() => {
+                setMistakes(slips);
+                dispatch({ type: "PUZZLE_SET", state: { ...stateRef.current, coins: 0 } });
+              }, 1600);
+            }
+            if (__DEV__ && route.params.devFail) {
+              setTimeout(() => {
+                const s = stateRef.current;
+                const seen = new Set(s.visited);
+                const dist = (i: number) => Math.min(...s.visited.map(v => Math.abs(Math.floor(v / s.cols) - Math.floor(i / s.cols)) + Math.abs((v % s.cols) - (i % s.cols))));
+                const hazard = s.entities.filter(e => HAZARDS.has(e.type) && !seen.has(e.index)).sort((x, y) => dist(x.index) - dist(y.index))[0];
+                if (!hazard) return;
+                setFail({ tile: hazard.index, kind: hazard.type });
+                setFailWhy(failWarning(s.rows, s.cols, s.entities, s.visited, hazard.index));
+                setMistakes(m => m + 1);
+              }, 1600);
+            }
+          }}
+        />
+      ) : null}
       {failedOut ? (
         <OverlayContainer>
           <PopupPanel tint="#FF5252" width={Math.min(winWidth * 0.9, 420)}>
@@ -462,37 +543,44 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               </Text>
             ) : (
               <>
-            <View style={styles.stars} accessible accessibilityLabel={t("puzzle.stars", { n: result.stars })}>
-              {[1, 2, 3].map(n => (
-                <SpriteImage key={n} source={STAR} style={[styles.star, n === 2 && styles.starMid, n > result.stars && styles.starOff]} resizeMode="contain" />
-              ))}
+            <View accessible accessibilityLabel={t("puzzle.stars", { n: result.stars })}>
+              <FlyingStars stars={result.stars} calm={calm} />
             </View>
             <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
               {mistakes === 0 && hints === 0 ? t("puzzle.flawless") : t("puzzle.slips", { mistakes, hints })}
             </Text>
-            <Text style={styles.resultTime} maxFontSizeMultiplier={1.2}>
-              {`⏱ ${formatSolveTime(result.seconds)}`}
-              {!isDaily && !isEndless && !isArchive && result.best ? `   ·   ${result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })}` : ""}
-              {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
-              {isEndless && result.run > 1 ? `   ·   ⚡ ${t("puzzle.endless.run", { n: result.run })}` : ""}
-            </Text>
+            <View style={styles.timeRow}>
+              <Ionicons name="timer-outline" size={16} color="#FFE0B2" />
+              <CountUp value={Math.round(result.seconds)} delay={numbersAt(result.stars)} format={formatSolveTime} style={styles.resultTime} calm={calm} />
+            </View>
+            <DropIn delay={numbersAt(result.stars) + 500} calm={calm}>
+              <Text style={[styles.resultLine, result.record && styles.record]} maxFontSizeMultiplier={1.2}>
+                {[
+                  !isDaily && !isEndless && !isArchive && result.best ? (result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })) : "",
+                  isDaily && result.streak > 0 ? `🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : "",
+                  isEndless && result.run > 1 ? `⚡ ${t("puzzle.endless.run", { n: result.run })}` : "",
+                ].filter(Boolean).join("   ·   ")}
+              </Text>
+            </DropIn>
             {legend > 0 ? (
-              <View style={[styles.crownLine, result.crown && styles.crownWon]}>
-                <MaterialCommunityIcons name="crown" size={18} color={result.crown ? "#FFD54F" : "#8d8178"} />
-                <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
-                  {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
-                </Text>
-              </View>
+              <DropIn delay={numbersAt(result.stars) + 800} calm={calm} sound={result.crown ? "RELIC_PICKED" : undefined}>
+                <View style={[styles.crownLine, result.crown && styles.crownWon]}>
+                  <MaterialCommunityIcons name="crown" size={result.crown ? 22 : 18} color={result.crown ? "#FFD54F" : "#8d8178"} />
+                  <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
+                    {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
+                  </Text>
+                </View>
+              </DropIn>
             ) : null}
               </>
             )}
             {result.embers > 0 ? (
-              <View style={styles.embers}>
-                <EmberIcon size={16} />
-                <Text style={styles.embersText} maxFontSizeMultiplier={1.2}>
-                  {`+${result.embers}`}
-                </Text>
-              </View>
+              <DropIn delay={numbersAt(result.stars) + 1100} calm={calm} sound="EMBER_GAIN">
+                <View style={styles.embers}>
+                  <EmberIcon size={18} />
+                  <CountUp value={result.embers} delay={numbersAt(result.stars) + 1150} duration={500} format={n => `+${n}`} style={styles.embersText} calm={calm} />
+                </View>
+              </DropIn>
             ) : null}
             {result.achievements.length > 0 ? (
               <Text style={styles.achievements} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
@@ -505,19 +593,19 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} />
             ) : isEndless ? (
               <PopButton label={t("puzzle.endless.another")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })} />
-            ) : hasNext ? (
-              <PopButton label={t("puzzle.next")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: index + 1 })} />
+            ) : index >= 0 ? (
+              <PopButton label={t("puzzle.continue")} icon="arrow-forward" tint={TINT} onPress={() => navigation.popTo("PuzzlesScreen", hasNext ? { continueTo: index + 1 } : {})} />
             ) : (
               <PopButton label={t("puzzle.back")} tint={TINT} onPress={() => navigation.goBack()} />
             )}
             <View style={styles.resultLinks}>
-              {result.stars < 3 && !isEndless ? (
+              {(result.stars < 3 || (legend > 0 && !result.crown)) && !isEndless ? (
                 <PopLink
-                  label={t("puzzle.retry")}
+                  label={result.stars < 3 ? t("puzzle.retry") : t("puzzle.crown.retry")}
                   onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })}
                 />
               ) : null}
-              {hasNext || isDaily || isEndless ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}
+              {index >= 0 || isDaily || isEndless ? <PopLink label={t("puzzle.backToMap")} onPress={() => navigation.goBack()} /> : null}
             </View>
             {!isDaily && (index + 1) % PUZZLES_PER_TIER === 0 && hasNext ? (
               <Text style={styles.tierUp} maxFontSizeMultiplier={1.2}>
@@ -559,6 +647,8 @@ const styles = StyleSheet.create({
   crownLine: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.05)" },
   crownWon: { backgroundColor: "rgba(255,213,79,0.15)", borderWidth: 1, borderColor: "#FFD54F" },
   crownText: { color: "#bfb3a6", fontWeight: "800", fontSize: 13 },
+  timeRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  record: { color: "#FFD54F", fontWeight: "900" },
   weeklyWon: { color: "#FF8A80", fontWeight: "900", fontSize: 14, textAlign: "center" },
   container: { flex: 1, backgroundColor: "#000" },
   banner: {
@@ -569,7 +659,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: TINT + "66",
     paddingBottom: 6,
-    zIndex: 2000,
+    // Over the board and its vignette, under the cards (intro, result), which cover the whole screen.
+    zIndex: 900,
   },
   bannerText: { flex: 1, gap: 1 },
   label: { color: TINT, fontWeight: "900", letterSpacing: 2 },
@@ -591,10 +682,6 @@ const styles = StyleSheet.create({
   hereCount: { color: "#8d8178", fontWeight: "900", fontSize: 16, minWidth: 12, marginRight: 4 },
   gemsLeft: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: "#4FC3F766" },
   gemsText: { color: "#E1F5FE", fontWeight: "900", fontSize: 15 },
-  stars: { flexDirection: "row", alignItems: "flex-end", justifyContent: "center", gap: 6, marginVertical: 6 },
-  star: { width: 52, height: 52 },
-  starMid: { width: 66, height: 66, marginBottom: 6 },
-  starOff: { opacity: 0.18 },
   resultLine: { color: "#E6D6C2", fontSize: 13, textAlign: "center" },
   resultTime: { color: "#FFE0B2", fontSize: 14, fontWeight: "800", textAlign: "center" },
   embers: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 4 },

@@ -51,3 +51,32 @@ export function hintReason(rows: number, cols: number, entities: readonly GameEn
   }
   return { kind: 'combined' };
 }
+
+/** The tile next to `tile` on a side. */
+export const besideOf = (tile: number, side: Side, cols: number): number =>
+  side === 'up' ? tile - cols : side === 'down' ? tile + cols : side === 'left' ? tile - 1 : tile + 1;
+
+/**
+ * Why stepping on `tile` was a mistake: the explored neighbour whose clue warned of danger around it (the one sensing most), with
+ * what it sensed. Null when no explored neighbour sensed anything (the step was a pure guess off an unproven tile).
+ */
+export function failWarning(
+  rows: number,
+  cols: number,
+  entities: readonly GameEntity[],
+  visited: readonly number[],
+  tile: number,
+): { from: number; side: Side; guardians: number; vortices: number } | null {
+  const seen = new Set(visited);
+  const kind = new Map(entities.filter(e => isClueHazard(e.type)).map(e => [e.index, e.type]));
+  let best: { from: number; side: Side; guardians: number; vortices: number } | null = null;
+  for (const v of neighbours(tile, rows, cols)) {
+    if (!seen.has(v)) continue;
+    const around = neighbours(v, rows, cols);
+    const guardians = around.filter(n => kind.has(n) && kind.get(n) !== 'pit').length;
+    const vortices = around.filter(n => kind.get(n) === 'pit').length;
+    if (guardians + vortices === 0) continue;
+    if (!best || guardians + vortices > best.guardians + best.vortices) best = { from: v, side: sideOf(tile, v, cols), guardians, vortices };
+  }
+  return best;
+}

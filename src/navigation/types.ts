@@ -29,11 +29,11 @@ export type RootStackParamList = {
   HighScoresScreen: undefined;
   /** The cave's puzzles: the day's one and the numbered path. */
   /** Development only: `devStars` replaces the path's stars, and `devSolve` plays the return from solving its last N puzzles. */
-  PuzzlesScreen: { devStars?: number[]; devSolve?: number } | undefined;
+  PuzzlesScreen: { devStars?: number[]; devSolve?: number; /** Back from a solved puzzle with Continue: open this one once the map has shown what changed. */ continueTo?: number } | undefined;
   /** One puzzle: the day's, or a number on the path (0-based). */
   /** `endless` plays endless puzzle number `n`. */
   /** `archive` replays the puzzle of the day of `date` (a past day, from the archive). */
-  PuzzleScreen: { target: "daily" | "endless" | "technique" | "archive" | "weekly" | number; n?: number; tech?: string; date?: string; /** The weekly challenge played again after its counted try. */ practice?: boolean; devHold?: boolean };
+  PuzzleScreen: { target: "daily" | "endless" | "technique" | "archive" | "weekly" | number; n?: number; tech?: string; date?: string; /** The weekly challenge played again after its counted try. */ practice?: boolean; devHold?: boolean; /** Development only: play the end of the puzzle as solved (with this many slips), or a step onto a hazard. */ devWin?: number; devFail?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

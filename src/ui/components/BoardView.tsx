@@ -22,6 +22,57 @@ import { ANCIENT_FRAMES } from "./BossSprite";
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
 
+/**
+ * A ray of light between two neighbouring tiles: both are ringed and a glowing bar joins their centres, pulsing, so the eye goes
+ * from the clue to the tile it speaks of.
+ */
+const Beam = memo(({ beam, cols, tileSize, calm }: { beam: { from: number; to: number; color: string }; cols: number; tileSize: number; calm: boolean }) => {
+  const glow = useRef(new Animated.Value(calm ? 1 : 0)).current;
+  useEffect(() => {
+    if (calm) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glow, { toValue: 1, duration: 520, useNativeDriver: true }),
+        Animated.timing(glow, { toValue: 0.45, duration: 520, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [calm, glow]);
+  const at = (i: number) => ({ x: (i % cols) * tileSize + tileSize / 2, y: Math.floor(i / cols) * tileSize + tileSize / 2 });
+  const a = at(beam.from);
+  const b = at(beam.to);
+  const horizontal = a.y === b.y;
+  const thick = Math.max(4, tileSize * 0.12);
+  const ring = (p: { x: number; y: number }, k: string) => (
+    <View
+      key={k}
+      style={{ position: "absolute", left: p.x - tileSize * 0.46, top: p.y - tileSize * 0.46, width: tileSize * 0.92, height: tileSize * 0.92, borderRadius: tileSize * 0.2, borderWidth: 3, borderColor: beam.color }}
+    />
+  );
+  return (
+    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: glow, zIndex: 4 }]}>
+      <View
+        style={{
+          position: "absolute",
+          left: horizontal ? Math.min(a.x, b.x) : a.x - thick / 2,
+          top: horizontal ? a.y - thick / 2 : Math.min(a.y, b.y),
+          width: horizontal ? Math.abs(a.x - b.x) : thick,
+          height: horizontal ? thick : Math.abs(a.y - b.y),
+          borderRadius: thick / 2,
+          backgroundColor: beam.color,
+          shadowColor: beam.color,
+          shadowOpacity: 1,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: 0 },
+        }}
+      />
+      {ring(a, "a")}
+      {ring(b, "b")}
+    </Animated.View>
+  );
+});
+
 /** Three specks of dust that drift up from the tile the hero just left, then vanish. */
 const DustPuff = memo(({ x, y, tileSize, onDone }: { x: number; y: number; tileSize: number; onDone: () => void }) => {
   const progress = useRef(new Animated.Value(0)).current;
@@ -132,6 +183,8 @@ type Props = {
   petAura?: string | null;
   /** The floor is over: every hidden creature, vortex and trap shows where it was. */
   unveil?: boolean;
+  /** A ray of light between two neighbouring tiles (puzzles: from the clue that proves or warns, to the tile it speaks of). */
+  beam?: { from: number; to: number; color: string } | null;
   /** Practice help: hidden tiles the clues prove safe or dangerous. */
   deduced?: ReadonlyMap<number, "safe" | "danger"> | null;
   /** Friends who fell on this same floor of the daily: a ghost of their hero where their run ended. */
@@ -143,7 +196,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -513,6 +566,8 @@ const BoardView: React.FC<Props> = memo(
           {dusts.map(d => (
             <DustPuff key={d.id} x={d.x} y={d.y} tileSize={tileSize} onDone={() => removeDust(d.id)} />
           ))}
+
+          {beam ? <Beam key={`${beam.from}-${beam.to}`} beam={beam} cols={cols} tileSize={tileSize} calm={!!calm} /> : null}
 
           {pastSteps?.map(tile =>
             visitedSet.has(tile) || tile >= rows * cols ? null : (
