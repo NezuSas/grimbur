@@ -9,8 +9,12 @@ export type LessonId = 'deduce' | 'stalker' | 'relics' | 'shop' | 'tools';
 
 export const LESSON_IDS: readonly LessonId[] = ['deduce', 'stalker', 'tools', 'relics', 'shop'];
 
-/** The chapters a new player plays after the first steps, in this order, before the first expedition. */
-export const TUTORIAL_CHAPTERS: readonly LessonId[] = ['deduce', 'stalker', 'tools', 'relics', 'shop'];
+/**
+ * The chapters a new player plays after the first steps, before the first expedition: only reading the clues, the one skill
+ * the first floor asks for. Stalkers, tools, relics and the shop are taught when they first turn up (a one-time hint, or an
+ * overlay that explains itself), and their lessons stay in the Manual: five chapters before any real play was too long a wait.
+ */
+export const TUTORIAL_CHAPTERS: readonly LessonId[] = ['deduce'];
 
 /** Facts the screen knows that the game state does not (flags are the player's own marks). */
 export interface LessonContext {

@@ -31,6 +31,7 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const setStorySeen = useSettingsStore(s => s.setStorySeen);
+  const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const calm = useSettingsStore(s => s.reduceFlash);
   const [index, setIndex] = useState(0);
   const fade = useRef(new Animated.Value(0)).current;
@@ -45,6 +46,8 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
   const finish = () => {
     setStorySeen(true);
     if (route.params?.replay) navigation.goBack();
+    // A newcomer has one hero to choose from: straight on to the first steps with them, not a screen full of things to come.
+    else if (!tutorialSeen) navigation.replace("TutorialScreen", { characterIndex: 0 });
     else navigation.replace("CharactersScreen", { mode: "expedition" });
   };
   const next = () => (last ? finish() : setIndex(i => i + 1));
