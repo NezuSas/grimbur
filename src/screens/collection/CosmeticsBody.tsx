@@ -303,7 +303,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           ) : null}
         </View>
         {/* A title's preview already shows where it appears: the line would only take room from the portrait. */}
-        {info && info.kind !== "title" ? (
+        {/* A grown companion's stage takes this line's place (small screens have no room for both). */}
+        {info && info.kind !== "title" && !(info.kind === "pet" && owned) ? (
           <Text style={styles.hint} numberOfLines={2} maxFontSizeMultiplier={1.15}>
             {t(`cosmetic.shown.${info.kind}` as TranslationKey)}
           </Text>
@@ -313,7 +314,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           const g = petProgress(stats.petFloors?.[cosmeticId!]);
           return (
             <View style={styles.growth}>
-              {g.need !== null && PET_ADULT_ART[cosmeticId!] ? (
+              {g.need !== null && PET_ADULT_ART[cosmeticId!] && stage.h >= 150 ? (
                 <View style={styles.growthGoal} accessible accessibilityLabel={t("pet.adultGoal")}>
                   <SpriteImage source={PET_ADULT_ART[cosmeticId!]![0]} style={styles.growthSilhouette} resizeMode="contain" />
                   <Text style={styles.growthGoalText} maxFontSizeMultiplier={1.1}>{t("pet.adultGoal")}</Text>

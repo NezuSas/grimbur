@@ -103,7 +103,7 @@ const RunDetail = ({ run, onClose }: Props) => {
               <Text style={[styles.kicker, { color: tint }]} maxFontSizeMultiplier={1.1}>
                 {`${modeLabel} · ${run.day}`.toLocaleUpperCase()}
               </Text>
-              <Text style={popupTitleStyle(tint)} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
+              <Text style={[popupTitleStyle(tint), { fontSize: 18 }]} numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
                 {(run.victory ? t("history.won") : t("history.fell", { n: run.level })).toLocaleUpperCase()}
               </Text>
               {hero ? (
