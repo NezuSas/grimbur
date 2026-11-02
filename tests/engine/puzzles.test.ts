@@ -85,7 +85,7 @@ describe('the cave puzzles', () => {
 
   it('read back from a save, cleaning anything malformed', () => {
     expect(parsePuzzles(null)).toEqual(EMPTY_PUZZLES);
-    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 } });
+    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [] });
     // A save from before the streak starts it at the last day solved.
     expect(parsePuzzles({ stars: [], daily: { date: '2026-11-02', stars: 3 }, dailySolved: 9 })).toMatchObject({ streak: 1, bestStreak: 1 });
   });

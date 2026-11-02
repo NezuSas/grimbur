@@ -28,10 +28,12 @@ export type RootStackParamList = {
   GameScreen: { characterIndex?: number; skin?: SkinId; mode?: GameMode; ascension?: number; meta?: MetaEffects; resume?: boolean; challenge?: ChallengeParam; duel?: { code: string; name: string; stake: number; members: string[]; matchId: string }; devBiome?: "cave" | "crystal" | "magma" | "lair"; devReveal?: boolean; devUnveil?: boolean; devIntermission?: boolean; devBanner?: boolean; devHint?: boolean; devFanfare?: "family" | "beast"; devEncounter?: import("../core/engine/encounters").Encounter; devDoors?: [import("../core/engine/shop").Door, import("../core/engine/shop").Door] } | undefined;
   HighScoresScreen: undefined;
   /** The cave's puzzles: the day's one and the numbered path. */
-  PuzzlesScreen: undefined;
+  /** Development only: `devStars` replaces the path's stars, and `devSolve` plays the return from solving its last N puzzles. */
+  PuzzlesScreen: { devStars?: number[]; devSolve?: number } | undefined;
   /** One puzzle: the day's, or a number on the path (0-based). */
   /** `endless` plays endless puzzle number `n`. */
-  PuzzleScreen: { target: "daily" | "endless" | "technique" | number; n?: number; tech?: string; devHold?: boolean };
+  /** `archive` replays the puzzle of the day of `date` (a past day, from the archive). */
+  PuzzleScreen: { target: "daily" | "endless" | "technique" | "archive" | number; n?: number; tech?: string; date?: string; devHold?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

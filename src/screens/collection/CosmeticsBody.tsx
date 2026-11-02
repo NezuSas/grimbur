@@ -143,6 +143,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             ? t("cosmetic.unlock.quests", { name: heroText(t, unlock.hero, "name") })
           : unlock.kind === "event"
             ? t(`cosmetic.unlock.yule.${unlock.goal}` as TranslationKey, { floors: YULE_FLOORS, puzzles: YULE_PUZZLES })
+          : unlock.kind === "puzzleChapter"
+            ? t("cosmetic.unlock.puzzleChapter", { tier: t(`puzzle.tier.${unlock.tier}` as TranslationKey) })
           : t("cosmetic.unlock.achievement", { name: achievementText(t, unlock.id, "name") });
   const unlockLine = howToEarn(info?.unlock);
 

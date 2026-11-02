@@ -86,6 +86,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const target = route.params.target;
   const today = useMemo(() => dailyKey(), []);
   const isDaily = target === "daily";
+  // A past puzzle of the day, replayed from the archive: stars only (no embers, no streak, not on the friends' board).
+  const archiveDate = target === "archive" && route.params.date && /^\d{4}-\d{2}-\d{2}$/.test(route.params.date) ? route.params.date : null;
+  const isArchive = !!archiveDate;
   const isEndless = target === "endless";
   // A technique of the Manual: a small practice board, no stars or embers.
   const technique = target === "technique" ? techniqueOf(route.params.tech) : undefined;
@@ -93,8 +96,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const endlessN = Math.max(0, Math.trunc(route.params.n ?? 0));
   const index = typeof target === "number" ? Math.max(0, Math.min(PUZZLE_COUNT - 1, Math.trunc(target))) : -1;
   const puzzle = useMemo(
-    () => (technique ? technique.puzzle : isDaily ? dailyPuzzle(today) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(Math.max(0, index))),
-    [technique, isDaily, isEndless, endlessN, today, index],
+    () => (technique ? technique.puzzle : isDaily ? dailyPuzzle(today) : archiveDate ? dailyPuzzle(archiveDate) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(Math.max(0, index))),
+    [technique, isDaily, archiveDate, isEndless, endlessN, today, index],
   );
   const gems = puzzle.entities.filter(e => e.type === "coin").length;
 
@@ -105,7 +108,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [hintWhy, setHintWhy] = useState<HintReason | null>(null);
   const [fail, setFail] = useState<{ tile: number; kind: string } | null>(null);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set(technique?.flags ?? []));
-  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number } | null>(null);
+  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number; record?: boolean; best?: number } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
   const startedAt = useRef(0);
   useEffect(() => {
@@ -118,7 +121,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const solved = state.coins === 0 && gems > 0;
 
   useEffect(() => {
-    analytics.track("screen_view", { screen: isDaily ? "puzzle_daily" : isEndless ? "puzzle_endless" : `puzzle_${index + 1}` });
+    analytics.track("screen_view", { screen: isDaily ? "puzzle_daily" : isArchive ? "puzzle_archive" : isEndless ? "puzzle_endless" : `puzzle_${index + 1}` });
     return () => {
       if (walking.current) clearTimeout(walking.current);
       if (failTimer.current) clearTimeout(failTimer.current);
@@ -158,7 +161,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     const stars = puzzleStars(mistakes, hints);
     haptic.notify(NotificationFeedbackType.Success);
     emitSound("LEVEL_UP");
-    analytics.track("puzzle_solved", { puzzle: isTechnique ? "technique" : isDaily ? "daily" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
+    analytics.track("puzzle_solved", { puzzle: isTechnique ? "technique" : isDaily ? "daily" : isArchive ? "archive" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
     const seconds = (Date.now() - startedAt.current) / 1000;
     if (isTechnique) {
       setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0 }), 650);
@@ -166,9 +169,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }
     // The day's try goes to the friends' board (kept only when better than an earlier one).
     if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
-    const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run }), 650);
-    recordPuzzle(isDaily ? { kind: "daily", date: today } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars)
-      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0))
+    const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0, record = false, best = 0) =>
+      setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run, record, best }), 650);
+    recordPuzzle(isDaily ? { kind: "daily", date: today } : archiveDate ? { kind: "archive", date: archiveDate } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars, seconds)
+      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0, r.record, r.best))
       .catch(() => show(0));
   }, [solved]);
 
@@ -263,7 +267,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }).catch(() => {});
   };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
-  const title = technique ? t("tech.label") : isDaily ? t("puzzle.daily") : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
+  const title = technique ? t("tech.label") : isDaily ? t("puzzle.daily") : archiveDate ? `${t("puzzle.daily")} #${dailyPuzzleNumber(archiveDate)}` : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
   const goal = technique ? t(`tech.${technique.id}.tip` as TranslationKey) : gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
   // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
@@ -381,6 +385,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             </Text>
             <Text style={styles.resultTime} maxFontSizeMultiplier={1.2}>
               {`⏱ ${formatSolveTime(result.seconds)}`}
+              {!isDaily && !isEndless && !isArchive && result.best ? `   ·   ${result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })}` : ""}
               {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
               {isEndless && result.run > 1 ? `   ·   ⚡ ${t("puzzle.endless.run", { n: result.run })}` : ""}
             </Text>
@@ -414,7 +419,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {result.stars < 3 && !isEndless ? (
                 <PopLink
                   label={t("puzzle.retry")}
-                  onPress={() => navigation.replace("PuzzleScreen", { target })}
+                  onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })}
                 />
               ) : null}
               {hasNext || isDaily || isEndless ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}

@@ -1,4 +1,4 @@
-import { PUZZLE_COUNT } from '../puzzles/puzzles';
+import { PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER } from '../puzzles/puzzles';
 import { daysBetween, previousDayKey } from '../engine/seed';
 import { YULE_GIFT_EMBERS, isYuleDay } from '../events/yule';
 
@@ -15,9 +15,17 @@ export interface PuzzleProgress {
   bestStreak: number;
   /** Endless puzzles (open once the path is done): how many solved, and the run of three-star solves in a row (now and best). */
   endless: { solved: number; run: number; bestRun: number };
+  /** Best time (whole seconds) of each puzzle of the path, in order; 0 when never timed. */
+  times: number[];
+  /** Puzzles of the day by date (yyyy-mm-dd): the best stars, whether solved on the day or later from the archive. */
+  archive: Record<string, number>;
+  /** Chapters whose chest was opened (each chest opens once all its stars are won). */
+  chests: number[];
 }
 
-export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 } };
+export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [] };
+/** How many days of the archive are kept (the oldest go first). */
+export const ARCHIVE_KEEP = 400;
 /** Embers an endless puzzle pays per star (less than the path: it never ends). */
 export const ENDLESS_EMBERS_PER_STAR = 2;
 
@@ -46,7 +54,43 @@ export function parsePuzzles(raw: unknown): PuzzleProgress {
   const e = (r.endless && typeof r.endless === 'object' ? r.endless : {}) as Record<string, unknown>;
   const run = count(e.run);
   const endless = { solved: count(e.solved), run, bestRun: Math.max(run, count(e.bestRun)) };
-  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless };
+  const times = Array.isArray(r.times) ? r.times.slice(0, PUZZLE_COUNT).map(count) : [];
+  const archive: Record<string, number> = {};
+  if (r.archive && typeof r.archive === 'object') {
+    for (const [date, v] of Object.entries(r.archive as Record<string, unknown>)) if (DATE.test(date) && starOf(v) > 0) archive[date] = starOf(v);
+  }
+  if (daily && daily.stars > 0) archive[daily.date] = Math.max(archive[daily.date] ?? 0, daily.stars);
+  const chests = Array.isArray(r.chests) ? [...new Set(r.chests.filter((v): v is number => Number.isInteger(v) && v >= 0 && v < PUZZLE_TIERS.length))] : [];
+  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless, times, archive: trimArchive(archive), chests };
+}
+
+/** The archive without its oldest days beyond what is kept. */
+function trimArchive(archive: Record<string, number>): Record<string, number> {
+  const dates = Object.keys(archive);
+  if (dates.length <= ARCHIVE_KEEP) return archive;
+  const keep = dates.sort().slice(-ARCHIVE_KEEP);
+  return Object.fromEntries(keep.map(d => [d, archive[d]]));
+}
+
+/** Best time of a puzzle of the path in seconds (0: none yet). */
+export const puzzleBestTime = (p: PuzzleProgress | undefined, index: number): number => p?.times?.[index] ?? 0;
+/** Stars of a puzzle of the day from the archive (0: not solved). */
+export const archiveStars = (p: PuzzleProgress | undefined, date: string): number => p?.archive?.[date] ?? 0;
+
+/** Stars won in one chapter of the path (six puzzles, three stars each). */
+export const chapterStars = (p: PuzzleProgress | undefined, tier: number): number => {
+  let n = 0;
+  for (let k = 0; k < PUZZLES_PER_TIER; k++) n += puzzleStarsAt(p, tier * PUZZLES_PER_TIER + k);
+  return n;
+};
+export const CHAPTER_STARS = PUZZLES_PER_TIER * 3;
+export const isChapterMastered = (p: PuzzleProgress | undefined, tier: number): boolean => chapterStars(p, tier) >= CHAPTER_STARS;
+/** A chapter's chest waits once all its stars are won, until it is opened. */
+export const isChestWaiting = (p: PuzzleProgress | undefined, tier: number): boolean => isChapterMastered(p, tier) && !(p?.chests ?? []).includes(tier);
+export function withChestOpened(p: PuzzleProgress | undefined, tier: number): PuzzleProgress {
+  const base = p ?? EMPTY_PUZZLES;
+  if (!isChestWaiting(base, tier)) return base;
+  return { ...base, chests: [...base.chests, tier] };
 }
 
 export const puzzleStarsAt = (p: PuzzleProgress | undefined, index: number): number => p?.stars[index] ?? 0;
@@ -66,42 +110,63 @@ export const dailyPuzzleStreak = (p: PuzzleProgress | undefined, today: string):
   return p.daily.date === today || p.daily.date === previousDayKey(today) ? p.streak : 0;
 };
 
-export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string } | { kind: 'endless'; n: number };
+export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string } | { kind: 'endless'; n: number } | { kind: 'archive'; date: string };
 /** Endless puzzles open once every puzzle of the path is solved. */
 export const isEndlessOpen = (p: PuzzleProgress | undefined): boolean => puzzlesSolved(p) >= PUZZLE_COUNT;
 
-/** The progress after solving a puzzle with `stars`, and the embers it pays (only what is new). */
-export function withPuzzleResult(p: PuzzleProgress | undefined, target: PuzzleTarget, stars: number): { progress: PuzzleProgress; embers: number } {
+/**
+ * The progress after solving a puzzle with `stars` in `seconds`, and the embers it pays (only what is new). `record` says the
+ * time beat the puzzle's best (a path puzzle solved before); `best` is the best time before this one (0: none).
+ */
+export function withPuzzleResult(
+  p: PuzzleProgress | undefined,
+  target: PuzzleTarget,
+  stars: number,
+  seconds = 0,
+): { progress: PuzzleProgress; embers: number; record: boolean; best: number } {
   const base = p ?? EMPTY_PUZZLES;
   const got = starOf(stars);
-  if (got === 0) return { progress: base, embers: 0 };
+  const none = { progress: base, embers: 0, record: false, best: 0 };
+  if (got === 0) return none;
+  const secs = Number.isFinite(seconds) && seconds > 0 ? Math.max(1, Math.round(seconds)) : 0;
   if (target.kind === 'path') {
     const index = Math.trunc(target.index);
-    if (index < 0 || index >= PUZZLE_COUNT) return { progress: base, embers: 0 };
+    if (index < 0 || index >= PUZZLE_COUNT) return none;
     const before = puzzleStarsAt(base, index);
-    if (got <= before) return { progress: base, embers: 0 };
-    const next = Array.from({ length: Math.max(base.stars.length, index + 1) }, (_, i) => base.stars[i] ?? 0);
-    next[index] = got;
-    return { progress: { ...base, stars: next }, embers: (got - before) * EMBERS_PER_STAR };
+    const best = puzzleBestTime(base, index);
+    // A faster solve is kept whatever its stars (a record is a record); a first time is not called a record.
+    const faster = secs > 0 && (best === 0 || secs < best);
+    const times = faster ? Array.from({ length: Math.max(base.times.length, index + 1) }, (_, i) => (i === index ? secs : base.times[i] ?? 0)) : base.times;
+    const stars = got > before ? Array.from({ length: Math.max(base.stars.length, index + 1) }, (_, i) => (i === index ? got : base.stars[i] ?? 0)) : base.stars;
+    if (!faster && got <= before) return { ...none, best };
+    return { progress: { ...base, stars, times }, embers: Math.max(0, got - before) * EMBERS_PER_STAR, record: faster && best > 0, best };
   }
   if (target.kind === 'endless') {
     // Only the next one counts (a stale screen solving an old number pays nothing).
-    if (Math.trunc(target.n) !== base.endless.solved) return { progress: base, embers: 0 };
+    if (Math.trunc(target.n) !== base.endless.solved) return none;
     const run = got === MAX_STARS ? base.endless.run + 1 : 0;
     return {
       progress: { ...base, endless: { solved: base.endless.solved + 1, run, bestRun: Math.max(base.endless.bestRun, run) } },
       embers: got * ENDLESS_EMBERS_PER_STAR,
+      record: false,
+      best: 0,
     };
   }
+  const archived = archiveStars(base, target.date);
+  const archive = got > archived ? trimArchive({ ...base.archive, [target.date]: got }) : base.archive;
+  // A past day from the archive: its stars are kept, nothing is paid and the streak is not touched.
+  if (target.kind === 'archive') return got > archived ? { progress: { ...base, archive }, embers: 0, record: false, best: 0 } : none;
   const before = dailyPuzzleStars(base, target.date);
   const first = base.daily?.date !== target.date;
-  if (!first && got <= before) return { progress: base, embers: 0 };
+  if (!first && got <= before) return none;
   return {
     progress: (() => {
       const streak = first ? (base.daily?.date === previousDayKey(target.date) ? base.streak + 1 : 1) : base.streak;
-      return { ...base, daily: { date: target.date, stars: Math.max(got, before) }, dailySolved: base.dailySolved + (first ? 1 : 0), streak, bestStreak: Math.max(base.bestStreak, streak) };
+      return { ...base, archive, daily: { date: target.date, stars: Math.max(got, before) }, dailySolved: base.dailySolved + (first ? 1 : 0), streak, bestStreak: Math.max(base.bestStreak, streak) };
     })(),
     // During Christmas in the cave the first solve of the day also carries a gift.
     embers: first ? DAILY_PUZZLE_EMBERS + (isYuleDay(target.date) ? YULE_GIFT_EMBERS : 0) : 0,
+    record: false,
+    best: 0,
   };
 }

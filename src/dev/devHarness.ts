@@ -76,6 +76,10 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
       streak: 4,
       bestStreak: 6,
       endless: { solved: 0, run: 0, bestRun: 0 },
+      // Best times on the path, a past day solved in the archive, and the first chapter's chest still closed.
+      times: [41, 38, 52, 47, 63, 58, 72, 95, 88, 120, 101, 97, 134, 150],
+      archive: { [previousDayKey(today)]: 3 },
+      chests: [],
     },
     dailyRuns: 9,
     dailyWins: 4,

@@ -39,7 +39,7 @@ import { openChest } from '../core/stats/dailyChest';
 import { chronicleUp } from '../core/stats/chronicle';
 import { allQuestsDone, questDone } from '../core/stats/heroQuests';
 import { petStage } from '../core/cosmetics/petGrowth';
-import { withPuzzleResult, type PuzzleTarget } from '../core/stats/puzzleProgress';
+import { withChestOpened, withPuzzleResult, type PuzzleTarget } from '../core/stats/puzzleProgress';
 
 /** The companion a run grew into a new stage, if it did. */
 const petGrown = (before: LocalStats, after: LocalStats, pet: string | null | undefined): { pet: string; stage: number } | null => {
@@ -304,10 +304,14 @@ export const syncAchievements = (): Promise<{ stats: LocalStats; achievements: A
  * Saves a solved puzzle (its best stars) and pays what is new: embers for new stars on the path, or for the day's puzzle the
  * first time. Puzzles are playing, so their embers count for the rank like any run's. Evaluates the puzzle achievements.
  */
-export const recordPuzzle = (target: PuzzleTarget, stars: number): Promise<{ stats: LocalStats; embers: number; achievementEmbers: number; achievements: AchievementId[] }> =>
+export const recordPuzzle = (
+  target: PuzzleTarget,
+  stars: number,
+  seconds = 0,
+): Promise<{ stats: LocalStats; embers: number; achievementEmbers: number; achievements: AchievementId[]; record: boolean; best: number }> =>
   serialized(async () => {
     const before = await getLocalStats();
-    const { progress, embers } = withPuzzleResult(before.puzzles, target, stars);
+    const { progress, embers, record, best } = withPuzzleResult(before.puzzles, target, stars, seconds);
     // A first solve of the puzzle of the day counts toward Christmas in the cave (only while it runs).
     const firstDaily = target.kind === 'daily' && before.puzzles?.daily?.date !== target.date && progress.daily?.date === target.date;
     const events = firstDaily ? addYulePuzzle(before.events, target.date) : before.events;
@@ -315,7 +319,16 @@ export const recordPuzzle = (target: PuzzleTarget, stars: number): Promise<{ sta
     const achievements = newAchievements(solved, { score: 0, level: 1 });
     const stats = claimUnlockedSkins(withAchievements(solved, achievements, dailyKey())).stats;
     await save(stats);
-    return { stats, embers, achievementEmbers: rewardFor(achievements), achievements };
+    return { stats, embers, achievementEmbers: rewardFor(achievements), achievements, record, best };
+  });
+
+/** Opens a mastered chapter's chest (its title is owned from the moment the chapter is mastered; this is the moment it is shown). */
+export const openPuzzleChest = (tier: number): Promise<LocalStats> =>
+  serialized(async () => {
+    const before = await getLocalStats();
+    const stats = { ...before, puzzles: withChestOpened(before.puzzles, tier) };
+    if (stats.puzzles !== before.puzzles) await save(stats);
+    return stats;
   });
 
 /**

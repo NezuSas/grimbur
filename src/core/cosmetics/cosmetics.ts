@@ -6,6 +6,7 @@ import { SKINS_BY_HERO } from '../skins/skins';
 import { ownedSkins } from '../skins/ownership';
 import { MAX_MASTERY, masteryOf } from '../stats/mastery';
 import { allQuestsDone } from '../stats/heroQuests';
+import { isChapterMastered } from '../stats/puzzleProgress';
 
 /**
  * Cosmetics beyond outfits. All of them are looks only: an arrow trail, a frame and a title shown to other players
@@ -33,7 +34,8 @@ export type CosmeticId =
   | 'board_cave' | 'board_crystal' | 'board_magma' | 'board_lair' | 'board_frost' | 'board_moss' | 'board_vault'
   | 'celeb_embers' | 'celeb_gems' | 'celeb_stars' | 'celeb_arrows' | 'celeb_relics' | 'celeb_skulls' | 'celeb_hoard'
   | 'pet_firefly' | 'pet_bat' | 'pet_golem' | 'pet_fox' | 'pet_dragon' | 'pet_owl'
-  | 'frame_yule' | 'title_yule' | 'pet_reindeer';
+  | 'frame_yule' | 'title_yule' | 'pet_reindeer'
+  | 'title_puzzle0' | 'title_puzzle1' | 'title_puzzle2' | 'title_puzzle3' | 'title_puzzle4';
 
 export type CosmeticTier = 'rare' | 'epic' | 'legendary';
 
@@ -50,7 +52,9 @@ export type CosmeticUnlock =
   /** Complete the three challenges of that hero (see stats/heroQuests.ts). */
   | { kind: 'quests'; hero: number }
   /** Christmas in the cave: met in some December (see core/events/yule.ts). */
-  | { kind: 'event'; event: 'yule'; goal: YuleGoal };
+  | { kind: 'event'; event: 'yule'; goal: YuleGoal }
+  /** Every star of a chapter of the puzzle path (the chapter's chest gives it). */
+  | { kind: 'puzzleChapter'; tier: number };
 
 /** The shares of the collection that each give a reward of their own. */
 export const COLLECTION_MILESTONES = [25, 50, 75, 100] as const;
@@ -189,6 +193,12 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('frame_yule', 'frame', 'epic', 0, { kind: 'event', event: 'yule', goal: 'floors' }),
   item('pet_reindeer', 'pet', 'epic', 0, { kind: 'event', event: 'yule', goal: 'puzzles' }),
   item('title_yule', 'title', 'legendary', 0, { kind: 'event', event: 'yule', goal: 'both' }),
+  // The chests of the puzzle path: a title for every chapter mastered (all 18 stars).
+  item('title_puzzle0', 'title', 'rare', 0, { kind: 'puzzleChapter', tier: 0 }),
+  item('title_puzzle1', 'title', 'rare', 0, { kind: 'puzzleChapter', tier: 1 }),
+  item('title_puzzle2', 'title', 'epic', 0, { kind: 'puzzleChapter', tier: 2 }),
+  item('title_puzzle3', 'title', 'epic', 0, { kind: 'puzzleChapter', tier: 3 }),
+  item('title_puzzle4', 'title', 'legendary', 0, { kind: 'puzzleChapter', tier: 4 }),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));
@@ -243,6 +253,7 @@ const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean => {
   if (unlock.kind === 'seasonMonth') return completedMonth(stats.season, unlock.month);
   if (unlock.kind === 'quests') return allQuestsDone(stats.heroQuests?.[unlock.hero]);
   if (unlock.kind === 'event') return yuleGoalMet(stats.events, unlock.goal);
+  if (unlock.kind === 'puzzleChapter') return isChapterMastered(stats.puzzles, unlock.tier);
   return !!stats.achievements[unlock.id];
 };
 

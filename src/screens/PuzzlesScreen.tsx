@@ -11,9 +11,9 @@ import PressScale from "../ui/components/PressScale";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { RootStackParamList } from "../navigation/types";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
-import { getLocalStats, peekLocalStats } from "../services/localStats";
+import { equipCosmeticFor, getLocalStats, openPuzzleChest, peekLocalStats } from "../services/localStats";
 import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzleTier } from "../core/puzzles/puzzles";
-import { EMBERS_PER_STAR, MAX_STARS, dailyPuzzleNumber, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, nextPuzzle, puzzlesSolved, totalPuzzleStars } from "../core/stats/puzzleProgress";
+import { EMBERS_PER_STAR, MAX_STARS, dailyPuzzleNumber, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, nextPuzzle, puzzleStarsAt, puzzlesSolved, totalPuzzleStars, type PuzzleProgress } from "../core/stats/puzzleProgress";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
 import { useT } from "../i18n/useT";
@@ -21,7 +21,9 @@ import { analytics } from "../services/analytics";
 import { useSettingsStore } from "../state/settings/store";
 import characters from "../data/characters";
 import FriendsToday from "./puzzle/FriendsToday";
-import ChapterMap, { TIER_TINTS } from "./puzzle/ChapterMap";
+import ChapterMap, { TIER_TINTS, type MapFx } from "./puzzle/ChapterMap";
+import ArchiveModal from "./puzzle/ArchiveModal";
+import ChestReveal from "./puzzle/ChestReveal";
 import DailyCard from "./puzzle/DailyCard";
 import EndlessPortal from "./puzzle/EndlessPortal";
 
@@ -30,6 +32,22 @@ type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 const GOLD = "#FFD54F";
 const STAR = require("../assets/sprites/ui/Icon_Star.png");
 const BOOK = require("../assets/sprites/ui/Icon_Book.png");
+const CALENDAR = require("../assets/sprites/ui/Icon_Calendar.png");
+const PER_CHAPTER = PUZZLE_COUNT / PUZZLE_TIERS.length;
+
+/** What changed on the path since `prev`: the stars won, where the hero stood, and the chapter just opened (null: nothing). */
+function fxBetween(prev: PuzzleProgress | undefined, cur: PuzzleProgress | undefined): Omit<MapFx, "key"> | null {
+  const gained: Record<number, number> = {};
+  for (let i = 0; i < PUZZLE_COUNT; i++) {
+    const before = puzzleStarsAt(prev, i);
+    if (puzzleStarsAt(cur, i) > before) gained[i] = before;
+  }
+  if (Object.keys(gained).length === 0) return null;
+  const from = nextPuzzle(prev);
+  const to = nextPuzzle(cur);
+  const opened = Math.floor(to / PER_CHAPTER) > Math.floor(from / PER_CHAPTER) && puzzleStarsAt(cur, to) === 0 ? Math.floor(to / PER_CHAPTER) : null;
+  return { gained, walkFrom: to !== from ? from : null, unlocked: opened };
+}
 const ENDLESS_TINT = "#CE93D8";
 const PAGER = 36;
 
@@ -38,17 +56,37 @@ const PAGER = 36;
  * of thirty, as five chapters of the cave turned like pages (each a map of six puzzles on a winding trail, the hero standing on
  * the next one), and at its end the portal to the endless puzzles. It opens on the chapter where the player is.
  */
-export default function PuzzlesScreen({ navigation }: Props) {
+export default function PuzzlesScreen({ navigation, route }: Props) {
   const { t } = useT();
   const { width } = useWindowDimensions();
   const calm = useSettingsStore(s => s.reduceFlash);
   const lastHero = useSettingsStore(s => s.lastHero);
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   const [now, setNow] = useState(() => new Date());
+  // The path as it was last shown: coming back from a puzzle, what changed is played on the map once.
+  const seen = useRef<PuzzleProgress | null>(null);
+  const [fx, setFx] = useState<MapFx | null>(null);
+  const [chestTier, setChestTier] = useState<number | null>(null);
+  const [archive, setArchive] = useState(false);
   useFocusEffect(
     useCallback(() => {
       let alive = true;
-      void getLocalStats().then(s => alive && setStats(s));
+      void getLocalStats().then(loaded => {
+        if (!alive) return;
+        // Development only: other stars on the path, and a return from solving the last few of them played on open.
+        const devStars = __DEV__ ? route.params?.devStars : undefined;
+        const s = devStars ? { ...loaded, puzzles: { ...loaded.puzzles, stars: devStars } } : loaded;
+        const devSolve = __DEV__ && seen.current === null ? route.params?.devSolve ?? 0 : 0;
+        if (devSolve > 0) {
+          const solved = s.puzzles.stars.filter(v => v > 0).length;
+          seen.current = { ...s.puzzles, stars: s.puzzles.stars.map((v, i) => (i >= solved - devSolve ? 0 : v)) };
+        }
+        const before = seen.current;
+        seen.current = s.puzzles;
+        setStats(s);
+        const change = before ? fxBetween(before, s.puzzles) : null;
+        if (change) setFx({ ...change, key: Date.now() });
+      });
       setNow(new Date());
       return () => {
         alive = false;
@@ -100,6 +138,26 @@ export default function PuzzlesScreen({ navigation }: Props) {
     if (p !== page && p >= 0 && p < pages) setPage(p);
   };
   const mapH = Math.max(0, box.h - PAGER);
+  // A return with news: show the chapter where stars were won, then turn to the chapter (or the portal) that just opened.
+  useEffect(() => {
+    if (!fx || !box.w) return;
+    const won = Math.max(...Object.keys(fx.gained).map(Number));
+    const at = Math.floor(won / PER_CHAPTER);
+    setPage(at);
+    scroller.current?.scrollTo({ x: at * box.w, animated: false });
+    const then = fx.unlocked ?? (won === PUZZLE_COUNT - 1 && endlessOpen ? pages - 1 : null);
+    if (then === null || then === at) return;
+    const timer = setTimeout(() => goTo(then), 1500);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fx?.key, box.w]);
+  const openChest = (tier: number) => {
+    setChestTier(tier);
+    void openPuzzleChest(tier).then(s => {
+      seen.current = s.puzzles;
+      setStats(s);
+    });
+  };
 
   const dailyStars = dailyPuzzleStars(puzzles, today);
   const daily = (
@@ -134,6 +192,18 @@ export default function PuzzlesScreen({ navigation }: Props) {
         <View style={styles.body}>
           <ScrollView style={{ width: side, flexGrow: 0 }} contentContainerStyle={styles.sideContent} showsVerticalScrollIndicator={false}>
             {daily}
+            <PressScale
+              onPress={() => setArchive(true)}
+              style={styles.techniques}
+              accessibilityRole="button"
+              accessibilityLabel={t("puzzle.archive.title")}
+            >
+              <SpriteImage source={CALENDAR} style={{ width: 24, height: 24 }} resizeMode="contain" />
+              <Text style={styles.techniquesText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
+                {t("puzzle.archive.link", { n: Object.keys(puzzles?.archive ?? {}).length })}
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color="#FFD54F" />
+            </PressScale>
             <PressScale
               onPress={() => navigation.navigate("InstructionsScreen", { topic: "techniques" })}
               style={styles.techniques}
@@ -170,8 +240,11 @@ export default function PuzzlesScreen({ navigation }: Props) {
                         puzzles={puzzles}
                         next={next}
                         heroArt={hero.scoreImage}
-                        calm={calm || Math.abs(page - tier) > 0}
+                        calm={calm}
+                        active={page === tier}
+                        fx={fx}
                         onOpen={i => navigation.navigate("PuzzleScreen", { target: i })}
+                        onChest={openChest}
                       />
                     </View>
                   ))}
@@ -219,6 +292,28 @@ export default function PuzzlesScreen({ navigation }: Props) {
           </View>
         </View>
       </SafeAreaView>
+      {archive ? (
+        <ArchiveModal
+          today={today}
+          puzzles={puzzles}
+          onClose={() => setArchive(false)}
+          onPlay={date => {
+            setArchive(false);
+            navigation.navigate("PuzzleScreen", date === today ? { target: "daily" } : { target: "archive", date });
+          }}
+        />
+      ) : null}
+      {chestTier !== null ? (
+        <ChestReveal
+          tier={chestTier}
+          calm={calm}
+          onClose={() => setChestTier(null)}
+          onEquip={id => {
+            setChestTier(null);
+            void equipCosmeticFor("title", id).then(s => s && setStats(s));
+          }}
+        />
+      ) : null}
     </ImageBackground>
   );
 }
