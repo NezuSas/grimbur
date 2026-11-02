@@ -64,7 +64,7 @@ import { floorNovelties, nextHint } from "../core/feedback/hints";
 import type { TranslationKey } from "../i18n/en";
 import { forkDoors } from "../core/engine/shop";
 import { biomeFor, isNewBiome } from "../core/engine/biomes";
-import { isLairFloor } from "../core/engine/lair";
+import { isLairFloor, runFloors } from "../core/engine/lair";
 import characters from "../data/characters";
 import { characterWithSkin } from "../data/characterSkins";
 import { BIOME_ART } from "../ui/biomeArt";
@@ -471,7 +471,7 @@ export default function GameScreen({ navigation, route }: Props) {
       meta: challenge ? undefined : route.params?.meta,
       ...(challenge ? { runSeed: challenge.seed } : {}),
       ...(isDaily ? { mode: "daily" as const, runSeed: dailySeed(dailyDate) } : {}),
-      ...(mode === "endless" ? { mode: "endless" as const } : {}),
+      ...(mode === "endless" || mode === "quick" ? { mode } : {}),
       // The week's event: every expedition this week (never a challenge or a duel, nor a newcomer's first runs).
       event: !challenge && (peekLocalStats()?.gamesPlayed ?? 0) >= EVENT_MIN_RUNS ? eventForWeek(weekKey(dailyKey())) : null,
       // A newcomer meets the extras one run at a time (secret rooms, then encounters).
@@ -672,7 +672,7 @@ export default function GameScreen({ navigation, route }: Props) {
     try {
       const s = stateRef.current;
       const run = { level: s.level, score: s.score, totalCoins: s.totalCoins, isVictory: s.isVictory, time: sessionTimeRef.current };
-      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", heroName: selectedCharacter.playerName, challengeCode: challenge?.code, route: isDaily ? routeOf() : undefined };
+      const opts = { isDaily, dailyDate, ascension, streak: runResult?.streak, endless: mode === "endless", floors: runFloors(mode), heroName: selectedCharacter.playerName, challengeCode: challenge?.code, route: isDaily ? routeOf() : undefined };
       const message = buildShareMessage(run, opts, { t, plural });
       analytics.track(isDaily ? "daily_shared" : "run_shared", { score: s.score });
       // Who played: the public name, the title worn and the rank, on the hero's nameplate.
@@ -868,7 +868,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const relicNames = state.relics.map(id => relicText(t, id, "name")).join(", ");
 
   const boardSummary = [
-    t("hud.floorOf", { level: state.level, floors: GAME_CONFIG.expedition.floors }),
+    t("hud.floorOf", { level: state.level, floors: runFloors(mode) }),
     plural("a11y.gemsLeft", state.coins),
     t("a11y.arrowsLeft", { count: state.attack }),
     state.shield ? t("a11y.shieldActive") : "",
@@ -949,7 +949,7 @@ export default function GameScreen({ navigation, route }: Props) {
           shield={state.shield}
           onPause={canPause ? openPause : undefined}
           level={state.level}
-          floors={mode === "endless" ? undefined : GAME_CONFIG.expedition.floors}
+          floors={mode === "endless" ? undefined : runFloors(mode)}
           character={selectedCharacter}
           clock={clock}
           combo={state.enemyCombo}

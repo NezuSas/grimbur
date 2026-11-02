@@ -1,3 +1,4 @@
+import { isFullRun } from '../engine/lair';
 import { createPRNG } from '../random/prng';
 
 /**
@@ -139,7 +140,7 @@ export interface MissionRun {
   gems?: number;
   relics?: number;
   heroIndex?: number;
-  mode?: 'expedition' | 'daily' | 'endless';
+  mode?: 'expedition' | 'daily' | 'endless' | 'quick';
 }
 
 function advance(p: MissionProgress, def: MissionDef, run: MissionRun): MissionProgress {
@@ -155,9 +156,9 @@ function advance(p: MissionProgress, def: MissionDef, run: MissionRun): MissionP
       return run.mode === 'daily' ? { ...p, progress: p.progress + 1 } : p;
     // The expedition's floors and score are what these goals are about; the endless descent has its own records.
     case 'floor':
-      return run.mode === 'endless' ? p : { ...p, progress: Math.max(p.progress, Math.trunc(run.level)) };
+      return !isFullRun(run.mode) ? p : { ...p, progress: Math.max(p.progress, Math.trunc(run.level)) };
     case 'score':
-      return run.mode === 'endless' ? p : { ...p, progress: Math.max(p.progress, Math.trunc(run.score)) };
+      return !isFullRun(run.mode) ? p : { ...p, progress: Math.max(p.progress, Math.trunc(run.score)) };
     case 'relics':
       return { ...p, progress: Math.max(p.progress, Math.trunc(run.relics ?? 0)) };
     case 'heroes': {

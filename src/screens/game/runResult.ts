@@ -35,7 +35,7 @@ export function dailyRunResult(r: Settled<typeof recordDailyRun>): RunResult {
 /** The game-over summary of a finished expedition or endless run (the endless descent keeps its own record, in floors). */
 export function runResultOf(r: Settled<typeof recordRun>, mode: GameMode): RunResult {
   return {
-    bestScore: mode === "endless" ? r.stats.bestEndlessFloor : r.stats.bestScore,
+    bestScore: mode === "endless" ? r.stats.bestEndlessFloor : mode === "quick" ? r.stats.bestQuickScore : r.stats.bestScore,
     isNewBest: r.isNewBestScore,
     unlocked: r.unlocked,
     achievements: r.achievements,

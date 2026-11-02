@@ -75,7 +75,7 @@ const RunDetail = ({ run, onClose }: Props) => {
   const wide = cardW >= 560;
   const mapSize = wide ? Math.min(cardW * 0.46, height * 0.95) : cardW - 40;
   const relics = [...new Set((run.relics ?? []).filter((r): r is RelicId => r in RELICS))];
-  const modeLabel = run.mode === "daily" ? t("history.mode.daily") : run.mode === "endless" ? t("history.mode.endless") : t("history.mode.expedition");
+  const modeLabel = run.mode === "daily" ? t("history.mode.daily") : run.mode === "endless" ? t("history.mode.endless") : run.mode === "quick" ? t("history.mode.quick") : t("history.mode.expedition");
   const cause = !run.victory && run.cause ? t(`over.killer.${run.cause}` as TranslationKey) : null;
 
   const facts: { icon: React.ComponentProps<typeof Ionicons>["name"]; color: string; text: string }[] = [

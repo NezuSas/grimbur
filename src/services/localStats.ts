@@ -208,9 +208,11 @@ async function recordRunNow(run: RunResult) {
   const before = await getLocalStats();
   const day = run.day ?? dailyKey();
   const merged = mergeRun(before, { ...run, day });
-  const achievements = newAchievements(merged.stats, run);
+  // A quick descent's win is not an expedition's: achievements and missions see it as a run that did not slay the Grimbur.
+  const counted = run.mode === 'quick' ? { ...run, victory: false } : run;
+  const achievements = newAchievements(merged.stats, counted);
   const claim = claimUnlockedSkins(withAchievements(merged.stats, achievements, day));
-  const missioned = withMissions(claim.stats, run, day);
+  const missioned = withMissions(claim.stats, counted, day);
   const stats = missioned.stats;
   await save(stats);
   const payout = addAchievementEmbers(merged.payout, rewardFor(achievements));

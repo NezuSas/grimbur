@@ -1,10 +1,11 @@
 import type { RunRecord } from './runStats';
+import { isFullRun } from '../engine/lair';
 
 export type Trend = 'up' | 'flat' | 'down';
 
 /** The latest `count` runs that count for the score chart (the endless descent is measured in floors, not points). */
 export const chartRuns = (history: readonly RunRecord[], count = 14): RunRecord[] =>
-  history.filter(r => r.mode !== 'endless').slice(-count);
+  history.filter(r => isFullRun(r.mode)).slice(-count);
 
 /**
  * Compares the average score of the more recent half of the runs with the earlier half.
@@ -41,10 +42,10 @@ export function playedDays(history: readonly RunRecord[], today: string, days = 
 
 /** The newest `count` runs, newest first, each flagged when it is the best score of those stored. */
 export function recentList(history: readonly RunRecord[], count = 8): (RunRecord & { best: boolean })[] {
-  const scored = history.filter(r => r.mode !== 'endless');
+  const scored = history.filter(r => isFullRun(r.mode));
   const top = Math.max(0, ...scored.map(r => r.score));
   return history
     .slice(-count)
     .reverse()
-    .map(r => ({ ...r, best: r.mode !== 'endless' && r.score > 0 && r.score === top }));
+    .map(r => ({ ...r, best: isFullRun(r.mode) && r.score > 0 && r.score === top }));
 }

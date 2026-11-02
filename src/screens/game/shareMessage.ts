@@ -23,6 +23,8 @@ interface Opts {
   ascension: number;
   streak?: number;
   endless?: boolean;
+  /** Floors of the run when it is not a ten-floor one (the quick descent). */
+  floors?: number;
   heroName: string;
   /** The friend challenge the run belonged to: the message invites to the same cave. */
   challengeCode?: string;
@@ -57,7 +59,7 @@ export function buildShareMessage(run: Run, opts: Opts, { t, plural }: Texts): s
   }
   const depth = depthLabel(opts.ascension, t);
   const lines = [t("share.title", { hero: opts.heroName, depth: depth ? ` · ${depth}` : "" })];
-  if (!opts.endless) lines.push(dailyPips(run.level, GAME_CONFIG.expedition.floors, run.isVictory));
+  if (!opts.endless) lines.push(dailyPips(run.level, opts.floors ?? GAME_CONFIG.expedition.floors, run.isVictory));
   lines.push(t("share.line", { result: resultOf(run, !!opts.endless, t), score: run.score, gems: plural("common.gems" as never, run.totalCoins), time: formatTime(run.time) }));
   lines.push(opts.challengeCode ? t("share.challenge", { code: formatChallengeCode(opts.challengeCode) }) : t("share.invite"));
   lines.push(GAME_CONFIG.store.url);
@@ -73,7 +75,7 @@ export function buildShareCard(run: Run, opts: Opts, { t, plural }: Texts, chara
     headline: opts.isDaily ? (run.isVictory ? t("share.won") : t("share.reached", { floor: run.level })) : resultOf(run, !!opts.endless, t),
     score: run.score,
     level: run.level,
-    floors: opts.endless ? 0 : GAME_CONFIG.expedition.floors,
+    floors: opts.endless ? 0 : opts.floors ?? GAME_CONFIG.expedition.floors,
     victory: run.isVictory && !opts.endless,
     gems: plural("common.gems" as never, run.totalCoins),
     time: formatTime(run.time),

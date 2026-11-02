@@ -1,5 +1,8 @@
-/** `expedition` and `daily` are 10-floor runs ending with the Grimbur; `endless` (later) has no boss. */
-export type GameMode = 'expedition' | 'daily' | 'endless';
+/**
+ * `expedition` and `daily` are 10-floor runs ending with the Grimbur; `endless` meets it every tenth floor; `quick` is a
+ * 4-floor descent (one floor of each cave, then the lair) for a short break.
+ */
+export type GameMode = 'expedition' | 'daily' | 'endless' | 'quick';
 
 /**
  * The player's LOCAL calendar day as `YYYY-MM-DD`: the daily and the streak roll over at local midnight.

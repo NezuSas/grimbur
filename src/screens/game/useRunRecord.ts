@@ -64,7 +64,7 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
   // The top-10 line is fetched when the run starts, so that the end of the run does not have to wait for the network
   // (which, on a phone, often took longer than the check is willing to wait).
   useEffect(() => {
-    if (!isDaily && !challengeCode && mode !== "endless") void prefetchLeaderboardThreshold();
+    if (!isDaily && !challengeCode && mode === "expedition") void prefetchLeaderboardThreshold();
   }, [isDaily, challengeCode, mode]);
 
   /** Saves the run to the local stats once (hero unlocks and bests depend on it) and returns the summary. */
@@ -209,8 +209,8 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
         else setShowHighScoreEntry(true);
         return;
       }
-      // Endless runs never enter the global top 10 (its limits are those of a ten-floor expedition).
-      if (mode === "endless") return;
+      // Endless and quick runs never enter the global top 10 (its limits are those of a ten-floor expedition).
+      if (mode !== "expedition") return;
       // A run played with the practice help never enters the top 10.
       if (practiceRef?.current) return;
       // null: the board could not be read in time. A new personal best is then offered the name anyway: saving it

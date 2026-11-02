@@ -1,7 +1,6 @@
-import { GAME_CONFIG } from '../../config/gameConfig';
 import { deriveLevelSeed } from './seed';
 import { createPRNG } from '../random/prng';
-import { isLairFloor } from './lair';
+import { isLairFloor, runFloors } from './lair';
 import type { GameMode } from './seed';
 
 /**
@@ -62,7 +61,7 @@ const TABLE: readonly [OmenId, number][] = [
 /** The omen of a floor, or null. Never on the first floor or on the Grimbur' lair. */
 export function omenFor(runSeed: number, level: number, mode: GameMode = 'expedition'): OmenId | null {
   if (level < 2 || isLairFloor(mode, level)) return null;
-  if (mode !== 'endless' && level > GAME_CONFIG.expedition.floors) return null;
+  if (mode !== 'endless' && level > runFloors(mode)) return null;
   const roll = createPRNG(deriveLevelSeed(runSeed, level) ^ 0x5bd1e995)();
   let acc = 0;
   for (const [id, p] of TABLE) {

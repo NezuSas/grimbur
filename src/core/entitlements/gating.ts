@@ -14,14 +14,15 @@ export interface GatingConfig {
  */
 export function isModeLocked(mode: GameMode, unlocked: boolean, cfg: GatingConfig): boolean {
   if (!cfg.enabled || unlocked) return false;
-  return mode === 'endless';
+  // The quick descent ends in the Grimbur's lair, which belongs to the full game.
+  return mode === 'endless' || mode === 'quick';
 }
 
 /** Is this floor behind the unlock? (The daily is always free; endless is locked as a whole.) */
 export function isFloorLocked(floor: number, mode: GameMode, unlocked: boolean, cfg: GatingConfig): boolean {
   if (!cfg.enabled || unlocked) return false;
   if (mode === 'daily') return false;
-  if (mode === 'endless') return true;
+  if (mode === 'endless' || mode === 'quick') return true;
   return floor > cfg.freeFloors;
 }
 

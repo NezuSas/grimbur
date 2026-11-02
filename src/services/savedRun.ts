@@ -26,7 +26,7 @@ export type SavedRun = {
 };
 
 /** The modes a run can be saved and continued in. */
-export const canResumeMode = (mode: GameState['mode']) => mode === 'expedition' || mode === 'endless';
+export const canResumeMode = (mode: GameState['mode']) => mode === 'expedition' || mode === 'endless' || mode === 'quick';
 
 /** True while the board is actually being played: between floors (card, draft, shop) too much lives outside the engine. */
 export const canSaveState = (s: GameState) =>

@@ -47,6 +47,8 @@ export interface SettingsState {
   reviewAskedAt: number;
   /** The hero chosen last, so the hero screen opens on it. */
   lastHero: number;
+  /** The expedition is played as the 4-floor quick descent (the hero screen's length switch). */
+  quickDescent: boolean;
   setSoundEnabled: (enabled: boolean) => void;
   setMusicVolume: (level: number) => void;
   setSfxVolume: (level: number) => void;
@@ -69,4 +71,5 @@ export interface SettingsState {
   markHintSeen: (id: string) => void;
   markReviewAsked: (at: number) => void;
   setLastHero: (heroIndex: number) => void;
+  setQuickDescent: (quick: boolean) => void;
 }

@@ -275,7 +275,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
             ) : (
               <>
                 {list.map((r, i) => {
-                  const modeIcon = r.mode === "daily" ? "calendar" : r.mode === "endless" ? "infinite" : "compass";
+                  const modeIcon = r.mode === "daily" ? "calendar" : r.mode === "endless" ? "infinite" : r.mode === "quick" ? "flash" : "compass";
                   return (
                     <Pressable
                       key={i}

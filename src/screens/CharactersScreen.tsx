@@ -42,7 +42,8 @@ import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
 import { VICTORY_EMBERS_PER_DEPTH, metaEffects } from "../core/stats/forge";
 import { formatChallengeCode } from "../core/challenge/code";
-import { dailyKey } from "../core/engine/seed";
+import { dailyKey, type GameMode } from "../core/engine/seed";
+import { QUICK_FLOORS } from "../core/engine/lair";
 import { EVENT_MIN_RUNS, eventForWeek } from "../core/engine/events";
 import { weekKey } from "../core/leaderboard/daily";
 import { haptic } from "../shared/haptics";
@@ -67,8 +68,11 @@ const HERO_COUNT = characters.length;
 const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t, plural } = useT();
   const { width, height } = useWindowDimensions();
-  const mode = route.params?.mode ?? "expedition";
+  const entryMode = route.params?.mode ?? "expedition";
   const challenge = route.params?.challenge ?? route.params?.duel ?? null;
+  // The expedition can be played whole or as the quick descent (after the first run; never for a challenge or a duel).
+  const quickPref = useSettingsStore(s => s.quickDescent);
+  const setQuickDescent = useSettingsStore(s => s.setQuickDescent);
   const duelCode = route.params?.duel?.code ?? null;
   const tutorialSeen = useSettingsStore(s => s.tutorialSeen);
   const lastHero = useSettingsStore(s => s.lastHero);
@@ -78,6 +82,8 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const [stats, setStats] = useState<LocalStats>(() => peekLocalStats() ?? EMPTY_STATS);
   // Until the saved stats arrive, every hero but the first looks locked and the depth and Forge bonuses are unknown.
   const [statsLoaded, setStatsLoaded] = useState(() => peekLocalStats() !== null);
+  const canQuick = entryMode === "expedition" && !challenge && stats.gamesPlayed > 0;
+  const mode: GameMode = canQuick && quickPref ? "quick" : entryMode;
   const [depth, setDepth] = useState(0);
   const [depthHint, setDepthHint] = useState(false);
   useEffect(() => {
@@ -262,7 +268,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // On a harder depth the line says what that depth changes and what winning it pays on top.
   const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
   const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
-  const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : "#E8BA52";
+  const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : mode === "quick" ? "#4FC3F7" : "#E8BA52";
 
   // The hero fills the stage above the roster.
   const rosterH = thumbSize + 14;
@@ -408,6 +414,28 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                 )}
               </View>
+              {canQuick && (
+                <View style={styles.lengthRow} accessibilityRole="radiogroup" accessibilityLabel={t("heroes.length")}>
+                  {([false, true] as const).map(q => {
+                    const on = (mode === "quick") === q;
+                    const tint = q ? "#4FC3F7" : "#E8BA52";
+                    return (
+                      <TouchableOpacity
+                        key={q ? "quick" : "full"}
+                        style={[styles.lengthPill, on && { backgroundColor: tint + "33", borderColor: tint }]}
+                        onPress={() => setQuickDescent(q)}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: on }}
+                      >
+                        <Ionicons name={q ? "flash" : "flag"} size={13} color={on ? tint : "#9c8f82"} />
+                        <Text style={[styles.lengthText, on && { color: tint }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                          {q ? t("heroes.length.quick", { n: QUICK_FLOORS }) : t("heroes.length.full")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
               {depthHint && nextLocked ? (
                 <Text style={styles.depthHint} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.2}>
                   {t("heroes.depthLocked", { current: t(`ascension.label.${depth}` as TranslationKey), next: t(`ascension.label.${depth + 1}` as TranslationKey) })}
@@ -662,6 +690,9 @@ const styles = StyleSheet.create({
   panel: { flex: 1, paddingRight: 14, paddingLeft: 4, paddingTop: 8, paddingBottom: 10, gap: 8 },
   panelContent: { gap: 8, paddingBottom: 4 },
   panelContentCentered: { flexGrow: 1, justifyContent: "center" },
+  lengthRow: { flexDirection: "row", gap: 6 },
+  lengthPill: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, minHeight: 32, paddingHorizontal: 8, borderRadius: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.25)" },
+  lengthText: { color: "#bfb3a6", fontWeight: "800", fontSize: 12 },
   kickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 34, paddingLeft: 0 },
   kicker: { fontWeight: "900", letterSpacing: 2, fontSize: 11, flexShrink: 1 },
   modeRule: { color: "#E4D8CD", fontSize: 12, marginTop: -4 },

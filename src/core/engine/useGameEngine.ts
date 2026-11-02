@@ -13,7 +13,7 @@ import { omenFor, omenEffects, OmenId } from './omens';
 import type { EventId } from './events';
 import { biomeFor } from './biomes';
 import { ShopItem } from './shop';
-import { isLairFloor, lairHeartBonus } from './lair';
+import { boardLevel, isFullRun, isLairFloor, lairHeartBonus } from './lair';
 import { getHeroPerks } from './heroes';
 import { NO_META, MetaEffects, applyMeta } from '../stats/forge';
 import { RelicId, relicCount } from './relics';
@@ -157,7 +157,7 @@ export function useGameEngine(): GameEngineInterface {
     const seed = deriveLevelSeed(runSeed, 1);
     // The week's event only ever holds in an expedition (the daily, challenges and the endless descent stay the same for everyone).
     const event = mode === 'expedition' ? options.event ?? null : null;
-    const board = generateBoard(1, seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), event, endless: mode === 'endless', biome: biomeFor(1, mode) });
+    const board = generateBoard(boardLevel(mode, 1), seed, { boss: isBossFloor(mode, 1), ascension, omen: omenFor(runSeed, 1, mode), event, endless: mode === 'endless', biome: biomeFor(1, mode) });
 
     pureDispatch({
       type: 'RESET',
@@ -197,7 +197,7 @@ export function useGameEngine(): GameEngineInterface {
     const omen = picked;
     const seed = deriveLevelSeed(stateRef.current.runSeed, nextLevel);
     const ascension = stateRef.current.ascension;
-    const board = generateBoard(nextLevel, seed, {
+    const board = generateBoard(boardLevel(stateRef.current.mode, nextLevel), seed, {
       boss: isBossFloor(stateRef.current.mode, nextLevel),
       ascension,
       omen,
@@ -206,7 +206,7 @@ export function useGameEngine(): GameEngineInterface {
       extraPits: relicCount(stateRef.current.relics, 'greedy_idol') > 0 ? 2 : 0,
       bossHeartBonus: lairHeartBonus(stateRef.current.mode, nextLevel),
       endless: stateRef.current.mode === 'endless',
-      midBoss: stateRef.current.mode !== 'endless' && nextLevel === MID_BOSS_FLOOR,
+      midBoss: isFullRun(stateRef.current.mode) && nextLevel === MID_BOSS_FLOOR,
     });
 
     pureDispatch({

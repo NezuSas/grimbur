@@ -9,7 +9,7 @@ import ReviveOverlay from "../../ui/components/game/ReviveOverlay";
 import RunLoadingCover from "../../ui/components/game/RunLoadingCover";
 import { altarIsFree } from "../../core/engine/reducer";
 import { biomeFor, isNewBiome } from "../../core/engine/biomes";
-import { isLairFloor } from "../../core/engine/lair";
+import { isLairFloor, runFloors } from "../../core/engine/lair";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import type { Character } from "../../data/characters";
 import type { GameState } from "../../core/engine/types";
@@ -107,7 +107,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
 
       <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} owned={state.relics} />
 
-      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} summary={{ floor: state.level, floors: GAME_CONFIG.expedition.floors, score: state.score, gems: state.gems, arrows: state.attack, relics: state.relics }} />
+      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} summary={{ floor: state.level, floors: runFloors(state.mode), score: state.score, gems: state.gems, arrows: state.attack, relics: state.relics }} />
 
       <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} hero={character.loseImage ?? character.scoreImage} onRevive={revive.onRevive} onDecline={revive.onDecline} />
 
@@ -151,7 +151,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={gameOver.onShare}
         onCopyText={gameOver.onCopyText}
-        floors={GAME_CONFIG.expedition.floors}
+        floors={runFloors(state.mode)}
         endless={gameOver.endless}
         demo={gameOver.demo}
         onUnlock={gameOver.onUnlock}

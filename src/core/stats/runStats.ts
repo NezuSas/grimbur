@@ -1,4 +1,5 @@
 import { daysBetween } from '../engine/seed';
+import { isFullRun } from '../engine/lair';
 import { EMPTY_CHEST, parseChest, type ChestState } from './dailyChest';
 import { EMPTY_ENCOUNTER_BOOK, addRunEncounters, parseEncounterBook, type EncounterBook } from './encounterBook';
 import { QUEST_EMBERS, newQuests, parseQuests, withQuests } from './heroQuests';
@@ -89,6 +90,9 @@ export interface LocalStats {
   lastPlayedDate: string | null;
   /** Deepest floor reached in the endless descent (0 until it is played). */
   bestEndlessFloor: number;
+  /** Quick descents won and the best score of one (they never count as an expedition: see mergeRun). */
+  quickWins: number;
+  bestQuickScore: number;
   /** Every ember ever earned (the balance goes down when spending; this never does). */
   lifetimeEmbers: number;
   /** Expeditions and dailies won with each hero (same order as the roster). */
@@ -137,7 +141,7 @@ export interface RunRecord {
   score: number;
   level: number;
   victory: boolean;
-  mode: 'expedition' | 'daily' | 'endless';
+  mode: 'expedition' | 'daily' | 'endless' | 'quick';
   /** The details below came later: older records lack them. */
   hero?: number;
   /** The relics picked in the run. */
@@ -198,7 +202,7 @@ export interface RunResult {
   /** Depth (ascension) the run was played at. */
   ascension?: number;
   /** Mode of the run; the endless descent keeps its own record instead of the expedition ones. */
-  mode?: 'expedition' | 'daily' | 'endless';
+  mode?: 'expedition' | 'daily' | 'endless' | 'quick';
   /** Local day the run was played; the first finished run of each day also pays a bonus. */
   day?: string;
   /** False for a run abandoned before doing anything (earns no embers). */
@@ -232,6 +236,8 @@ export const EMPTY_STATS: LocalStats = {
   victories: 0,
   totalGems: 0,
   secretsFound: 0,
+  quickWins: 0,
+  bestQuickScore: 0,
   encounterBook: EMPTY_ENCOUNTER_BOOK,
   heroQuests: [0, 0, 0, 0, 0, 0],
   petFloors: {},
@@ -310,8 +316,8 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     relicBook: played ? addRunRelics(stats.relicBook ?? EMPTY_RELIC_BOOK, run.relicIds, run.victory === true) : stats.relicBook ?? EMPTY_RELIC_BOOK,
     heroRuns: (stats.heroRuns ?? EMPTY_STATS.heroRuns).map((n, i) => n + (played && run.heroIndex === i ? 1 : 0)),
     // The endless descent counts floors past the expedition's: it would crowd out the hero's real best.
-    heroBestFloor: (stats.heroBestFloor ?? EMPTY_STATS.heroBestFloor).map((n, i) => (played && run.heroIndex === i && run.mode !== 'endless' ? Math.max(n, run.level) : n)),
-    heroBestScore: (stats.heroBestScore ?? EMPTY_STATS.heroBestScore).map((n, i) => (played && run.heroIndex === i && run.mode !== 'endless' ? Math.max(n, Math.trunc(run.score) || 0) : n)),
+    heroBestFloor: (stats.heroBestFloor ?? EMPTY_STATS.heroBestFloor).map((n, i) => (played && run.heroIndex === i && isFullRun(run.mode) ? Math.max(n, run.level) : n)),
+    heroBestScore: (stats.heroBestScore ?? EMPTY_STATS.heroBestScore).map((n, i) => (played && run.heroIndex === i && isFullRun(run.mode) ? Math.max(n, Math.trunc(run.score) || 0) : n)),
     eventBest: played && run.event && run.eventWeek ? addEventRun(stats.eventBest ?? null, run.eventWeek, run.event, Math.trunc(run.score) || 0, run.level) : stats.eventBest ?? null,
     season: played ? addSeasonRun(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : stats.season ?? EMPTY_SEASON,
   };
@@ -351,6 +357,24 @@ export const addAchievementEmbers = (payout: RunPayout, embers: number): RunPayo
 
 /** Folds a finished expedition run into the stored stats. Pure, so it is easy to test. */
 export function mergeRun(stats: LocalStats, run: RunResult) {
+  if (run.mode === 'quick') {
+    // A quick descent pays, feeds the collection and the companion, and keeps its own small record; it is never an expedition
+    // win (no victory, depth, best score or floor milestone), so four floors can never stand in for ten.
+    const { patch, payout } = accumulate(stats, { ...run, victory: false });
+    const history =
+      run.victory && patch.history !== stats.history && patch.history.length > 0
+        ? [...patch.history.slice(0, -1), { ...patch.history[patch.history.length - 1], victory: true }]
+        : patch.history;
+    const next: LocalStats = {
+      ...stats,
+      ...patch,
+      history,
+      quickWins: (stats.quickWins ?? 0) + (run.victory ? 1 : 0),
+      bestQuickScore: Math.max(stats.bestQuickScore ?? 0, Math.trunc(run.score) || 0),
+      gamesPlayed: stats.gamesPlayed + 1,
+    };
+    return { stats: next, isNewBestScore: run.score > (stats.bestQuickScore ?? 0), payout };
+  }
   if (run.mode === 'endless') {
     // The endless descent has its own record; it never touches the expedition's best score, floor or victories.
     const { patch, payout } = accumulate(stats, run);
@@ -503,7 +527,7 @@ function parseHistory(value: unknown): RunRecord[] {
     if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
     if (typeof score !== 'number' || !Number.isFinite(score) || score < 0) continue;
     if (typeof level !== 'number' || !Number.isFinite(level) || level < 1) continue;
-    const rec: RunRecord = { day, score: Math.trunc(score), level: Math.trunc(level), victory: victory === true, mode: mode === 'daily' || mode === 'endless' ? mode : 'expedition' };
+    const rec: RunRecord = { day, score: Math.trunc(score), level: Math.trunc(level), victory: victory === true, mode: mode === 'daily' || mode === 'endless' || mode === 'quick' ? mode : 'expedition' };
     const x = r as Record<string, unknown>;
     if (Number.isInteger(x.hero) && (x.hero as number) >= 0 && (x.hero as number) < HERO_COUNT) rec.hero = x.hero as number;
     if (Array.isArray(x.relics)) rec.relics = x.relics.filter((v): v is string => typeof v === 'string' && v.length <= 32).slice(0, 40);
@@ -598,6 +622,8 @@ export function parseStats(raw: string | null): LocalStats {
       // Older saves: the last bonus day is the best guess of when the player was last here.
       lastPlayedDate: str(data.lastPlayedDate) ?? str(data.lastBonusDate),
       bestEndlessFloor: Math.trunc(num(data.bestEndlessFloor)),
+      quickWins: Math.trunc(num(data.quickWins)),
+      bestQuickScore: Math.trunc(num(data.bestQuickScore)),
       // Saves from before this counter existed hold embers but a lifetime of 0: it can never be below what was earned and kept.
       lifetimeEmbers: Math.max(Math.trunc(num(data.lifetimeEmbers)), Math.trunc(num(data.embers))),
       heroWins: Array.from({ length: HERO_COUNT }, (_, i) => (Array.isArray(data.heroWins) ? Math.trunc(num(data.heroWins[i])) : 0)),

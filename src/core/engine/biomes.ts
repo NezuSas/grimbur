@@ -28,6 +28,8 @@ const CYCLE: readonly BiomeId[] = ['cave', 'crystal', 'magma'];
 
 export function biomeFor(level: number, mode: GameMode = 'expedition'): BiomeId {
   if (isLairFloor(mode, level)) return 'lair';
+  // The quick descent crosses one floor of each cave.
+  if (mode === 'quick') return CYCLE[Math.min(CYCLE.length, Math.max(1, level)) - 1];
   return CYCLE[Math.floor((Math.max(1, level) - 1) / 3) % CYCLE.length];
 }
 

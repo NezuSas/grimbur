@@ -2109,6 +2109,12 @@ export const en = {
   'whatsnew.quests.body': 'Three challenges for every hero, played their way. Complete them for the hero title and frame.',
   'whatsnew.ancient.title': 'The Ancestral Grimbur',
   'whatsnew.ancient.body': 'On the hardest depths an older, frozen Grimbur awaits.',
+  'heroes.length': 'Length of the run',
+  'heroes.length.full': 'Full · 10 floors',
+  'heroes.length.quick': 'Quick · {n} floors',
+  'heroes.mode.quick': 'Quick descent',
+  'heroes.mode.quick.rule': 'One floor of each cave and the lair of the Grimbur, for a short break. It pays embers and grows your companion; it does not count as an expedition win or for the ranking.',
+  'history.mode.quick': 'Quick descent',
 } as const;
 
 export type TranslationKey = keyof typeof en;

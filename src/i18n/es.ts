@@ -2110,4 +2110,10 @@ export const es: Record<TranslationKey, string> = {
   'whatsnew.quests.body': 'Tres retos para cada héroe, a su manera. Cúmplelos y gana su título y su marco.',
   'whatsnew.ancient.title': 'El Grimbur Ancestral',
   'whatsnew.ancient.body': 'En las profundidades más duras te espera un Grimbur más antiguo y helado.',
+  'heroes.length': 'Duración de la partida',
+  'heroes.length.full': 'Completa · 10 pisos',
+  'heroes.length.quick': 'Rápida · {n} pisos',
+  'heroes.mode.quick': 'Descenso rápido',
+  'heroes.mode.quick.rule': 'Un piso de cada cueva y la guarida del Grimbur, para un rato corto. Da brasas y hace crecer a tu compañero; no cuenta como victoria de expedición ni para el ranking.',
+  'history.mode.quick': 'Descenso rápido',
 };

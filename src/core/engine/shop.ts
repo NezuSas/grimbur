@@ -1,6 +1,6 @@
 import { createPRNG } from '../random/prng';
 import { deriveLevelSeed } from './seed';
-import { isLairFloor } from './lair';
+import { isLairFloor, runFloors } from './lair';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import type { GameMode } from './seed';
 import type { OmenId } from './omens';
@@ -66,13 +66,14 @@ export const SHORTCUT_FROM = 3;
  */
 export function forkDoors(runSeed: number, level: number, mode: GameMode): [Door, Door] | null {
   if (mode === 'daily' || level < 2 || isLairFloor(mode, level)) return null;
-  if (mode !== 'endless' && level > GAME_CONFIG.expedition.floors) return null;
+  if (mode !== 'endless' && level > runFloors(mode)) return null;
   const next = createPRNG(deriveLevelSeed(runSeed, level) ^ 0x2c1b3c6d);
   next();
   // From the fourth floor the dark floor can be one of the doors; from the third, a shortcut that never jumps the lieutenant's floor
   // and never lands past the lair.
   const pool: Door[] = level >= DARK_FROM ? [...DOORS, 'dark'] : [...DOORS];
-  if (level >= SHORTCUT_FROM && level !== MID_BOSS_FLOOR && (mode === 'endless' || level + 1 <= GAME_CONFIG.expedition.floors)) pool.push('shortcut');
+  // The quick descent is too short to skip a floor of it.
+  if (mode !== 'quick' && level >= SHORTCUT_FROM && level !== MID_BOSS_FLOOR && (mode === 'endless' || level + 1 <= GAME_CONFIG.expedition.floors)) pool.push('shortcut');
   const first = pool.splice(Math.floor(next() * pool.length), 1)[0];
   const second = pool[Math.floor(next() * pool.length)];
   // From the third floor one fork in three swaps a door for the elite floor: the risk is always a choice, never forced.
