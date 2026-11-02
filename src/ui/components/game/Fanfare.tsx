@@ -80,7 +80,7 @@ const Fanfare: React.FC<Props> = ({ fanfareKey, tint, art, kicker, title, line, 
             {title.toLocaleUpperCase()}
           </Text>
           {line ? (
-            <Text style={styles.line} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+            <Text style={styles.line} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {line}
             </Text>
           ) : null}

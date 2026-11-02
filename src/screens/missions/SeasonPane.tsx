@@ -40,7 +40,7 @@ const SeasonPane = ({ season, day, onClaim }: Props) => {
       <View style={styles.head}>
         <SpriteImage source={TROPHY} style={styles.headArt} resizeMode="contain" accessibilityIgnoresInvertColors />
         <View style={{ flex: 1, gap: 3 }}>
-          <Text style={styles.kicker} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
             {t("season.title", { month }).toLocaleUpperCase()}
           </Text>
           <Text style={styles.points} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
@@ -49,7 +49,7 @@ const SeasonPane = ({ season, day, onClaim }: Props) => {
           <View style={styles.bar}>
             <View style={[styles.barFill, { width: `${Math.round(progress * 100)}%` }]} />
           </View>
-          <Text style={styles.next} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.next} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
             {done ? t("season.done") : reached >= SEASON_TIERS.length ? t("season.final") : t("season.toNext", { n: to - season.points, tier: reached + 1 })}
           </Text>
         </View>
@@ -82,7 +82,7 @@ const SeasonPane = ({ season, day, onClaim }: Props) => {
                   </Text>
                 )}
               </View>
-              <Text style={[styles.reward, (paid || ready) && { color: GOLD }]} numberOfLines={1} allowFontScaling={false}>
+              <Text style={[styles.reward, (paid || ready) && { color: GOLD }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} allowFontScaling={false}>
                 +{SEASON_REWARDS[i]}
               </Text>
             </View>
@@ -93,7 +93,7 @@ const SeasonPane = ({ season, day, onClaim }: Props) => {
       {season.key ? (
         <View style={styles.featured}>
           <RelicIcon id={seasonRelicFor(season.key)} size={34} />
-          <Text style={styles.featuredText} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+          <Text style={styles.featuredText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
             <Text style={{ color: GOLD, fontWeight: "900" }}>{t("season.featured", { name: relicText(t, seasonRelicFor(season.key), "name") })}</Text>
             {"  "}
             {t("season.featuredHow", { month })}

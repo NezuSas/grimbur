@@ -51,10 +51,10 @@ const ModeCard = ({ art, tint, title, hint, onPress, delay }: { art: ImageSource
         <View style={[styles.cardGlow, { backgroundColor: tint }]} pointerEvents="none" />
         <SpriteImage source={art} style={styles.cardArt} resizeMode="contain" accessibilityIgnoresInvertColors />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={[styles.cardTitle, { color: tint }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+          <Text style={[styles.cardTitle, { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
             {title.toLocaleUpperCase()}
           </Text>
-          <Text style={styles.cardHint} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+          <Text style={styles.cardHint} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
             {hint}
           </Text>
         </View>
@@ -124,7 +124,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.playerTop}>
         <PlayerPortrait source={portrait} size={narrow ? 72 : 92} frame={look.frame} />
         <View style={{ flex: 1, gap: 3 }}>
-          <Text style={[styles.playerName, !name && styles.playerNoName]} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+          <Text style={[styles.playerName, !name && styles.playerNoName]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
             {name ?? t("friends.noName")}
           </Text>
           <PlayerTitle title={look.title} />
@@ -143,7 +143,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
             <Text style={[styles.recordValue, { color: OUTCOME_COLOR[k] }]} maxFontSizeMultiplier={1.1}>
               {v}
             </Text>
-            <Text style={styles.recordLabel} numberOfLines={1} maxFontSizeMultiplier={1.05}>
+            <Text style={styles.recordLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.05}>
               {t(`friends.stat.${k}` as TranslationKey).toLocaleUpperCase()}
             </Text>
           </View>
@@ -181,15 +181,15 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
       return (
         <Rise key={r.code} delay={riseDelay(i)} style={[styles.row, { borderLeftColor: color }]} accessible accessibilityLabel={`${formatChallengeCode(r.code)}. ${t(`duel.outcome.${r.outcome}` as TranslationKey)}. ${r.net}`}>
           <View style={[styles.outcome, { borderColor: color, backgroundColor: color + "1F" }]}>
-            <Text style={[styles.outcomeText, { color }]} numberOfLines={1} maxFontSizeMultiplier={1.05}>
+            <Text style={[styles.outcomeText, { color }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.05}>
               {t(`duel.outcome.${r.outcome}` as TranslationKey).toLocaleUpperCase()}
             </Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.code} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            <Text style={styles.code} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
               {formatChallengeCode(r.code)}
             </Text>
-            <Text style={styles.rowSub} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            <Text style={styles.rowSub} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
               {r.total > 2 ? `${t("duel.historyPlace", { n: r.placement, total: r.total })} · ` : ""}
               {new Date(r.at).toLocaleDateString()}
             </Text>
@@ -225,10 +225,10 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
           >
             <SpriteImage source={PUZZLE} style={styles.rowArt} resizeMode="contain" accessibilityIgnoresInvertColors />
             <View style={{ flex: 1 }}>
-              <Text style={styles.code} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              <Text style={styles.code} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {formatChallengeCode(c.code)}
               </Text>
-              <Text style={[styles.rowSub, { color: "#FF9A5C" }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              <Text style={[styles.rowSub, { color: "#FF9A5C" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {depth}
               </Text>
             </View>

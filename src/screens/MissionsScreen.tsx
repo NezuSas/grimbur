@@ -161,7 +161,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
         <View style={[styles.tierBar, { backgroundColor: color }]} />
         <SpriteImage source={themeArt(METRIC_ART[def.metric])} style={styles.missionArt} resizeMode="contain" accessibilityIgnoresInvertColors />
         <View style={styles.missionBody}>
-          <Text style={[styles.missionText, p.claimed && { color: "#B99A7C" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.missionText, p.claimed && { color: "#B99A7C" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
             {text(def)}
           </Text>
           <View style={styles.barRow}>
@@ -203,7 +203,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.rankLabel} maxFontSizeMultiplier={1.1}>
                     {t("missions.rank").toLocaleUpperCase()}
                   </Text>
-                  <Text style={styles.rankName} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+                  <Text style={styles.rankName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     {rankName}
                   </Text>
                 </View>
@@ -240,7 +240,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                       </View>
                       {/* The name gets the whole line (the longest ones do not fit beside the number); the threshold goes under it. */}
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.ladderName, !reached && { color: "#B99A7C" }]} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                        <Text style={[styles.ladderName, !reached && { color: "#B99A7C" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                           {t(`rank.${level}` as TranslationKey)}
                         </Text>
                         <Text style={styles.ladderFrom} maxFontSizeMultiplier={1.1}>
@@ -282,7 +282,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
               })}
               <View style={styles.refreshBox}>
                 <Ionicons name="time-outline" size={14} color="#B99A7C" />
-                <Text style={styles.refresh} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                <Text style={styles.refresh} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                   {tab === "daily"
                     ? t("missions.refreshDay", { time: formatCountdown(msUntilNextDay(now)) })
                     : tab === "weekly"
@@ -314,7 +314,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                           ))}
                         </View>
                         {!allClaimed ? (
-                          <Text style={styles.bonusHint} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                          <Text style={styles.bonusHint} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                             {dailyDone}/{m.daily.length} · {t("missions.bonusHint")}
                           </Text>
                         ) : null}
@@ -330,10 +330,10 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                     <PressScale onPress={() => navigation.navigate("ChallengeScreen", { code: weekly.code })} accessibilityRole="button" style={styles.weekly}>
                       <SpriteImage source={require("../assets/sprites/ui/Icon_Swords.png")} style={styles.weeklyArt} resizeMode="contain" accessibilityIgnoresInvertColors />
                       <View style={{ flex: 1, gap: 2 }}>
-                        <Text style={styles.weeklyKicker} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                        <Text style={styles.weeklyKicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                           {`${t("weekly.title")} · ${t(`ascension.label.${weekly.depth}` as TranslationKey)}`.toLocaleUpperCase()}
                         </Text>
-                        <Text style={styles.weeklyText} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+                        <Text style={styles.weeklyText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {t("weekly.rule")}
                         </Text>
                       </View>
@@ -389,13 +389,14 @@ const styles = StyleSheet.create({
   ladderName: { color: "#fff", fontWeight: "900", fontSize: 13 },
   ladderFrom: { color: "#B99A7C", fontSize: 11, fontWeight: "700" },
 
-  tabs: { flexDirection: "row", alignItems: "center", gap: 6 },
+  // On a narrow window the "new in…" note drops under the tabs instead of being squeezed to a few letters.
+  tabs: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
   tab: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)" },
   tabOn: { backgroundColor: GOLD, borderColor: GOLD },
   tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   tabBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#FF5252", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   tabBadgeText: { color: "#fff", fontSize: 11, fontWeight: "900" },
-  refreshBox: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 },
+  refreshBox: { flex: 1, minWidth: 120, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 },
   refresh: { color: "#B99A7C", fontWeight: "700", fontSize: 11.5, flexShrink: 1 },
   list: { gap: 8, paddingBottom: 16 },
   weekly: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,138,101,0.7)", backgroundColor: "rgba(70,30,20,0.9)" },

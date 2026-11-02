@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../../ui/components/Text";
@@ -96,7 +96,9 @@ const RunDetail = ({ run, onClose }: Props) => {
             </Text>
           </View>
         ) : null}
-        <View style={styles.right}>
+        {/* On a short window the details scroll under a Close button that always stays in sight. */}
+        <View style={[styles.right, { maxHeight: height - 56 }]}>
+          <ScrollView style={styles.info} contentContainerStyle={styles.infoContent} showsVerticalScrollIndicator={false}>
           <View style={styles.head}>
             {hero ? <SpriteImage source={hero.scoreImage} style={[styles.portrait, { borderColor: tint }]} resizeMode="cover" /> : null}
             <View style={{ flex: 1 }}>
@@ -152,7 +154,7 @@ const RunDetail = ({ run, onClose }: Props) => {
                   return (
                     <View key={`${id}-${k}`} style={styles.storyRow}>
                       <SpriteImage source={ENCOUNTER_ART[eid]} style={styles.storyArt} resizeMode="contain" />
-                      <Text style={styles.storyText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                      <Text style={styles.storyText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                         <Text style={{ color: ENCOUNTER_TINT[eid], fontWeight: "900" }}>{floor > 0 ? `${t("scores.floorShort", { n: floor })} · ` : ""}</Text>
                         {t(`encounter.${eid}.title` as TranslationKey)}
                         {"  —  "}
@@ -193,6 +195,7 @@ const RunDetail = ({ run, onClose }: Props) => {
               {t("history.oldRun")}
             </Text>
           ) : null}
+          </ScrollView>
           <PopButton label={t("common.close")} variant="secondary" onPress={onClose} />
         </View>
       </PopupPanel>
@@ -207,6 +210,8 @@ const styles = StyleSheet.create({
   cardRow: { flexDirection: "row", alignItems: "center" },
   left: { alignItems: "center", gap: 6 },
   right: { flex: 1, gap: 8 },
+  info: { flexGrow: 0, flexShrink: 1 },
+  infoContent: { gap: 8 },
   map: { borderRadius: 8, backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
   cell: { position: "absolute", alignItems: "center", justifyContent: "center" },
   tile: { margin: 1, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.05)" },

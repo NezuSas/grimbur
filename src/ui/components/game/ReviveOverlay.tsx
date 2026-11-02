@@ -101,13 +101,13 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
             {GIFTS.map(g => (
               <View key={g.key} style={styles.gift}>
                 <SpriteImage source={g.art} style={styles.giftArt} resizeMode="contain" />
-                <Text style={styles.giftText} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                <Text style={styles.giftText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                   {t(g.text, { n: REVIVE_ARROWS })}
                 </Text>
               </View>
             ))}
           </View>
-          <Text style={styles.body} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+          <Text style={styles.body} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
             {t("revive.marked")}
           </Text>
           <PopButton

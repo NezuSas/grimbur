@@ -129,10 +129,10 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
             <SpriteImage source={ART[mode]} style={styles.emblemArt} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[styles.introTitle, { color: tint }]} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+            <Text style={[styles.introTitle, { color: tint }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
               {t(mode === "duel" ? "duel.open" : "challenge.open").toLocaleUpperCase()}
             </Text>
-            <Text style={styles.introSub} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+            <Text style={styles.introSub} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
               {mode === "duel" ? t("friends.duelTag", { max: MAX_PLAYERS }) : t("friends.challengeTag")}
             </Text>
           </View>
@@ -186,7 +186,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
                 );
               })}
             </View>
-            <Text style={styles.rule} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+            <Text style={styles.rule} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
               {t(`ascension.${depth}` as TranslationKey)}
             </Text>
 

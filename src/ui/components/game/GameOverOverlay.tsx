@@ -234,6 +234,12 @@ const GameOverOverlay = ({
   const [extrasBox, setExtrasBox] = useState(0);
   const [extrasContent, setExtrasContent] = useState(0);
   const [extrasAtEnd, setExtrasAtEnd] = useState(false);
+  // On a short window the scrolling box could be left a sliver tall, showing half a line of text. Then the floor track
+  // (the headline already names the floor) gives its room up, for good on this card, so at least one full line shows.
+  const [dropTrack, setDropTrack] = useState(false);
+  useEffect(() => {
+    if (!dropTrack && extrasBox > 0 && extrasBox < 32 && extrasContent > extrasBox + 4) setDropTrack(true);
+  }, [dropTrack, extrasBox, extrasContent]);
   // The parade of rewards: once per card, as soon as the run's rewards are known (they come a moment after the card).
   const rewardCount =
     (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
@@ -455,7 +461,7 @@ const GameOverOverlay = ({
       ) : null}
       {review && !victory ? (
         <View style={[styles.review, { borderColor: REVIEW_LOOK[review.kind] + '66' }]} accessible accessibilityLabel={reviewText}>
-          <Text style={styles.reviewText} numberOfLines={3} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.reviewText} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
             <Text style={[styles.reviewKicker, { color: REVIEW_LOOK[review.kind] }]}>
               {t(review.kind === 'forced' ? 'review.kicker.luck' : 'review.kicker.lesson').toLocaleUpperCase()}
               {'  '}
@@ -473,7 +479,7 @@ const GameOverOverlay = ({
       {friendGhosts > 0 && onPeek ? (
         <TouchableOpacity onPress={onPeek} accessibilityRole="button" accessibilityLabel={t('ghosts.line', { n: friendGhosts })} style={styles.ghosts}>
           <Ionicons name="people" size={14} color="#90CAF9" />
-          <Text style={styles.ghostsText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.ghostsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
             {t('ghosts.line', { n: friendGhosts })}
           </Text>
           <Text style={styles.ghostsLink} maxFontSizeMultiplier={1.1}>{t('ghosts.look').toLocaleUpperCase()}</Text>
@@ -506,7 +512,7 @@ const GameOverOverlay = ({
             <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
           </Text>
           {streak ? (
-            <Text style={[styles.daily, { color: '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            <Text style={[styles.daily, { color: '#FFAB40' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
               <GlyphIcon name="flame" size={13} /> {plural('over.streak', streak)}
             </Text>
           ) : null}
@@ -533,7 +539,7 @@ const GameOverOverlay = ({
         ) : (
           value
         )}
-        <Text style={styles.tile2Label} numberOfLines={1} maxFontSizeMultiplier={1.1}>{label.toLocaleUpperCase()}</Text>
+        <Text style={styles.tile2Label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>{label.toLocaleUpperCase()}</Text>
       </View>
       {onPress ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#FFAB40" /> : null}
     </TouchableOpacity>
@@ -543,7 +549,7 @@ const GameOverOverlay = ({
       {isNewBest ? (
         <View style={styles.ribbon} accessibilityLiveRegion="polite">
           <GlyphIcon name="medal" size={16} />
-          <Text style={styles.ribbonText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+          <Text style={styles.ribbonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
             {(endless ? t('over.newBestFloor') : dailyLabel ? t('over.newDailyBest') : t('over.newBest')).toLocaleUpperCase()}
           </Text>
         </View>
@@ -569,7 +575,7 @@ const GameOverOverlay = ({
           {breakdown}
         </Text>
       ) : null}
-      {!endless && height >= 340 && (
+      {!endless && height >= 340 && !dropTrack && (
         <View style={[styles.track, snug && styles.pipsSnug]} accessible accessibilityLabel={t('over.progress', { floor: level, floors })}>
           {Array.from({ length: floors }, (_, i) => {
             const floor = i + 1;
@@ -602,7 +608,7 @@ const GameOverOverlay = ({
                 </View>
               ))}
             </View>
-            <Text style={styles.rewardsText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+            <Text style={styles.rewardsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
               {t('parade.row', { n: rewards.length })}
             </Text>
             <Text style={styles.rewardsLink} maxFontSizeMultiplier={1.1}>{t('ghosts.look').toLocaleUpperCase()} ›</Text>
@@ -673,19 +679,19 @@ const GameOverOverlay = ({
         {demo && onUnlock ? (
           <TouchableOpacity style={styles.sideButton} onPress={onRetry} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.retry')}>
             <Ionicons name="refresh" size={18} color="#fff" />
-            {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>}
+            {!short && <Text style={styles.sideText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
           <ButtonGloss />
           <Ionicons name="home" size={18} color="#fff" />
-          {!short && <Text style={styles.sideText} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
+          {!short && <Text style={styles.sideText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
             <ButtonGloss />
             <GlyphIcon name="hammer" size={20} />
-            {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
+            {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#FFAB40' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         {onShare ? (

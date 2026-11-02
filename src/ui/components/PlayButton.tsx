@@ -76,7 +76,7 @@ const PlayButton: React.FC<Props> = memo(({ title, subtitle, footnote, onPress, 
               <Text style={[styles.title, { fontSize: (compact ? 24 : 28) * ui }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
                 {title.toLocaleUpperCase()}
               </Text>
-              <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={compact ? 1 : 2} maxFontSizeMultiplier={1.15}>
+              <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={compact ? 1 : 2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {subtitle}
               </Text>
             </View>
@@ -84,7 +84,7 @@ const PlayButton: React.FC<Props> = memo(({ title, subtitle, footnote, onPress, 
         </Pressable>
       </Animated.View>
       {footnote ? (
-        <Text style={styles.footnote} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+        <Text style={styles.footnote} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
           {footnote}
         </Text>
       ) : null}

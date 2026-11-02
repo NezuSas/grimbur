@@ -84,7 +84,7 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
                 <View key={key} style={styles.tile} accessible accessibilityLabel={`${label}: ${value}`}>
                   <SpriteImage source={TILE_ART[key]} style={styles.tileArt} resizeMode="contain" />
                   <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>{value}</Text>
-                  <Text style={styles.tileLabel} numberOfLines={1} maxFontSizeMultiplier={1.05}>{label.toLocaleUpperCase()}</Text>
+                  <Text style={styles.tileLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>{label.toLocaleUpperCase()}</Text>
                 </View>
               ))}
             </View>
@@ -92,7 +92,7 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
               <View style={styles.relics}>
                 <RelicTray relics={summary.relics} size={24} label={t('pause.relics')} />
                 {activeFamilies(summary.relics).map(f => (
-                  <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                  <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                     {`${t(`family.${f}.name` as TranslationKey)}: ${t(`family.${f}.bonus` as TranslationKey)}`}
                   </Text>
                 ))}

@@ -67,7 +67,7 @@ const Tile = memo(({ info, stats, selected, burst, index, onPress }: TileProps) 
         accessibilityLabel={`${name}. ${t("forge.level", { level, max })}. ${maxed ? t("forge.maxed") : t("forge.needs", { cost })}`}
       >
         <Badge info={info} size={52} maxed={maxed} strike={burst} />
-        <Text style={styles.tileName} numberOfLines={2} maxFontSizeMultiplier={1.05}>
+        <Text style={styles.tileName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.05}>
           {name}
         </Text>
         <View style={styles.tilePips}>
@@ -255,19 +255,19 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
               key={selected.id}
               style={[styles.show, selReady && styles.showReady, selCost === null && styles.showMaxed, { transform: [{ scale: breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.012] }) }] }]}
             >
-              <Text style={[styles.kicker, selReady && { color: EMBER }, selCost === null && { color: GOLD }]} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+              <Text style={[styles.kicker, selReady && { color: EMBER }, selCost === null && { color: GOLD }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                 {kicker.toLocaleUpperCase()}
               </Text>
               <View style={styles.showTop}>
                 <Badge info={selected} size={narrow ? 64 : 76} maxed={selCost === null} strike={strike} />
                 <View style={{ flex: 1, gap: 3 }}>
-                  <Text style={styles.showName} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+                  <Text style={styles.showName} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     {forgeText(t, selected.id, "name")}
                   </Text>
                   <Pips level={levelOf(stats, selected.id)} max={maxLevel(selected.id)} label={t("forge.level", { level: levelOf(stats, selected.id), max: maxLevel(selected.id) })} />
                 </View>
               </View>
-              <Text style={styles.desc} numberOfLines={3} maxFontSizeMultiplier={1.15}>
+              <Text style={styles.desc} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {forgeText(t, selected.id, "desc")}
               </Text>
               <BuyButton info={selected} stats={stats} busy={busy} onBuy={buy} big />
@@ -297,7 +297,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                   {gear.map(g => (
                     <View key={g.text} style={styles.gearChip}>
                       <Ionicons name={g.icon} size={14} color={EMBER} />
-                      <Text style={styles.gearText} numberOfLines={2} maxFontSizeMultiplier={1.1}>
+                      <Text style={styles.gearText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                         {g.text}
                       </Text>
                     </View>
@@ -309,7 +309,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
             <PressScale onPress={() => setHowOpen(o => !o)} style={styles.how} accessibilityRole="button" accessibilityState={{ expanded: howOpen }} accessibilityLabel={t("forge.how.title")}>
               <View style={styles.howHead}>
                 <Ionicons name="information-circle" size={16} color={EMBER} />
-                <Text style={styles.howTitle} maxFontSizeMultiplier={1.1} numberOfLines={2}>
+                <Text style={styles.howTitle} maxFontSizeMultiplier={1.1} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
                   {howOpen ? t("forge.how.title") : t("forge.how.short")}
                 </Text>
                 <Ionicons name={howOpen ? "chevron-up" : "chevron-down"} size={16} color={EMBER} />
@@ -349,7 +349,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                     accessibilityLabel={`${t(`forge.filter.${f}` as TranslationKey)}${count ? `, ${t("forge.ready", { count })}` : ""}`}
                     style={[styles.chip, on && styles.chipOn]}
                   >
-                    <Text style={[styles.chipText, on && styles.chipTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                    <Text style={[styles.chipText, on && styles.chipTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                       {t(`forge.filter.${f}` as TranslationKey)}
                     </Text>
                     {count > 0 && (
@@ -363,7 +363,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                 );
               })}
               {ready > 0 && !narrow ? (
-                <Text style={styles.readyNote} maxFontSizeMultiplier={1.1} numberOfLines={1}>
+                <Text style={styles.readyNote} maxFontSizeMultiplier={1.1} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
                   {t("forge.ready", { count: ready })}
                 </Text>
               ) : null}
@@ -429,7 +429,8 @@ const styles = StyleSheet.create({
   gearTitle: { color: EMBER, fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   owned: { color: "#B8997A", fontSize: 11.5, fontWeight: "800" },
   gearGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  gearChip: { flexBasis: "47%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(255,171,64,0.08)" },
+  // Two per row, or one when the column is too narrow for two to read in full.
+  gearChip: { flexBasis: "47%", minWidth: 130, flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(255,171,64,0.08)" },
   gearText: { color: "#F3EEEA", fontSize: 11.5, fontWeight: "700", flexShrink: 1 },
   gearEmpty: { color: "#CAB39C", fontSize: 12.5 },
 

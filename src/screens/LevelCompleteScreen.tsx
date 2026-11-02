@@ -143,7 +143,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
                     <Text style={[styles.tileValue, { color: s.color }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
                       {s.value}
                     </Text>
-                    <Text style={styles.tileLabel} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                    <Text style={styles.tileLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                       {s.label.toLocaleUpperCase()}
                     </Text>
                   </View>
@@ -171,7 +171,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
               </View>
             ) : null}
             {showTrack ? (
-              <Text style={styles.trackText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              <Text style={styles.trackText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
                 {t("complete.track", { n: level, total: FLOORS })}
               </Text>
             ) : null}

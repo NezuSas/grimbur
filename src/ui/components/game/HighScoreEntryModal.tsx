@@ -96,7 +96,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   };
 
   const summary = (
-    <View style={styles.summary}>
+    <View style={[styles.summary, compact && styles.summaryRow]}>
       {/* With the keyboard up a landscape phone has little room left: only the title and the score stay. */}
       {!keyboardUp && <SpriteImage source={require('../../../assets/sprites/ui/Icon_Trophy.png')} style={styles.trophy} resizeMode="contain" />}
       {!keyboardUp && (
@@ -119,7 +119,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   );
 
   const form = (
-    <View style={styles.form}>
+    <View style={[styles.form, compact && styles.formRow]}>
       <TextInput
         ref={inputRef}
         style={[styles.input, { fontFamily: "Fredoka_600SemiBold" }]}
@@ -167,8 +167,12 @@ export default HighScoreEntryModal;
 const styles = StyleSheet.create({
   card: { gap: 10 },
   cardRow: { flexDirection: 'row', alignItems: 'center' },
-  summary: { alignItems: 'center', gap: 4, flex: 1 },
-  form: { gap: 8, flex: 1.2, width: '100%' },
+  // Side by side (compact) the two halves share the width; stacked they keep their own height (a flex of 1 in a column
+  // with no set height squeezed the summary to nothing on the web, so the score ran under the name field).
+  summary: { alignItems: 'center', gap: 4, alignSelf: 'stretch' },
+  summaryRow: { flex: 1 },
+  form: { gap: 8, width: '100%' },
+  formRow: { flex: 1.2 },
   badge: { color: '#fff', fontSize: 18, fontWeight: '900' },
   score: { color: '#FFD54F', fontWeight: '900', fontSize: 26 },
   trophy: { width: 54, height: 54, marginBottom: -2 },

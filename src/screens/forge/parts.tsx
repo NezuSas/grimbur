@@ -169,7 +169,7 @@ export const BuyButton: React.FC<BuyProps> = ({ info, stats, busy, onBuy, big })
       >
         <Animated.View pointerEvents="none" style={[styles.ctaGlow, { opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.35] }) }]} />
         <EmberIcon size={big ? 20 : 17} />
-        <Text style={[styles.ctaBuyText, big && { fontSize: 18 }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.ctaBuyText, big && { fontSize: 18 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
           {cost}   {t("forge.buyShort").toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
@@ -180,7 +180,7 @@ export const BuyButton: React.FC<BuyProps> = ({ info, stats, busy, onBuy, big })
     <View style={[styles.cta, styles.ctaLocked, big && styles.ctaBig]} accessible accessibilityLabel={t("forge.needs", { cost })}>
       <View style={[styles.fill, { width: `${Math.round(progress * 100)}%` }]} />
       <EmberIcon size={15} style={{ opacity: 0.85 }} />
-      <Text style={styles.ctaLockedText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+      <Text style={styles.ctaLockedText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
         {stats.embers} / {cost}
       </Text>
     </View>
@@ -211,7 +211,7 @@ export const UpgradeCard = React.memo(({ info, stats, columns, busy, burst, onBu
       <View style={styles.cardTop}>
         <Badge info={info} size={54} maxed={maxed} strike={burst} />
         <View style={styles.cardText}>
-          <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
             {forgeText(t, info.id, "name")}
           </Text>
           <Text style={styles.desc} maxFontSizeMultiplier={1.2}>

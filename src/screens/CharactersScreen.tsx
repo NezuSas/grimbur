@@ -383,7 +383,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.panel}>
             <ScrollView contentContainerStyle={[styles.panelContent, !short && styles.panelContentCentered]} showsVerticalScrollIndicator={false}>
               <View style={styles.kickerRow}>
-                <Text style={[styles.kicker, { color: modeTint }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                <Text style={[styles.kicker, { color: modeTint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                   {(short || showDepth ? modeTitle : `${modeTitle} · ${t("heroes.title")}`).toLocaleUpperCase()}
                 </Text>
                 {showDepth && (
@@ -398,7 +398,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       <Ionicons name="remove" size={18} color="#fff" />
                     </TouchableOpacity>
                     <View style={styles.depthLabel} accessible accessibilityLabel={`${t("heroes.depth")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
-                      <Text style={styles.depthText} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      <Text style={styles.depthText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                         <EmberIcon size={12} /> {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                       </Text>
                     </View>
@@ -428,7 +428,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                         accessibilityState={{ checked: on }}
                       >
                         <Ionicons name={q ? "flash" : "flag"} size={13} color={on ? tint : "#9c8f82"} />
-                        <Text style={[styles.lengthText, on && { color: tint }]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                        <Text style={[styles.lengthText, on && { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {q ? t("heroes.length.quick", { n: QUICK_FLOORS }) : t("heroes.length.full")}
                         </Text>
                       </TouchableOpacity>
@@ -441,7 +441,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                   {t("heroes.depthLocked", { current: t(`ascension.label.${depth}` as TranslationKey), next: t(`ascension.label.${depth + 1}` as TranslationKey) })}
                 </Text>
               ) : !short ? (
-                <Text style={styles.modeRule} numberOfLines={3} maxFontSizeMultiplier={1.2}>
+                <Text style={styles.modeRule} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                   {modeRule}
                 </Text>
               ) : null}
@@ -449,7 +449,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {event ? (
                 <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${t(`event.${event}.rule` as TranslationKey)}`}>
                   <Ionicons name="flash" size={13} color="#FFD54F" />
-                  <Text style={styles.eventText} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+                  <Text style={styles.eventText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     <Text style={styles.eventName}>{`${t(`event.${event}.name` as TranslationKey).toLocaleUpperCase()}  `}</Text>
                     {t(`event.${event}.rule` as TranslationKey)}
                     {eventBest > 0 ? `  ·  ${t("event.best", { n: eventBest })}` : ""}
@@ -471,7 +471,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {/* The outfits you own: tap one to wear it. The rest of the collection has its own screen. */}
               {!locked ? (
                 <View style={styles.skinBox}>
-                  <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {`${t("skin.outfit")} · ${skinText(t, shownSkin)}`.toLocaleUpperCase()}
                   </Text>
                   <View style={styles.swatches}>
@@ -485,7 +485,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityLabel={t("collection.view")}
                     >
                       <GlyphIcon name="frame" size={18} />
-                      <Text style={[styles.collectionText, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      <Text style={[styles.collectionText, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                         {t("collection.view").toLocaleUpperCase()}
                       </Text>
                     </TouchableOpacity>
@@ -504,7 +504,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                   </View>
                   <View style={{ flex: 1, gap: 4 }}>
                     <View style={styles.masteryHead}>
-                      <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                         {t("mastery.title").toLocaleUpperCase()}
                       </Text>
                       <Text style={styles.masteryXp} maxFontSizeMultiplier={1.1}>{`${mastery.xp - mastery.from} / ${mastery.to - mastery.from} XP`}</Text>
@@ -512,7 +512,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     <View style={styles.masteryTrack}>
                       <View style={[styles.masteryFill, { width: `${Math.max(3, Math.round(mastery.progress * 100))}%`, backgroundColor: accent }]} />
                     </View>
-                    <Text style={styles.masteryNext} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                    <Text style={styles.masteryNext} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                       {toTitle ? t("mastery.toTitle2", { name: heroText(t, selected, "name"), left: MAX_MASTERY - mastery.level }) : tierLine ?? t("mastery.owned", { name: heroText(t, selected, "name") })}
                     </Text>
                   </View>
@@ -523,7 +523,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {!locked && HERO_QUESTS[selected] ? (
                 <View style={[styles.questBox, { borderColor: accent + "55" }]}>
                   <View style={styles.masteryHead}>
-                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                       {t("quests.title", { name: heroText(t, selected, "name") }).toLocaleUpperCase()}
                     </Text>
                     <Text style={styles.masteryXp} maxFontSizeMultiplier={1.1}>
@@ -535,7 +535,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     return (
                       <View key={k} style={styles.questRow}>
                         <Ionicons name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#9EE37D" : "#8a7663"} />
-                        <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                        <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {t(`quest.${selected}.${k}` as TranslationKey, { n: q.n })}
                         </Text>
                       </View>
@@ -549,7 +549,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.lockInfo} accessible>
                 <Ionicons name="lock-closed" size={16} color="#fff" />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.lockTitle} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                  <Text style={styles.lockTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {unlockText(t, selected)}
                   </Text>
                   <Text style={styles.lockSub} maxFontSizeMultiplier={1.2}>
@@ -574,7 +574,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={[styles.cardName, { fontSize: bodySize + 3 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                   {heroText(t, selected, "perk")}
                 </Text>
-                <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} maxFontSizeMultiplier={1.2}>
+                <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                   {heroText(t, selected, "desc")}
                 </Text>
               </View>
@@ -586,12 +586,12 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={styles.abilityLabelRow}>
-                        <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                        <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                           {t("heroes.active").toLocaleUpperCase()}
                         </Text>
                         <View style={styles.cooldownChip}>
                           <Ionicons name="refresh" size={11} color="#E4D8CD" />
-                          <Text style={styles.cooldownText} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("heroes.cooldown", { n: abilityCooldown(ability) })}</Text>
+                          <Text style={styles.cooldownText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>{t("heroes.cooldown", { n: abilityCooldown(ability) })}</Text>
                         </View>
                       </View>
                       <Text style={[styles.cardName, { fontSize: bodySize + 3 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
@@ -599,7 +599,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       </Text>
                     </View>
                   </View>
-                  <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {t(`ability.${ability}.desc` as TranslationKey)}
                   </Text>
                 </View>
@@ -609,7 +609,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {!locked ? (
                 <View style={styles.recordRow}>
                   <Ionicons name={wins > 0 ? "trophy" : played ? "checkmark-circle" : "sparkles"} size={15} color={accent} />
-                  <Text style={[styles.recordText, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.recordText, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {wins > 0 ? plural("heroes.wins", wins) : played ? t("heroes.played") : t("heroes.newHero")}
                   </Text>
                 </View>

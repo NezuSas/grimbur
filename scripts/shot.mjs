@@ -92,6 +92,27 @@ for (const c of (process.env.SHOT_CLICKS ?? '').split(';').filter(Boolean)) {
 }
 const probe = await send('Runtime.evaluate', { expression: `JSON.stringify({ ready: document.readyState, root: document.getElementById('root')?.innerHTML.length ?? -1, scripts: [...document.scripts].map(s => s.src.slice(0, 60)) })`, returnByValue: true });
 if (process.env.SHOT_DEBUG) console.log('PAGE', probe.result?.result?.value);
+// SHOT_EVAL="<js expression>": print what it returns (to inspect the page while debugging a layout).
+if (process.env.SHOT_EVAL) {
+  const r = await send('Runtime.evaluate', { expression: process.env.SHOT_EVAL, returnByValue: true });
+  console.log('EVAL', JSON.stringify(r.result?.result?.value ?? r.result?.exceptionDetails?.text));
+}
+// SHOT_CLIPS=1: list every text the page cuts short (one line with an ellipsis, or clamped to a few lines) or that spills out of its box.
+if (process.env.SHOT_CLIPS) {
+  const clips = await send('Runtime.evaluate', {
+    returnByValue: true,
+    expression: `JSON.stringify([...document.querySelectorAll('div[dir], span, div')].filter(el => {
+      if (!el.textContent.trim() || el.children.length > 0 && [...el.children].some(c => c.tagName === 'DIV')) return false;
+      const cs = getComputedStyle(el);
+      if (cs.visibility === 'hidden' || cs.display === 'none' || el.offsetParent === null) return false;
+      const clamp = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
+      const ell = cs.textOverflow === 'ellipsis';
+      if (!clamp && !ell) return false;
+      return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight + 1;
+    }).map(el => el.textContent.trim().slice(0, 90)))`,
+  });
+  for (const t of JSON.parse(clips.result?.result?.value ?? '[]')) console.log('CLIP', t);
+}
 const shot = await send('Page.captureScreenshot', { format: 'png' });
 writeFileSync(out, Buffer.from(shot.result.data, 'base64'));
 console.log(out);

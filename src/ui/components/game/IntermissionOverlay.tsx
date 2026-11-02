@@ -109,15 +109,15 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
         {/* ── Header: the way down so far, and the gems to spend ─────────────── */}
         <View style={styles.header}>
           <View style={styles.journey}>
-            <Text style={styles.journeyFrom} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            <Text style={styles.journeyFrom} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {t("floor.banner", { n: nextFloor - 1 }).toLocaleUpperCase()}
             </Text>
             <Ionicons name="chevron-forward" size={16} color="#B99A7C" />
-            <Text style={styles.journeyTo} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            <Text style={styles.journeyTo} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
           </View>
-          <Text style={[popupTitleStyle("#FFD54F"), styles.title]} accessibilityRole="header" numberOfLines={1} maxFontSizeMultiplier={1.15}>
+          <Text style={[popupTitleStyle("#FFD54F"), styles.title]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
             {t("shop.title").toLocaleUpperCase()}
           </Text>
           <View style={styles.purse} accessible accessibilityLabel={t("shop.purse", { count: gems })}>
@@ -149,10 +149,10 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
               >
                 <View style={[styles.wareGlow, { backgroundColor: color, opacity: canBuy ? 0.16 : 0.05 }]} />
                 <SpriteImage source={SHOP_ART[item]} style={[styles.wareArt, !canBuy && { opacity: 0.4 }]} resizeMode="contain" />
-                <Text style={[styles.wareName, !canBuy && { color: "#A8978A" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                <Text style={[styles.wareName, !canBuy && { color: "#A8978A" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                   {name}
                 </Text>
-                <Text style={styles.wareDesc} numberOfLines={2} maxFontSizeMultiplier={1.05}>
+                <Text style={styles.wareDesc} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
                   {blocked ?? desc}
                 </Text>
                 <View style={[styles.wareBuy, { backgroundColor: canBuy ? color : "rgba(255,255,255,0.1)" }]}>
@@ -176,7 +176,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             style={[styles.altar, styles.merchant, merchantUsed && { opacity: 0.55 }]}
           >
             <SpriteImage source={MERCHANT_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
-            <Text style={[styles.altarText, { color: "#FFCDD2" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            <Text style={[styles.altarText, { color: "#FFCDD2" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {merchantUsed ? t("shop.merchant.done") : `${t("shop.merchant.name")}: ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
             </Text>
           </TouchableOpacity>
@@ -191,7 +191,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             style={[styles.altar, altarUsed && { opacity: 0.55 }]}
           >
             <SpriteImage source={ALTAR_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
-            <Text style={styles.altarText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+            <Text style={styles.altarText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {altarUsed ? t("shop.altar.done") : `${t("shop.altar.name")}: ${t("shop.altar.desc")}`}
             </Text>
           </TouchableOpacity>
@@ -226,10 +226,10 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
                     <SpriteImage source={look.art} style={[styles.portalArt, !on && { opacity: 0.45 }]} resizeMode="contain" />
                   </View>
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={[styles.portalName, { color: on ? look.color : "#D6C4B2" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                    <Text style={[styles.portalName, { color: on ? look.color : "#D6C4B2" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                       {name.toLocaleUpperCase()}
                     </Text>
-                    <Text style={styles.portalRule} numberOfLines={3} maxFontSizeMultiplier={1.05}>
+                    <Text style={styles.portalRule} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
                       {rule}
                     </Text>
                   </View>
@@ -247,7 +247,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           </View>
         </View>
         {doors && biomeLine ? (
-          <Text style={styles.biome} numberOfLines={1} maxFontSizeMultiplier={1.05}>
+          <Text style={styles.biome} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
             {biomeLine}
           </Text>
         ) : null}

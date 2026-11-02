@@ -64,10 +64,10 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] 
     <OverlayContainer>
       <View style={styles.header} accessibilityRole="header">
         <GlyphIcon name="sparkles" size={tight ? 22 : 26} />
-        <Text style={[styles.title, tight && { fontSize: 17 }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.title, tight && { fontSize: 17 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
           {t('relic.title').toLocaleUpperCase()}
         </Text>
-        <Text style={styles.kicker} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
           {t('relic.kicker', { floor: floor - 1 })}
         </Text>
       </View>
@@ -101,7 +101,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] 
                     const have = Math.min(FAMILY_SET, familyCount(owned, family) + 1);
                     const wakes = have === FAMILY_SET && familyCount(owned, family) < FAMILY_SET;
                     return (
-                      <Text style={[styles.cursedTag, { color: wakes ? GOLD : FAMILY_COLOR[family] }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                      <Text style={[styles.cursedTag, { color: wakes ? GOLD : FAMILY_COLOR[family] }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                         {cursed ? `${t('relic.cursed').toLocaleUpperCase()} · ` : ''}
                         {`${t(`family.${family}.name` as TranslationKey).toLocaleUpperCase()} ${have}/${FAMILY_SET}`}
                         {wakes ? ` · ${t('family.bonus').toLocaleUpperCase()}` : ''}
@@ -128,7 +128,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] 
         })}
       </Animated.View>
 
-      <Text style={[styles.hint, lairNext && styles.lair, { marginTop: tight ? 8 : 12 }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+      <Text style={[styles.hint, lairNext && styles.lair, { marginTop: tight ? 8 : 12 }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
         {lairNext ? t('relic.lairNext') : cursedOffered ? t('relic.cursedHint') : t('relic.hint')}
       </Text>
     </OverlayContainer>

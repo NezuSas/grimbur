@@ -291,7 +291,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           <Ionicons name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={styles.bannerText}>
-          <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
             {(isTechnique ? title : `${title}  ·  ${tierName}`).toLocaleUpperCase()}
           </Text>
           <Text style={[styles.goal, fail ? styles.goalFail : whyText ? styles.goalWhy : null, { fontSize: (hudHeight < 70 ? 13 : 15) * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
@@ -395,7 +395,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               </View>
             ) : null}
             {result.achievements.length > 0 ? (
-              <Text style={styles.achievements} numberOfLines={2} maxFontSizeMultiplier={1.15}>
+              <Text style={styles.achievements} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
                 {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
               </Text>
             ) : null}

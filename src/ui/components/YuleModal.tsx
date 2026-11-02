@@ -47,7 +47,7 @@ export default function YuleModal({ events, today, onClose, onPuzzles }: Props) 
                   {r.art ? <SpriteImage source={r.art} style={{ width: short ? 34 : 46, height: short ? 34 : 46 }} resizeMode="contain" /> : <Text style={styles.titleArt}>✦</Text>}
                 </View>
                 <View style={{ flex: 1, gap: 3 }}>
-                  <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                  <Text style={styles.name} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
                     {r.name}
                   </Text>
                   <Text style={styles.goal} numberOfLines={short ? 1 : 2} maxFontSizeMultiplier={1.15}>

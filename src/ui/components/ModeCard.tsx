@@ -60,7 +60,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
           <Text style={[styles.title, featured && styles.titleFeatured, { fontSize: (featured ? 19 : compactCard ? 12 : 15) * ui, letterSpacing: compactCard ? 0.5 : 1.5 }, locked && { color: "#E4D8CD" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
             {title.toLocaleUpperCase()}
           </Text>
-          <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.subtitle, { fontSize: 12 * ui, lineHeight: 15 * ui }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
             {subtitle}
           </Text>
         </View>

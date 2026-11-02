@@ -87,10 +87,10 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
                 <View style={[styles.miniWell, { borderColor: it.tint + "AA", backgroundColor: it.tint + "22" }]}>
                   <SpriteImage source={it.art} style={it.standing ? styles.miniStanding : styles.miniArt} resizeMode="contain" />
                 </View>
-                <Text style={[styles.miniKicker, { color: it.tint }]} numberOfLines={1} maxFontSizeMultiplier={1.05}>
+                <Text style={[styles.miniKicker, { color: it.tint }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
                   {it.kicker.toLocaleUpperCase()}
                 </Text>
-                <Text style={styles.miniTitle} numberOfLines={2} maxFontSizeMultiplier={1.05}>
+                <Text style={styles.miniTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
                   {it.title}
                 </Text>
                 {it.embers ? (
@@ -148,7 +148,7 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
                 {item.title.toLocaleUpperCase()}
               </Text>
               {item.line ? (
-                <Text style={[styles.line, wide && { textAlign: "left" }]} numberOfLines={3} maxFontSizeMultiplier={1.15}>
+                <Text style={[styles.line, wide && { textAlign: "left" }]} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
                   {item.line}
                 </Text>
               ) : null}
@@ -219,7 +219,8 @@ const styles = StyleSheet.create({
   miniWell: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   miniArt: { width: 38, height: 38 },
   miniStanding: { width: 50, height: 50 },
-  miniKicker: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1 },
+  // Two lines: the longest kickers ("Nuevo rango de maestría", "Fragmento de la crónica") do not fit one in a small tile.
+  miniKicker: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1, textAlign: "center" },
   miniTitle: { color: "#fff", fontWeight: "800", fontSize: 11.5, textAlign: "center" },
   miniEmbers: { color: "#FFCC80", fontWeight: "900", fontSize: 11 },
 });
