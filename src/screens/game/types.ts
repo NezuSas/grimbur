@@ -65,6 +65,8 @@ export type RunResult = {
   masteryUp?: { hero: number; level: number } | null;
   /** The newest chronicle fragment a secret room unveiled. */
   chronicleUp?: number | null;
+  /** The hero challenges this run completed. */
+  questsDone?: { hero: number; done: number[]; all: boolean } | null;
   /** One of the first runs: the game over explains gems versus embers. */
   early?: boolean;
 };

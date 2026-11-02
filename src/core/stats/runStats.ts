@@ -1,6 +1,7 @@
 import { daysBetween } from '../engine/seed';
 import { EMPTY_CHEST, parseChest, type ChestState } from './dailyChest';
 import { EMPTY_ENCOUNTER_BOOK, addRunEncounters, parseEncounterBook, type EncounterBook } from './encounterBook';
+import { QUEST_EMBERS, newQuests, parseQuests, withQuests } from './heroQuests';
 import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
@@ -60,6 +61,8 @@ export interface LocalStats {
   secretsFound: number;
   /** The encounter journal (see encounterBook.ts). */
   encounterBook: EncounterBook;
+  /** Hero challenges done: one bitmask per hero (see heroQuests.ts). */
+  heroQuests: number[];
   /** Embers (Forge currency) available to spend. */
   embers: number;
   /** Forge upgrade levels: id -> level. */
@@ -169,6 +172,8 @@ export interface RunPayout {
   daily: number;
   /** Gift for coming back after days away. */
   welcomeBack: number;
+  /** Hero challenges the run completed. */
+  quests: number;
   /** Rewards of the achievements unlocked by the run (filled in by the caller, 0 here). */
   achievements: number;
   total: number;
@@ -223,6 +228,7 @@ export const EMPTY_STATS: LocalStats = {
   totalGems: 0,
   secretsFound: 0,
   encounterBook: EMPTY_ENCOUNTER_BOOK,
+  heroQuests: [0, 0, 0, 0, 0, 0],
   embers: 0,
   forge: {},
   maxAscension: 0,
@@ -271,8 +277,10 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
   const daily = bonusDue ? dailyBonus(currentStreak(stats, run.day as string)) : 0;
   const away = progressed && run.day !== undefined && stats.lastPlayedDate !== null ? daysBetween(stats.lastPlayedDate, run.day) : 0;
   const welcomeBack = away >= WELCOME_BACK_DAYS ? Math.min(WELCOME_BACK_CAP, runEmbers) : 0;
-  const total = runEmbers + milestonePay + daily + welcomeBack;
-  const payout: RunPayout = { run: runEmbers, milestone: milestonePay, daily, welcomeBack, achievements: 0, total };
+  const questsDone = newQuests(stats.heroQuests, run);
+  const quests = questsDone.length * QUEST_EMBERS;
+  const total = runEmbers + milestonePay + daily + welcomeBack + quests;
+  const payout: RunPayout = { run: runEmbers, milestone: milestonePay, daily, welcomeBack, quests, achievements: 0, total };
   const played = progressed && run.day !== undefined;
   const patch = {
     lastBonusDate: bonusDue ? (run.day as string) : stats.lastBonusDate,
@@ -283,6 +291,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     totalGems: stats.totalGems + (run.gems ?? 0),
     secretsFound: (stats.secretsFound ?? 0) + Math.max(0, Math.trunc(run.secrets ?? 0)),
     encounterBook: addRunEncounters(stats.encounterBook ?? EMPTY_ENCOUNTER_BOOK, run.encounters),
+    heroQuests: questsDone.length > 0 && run.heroIndex !== undefined ? withQuests(stats.heroQuests, run.heroIndex, questsDone) : stats.heroQuests ?? [0, 0, 0, 0, 0, 0],
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
     heroXp: stats.heroXp.map((n, i) => n + (run.heroIndex === i ? masteryXpFor(run, progressed) : 0)),
@@ -560,6 +569,7 @@ export function parseStats(raw: string | null): LocalStats {
       totalGems: num(data.totalGems),
       secretsFound: Math.trunc(num(data.secretsFound)),
       encounterBook: parseEncounterBook(data.encounterBook),
+      heroQuests: parseQuests(data.heroQuests),
       maxAscension: Math.min(MAX_ASCENSION, Math.trunc(num(data.maxAscension))),
       embers: Math.trunc(num(data.embers)),
       forge: parseForge(data.forge),

@@ -156,6 +156,27 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // The endless board: one row per player (`endless_scores/{pid}`) with the deepest floor of the endless descent. It only goes deeper.
+    function validEndless(d, id) {
+      return d.keys().hasOnly(['pid', 'name', 'floor', 'characterIndex', 'frame', 'title'])
+        && d.keys().hasAll(['pid', 'name', 'floor', 'characterIndex'])
+        && validLook(d)
+        && validPid(d.pid)
+        && id == d.pid
+        && isInt(d.floor) && d.floor >= 1 && d.floor <= 999
+        && isInt(d.characterIndex) && d.characterIndex >= 0 && d.characterIndex < 6
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 20
+        && validName(d.name);
+    }
+
+    match /endless_scores/{id} {
+      allow list: if request.query.limit <= 20;
+      allow get: if true;
+      allow create: if validEndless(request.resource.data, id) && isOwner(request.resource.data.pid);
+      allow update: if validEndless(request.resource.data, id) && isOwner(resource.data.pid) && request.resource.data.floor > resource.data.floor;
+      allow delete: if false;
+    }
+
     // Duel rooms: `duels/{code}` holds the stake the creator chose. It is written once and never changed, and every player of the room
     // must play for exactly that stake, so somebody who joins cannot raise the pot. A rematch room is created by whoever arrives first.
     match /duels/{code} {

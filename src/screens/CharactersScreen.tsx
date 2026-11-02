@@ -3,6 +3,7 @@ import GlyphIcon from "../ui/components/GlyphIcon";
 import FramedHero from "../ui/components/FramedHero";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
 import { MAX_MASTERY, masteryOf, masteryTier, nextMasteryTier } from "../core/stats/mastery";
+import { HERO_QUESTS, questDone } from "../core/stats/heroQuests";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -490,6 +491,31 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               ) : null}
 
+              {/* The hero's three challenges: each pays embers, the three together the hero's title and frame */}
+              {!locked && HERO_QUESTS[selected] ? (
+                <View style={[styles.questBox, { borderColor: accent + "55" }]}>
+                  <View style={styles.masteryHead}>
+                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+                      {t("quests.title", { name: heroText(t, selected, "name") }).toLocaleUpperCase()}
+                    </Text>
+                    <Text style={styles.masteryXp} maxFontSizeMultiplier={1.1}>
+                      {t("quests.done", { n: [0, 1, 2].filter(k => questDone(stats.heroQuests?.[selected], k)).length })}
+                    </Text>
+                  </View>
+                  {HERO_QUESTS[selected].map((q, k) => {
+                    const done = questDone(stats.heroQuests?.[selected], k);
+                    return (
+                      <View key={k} style={styles.questRow}>
+                        <Ionicons name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#9EE37D" : "#8a7663"} />
+                        <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+                          {t(`quest.${selected}.${k}` as TranslationKey, { n: q.n })}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : null}
+
               {/* A locked hero says, first of all, how to open it */}
               {locked && progress ? (
               <View style={styles.lockInfo} accessible>
@@ -671,6 +697,10 @@ const styles = StyleSheet.create({
   masteryHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   masteryLevel: { color: "#fff", fontWeight: "900", fontSize: 13 },
   masteryNext: { color: "#D9C6B2", fontSize: 12, fontWeight: "600" },
+  questBox: { gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
+  questRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  questText: { flex: 1, color: "#EADBC8", fontSize: 12.5, fontWeight: "700" },
+  questTextDone: { color: "#9EE37D", textDecorationLine: "line-through" },
   cardLabel: { fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   cardName: { color: "#fff", fontWeight: "900" },
   cardDesc: { color: "#E7DCD2" },

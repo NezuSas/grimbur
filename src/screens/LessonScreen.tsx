@@ -340,7 +340,7 @@ export default function LessonScreen({ navigation, route }: Props) {
                 bestScore: 9000,
                 isNewBest: true,
                 embers: 190,
-                payout: { run: 60, milestone: 30, daily: 25, welcomeBack: 40, achievements: 35, total: 190 },
+                payout: { run: 60, milestone: 30, daily: 25, welcomeBack: 40, quests: 0, achievements: 35, total: 190 },
                 achievements: ["win_mira", "win_bram", "first_steps", "gem_hoard", "relic_trio"],
                 rankUp: 4,
                 masteryUp: { hero: 5, level: 20, tier: "silver" },

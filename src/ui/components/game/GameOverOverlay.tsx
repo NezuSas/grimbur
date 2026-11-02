@@ -34,6 +34,12 @@ import { ButtonGloss, PanelTrim, shade } from './popup';
 import RewardParade, { type RewardItem } from './RewardParade';
 import { nearMiss } from '../../../core/stats/nearMiss';
 import { ANCIENT_FRAMES } from '../BossSprite';
+import { HERO_QUESTS, QUEST_EMBERS } from '../../../core/stats/heroQuests';
+import { heroAccent } from '../../../data/heroAccent';
+import { FRAME_ART } from '../../cosmeticArt';
+import type { CosmeticId } from '../../../core/cosmetics/cosmetics';
+
+const HERO_SLUG = ['vael', 'sera', 'borin', 'auric', 'mira', 'bram'] as const;
 import { MASTERY_TIERS, type MasteryTierId } from '../../../core/stats/mastery';
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
 import { achievementArt } from '../../achievementArt';
@@ -105,6 +111,8 @@ type Props = {
   masteryUp?: { hero: number; level: number; tier?: MasteryTierId } | null;
   /** The newest chronicle fragment a secret room unveiled. */
   chronicleUp?: number | null;
+  /** The hero challenges this run completed. */
+  questsDone?: { hero: number; done: number[]; all: boolean } | null;
   /** The Grimbur that struck was the Ancestral one. */
   ancientKiller?: boolean;
   /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
@@ -168,6 +176,7 @@ const GameOverOverlay = ({
   rankUp,
   masteryUp,
   chronicleUp,
+  questsDone,
   ancientKiller = false,
   devParade,
   gemsLeft,
@@ -224,7 +233,7 @@ const GameOverOverlay = ({
   // The parade of rewards: once per card, as soon as the run's rewards are known (they come a moment after the card).
   const rewardCount =
     (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
-    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
+    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (questsDone?.done.length ?? 0) + (questsDone?.all ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
   const [parade, setParade] = useState<'off' | 'cards' | 'grid'>('off');
   const paradeShown = useRef(false);
   useEffect(() => {
@@ -361,6 +370,21 @@ const GameOverOverlay = ({
               }
             : { key: 'mastery', tint: '#FFB74D', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') },
         ]
+      : []),
+    ...(questsDone
+      ? questsDone.done.map((k): RewardItem => ({
+          key: `quest-${questsDone.hero}-${k}`,
+          tint: heroAccent(questsDone.hero),
+          art: skinArt(questsDone.hero, 'classic').playerImage,
+          standing: true,
+          kicker: t('parade.kicker.quest', { name: heroText(t, questsDone.hero, 'name') }),
+          title: t(`quest.${questsDone.hero}.${k}` as TranslationKey, { n: HERO_QUESTS[questsDone.hero][k].n }),
+          line: t('parade.questLine'),
+          embers: QUEST_EMBERS,
+        }))
+      : []),
+    ...(questsDone?.all
+      ? [{ key: `quest-all-${questsDone.hero}`, tint: heroAccent(questsDone.hero), art: FRAME_ART[`frame_quest${HERO_SLUG[questsDone.hero]}` as CosmeticId] ?? MEDAL_ART, kicker: t('parade.kicker.questAll'), title: t(`cosmetic.title_quest${HERO_SLUG[questsDone.hero]}.name` as TranslationKey), line: t('parade.questAllLine', { name: heroText(t, questsDone.hero, 'name') }) }]
       : []),
     ...(chronicleUp
       ? [{ key: 'chronicle', tint: '#E8C07D', art: BOOK_ART, kicker: t('parade.kicker.chronicle'), title: t(`chronicle.${chronicleUp}.title` as TranslationKey), line: t('parade.chronicleLine') }]

@@ -518,3 +518,45 @@ describe('player looks (frame and title)', () => {
     await assertFails(setDoc(doc(authed(UID), 'challenge_scores', `ABCD2346_${UID}`), { code: 'ABCD2346', pid: UID, name: 'Oscar', level: 6, score: 4200, coins: 10, characterIndex: 2, time: 200, frame: 'crown!' }));
   });
 });
+
+describe('the endless board', () => {
+  const pid = UID;
+  const entry = (patch: Record<string, unknown> = {}) => ({ pid, name: 'Oscar', floor: 14, characterIndex: 3, ...patch });
+  const ref = (p = pid) => doc(authed(p), 'endless_scores', p);
+
+  it('accepts the deepest floor, then only deeper; never deletes', async () => {
+    await assertSucceeds(setDoc(ref(), entry()));
+    await assertSucceeds(setDoc(ref(), entry({ floor: 22, frame: 'frame_gold' })));
+    await assertFails(setDoc(ref(), entry({ floor: 20 })));
+    await assertFails(deleteDoc(ref()));
+  });
+
+  it("refuses a write without sign-in, under another pid or another document", async () => {
+    await assertFails(setDoc(doc(db(), 'endless_scores', pid), entry()));
+    await assertFails(setDoc(doc(authed('VANDAL0000000000'), 'endless_scores', pid), entry()));
+    await assertFails(setDoc(doc(authed(pid), 'endless_scores', 'whatever'), entry()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['no floor', { floor: 0 }],
+    ['too deep', { floor: 1000 }],
+    ['a fractional floor', { floor: 3.5 }],
+    ['an unknown hero', { characterIndex: 6 }],
+    ['an extra field', { admin: true }],
+    ['a link in the name', { name: 'see www.x.com' }],
+  ];
+  it.each(bad.map(([label, patch], i) => [label, patch, i] as [string, Record<string, unknown>, number]))('rejects %s', async (_label, patch, i) => {
+    const owner = `E${String(i).padStart(15, '0')}`;
+    await assertFails(setDoc(doc(authed(owner), 'endless_scores', owner), entry({ pid: owner, ...patch })));
+  });
+
+  it('lists at most 20 rows by depth and reads one, without sign-in', async () => {
+    await env.withSecurityRulesDisabled(async ctx => {
+      await setDoc(doc(ctx.firestore(), 'endless_scores', pid), entry());
+    });
+    const col = collection(db(), 'endless_scores');
+    await assertSucceeds(getDocs(query(col, orderBy('floor', 'desc'), limit(20))));
+    await assertFails(getDocs(query(col, orderBy('floor', 'desc'), limit(21))));
+    await assertSucceeds(getDoc(doc(db(), 'endless_scores', pid)));
+  });
+});

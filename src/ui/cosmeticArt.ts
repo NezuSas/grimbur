@@ -34,6 +34,12 @@ export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_storm: require('../assets/sprites/cosmetics/Frame_Storm.png'),
   frame_royal: require('../assets/sprites/cosmetics/Frame_Royal.png'),
   frame_hoard: require('../assets/sprites/cosmetics/Frame_Hoard.png'),
+  frame_questvael: require('../assets/sprites/cosmetics/Frame_QuestVael.png'),
+  frame_questsera: require('../assets/sprites/cosmetics/Frame_QuestSera.png'),
+  frame_questborin: require('../assets/sprites/cosmetics/Frame_QuestBorin.png'),
+  frame_questauric: require('../assets/sprites/cosmetics/Frame_QuestAuric.png'),
+  frame_questmira: require('../assets/sprites/cosmetics/Frame_QuestMira.png'),
+  frame_questbram: require('../assets/sprites/cosmetics/Frame_QuestBram.png'),
 };
 
 /** The same frames, drawn as a tall arch around the hero's whole figure (hero picker, shared picture). 3 wide by 4 tall. */
@@ -51,6 +57,12 @@ export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = 
   frame_storm: require('../assets/sprites/cosmetics/FrameBody_Storm.png'),
   frame_royal: require('../assets/sprites/cosmetics/FrameBody_Royal.png'),
   frame_hoard: require('../assets/sprites/cosmetics/FrameBody_Hoard.png'),
+  frame_questvael: require('../assets/sprites/cosmetics/FrameBody_QuestVael.png'),
+  frame_questsera: require('../assets/sprites/cosmetics/FrameBody_QuestSera.png'),
+  frame_questborin: require('../assets/sprites/cosmetics/FrameBody_QuestBorin.png'),
+  frame_questauric: require('../assets/sprites/cosmetics/FrameBody_QuestAuric.png'),
+  frame_questmira: require('../assets/sprites/cosmetics/FrameBody_QuestMira.png'),
+  frame_questbram: require('../assets/sprites/cosmetics/FrameBody_QuestBram.png'),
 };
 
 /** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */

@@ -36,6 +36,16 @@ import { buyCosmetic, equipCosmetic, type CosmeticId, type CosmeticKind } from '
 import { buyDeal } from '../core/cosmetics/dailyShop';
 import { openChest } from '../core/stats/dailyChest';
 import { chronicleUp } from '../core/stats/chronicle';
+import { allQuestsDone, questDone } from '../core/stats/heroQuests';
+
+/** The hero challenges a run completed, and whether that finished the hero's three. */
+const questsRaised = (before: LocalStats, after: LocalStats, hero: number | undefined): { hero: number; done: number[]; all: boolean } | null => {
+  if (hero === undefined) return null;
+  const was = before.heroQuests?.[hero] ?? 0;
+  const now = after.heroQuests?.[hero] ?? 0;
+  const done = [0, 1, 2].filter(k => questDone(now, k) && !questDone(was, k));
+  return done.length > 0 ? { hero, done, all: allQuestsDone(now) } : null;
+};
 
 const STORAGE_KEY = 'grimbur.stats.v1';
 
@@ -203,6 +213,7 @@ async function recordRunNow(run: RunResult) {
     masteryUp: masteryRaised(before, stats, run.heroIndex),
     /** The newest chronicle fragment a secret room unveiled. */
     chronicleUp: chronicleUp(before, stats),
+    questsDone: questsRaised(before, stats, run.heroIndex),
     /** Skins unlocked by playing (their goal was just met). */
     newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
@@ -238,6 +249,7 @@ async function recordDailyRunNow(run: RunResult, key: string) {
     rankUp: rankUp(before.lifetimeEmbers, stats.lifetimeEmbers),
     masteryUp: masteryRaised(before, stats, run.heroIndex),
     chronicleUp: chronicleUp(before, stats),
+    questsDone: questsRaised(before, stats, run.heroIndex),
     newSkins: claim.claimed,
     achievements,
     payout,

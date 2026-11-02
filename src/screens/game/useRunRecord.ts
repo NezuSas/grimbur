@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { syncSeasonScore } from "../../services/seasonScores";
+import { syncEndlessScore } from "../../services/endlessScores";
 import { Animated } from "react-native";
 import type { MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
@@ -115,6 +116,7 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       }
       const r = await recordRun(run);
       queueCloudSync();
+      if (mode === "endless") void syncEndlessScore(characterIndex); // the endless board follows the deepest floor
       void syncSeasonScore(characterIndex); // this month's board follows the season points
       return runResultOf(r, mode);
     } catch (e) {

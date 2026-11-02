@@ -4,6 +4,7 @@ import type { LocalStats } from '../stats/runStats';
 import { SKINS_BY_HERO } from '../skins/skins';
 import { ownedSkins } from '../skins/ownership';
 import { MAX_MASTERY, masteryOf } from '../stats/mastery';
+import { allQuestsDone } from '../stats/heroQuests';
 
 /**
  * Cosmetics beyond outfits. All of them are looks only: an arrow trail, a frame and a title shown to other players
@@ -16,6 +17,8 @@ export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title
 export type CosmeticId =
   | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars' | 'trail_venom' | 'trail_void' | 'trail_royal'
   | 'frame_jade' | 'frame_bone' | 'frame_storm' | 'frame_royal' | 'frame_hoard'
+  | 'frame_questvael' | 'frame_questsera' | 'frame_questborin' | 'frame_questauric' | 'frame_questmira' | 'frame_questbram'
+  | 'title_questvael' | 'title_questsera' | 'title_questborin' | 'title_questauric' | 'title_questmira' | 'title_questbram'
   | 'flag_skull' | 'flag_crystal' | 'flag_ember' | 'flag_royal' | 'flag_frost' | 'flag_gold'
   | 'attack_frost' | 'attack_venom' | 'attack_royal' | 'attack_shadow'
   | 'frame_bronze' | 'frame_silver' | 'frame_gold' | 'frame_frost' | 'frame_ember' | 'frame_abyss' | 'frame_crown' | 'frame_wardrobe'
@@ -40,7 +43,9 @@ export type CosmeticUnlock =
   /** Finish the whole track of any season. */
   | { kind: 'season' }
   /** Finish the season of that month (1-12): each month has a title of its own. */
-  | { kind: 'seasonMonth'; month: number };
+  | { kind: 'seasonMonth'; month: number }
+  /** Complete the three challenges of that hero (see stats/heroQuests.ts). */
+  | { kind: 'quests'; hero: number };
 
 /** The shares of the collection that each give a reward of their own. */
 export const COLLECTION_MILESTONES = [25, 50, 75, 100] as const;
@@ -127,6 +132,18 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   item('title_masterauric', 'title', 'legendary', 0, mastered(3)),
   item('title_mastermira', 'title', 'legendary', 0, mastered(4)),
   item('title_masterbram', 'title', 'legendary', 0, mastered(5)),
+  item('title_questvael', 'title', 'epic', 0, { kind: 'quests', hero: 0 }),
+  item('frame_questvael', 'frame', 'epic', 0, { kind: 'quests', hero: 0 }),
+  item('title_questsera', 'title', 'epic', 0, { kind: 'quests', hero: 1 }),
+  item('frame_questsera', 'frame', 'epic', 0, { kind: 'quests', hero: 1 }),
+  item('title_questborin', 'title', 'epic', 0, { kind: 'quests', hero: 2 }),
+  item('frame_questborin', 'frame', 'epic', 0, { kind: 'quests', hero: 2 }),
+  item('title_questauric', 'title', 'epic', 0, { kind: 'quests', hero: 3 }),
+  item('frame_questauric', 'frame', 'epic', 0, { kind: 'quests', hero: 3 }),
+  item('title_questmira', 'title', 'epic', 0, { kind: 'quests', hero: 4 }),
+  item('frame_questmira', 'frame', 'epic', 0, { kind: 'quests', hero: 4 }),
+  item('title_questbram', 'title', 'epic', 0, { kind: 'quests', hero: 5 }),
+  item('frame_questbram', 'frame', 'epic', 0, { kind: 'quests', hero: 5 }),
 
   item('board_cave', 'board', 'rare', 350),
   item('board_crystal', 'board', 'rare', 350),
@@ -205,6 +222,7 @@ const goalMet = (stats: LocalStats, unlock?: CosmeticUnlock): boolean => {
   if (unlock.kind === 'mastery') return masteryOf(stats.heroXp?.[unlock.hero] ?? 0).level >= MAX_MASTERY;
   if (unlock.kind === 'season') return (stats.season?.completed ?? 0) > 0;
   if (unlock.kind === 'seasonMonth') return completedMonth(stats.season, unlock.month);
+  if (unlock.kind === 'quests') return allQuestsDone(stats.heroQuests?.[unlock.hero]);
   return !!stats.achievements[unlock.id];
 };
 

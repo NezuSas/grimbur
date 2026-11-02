@@ -7,6 +7,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { loadTop10, type Doc, type HighscoreRow } from "../services/highscores";
 import { loadDayBoard, loadWeekBoard } from "../services/dailyScores";
 import { loadSeasonBoard } from "../services/seasonScores";
+import { loadEndlessBoard } from "../services/endlessScores";
 import { seasonKeyOf } from "../core/stats/season";
 import { getPlayerId } from "../services/playerProfile";
 import { dailyKey } from "../core/engine/seed";
@@ -45,7 +46,7 @@ import type { CosmeticId } from "../core/cosmetics/cosmetics";
 type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 
 type Status = "loading" | "ready" | "error";
-type Board = "global" | "today" | "week" | "season";
+type Board = "global" | "today" | "week" | "season" | "endless";
 
 const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
 /** The frame a podium place stands in when the player wears none: its medal's own. */
@@ -63,7 +64,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   // Development only (web): `?board=season` (or today, week) opens that tab, for screenshots.
   const [board, setBoard] = useState<Board>(() => {
     const asked = __DEV__ && typeof location !== "undefined" ? new URLSearchParams(location.search).get("board") : null;
-    return asked === "season" || asked === "today" || asked === "week" ? asked : "global";
+    return asked === "season" || asked === "today" || asked === "week" || asked === "endless" ? asked : "global";
   });
   /** This phone's id on the daily and weekly boards, to mark the player's own row. */
   const [myId, setMyId] = useState<string | null>(null);
@@ -82,7 +83,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     setStatus("loading");
     setData([]);
     try {
-      if (board === "season") {
+      if (board === "endless") {
+        const rows = await loadEndlessBoard();
+        setData(rows.map(r => ({ id: r.id, data: () => ({ ...r.data(), score: r.data().floor, level: r.data().floor, coins: 0, time: 0 }) as unknown as HighscoreRow })));
+        setOfflineAt(null);
+      } else if (board === "season") {
         const rows = await loadSeasonBoard(seasonKeyOf(dailyKey()));
         setData(rows.map(r => ({ id: r.id, data: () => ({ ...r.data(), score: r.data().points, level: 0, coins: 0, time: 0 }) as HighscoreRow })));
         setOfflineAt(null);
@@ -112,6 +117,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     { value: "today", label: t("scores.tab.today"), icon: "today" },
     { value: "week", label: t("scores.tab.week"), icon: "calendar" },
     { value: "season", label: t("missions.tab.season"), icon: "trophy" },
+    { value: "endless", label: t("scores.tab.endless"), icon: "infinite" },
   ];
   // Five tabs: on a narrow pane the icons give their room to the words.
   const roomyTabs = (twoPanes ? cardWidth * 0.62 : cardWidth) >= 640;
@@ -292,7 +298,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
           <PlayerTitle title={row.title} />
           <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
-            {board === "season" ? t("season.pointsShort") : <>{t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}</>}
+            {board === "endless" ? t("scores.endlessSub") : board === "season" ? t("season.pointsShort") : <>{t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}</>}
           </Text>
         </View>
         <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
@@ -394,7 +400,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     ) : (
       <View style={styles.centerBox}>
         <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
-          {board === "today" ? t("scores.empty.today") : board === "week" ? t("scores.empty.week") : board === "season" ? t("scores.empty.season") : t("scores.empty")}
+          {board === "today" ? t("scores.empty.today") : board === "week" ? t("scores.empty.week") : board === "season" ? t("scores.empty.season") : board === "endless" ? t("scores.empty.endless") : t("scores.empty")}
         </Text>
       </View>
     );
@@ -413,7 +419,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           {twoPanes ? null : tabs}
           {board !== "global" ? (
             <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
-              {board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : t("scores.weekNote")}
+              {board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : board === "endless" ? t("scores.endlessNote") : t("scores.weekNote")}
             </Text>
           ) : null}
           {status === "ready" ? offlineNotice : null}
