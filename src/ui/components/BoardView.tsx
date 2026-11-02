@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, Easing } from "react-native";
 import type { ImageSourcePropType } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { characterWithSkin } from "../../data/characterSkins";
 import type { SkinId } from "../../data/skinArt";
 import type { ArtTheme } from "../biomeArt";
@@ -128,10 +129,12 @@ type Props = {
   deduced?: ReadonlyMap<number, "safe" | "danger"> | null;
   /** Friends who fell on this same floor of the daily: a ghost of their hero where their run ended. */
   friendGhosts?: readonly { tile: number; name: string; art: ImageSourcePropType }[];
+  /** The daily: the tiles today's best attempt walked on this floor, drawn as faint footprints where not yet explored. */
+  pastSteps?: readonly number[];
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -515,6 +518,18 @@ const BoardView: React.FC<Props> = memo(
             <DustPuff key={d.id} x={d.x} y={d.y} tileSize={tileSize} onDone={() => removeDust(d.id)} />
           ))}
 
+          {pastSteps?.map(tile =>
+            visitedSet.has(tile) || tile >= rows * cols ? null : (
+              <View
+                key={`step-${tile}`}
+                pointerEvents="none"
+                style={[styles.step, { left: (tile % cols) * tileSize, top: Math.floor(tile / cols) * tileSize, width: tileSize, height: tileSize }]}
+              >
+                <Ionicons name="footsteps" size={tileSize * 0.34} color="rgba(255,236,200,0.55)" />
+              </View>
+            ),
+          )}
+
           {friendGhosts?.map((g, k) => (
             <View
               key={`ghost-${k}`}
@@ -697,6 +712,7 @@ const BoardView: React.FC<Props> = memo(
 );
 
 const styles = StyleSheet.create({
+  step: { position: "absolute", alignItems: "center", justifyContent: "flex-end", paddingBottom: 3, zIndex: 4 },
   ghost: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 6 },
   ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },
   ghostName: { position: "absolute", bottom: -6, color: "#E3F2FD", fontSize: 9, fontWeight: "900", backgroundColor: "rgba(10,20,40,0.8)", paddingHorizontal: 4, borderRadius: 4, overflow: "hidden" },

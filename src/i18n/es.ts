@@ -1968,4 +1968,5 @@ export const es: Record<TranslationKey, string> = {
   'chronicle.11.body': 'El último minero que volvió no trajo gemas, solo una advertencia: «No es el tesoro lo que el Grimbur protege. Es lo que hay debajo».',
   'chronicle.12.title': 'Lo que hay debajo',
   'chronicle.12.body': 'Bajo el tesoro late la montaña de cristal, todavía viva. El Grimbur no la guarda por codicia: la guarda para que no vuelva a partirse.',
+  'ghost.you': 'Tú',
 };

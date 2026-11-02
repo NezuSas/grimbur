@@ -38,6 +38,8 @@ type Params = {
   startRelics: number;
   /** True once the run has shown the practice help: it then stays out of the top 10. */
   practiceRef?: MutableRefObject<boolean>;
+  /** The daily only: the tiles walked on each floor of this run (keyed by floor). */
+  pathsRef?: MutableRefObject<Record<number, number[]>>;
   /** The seconds played, read when it is needed. */
   sessionTimeRef: { readonly current: number };
   /** The red edges on a death. */
@@ -49,7 +51,7 @@ type Params = {
  * The end of a run: saving it once to the local stats, the result the card shows, the card itself and the high-score entry. It
  * keeps the guards that make each of those happen exactly once (a retry, leaving the screen and the card may all try to save).
  */
-export function useRunRecord({ stateRef, runEnded, afterQuestion = false, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, practiceRef, sessionTimeRef, deathFlash, reduceFlash }: Params) {
+export function useRunRecord({ stateRef, runEnded, afterQuestion = false, characterIndex, ascension, mode, isDaily, dailyDate, challengeCode = null, startRelics, practiceRef, pathsRef, sessionTimeRef, deathFlash, reduceFlash }: Params) {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const [showGameOver, setShowGameOver] = useState(false);
   const [showHighScoreEntry, setShowHighScoreEntry] = useState(false);
@@ -95,6 +97,13 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       board: snapshotBoard(s),
       event: s.event ?? null,
       eventWeek: s.event ? weekKey(dailyKey()) : null,
+      ghost:
+        isDaily && pathsRef
+          ? {
+              paths: Object.fromEntries(Object.entries(pathsRef.current).map(([k, v]) => [k, [...v]])),
+              ...(s.isGameOver && !s.isVictory ? { fell: [s.level, killerTile(s)] as [number, number] } : {}),
+            }
+          : undefined,
     };
     try {
       if (isDaily) {
@@ -112,7 +121,7 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       runRecorded.current = false; // nothing was saved: the retry, the unmount or the card may try again
       return null;
     }
-  }, [isDaily, dailyDate, challengeCode, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef]);
+  }, [isDaily, dailyDate, challengeCode, characterIndex, ascension, mode, startRelics, sessionTimeRef, stateRef, pathsRef]);
 
   /** Sends the daily or challenge result; a failure queues it to be resent the next time the cover opens. */
   const submitDaily = useCallback(

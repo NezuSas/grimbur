@@ -18,6 +18,33 @@ export interface DailyProgress {
   bestScore: number;
   bestLevel: number;
   attempts: number;
+  /** The path of today's best attempt, floor by floor, and where it fell: shown as footprints on the next try. */
+  ghost?: DailyGhostPath;
+}
+
+export interface DailyGhostPath {
+  /** The tiles walked on each floor (keyed by floor number), in the order they were reached. */
+  paths: Record<string, number[]>;
+  /** [floor, tile] where the best attempt ended, when it was a defeat. */
+  fell?: [number, number];
+}
+
+const GHOST_FLOORS = 40;
+const GHOST_TILES = 400;
+
+/** Reads a stored ghost path defensively (dropped when anything looks wrong). */
+export function parseGhostPath(raw: unknown): DailyGhostPath | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as { paths?: unknown; fell?: unknown };
+  if (!r.paths || typeof r.paths !== 'object') return undefined;
+  const tile = (v: unknown) => Number.isInteger(v) && (v as number) >= 0 && (v as number) < GHOST_TILES;
+  const paths: Record<string, number[]> = {};
+  for (const [k, v] of Object.entries(r.paths as Record<string, unknown>).slice(0, GHOST_FLOORS)) {
+    if (!/^\d{1,2}$/.test(k) || !Array.isArray(v)) continue;
+    paths[k] = v.filter(tile).slice(0, GHOST_TILES) as number[];
+  }
+  const fell = Array.isArray(r.fell) && r.fell.length === 2 && Number.isInteger(r.fell[0]) && tile(r.fell[1]) ? ([r.fell[0], r.fell[1]] as [number, number]) : undefined;
+  return fell ? { paths, fell } : { paths };
 }
 
 export interface LocalStats {
@@ -168,6 +195,8 @@ export interface RunResult {
   relicIds?: readonly string[];
   /** Secret rooms found in the run. */
   secrets?: number;
+  /** The daily only: the path walked on each floor and where the run fell (kept when it is today's best). */
+  ghost?: DailyGhostPath;
   /** What killed the hero (a defeat). */
   cause?: string | null;
   /** The last floor, for the history. */
@@ -331,6 +360,7 @@ export function mergeDailyRun(stats: LocalStats, dateKey: string, run: RunResult
     bestScore: Math.max(before.bestScore, run.score),
     bestLevel: Math.max(before.bestLevel, run.level),
     attempts: before.attempts + 1,
+    ...(isNewDailyBest && run.ghost ? { ghost: run.ghost } : before.ghost ? { ghost: before.ghost } : {}),
   };
 
   // Streak maths. A device clock set backwards must not reset the streak or move the last-played day back in time.
@@ -517,7 +547,7 @@ export function parseStats(raw: string | null): LocalStats {
         : [],
       achievements: parseAchievements(data.achievements),
       daily: dailyDate
-        ? { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts) }
+        ? { date: dailyDate, bestScore: num(d.bestScore), bestLevel: num(d.bestLevel), attempts: num(d.attempts), ...(parseGhostPath(d.ghost) ? { ghost: parseGhostPath(d.ghost) } : {}) }
         : null,
       streak: num(data.streak),
       lastDailyDate: str(data.lastDailyDate),

@@ -1967,6 +1967,7 @@ export const en = {
   'chronicle.11.body': 'The last miner who came back brought no gems, only a warning: "It is not the treasure the Grimbur guards. It is what lies beneath."',
   'chronicle.12.title': 'What lies beneath',
   'chronicle.12.body': 'Under the treasure beats the crystal mountain, still alive. The Grimbur does not guard it out of greed: it guards it so it never splits again.',
+  'ghost.you': 'You',
 } as const;
 
 export type TranslationKey = keyof typeof en;

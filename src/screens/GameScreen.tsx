@@ -91,7 +91,8 @@ import { useRouteLog } from "./game/useRouteLog";
 import { useHeartbeat } from "./game/useHeartbeat";
 import * as Clipboard from "expo-clipboard";
 import { equippedCosmetic } from "../core/cosmetics/cosmetics";
-import { peekLocalStats } from "../services/localStats";
+import { getLocalStats, peekLocalStats } from "../services/localStats";
+import type { DailyGhostPath } from "../core/stats/runStats";
 import { getPlayerName } from "../services/playerProfile";
 import { lookOf } from "../core/cosmetics/look";
 import { rankOf } from "../core/stats/rank";
@@ -197,9 +198,37 @@ export default function GameScreen({ navigation, route }: Props) {
   const isLair = isLairFloor(state.mode, state.level);
   const levelUpWindow = state.isLevelUp && !state.isVictory;
 
+  const runOver = state.isGameOver || state.isVictory;
+  // ── Your own ghost on the daily: the path of today's best attempt as footprints, and where it fell ──
+  const pathsRef = useRef<Record<number, number[]>>({});
+  const pathsSeed = useRef(state.runSeed);
+  useEffect(() => {
+    if (!isDaily) return;
+    if (pathsSeed.current !== state.runSeed) {
+      pathsSeed.current = state.runSeed;
+      pathsRef.current = {};
+    }
+    pathsRef.current[state.level] = state.visited;
+  }, [isDaily, state.runSeed, state.level, state.visited]);
+  const [myGhost, setMyGhost] = useState<DailyGhostPath | null>(null);
+  useEffect(() => {
+    if (!isDaily) return;
+    let live = true;
+    void getLocalStats()
+      .then(s => live && setMyGhost(s.daily?.date === dailyDate ? s.daily.ghost ?? null : null))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [isDaily, dailyDate, runNumber]);
+  const pastSteps = useMemo(() => (myGhost && !runOver ? myGhost.paths[String(state.level)] ?? [] : []), [myGhost, runOver, state.level]);
+  const myFall = useMemo(
+    () => (myGhost?.fell && myGhost.fell[0] === state.level && !runOver ? [{ tile: myGhost.fell[1], name: t("ghost.you"), art: selectedCharacter.scoreImage }] : []),
+    [myGhost, state.level, runOver, t, selectedCharacter],
+  );
+
   // ── Friends' ghosts on the daily: where each friend's best run of today ended (shown once this run is over) ──
   const [dailyGhosts, setDailyGhosts] = useState<DailyGhost[]>([]);
-  const runOver = state.isGameOver || state.isVictory;
   useEffect(() => {
     if (!isDaily || !runOver) return;
     const pids = (peekLocalStats()?.friends ?? []).map(f => f.pid);
@@ -383,6 +412,7 @@ export default function GameScreen({ navigation, route }: Props) {
     challengeCode: challenge?.code ?? null,
     startRelics: route.params?.meta?.startRelics?.length ?? 0,
     practiceRef,
+    pathsRef,
     sessionTimeRef,
     deathFlash,
     reduceFlash,
@@ -962,7 +992,8 @@ export default function GameScreen({ navigation, route }: Props) {
           <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
             deduced={deduced}
-            friendGhosts={ghostsHere}
+            friendGhosts={[...myFall, ...ghostsHere]}
+            pastSteps={pastSteps}
             dark={!!floorEffects(state.omen, state.event).dark}
             level={state.level}
             rows={state.rows}
