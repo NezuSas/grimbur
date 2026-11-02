@@ -4,7 +4,7 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
-import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, TRAIL_LOOKS, PET_ART } from "../../ui/cosmeticArt";
+import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, TRAIL_LOOKS, PET_ART, PET_TINT, petLook } from "../../ui/cosmeticArt";
 import Companion from "../../ui/components/game/Companion";
 import GemShower from "../../ui/components/game/GemShower";
 import { PlayerPortrait } from "../../ui/components/PlayerPortrait";
@@ -25,6 +25,8 @@ type Props = {
   small?: boolean;
   /** The frame the player wears, drawn around the portrait of a title preview. */
   frame?: CosmeticId;
+  /** A companion's growth stage (its adult form, its aura). */
+  petStage?: number;
 };
 
 /** A trail's arrow gliding back and forth with its wake (still when calm or small). */
@@ -62,7 +64,7 @@ const TrailPreview = ({ id, size, small }: { id: CosmeticId; size: number; small
 };
 
 /** What a cosmetic looks like, as the player will see it: an arrow in flight, a framed portrait, a title, a patch of floor. */
-const CosmeticPreview = ({ id, size, portrait, playerName, small, frame }: Props) => {
+const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStage = 0 }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const kind = cosmeticInfo(id).kind;
@@ -126,14 +128,14 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame }: Props
   }
   if (kind === "pet") {
     // The hero's portrait with the companion floating at its shoulder.
-    const look = PET_ART[id]!;
+    const look = petLook(id, petStage) ?? PET_ART[id]!;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
         <View style={{ width: size * 0.56, height: size * 0.56, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)", marginTop: size * 0.12 }}>
           <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
         </View>
         <View style={{ position: "absolute", right: size * 0.04, top: size * 0.02 }}>
-          <Companion look={look} size={size * 0.46} calm={small || calm} />
+          <Companion look={look} size={size * 0.46} calm={small || calm} aura={petStage >= 1 ? PET_TINT[id] ?? null : null} />
         </View>
       </View>
     );

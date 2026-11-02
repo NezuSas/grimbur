@@ -128,6 +128,8 @@ type Props = {
   flag?: ImageSourcePropType | null;
   /** The companion floating by the hero (Collection), or null. */
   pet?: CompanionLook | null;
+  /** A grown companion's aura colour. */
+  petAura?: string | null;
   /** The floor is over: every hidden creature, vortex and trap shows where it was. */
   unveil?: boolean;
   /** Practice help: hidden tiles the clues prove safe or dangerous. */
@@ -141,7 +143,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -577,7 +579,7 @@ const BoardView: React.FC<Props> = memo(
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
             {pet && !dying ? (
               <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, [lastSide.current === "left" ? "right" : "left"]: 0, zIndex: 3 }}>
-                <Companion look={pet} size={tileSize * 0.52} calm={!!calm || paused} mirror={lastSide.current === "left"} />
+                <Companion look={pet} size={tileSize * 0.52} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
               </Animated.View>
             ) : null}
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}

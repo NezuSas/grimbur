@@ -147,6 +147,7 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         masteryUp={result?.masteryUp}
         chronicleUp={result?.chronicleUp}
         questsDone={result?.questsDone}
+        petUp={result?.petUp}
         gemsLeft={state.isGameOver ? state.coins : undefined}
         onShare={gameOver.onShare}
         onCopyText={gameOver.onCopyText}

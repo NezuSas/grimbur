@@ -6,7 +6,8 @@ import type { MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
 import { analytics } from "../../services/analytics";
 import { addHighscore, isTopTenScore, prefetchLeaderboardThreshold } from "../../services/highscores";
-import { recordDailyRun, recordRun } from "../../services/localStats";
+import { peekLocalStats, recordDailyRun, recordRun } from "../../services/localStats";
+import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
 import { snapshotBoard } from "../../core/stats/runLog";
 import { weekKey } from "../../core/leaderboard/daily";
 import { dailyKey } from "../../core/engine/seed";
@@ -95,6 +96,10 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
       relicIds: s.relics.slice(startRelics),
       secrets: s.secretsFound ?? 0,
       encounters: s.encounterLog ?? [],
+      pet: (() => {
+        const saved = peekLocalStats();
+        return saved ? equippedCosmetic(saved, "pet") : null;
+      })(),
       cause: s.isVictory ? null : s.deathCause,
       board: snapshotBoard(s),
       event: s.event ?? null,

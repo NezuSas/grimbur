@@ -27,6 +27,7 @@ export function dailyRunResult(r: Settled<typeof recordDailyRun>): RunResult {
     masteryUp: r.masteryUp,
     chronicleUp: r.chronicleUp,
     questsDone: r.questsDone,
+    petUp: r.petUp,
     early: r.stats.gamesPlayed <= 2,
   };
 }
@@ -49,6 +50,7 @@ export function runResultOf(r: Settled<typeof recordRun>, mode: GameMode): RunRe
     masteryUp: r.masteryUp,
     chronicleUp: r.chronicleUp,
     questsDone: r.questsDone,
+    petUp: r.petUp,
     early: r.stats.gamesPlayed <= 2,
   };
 }

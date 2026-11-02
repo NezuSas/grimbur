@@ -13,6 +13,8 @@ import { useT } from "../../i18n/useT";
 import { achievementText, cosmeticText, heroText, skinText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
 import type { LocalStats } from "../../core/stats/runStats";
+import { petProgress, petStage } from "../../core/cosmetics/petGrowth";
+import { PET_ADULT_ART } from "../../ui/cosmeticArt";
 import { cosmeticInfo, cosmeticsOf, equippedCosmetic, ownsCosmetic, type CosmeticId, type CosmeticInfo, type CosmeticKind } from "../../core/cosmetics/cosmetics";
 import { dailyDeals, type Deal } from "../../core/cosmetics/dailyShop";
 import { dailyKey, msUntilNextDay } from "../../core/engine/seed";
@@ -210,7 +212,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             {eSkin ? (
               <SpriteImage source={skinArt(eSkin.hero, eSkin.skin).playerImage} style={{ width: cardSize * 0.9, height: cardSize * 0.9 }} resizeMode="contain" accessibilityIgnoresInvertColors />
             ) : (
-              <CosmeticPreview id={eId!} size={cardSize * 0.9} portrait={portrait} small />
+              <CosmeticPreview id={eId!} size={cardSize * 0.9} portrait={portrait} small petStage={petStage(stats.petFloors?.[eId!])} />
             )}
           </View>
           <View style={styles.cardFoot}>
@@ -269,7 +271,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
                 {skin ? (
                   <SpriteImage source={skinArt(skin.hero, skin.skin).playerImage} style={{ width: preview, height: preview }} resizeMode="contain" accessibilityIgnoresInvertColors />
                 ) : (
-                  <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} frame={equippedCosmetic(stats, "frame") ?? undefined} />
+                  <CosmeticPreview id={cosmeticId!} size={preview} portrait={portrait} playerName={playerName} frame={equippedCosmetic(stats, "frame") ?? undefined} petStage={petStage(stats.petFloors?.[cosmeticId!])} />
                 )}
               </Animated.View>
             </View>
@@ -306,6 +308,28 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             {t(`cosmetic.shown.${info.kind}` as TranslationKey)}
           </Text>
         ) : null}
+        {/* A companion's growth: its stage and the floors still to play with it worn. */}
+        {info && info.kind === "pet" && owned ? (() => {
+          const g = petProgress(stats.petFloors?.[cosmeticId!]);
+          return (
+            <View style={styles.growth}>
+              {g.need !== null && PET_ADULT_ART[cosmeticId!] ? (
+                <View style={styles.growthGoal} accessible accessibilityLabel={t("pet.adultGoal")}>
+                  <SpriteImage source={PET_ADULT_ART[cosmeticId!]![0]} style={styles.growthSilhouette} resizeMode="contain" />
+                  <Text style={styles.growthGoalText} maxFontSizeMultiplier={1.1}>{t("pet.adultGoal")}</Text>
+                </View>
+              ) : null}
+              <Text style={styles.growthText} maxFontSizeMultiplier={1.15}>
+                {g.need === null ? t("pet.grown") : t("pet.grow", { stage: t(`pet.stage.${g.stage}` as TranslationKey), have: g.have, need: g.need })}
+              </Text>
+              {g.need !== null ? (
+                <View style={styles.growthTrack}>
+                  <View style={[styles.growthFill, { width: `${Math.max(3, Math.round((g.have / g.need) * 100))}%` }]} />
+                </View>
+              ) : null}
+            </View>
+          );
+        })() : null}
 
         {forSale && affordable ? (
           <PressScale onPress={() => void buy()} accessibilityRole="button" style={[styles.cta, { backgroundColor: GOLD }]}>
@@ -378,6 +402,13 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
 export default CosmeticsBody;
 
 const styles = StyleSheet.create({
+  growth: { gap: 4, alignSelf: "stretch" },
+  growthText: { color: "#E8C07D", fontSize: 12, fontWeight: "800", textAlign: "center" },
+  growthTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.1)", overflow: "hidden" },
+  growthFill: { height: 6, borderRadius: 3, backgroundColor: "#E8C07D" },
+  growthGoal: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  growthSilhouette: { width: 40, height: 40, tintColor: "#8A7560", opacity: 0.85 },
+  growthGoalText: { color: "#A8927D", fontSize: 11, fontWeight: "800" },
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   stage: { flex: 1, minHeight: 90, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },

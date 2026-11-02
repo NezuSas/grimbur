@@ -97,7 +97,8 @@ import { getPlayerName } from "../services/playerProfile";
 import { lookOf } from "../core/cosmetics/look";
 import { rankOf } from "../core/stats/rank";
 import { cosmeticText } from "../i18n/keys";
-import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS, PET_ART } from "../ui/cosmeticArt";
+import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS, PET_TINT, petLook } from "../ui/cosmeticArt";
+import { petStage } from "../core/cosmetics/petGrowth";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
 import { shareResult } from "../services/shareResult";
@@ -191,7 +192,15 @@ export default function GameScreen({ navigation, route }: Props) {
     const board = saved ? equippedCosmetic(saved, "board") : null;
     const flag = saved ? equippedCosmetic(saved, "flag") : null;
     const pet = saved ? equippedCosmetic(saved, "pet") : null;
-    return { trail: trail ? TRAIL_LOOKS[trail] ?? null : null, board: board ? BOARD_BIOME[board] ?? null : null, flag: flag ? FLAG_ART[flag] ?? null : null, pet: pet ? PET_ART[pet] ?? null : null };
+    // A companion shows its stage: its adult form, and an aura from young on.
+    const stage = pet && saved ? petStage(saved.petFloors?.[pet]) : 0;
+    return {
+      trail: trail ? TRAIL_LOOKS[trail] ?? null : null,
+      board: board ? BOARD_BIOME[board] ?? null : null,
+      flag: flag ? FLAG_ART[flag] ?? null : null,
+      pet: pet ? petLook(pet, stage) ?? null : null,
+      petAura: pet && stage >= 1 ? PET_TINT[pet] ?? null : null,
+    };
   });
   const artBiome = looks.board ?? floorBiome;
   // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
@@ -1015,6 +1024,7 @@ export default function GameScreen({ navigation, route }: Props) {
             trail={looks.trail}
             flag={looks.flag}
             pet={looks.pet}
+            petAura={looks.petAura}
             // A cleared or lost floor shows what the fog hid: the creatures finally seen, the deductions checked.
             unveil={state.isLevelUp || (state.isGameOver && !state.isVictory) || (__DEV__ && !!route.params?.devUnveil)}
             isAttacking={isAttacking}

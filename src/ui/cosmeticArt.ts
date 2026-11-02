@@ -29,6 +29,29 @@ export const PET_ART: Partial<Record<CosmeticId, readonly [ImageSourcePropType, 
   pet_owl: [require('../assets/sprites/cosmetics/Pet_Owl_A.png'), require('../assets/sprites/cosmetics/Pet_Owl_B.png')],
 };
 
+/** The grown-up form of each companion (its stage 2, scripts/slicePairSheet.py). */
+export const PET_ADULT_ART: Partial<Record<CosmeticId, readonly [ImageSourcePropType, ImageSourcePropType]>> = {
+  pet_firefly: [require('../assets/sprites/cosmetics/PetAdult_Firefly_A.png'), require('../assets/sprites/cosmetics/PetAdult_Firefly_B.png')],
+  pet_bat: [require('../assets/sprites/cosmetics/PetAdult_Bat_A.png'), require('../assets/sprites/cosmetics/PetAdult_Bat_B.png')],
+  pet_golem: [require('../assets/sprites/cosmetics/PetAdult_Golem_A.png'), require('../assets/sprites/cosmetics/PetAdult_Golem_B.png')],
+  pet_fox: [require('../assets/sprites/cosmetics/PetAdult_Fox_A.png'), require('../assets/sprites/cosmetics/PetAdult_Fox_B.png')],
+  pet_dragon: [require('../assets/sprites/cosmetics/PetAdult_Dragon_A.png'), require('../assets/sprites/cosmetics/PetAdult_Dragon_B.png')],
+  pet_owl: [require('../assets/sprites/cosmetics/PetAdult_Owl_A.png'), require('../assets/sprites/cosmetics/PetAdult_Owl_B.png')],
+};
+
+/** The colour of each companion's aura once it is young. */
+export const PET_TINT: Partial<Record<CosmeticId, string>> = {
+  pet_firefly: '#FFE082',
+  pet_bat: '#CE93D8',
+  pet_golem: '#80DEEA',
+  pet_fox: '#81D4FA',
+  pet_dragon: '#FF8A65',
+  pet_owl: '#FFD54F',
+};
+
+/** The two frames a companion shows at a stage (adult art from stage 2). */
+export const petLook = (id: CosmeticId, stage: number) => (stage >= 2 ? PET_ADULT_ART[id] ?? PET_ART[id] : PET_ART[id]);
+
 /** The painted ring drawn around a player's portrait (in rankings, duels and the collection). */
 export const FRAME_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
   frame_bronze: require('../assets/sprites/cosmetics/Frame_Bronze.png'),

@@ -2,6 +2,7 @@ import { daysBetween } from '../engine/seed';
 import { EMPTY_CHEST, parseChest, type ChestState } from './dailyChest';
 import { EMPTY_ENCOUNTER_BOOK, addRunEncounters, parseEncounterBook, type EncounterBook } from './encounterBook';
 import { QUEST_EMBERS, newQuests, parseQuests, withQuests } from './heroQuests';
+import { addPetFloors, parsePetFloors } from '../cosmetics/petGrowth';
 import { EMPTY_MISSIONS, MissionsState, parseMissions } from './missions';
 import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
@@ -63,6 +64,8 @@ export interface LocalStats {
   encounterBook: EncounterBook;
   /** Hero challenges done: one bitmask per hero (see heroQuests.ts). */
   heroQuests: number[];
+  /** Floors played wearing each companion (see cosmetics/petGrowth.ts). */
+  petFloors: Record<string, number>;
   /** Embers (Forge currency) available to spend. */
   embers: number;
   /** Forge upgrade levels: id -> level. */
@@ -207,6 +210,8 @@ export interface RunResult {
   relicIds?: readonly string[];
   /** Secret rooms found in the run. */
   secrets?: number;
+  /** The companion worn during the run (it grows by the floors played). */
+  pet?: string | null;
   /** The scenes the run met and how each went. */
   encounters?: readonly { id: string; outcome?: string; floor?: number }[];
   /** The daily only: the path walked on each floor and where the run fell (kept when it is today's best). */
@@ -229,6 +234,7 @@ export const EMPTY_STATS: LocalStats = {
   secretsFound: 0,
   encounterBook: EMPTY_ENCOUNTER_BOOK,
   heroQuests: [0, 0, 0, 0, 0, 0],
+  petFloors: {},
   embers: 0,
   forge: {},
   maxAscension: 0,
@@ -292,6 +298,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     secretsFound: (stats.secretsFound ?? 0) + Math.max(0, Math.trunc(run.secrets ?? 0)),
     encounterBook: addRunEncounters(stats.encounterBook ?? EMPTY_ENCOUNTER_BOOK, run.encounters),
     heroQuests: questsDone.length > 0 && run.heroIndex !== undefined ? withQuests(stats.heroQuests, run.heroIndex, questsDone) : stats.heroQuests ?? [0, 0, 0, 0, 0, 0],
+    petFloors: played ? addPetFloors(stats.petFloors, run.pet, Math.max(1, Math.trunc(run.level))) : stats.petFloors ?? {},
     heroesUsed,
     heroWins: stats.heroWins.map((n, i) => n + (run.victory && run.heroIndex === i ? 1 : 0)),
     heroXp: stats.heroXp.map((n, i) => n + (run.heroIndex === i ? masteryXpFor(run, progressed) : 0)),
@@ -570,6 +577,7 @@ export function parseStats(raw: string | null): LocalStats {
       secretsFound: Math.trunc(num(data.secretsFound)),
       encounterBook: parseEncounterBook(data.encounterBook),
       heroQuests: parseQuests(data.heroQuests),
+      petFloors: parsePetFloors(data.petFloors),
       maxAscension: Math.min(MAX_ASCENSION, Math.trunc(num(data.maxAscension))),
       embers: Math.trunc(num(data.embers)),
       forge: parseForge(data.forge),

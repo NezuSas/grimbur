@@ -2062,6 +2062,17 @@ export const en = {
   'cosmetic.pet_fox.name': 'Crystal fox',
   'cosmetic.pet_dragon.name': 'Baby dragon',
   'cosmetic.pet_owl.name': 'Scholar owl',
+  'parade.kicker.pet': 'Your companion grew',
+  'parade.petYoung': '{name} is young now',
+  'parade.petAdult': '{name} is an adult now',
+  'parade.petYoungLine': 'It glows with its own colour beside your hero.',
+  'parade.petAdultLine': 'It shows its grown-up form on the board.',
+  'pet.stage.0': 'Hatchling',
+  'pet.stage.1': 'Young',
+  'pet.stage.2': 'Adult',
+  'pet.grow': '{stage} · {have}/{need} floors to grow',
+  'pet.grown': 'Adult · fully grown',
+  'pet.adultGoal': 'Its adult form awaits',
 } as const;
 
 export type TranslationKey = keyof typeof en;

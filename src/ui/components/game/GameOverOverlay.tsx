@@ -36,7 +36,7 @@ import { nearMiss } from '../../../core/stats/nearMiss';
 import { ANCIENT_FRAMES } from '../BossSprite';
 import { HERO_QUESTS, QUEST_EMBERS } from '../../../core/stats/heroQuests';
 import { heroAccent } from '../../../data/heroAccent';
-import { FRAME_ART } from '../../cosmeticArt';
+import { FRAME_ART, PET_TINT, petLook } from '../../cosmeticArt';
 import type { CosmeticId } from '../../../core/cosmetics/cosmetics';
 
 const HERO_SLUG = ['vael', 'sera', 'borin', 'auric', 'mira', 'bram'] as const;
@@ -113,6 +113,8 @@ type Props = {
   chronicleUp?: number | null;
   /** The hero challenges this run completed. */
   questsDone?: { hero: number; done: number[]; all: boolean } | null;
+  /** The companion that grew into a new stage this run. */
+  petUp?: { pet: string; stage: number } | null;
   /** The Grimbur that struck was the Ancestral one. */
   ancientKiller?: boolean;
   /** Development only: open the parade of rewards on this card, or on the grid (for screenshots). */
@@ -177,6 +179,7 @@ const GameOverOverlay = ({
   masteryUp,
   chronicleUp,
   questsDone,
+  petUp,
   ancientKiller = false,
   devParade,
   gemsLeft,
@@ -233,7 +236,7 @@ const GameOverOverlay = ({
   // The parade of rewards: once per card, as soon as the run's rewards are known (they come a moment after the card).
   const rewardCount =
     (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
-    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (questsDone?.done.length ?? 0) + (questsDone?.all ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
+    (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (questsDone?.done.length ?? 0) + (questsDone?.all ? 1 : 0) + (petUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
   const [parade, setParade] = useState<'off' | 'cards' | 'grid'>('off');
   const paradeShown = useRef(false);
   useEffect(() => {
@@ -385,6 +388,16 @@ const GameOverOverlay = ({
       : []),
     ...(questsDone?.all
       ? [{ key: `quest-all-${questsDone.hero}`, tint: heroAccent(questsDone.hero), art: FRAME_ART[`frame_quest${HERO_SLUG[questsDone.hero]}` as CosmeticId] ?? MEDAL_ART, kicker: t('parade.kicker.questAll'), title: t(`cosmetic.title_quest${HERO_SLUG[questsDone.hero]}.name` as TranslationKey), line: t('parade.questAllLine', { name: heroText(t, questsDone.hero, 'name') }) }]
+      : []),
+    ...(petUp && petLook(petUp.pet as CosmeticId, petUp.stage)
+      ? [{
+          key: `pet-${petUp.pet}-${petUp.stage}`,
+          tint: PET_TINT[petUp.pet as CosmeticId] ?? '#FFD54F',
+          art: petLook(petUp.pet as CosmeticId, petUp.stage)![0],
+          kicker: t('parade.kicker.pet'),
+          title: t(petUp.stage >= 2 ? 'parade.petAdult' : 'parade.petYoung', { name: t(`cosmetic.${petUp.pet}.name` as TranslationKey) }),
+          line: t(petUp.stage >= 2 ? 'parade.petAdultLine' : 'parade.petYoungLine'),
+        }]
       : []),
     ...(chronicleUp
       ? [{ key: 'chronicle', tint: '#E8C07D', art: BOOK_ART, kicker: t('parade.kicker.chronicle'), title: t(`chronicle.${chronicleUp}.title` as TranslationKey), line: t('parade.chronicleLine') }]

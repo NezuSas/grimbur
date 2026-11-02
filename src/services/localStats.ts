@@ -37,6 +37,15 @@ import { buyDeal } from '../core/cosmetics/dailyShop';
 import { openChest } from '../core/stats/dailyChest';
 import { chronicleUp } from '../core/stats/chronicle';
 import { allQuestsDone, questDone } from '../core/stats/heroQuests';
+import { petStage } from '../core/cosmetics/petGrowth';
+
+/** The companion a run grew into a new stage, if it did. */
+const petGrown = (before: LocalStats, after: LocalStats, pet: string | null | undefined): { pet: string; stage: number } | null => {
+  if (!pet) return null;
+  const was = petStage(before.petFloors?.[pet]);
+  const now = petStage(after.petFloors?.[pet]);
+  return now > was ? { pet, stage: now } : null;
+};
 
 /** The hero challenges a run completed, and whether that finished the hero's three. */
 const questsRaised = (before: LocalStats, after: LocalStats, hero: number | undefined): { hero: number; done: number[]; all: boolean } | null => {
@@ -214,6 +223,7 @@ async function recordRunNow(run: RunResult) {
     /** The newest chronicle fragment a secret room unveiled. */
     chronicleUp: chronicleUp(before, stats),
     questsDone: questsRaised(before, stats, run.heroIndex),
+    petUp: petGrown(before, stats, run.pet),
     /** Skins unlocked by playing (their goal was just met). */
     newSkins: claim.claimed,
     isNewBestScore: merged.isNewBestScore,
@@ -250,6 +260,7 @@ async function recordDailyRunNow(run: RunResult, key: string) {
     masteryUp: masteryRaised(before, stats, run.heroIndex),
     chronicleUp: chronicleUp(before, stats),
     questsDone: questsRaised(before, stats, run.heroIndex),
+    petUp: petGrown(before, stats, run.pet),
     newSkins: claim.claimed,
     achievements,
     payout,

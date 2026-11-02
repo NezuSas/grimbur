@@ -48,6 +48,8 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
     secretsFound: 5,
     encounterBook: { seen: ["scout", "gambler", "shrine", "miner"], gamblesWon: 2, minersFreed: 1 },
     heroQuests: [3, 1, 0, 0, 7, 0],
+    // The crystal fox grown up (adult form and aura) and the firefly young.
+    petFloors: { pet_fox: 230, pet_firefly: 60 },
     // A daily already tried today: its best path shows as footprints on the next try, and where it fell.
     daily: { date: today, bestScore: 2100, bestLevel: 2, attempts: 1, ghost: { paths: { "1": [0, 1, 2, 10, 11, 12, 20] }, fell: [1, 21] } },
     // Missions with some progress: one done and waiting, one partly done, one claimed
