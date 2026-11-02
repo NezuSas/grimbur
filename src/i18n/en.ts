@@ -2104,7 +2104,7 @@ export const en = {
   'whatsnew.encounters.title': 'Encounters',
   'whatsnew.encounters.body': 'Some floors open with a scene: a gambler, a trapped miner, a smith… Your call.',
   'whatsnew.pets.title': 'Companions that grow',
-  'whatsnew.pets.body': 'It floats by your hero and evolves with you, floor by floor.',
+  'whatsnew.pets.body': 'A creature floats by your hero and grows with the floors you play together.',
   'whatsnew.quests.title': 'Hero challenges',
   'whatsnew.quests.body': 'Three challenges for every hero, played their way. Complete them for the hero title and frame.',
   'whatsnew.ancient.title': 'The Ancestral Grimbur',
@@ -2177,12 +2177,14 @@ export const en = {
   'a11y.tile.lava': 'a pool of lava',
   'whatsnew.tryPuzzle': 'Try a puzzle',
   'whatsnew.puzzles.title': 'Cave puzzles',
-  'whatsnew.puzzles.body': 'Pure logic, no luck: 30 puzzles and a new one every day.',
+  'whatsnew.puzzles.body': 'Pure logic, no luck: 30 puzzles in five levels and a new one every day. Three stars for no mistakes.',
   'whatsnew.quick.title': 'Quick descent',
-  'whatsnew.quick.body': 'Pick Quick when choosing a hero: 4 floors in a few minutes.',
+  'whatsnew.quick.body': 'Short on time? Pick Quick when choosing a hero: one floor of each cave and the Grimbur, in a few minutes.',
   'whatsnew.warden.title': 'The Magma Colossus',
-  'whatsnew.warden.body': 'It guards floor 8, and every step it takes leaves lava behind.',
+  'whatsnew.warden.body': 'A new guardian rules floor 8: it hunts you, and every step leaves a pool of lava that throws you away.',
   'whatsnew.new': 'New',
+  'whatsnew.prev': 'Previous',
+  'whatsnew.next': 'Next',
 } as const;
 
 export type TranslationKey = keyof typeof en;
