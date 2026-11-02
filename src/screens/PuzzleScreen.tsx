@@ -380,6 +380,41 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const danger = (here.enemy || here.pit) && !fail && !solved;
   const heartbeat = useHeartbeat(danger && !calm, Math.max(here.enemyCount, here.pitCount));
 
+  // The intro card closed: the clock starts and the board opens.
+  const startPuzzle = () => {
+    emitSound("UI_TAP");
+    startedAt.current = Date.now();
+    setIntroDone(true);
+    setBoardLevel(1);
+    // Development only: the end of a solve, or a mistake, without playing (for screenshots).
+    if (__DEV__ && route.params.devWin !== undefined) {
+      const slips = route.params.devWin;
+      setTimeout(() => {
+        setMistakes(slips);
+        dispatch({ type: "PUZZLE_SET", state: { ...stateRef.current, coins: 0 } });
+      }, 1600);
+    }
+    if (__DEV__ && route.params.devFail) {
+      setTimeout(() => {
+        const s = stateRef.current;
+        const seen = new Set(s.visited);
+        const dist = (i: number) => Math.min(...s.visited.map(v => Math.abs(Math.floor(v / s.cols) - Math.floor(i / s.cols)) + Math.abs((v % s.cols) - (i % s.cols))));
+        const hazard = s.entities.filter(e => HAZARDS.has(e.type) && !seen.has(e.index)).sort((x, y) => dist(x.index) - dist(y.index))[0];
+        if (!hazard) return;
+        setFail({ tile: hazard.index, kind: hazard.type });
+        setFailWhy(failWarning(s.rows, s.cols, s.entities, s.visited, hazard.index));
+        setMistakes(m => m + 1);
+      }, 1600);
+    }
+  };
+  // Development only: a played end opens by itself, for screenshots.
+  useEffect(() => {
+    if (!__DEV__ || (route.params.devWin === undefined && !route.params.devFail)) return;
+    const timer = setTimeout(startPuzzle, 900);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.container} resizeMode="cover">
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.62)" }]} />
@@ -477,32 +512,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           crowned={introInfo.crowned}
           strict={strict}
           noHints={isWeekly}
-          onStart={() => {
-            emitSound("UI_TAP");
-            startedAt.current = Date.now();
-            setIntroDone(true);
-            setBoardLevel(1);
-            // Development only: the end of a solve, or a mistake, without playing (for screenshots).
-            if (__DEV__ && route.params.devWin !== undefined) {
-              const slips = route.params.devWin;
-              setTimeout(() => {
-                setMistakes(slips);
-                dispatch({ type: "PUZZLE_SET", state: { ...stateRef.current, coins: 0 } });
-              }, 1600);
-            }
-            if (__DEV__ && route.params.devFail) {
-              setTimeout(() => {
-                const s = stateRef.current;
-                const seen = new Set(s.visited);
-                const dist = (i: number) => Math.min(...s.visited.map(v => Math.abs(Math.floor(v / s.cols) - Math.floor(i / s.cols)) + Math.abs((v % s.cols) - (i % s.cols))));
-                const hazard = s.entities.filter(e => HAZARDS.has(e.type) && !seen.has(e.index)).sort((x, y) => dist(x.index) - dist(y.index))[0];
-                if (!hazard) return;
-                setFail({ tile: hazard.index, kind: hazard.type });
-                setFailWhy(failWarning(s.rows, s.cols, s.entities, s.visited, hazard.index));
-                setMistakes(m => m + 1);
-              }, 1600);
-            }
-          }}
+          onStart={startPuzzle}
         />
       ) : null}
       {failedOut ? (
@@ -528,90 +538,104 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       ) : null}
       {result ? (
         <OverlayContainer>
-          <PopupPanel tint={TINT} width={Math.min(winWidth * 0.9, 420)}>
-            <Text style={popupTitleStyle(TINT)} maxFontSizeMultiplier={1.15}>
-              {t(isTechnique ? "tech.done" : "puzzle.solved").toLocaleUpperCase()}
-            </Text>
-            {result.weeklyWon ? (
-              <Text style={styles.weeklyWon} maxFontSizeMultiplier={1.2}>
-                {t("puzzle.weekly.won")}
+          {/* Landscape: the verdict on the left (title, stars), the numbers and the way on to the right, so the card fits the
+              height of a phone lying down. */}
+          <PopupPanel tint={TINT} width={Math.min(winWidth * 0.94, 700)} style={[styles.resultCard, winHeight < 380 && styles.resultCardShort]}>
+            <View style={styles.resultLeft}>
+              <Text style={popupTitleStyle(TINT)} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
+                {t(isTechnique ? "tech.done" : "puzzle.solved").toLocaleUpperCase()}
               </Text>
-            ) : null}
-            {isTechnique ? (
-              <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
-                {t(`tech.${technique!.id}.learned` as TranslationKey)}
-              </Text>
-            ) : (
-              <>
-            <View accessible accessibilityLabel={t("puzzle.stars", { n: result.stars })}>
-              <FlyingStars stars={result.stars} calm={calm} />
-            </View>
-            <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
-              {mistakes === 0 && hints === 0 ? t("puzzle.flawless") : t("puzzle.slips", { mistakes, hints })}
-            </Text>
-            <View style={styles.timeRow}>
-              <Ionicons name="timer-outline" size={16} color="#FFE0B2" />
-              <CountUp value={Math.round(result.seconds)} delay={numbersAt(result.stars)} format={formatSolveTime} style={styles.resultTime} calm={calm} />
-            </View>
-            <DropIn delay={numbersAt(result.stars) + 500} calm={calm}>
-              <Text style={[styles.resultLine, result.record && styles.record]} maxFontSizeMultiplier={1.2}>
-                {[
-                  !isDaily && !isEndless && !isArchive && result.best ? (result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })) : "",
-                  isDaily && result.streak > 0 ? `🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : "",
-                  isEndless && result.run > 1 ? `⚡ ${t("puzzle.endless.run", { n: result.run })}` : "",
-                ].filter(Boolean).join("   ·   ")}
-              </Text>
-            </DropIn>
-            {legend > 0 ? (
-              <DropIn delay={numbersAt(result.stars) + 800} calm={calm} sound={result.crown ? "RELIC_PICKED" : undefined}>
-                <View style={[styles.crownLine, result.crown && styles.crownWon]}>
-                  <MaterialCommunityIcons name="crown" size={result.crown ? 22 : 18} color={result.crown ? "#FFD54F" : "#8d8178"} />
-                  <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
-                    {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
-                  </Text>
-                </View>
-              </DropIn>
-            ) : null}
-              </>
-            )}
-            {result.embers > 0 ? (
-              <DropIn delay={numbersAt(result.stars) + 1100} calm={calm} sound="EMBER_GAIN">
-                <View style={styles.embers}>
-                  <EmberIcon size={18} />
-                  <CountUp value={result.embers} delay={numbersAt(result.stars) + 1150} duration={500} format={n => `+${n}`} style={styles.embersText} calm={calm} />
-                </View>
-              </DropIn>
-            ) : null}
-            {result.achievements.length > 0 ? (
-              <Text style={styles.achievements} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
-                {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
-              </Text>
-            ) : null}
-            {isTechnique ? (
-              <PopButton label={t("tech.back")} tint={TINT} onPress={() => navigation.goBack()} />
-            ) : isDaily ? (
-              <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} />
-            ) : isEndless ? (
-              <PopButton label={t("puzzle.endless.another")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })} />
-            ) : index >= 0 ? (
-              <PopButton label={t("puzzle.continue")} icon="arrow-forward" tint={TINT} onPress={() => navigation.popTo("PuzzlesScreen", hasNext ? { continueTo: index + 1 } : {})} />
-            ) : (
-              <PopButton label={t("puzzle.back")} tint={TINT} onPress={() => navigation.goBack()} />
-            )}
-            <View style={styles.resultLinks}>
-              {(result.stars < 3 || (legend > 0 && !result.crown)) && !isEndless ? (
-                <PopLink
-                  label={result.stars < 3 ? t("puzzle.retry") : t("puzzle.crown.retry")}
-                  onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })}
-                />
+              {result.weeklyWon ? (
+                <Text style={styles.weeklyWon} maxFontSizeMultiplier={1.2}>
+                  {t("puzzle.weekly.won")}
+                </Text>
               ) : null}
-              {index >= 0 || isDaily || isEndless ? <PopLink label={t("puzzle.backToMap")} onPress={() => navigation.goBack()} /> : null}
+              {isTechnique ? (
+                <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
+                  {t(`tech.${technique!.id}.learned` as TranslationKey)}
+                </Text>
+              ) : (
+                <>
+                  <View accessible accessibilityLabel={t("puzzle.stars", { n: result.stars })}>
+                    <FlyingStars stars={result.stars} calm={calm} />
+                  </View>
+                  <Text style={styles.resultLine} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.2}>
+                    {mistakes === 0 && hints === 0 ? t("puzzle.flawless") : t("puzzle.slips", { mistakes, hints })}
+                  </Text>
+                </>
+              )}
             </View>
-            {!isDaily && (index + 1) % PUZZLES_PER_TIER === 0 && hasNext ? (
-              <Text style={styles.tierUp} maxFontSizeMultiplier={1.2}>
-                {t("puzzle.tierUp", { tier: t(`puzzle.tier.${puzzle.tier + 1}` as TranslationKey) })}
-              </Text>
-            ) : null}
+            <View style={styles.resultRight}>
+              {isTechnique ? null : (
+                <>
+                  <View style={styles.timeRow}>
+                    <Ionicons name="timer-outline" size={16} color="#FFE0B2" />
+                    <CountUp value={Math.round(result.seconds)} delay={numbersAt(result.stars)} format={formatSolveTime} style={styles.resultTime} calm={calm} />
+                  </View>
+                  <DropIn delay={numbersAt(result.stars) + 500} calm={calm}>
+                    <Text style={[styles.resultLine, result.record && styles.record]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.2}>
+                      {[
+                        !isDaily && !isEndless && !isArchive && result.best ? (result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })) : "",
+                        isDaily && result.streak > 0 ? `🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : "",
+                        isEndless && result.run > 1 ? `⚡ ${t("puzzle.endless.run", { n: result.run })}` : "",
+                      ].filter(Boolean).join("   ·   ")}
+                    </Text>
+                  </DropIn>
+                  {legend > 0 ? (
+                    <DropIn delay={numbersAt(result.stars) + 800} calm={calm} sound={result.crown ? "RELIC_PICKED" : undefined}>
+                      <View style={[styles.crownLine, result.crown && styles.crownWon]}>
+                        <MaterialCommunityIcons name="crown" size={result.crown ? 20 : 17} color={result.crown ? "#FFD54F" : "#8d8178"} />
+                        <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                          {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
+                        </Text>
+                      </View>
+                    </DropIn>
+                  ) : null}
+                </>
+              )}
+              {result.embers > 0 || result.achievements.length > 0 ? (
+                <View style={styles.prizes}>
+                  {result.embers > 0 ? (
+                    <DropIn delay={numbersAt(result.stars) + 1100} calm={calm} sound="EMBER_GAIN">
+                      <View style={styles.embers}>
+                        <EmberIcon size={18} />
+                        <CountUp value={result.embers} delay={numbersAt(result.stars) + 1150} duration={500} format={n => `+${n}`} style={styles.embersText} calm={calm} />
+                      </View>
+                    </DropIn>
+                  ) : null}
+                  {result.achievements.length > 0 ? (
+                    <Text style={styles.achievements} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
+                      {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
+              {!isDaily && (index + 1) % PUZZLES_PER_TIER === 0 && hasNext ? (
+                <Text style={styles.tierUp} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                  {t("puzzle.tierUp", { tier: t(`puzzle.tier.${puzzle.tier + 1}` as TranslationKey) })}
+                </Text>
+              ) : null}
+              {isTechnique ? (
+                <PopButton label={t("tech.back")} tint={TINT} onPress={() => navigation.goBack()} style={styles.resultButton} />
+              ) : isDaily ? (
+                <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} style={styles.resultButton} />
+              ) : isEndless ? (
+                <PopButton label={t("puzzle.endless.another")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })} style={styles.resultButton} />
+              ) : index >= 0 ? (
+                <PopButton label={t("puzzle.continue")} icon="arrow-forward" tint={TINT} onPress={() => navigation.popTo("PuzzlesScreen", hasNext ? { continueTo: index + 1 } : {})} style={styles.resultButton} />
+              ) : (
+                <PopButton label={t("puzzle.back")} tint={TINT} onPress={() => navigation.goBack()} style={styles.resultButton} />
+              )}
+              <View style={styles.resultLinks}>
+                {(result.stars < 3 || (legend > 0 && !result.crown)) && !isEndless && !isTechnique ? (
+                  <PopLink
+                    label={result.stars < 3 ? t("puzzle.retry") : t("puzzle.crown.retry")}
+                    onPress={() => navigation.replace("PuzzleScreen", { target, date: route.params.date })}
+                  />
+                ) : null}
+                {index >= 0 || isDaily || isEndless ? <PopLink label={t("puzzle.backToMap")} onPress={() => navigation.goBack()} /> : null}
+              </View>
+            </View>
           </PopupPanel>
         </OverlayContainer>
       ) : null}
@@ -647,6 +671,12 @@ const styles = StyleSheet.create({
   crownLine: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.05)" },
   crownWon: { backgroundColor: "rgba(255,213,79,0.15)", borderWidth: 1, borderColor: "#FFD54F" },
   crownText: { color: "#bfb3a6", fontWeight: "800", fontSize: 13 },
+  resultCard: { flexDirection: "row", alignItems: "center", gap: 18 },
+  resultCardShort: { paddingVertical: 10, gap: 12 },
+  resultLeft: { flex: 1, alignItems: "center", gap: 4 },
+  resultRight: { flex: 1.25, alignItems: "center", gap: 6 },
+  resultButton: { alignSelf: "stretch" },
+  prizes: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", columnGap: 12 },
   timeRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   record: { color: "#FFD54F", fontWeight: "900" },
   weeklyWon: { color: "#FF8A80", fontWeight: "900", fontSize: 14, textAlign: "center" },
