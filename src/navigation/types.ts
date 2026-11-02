@@ -30,7 +30,8 @@ export type RootStackParamList = {
   /** The cave's puzzles: the day's one and the numbered path. */
   PuzzlesScreen: undefined;
   /** One puzzle: the day's, or a number on the path (0-based). */
-  PuzzleScreen: { target: "daily" | number; devHold?: boolean };
+  /** `endless` plays endless puzzle number `n`. */
+  PuzzleScreen: { target: "daily" | "endless" | number; n?: number; devHold?: boolean };
   ProgressScreen: { devOpenRun?: number } | undefined;
   LevelCompleteScreen: {
     skin?: SkinId;

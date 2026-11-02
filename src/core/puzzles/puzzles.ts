@@ -137,6 +137,14 @@ export const pathSeed = (index: number): number => 7919 * (index + 1) + 104729;
 /** The numbered puzzle `index` (0-based) of the path. */
 export const pathPuzzle = (index: number): Puzzle => generatePuzzle(pathSeed(index), Math.floor(index / PUZZLES_PER_TIER));
 
+/** Endless puzzles, past the path: fresh boards one after another, mostly master-sized (fixed seeds, so number n is the same for all). */
+const ENDLESS_TIERS = [3, 4, 4];
+const ENDLESS_BIOMES: readonly BiomeId[] = ['magma', 'crystal', 'lair', 'cave'];
+export const endlessPuzzle = (n: number): Puzzle => {
+  const i = Math.max(0, Math.trunc(n));
+  return { ...generatePuzzle(104723 * (i + 1) + 15485863, ENDLESS_TIERS[i % ENDLESS_TIERS.length]), biome: ENDLESS_BIOMES[i % ENDLESS_BIOMES.length] };
+};
+
 /** The day's puzzle: the same for everyone, harder toward the weekend. */
 const DAILY_TIERS = [3, 1, 2, 2, 3, 3, 4]; // Sunday .. Saturday
 export const dailyPuzzleTier = (dateKey: string): number => {

@@ -7,6 +7,7 @@ import { translateNow } from '../i18n/useT';
 import { useSettingsStore } from '../state/settings/store';
 import { currentStreak } from '../core/stats/runStats';
 import type { LocalStats } from '../core/stats/runStats';
+import { dailyPuzzleStars, dailyPuzzleStreak } from '../core/stats/puzzleProgress';
 
 /**
  * The optional daily-challenge reminder (Settings > Accessibility... "Daily reminder"). It is a local notification scheduled
@@ -99,10 +100,16 @@ async function syncNow(stats: LocalStats, now: Date): Promise<void> {
     // The streak that will still be alive when the reminder fires (a streak already lost is not mentioned)
     const probe = planReminder(now, dailyDone, 0);
     const plan = planReminder(now, dailyDone, currentStreak(stats, dailyKey(probe.at)));
+    // With no run streak at stake, a puzzle streak is: the reminder speaks of it when that day's puzzle is still unsolved.
+    const day = dailyKey(probe.at);
+    const puzzleStreak = dailyPuzzleStreak(stats.puzzles, day);
+    const puzzleAtStake = plan.kind === 'daily' && puzzleStreak > 0 && dailyPuzzleStars(stats.puzzles, day) === 0;
     await N.scheduleNotificationAsync({
       content:
         plan.kind === 'streak'
           ? { title: translateNow('reminder.streak.title', { count: plan.streak }), body: translateNow('reminder.streak.body') }
+          : puzzleAtStake
+          ? { title: translateNow('reminder.puzzle.title', { count: puzzleStreak }), body: translateNow('reminder.puzzle.body') }
           : { title: translateNow('reminder.daily.title'), body: translateNow('reminder.daily.body') },
       trigger: { type: N.SchedulableTriggerInputTypes.DATE, date: plan.at, channelId: CHANNEL },
     });

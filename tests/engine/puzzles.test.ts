@@ -1,5 +1,5 @@
-import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzle, generatePuzzle, pathPuzzle, puzzleStars, type Puzzle } from '../../src/core/puzzles/puzzles';
-import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, EMPTY_PUZZLES, dailyPuzzleNumber, dailyPuzzleStreak, isPuzzleOpen, nextPuzzle, parsePuzzles, withPuzzleResult } from '../../src/core/stats/puzzleProgress';
+import { PUZZLE_COUNT, PUZZLE_TIERS, dailyPuzzle, endlessPuzzle, generatePuzzle, pathPuzzle, puzzleStars, type Puzzle } from '../../src/core/puzzles/puzzles';
+import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, EMPTY_PUZZLES, dailyPuzzleNumber, dailyPuzzleStreak, isEndlessOpen, ENDLESS_EMBERS_PER_STAR, isPuzzleOpen, nextPuzzle, parsePuzzles, withPuzzleResult } from '../../src/core/stats/puzzleProgress';
 import { puzzleShareText } from '../../src/screens/puzzle/shareText';
 import { gameReducer, initialState } from '../../src/core/engine/reducer';
 import { provenSafeTiles } from '../../src/core/engine/solver';
@@ -85,7 +85,7 @@ describe('the cave puzzles', () => {
 
   it('read back from a save, cleaning anything malformed', () => {
     expect(parsePuzzles(null)).toEqual(EMPTY_PUZZLES);
-    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4, streak: 0, bestStreak: 0 });
+    expect(parsePuzzles({ stars: [3, 9, -2, 'x'], daily: { date: 'nope', stars: 2 }, dailySolved: 4.7 })).toEqual({ stars: [3, 3, 0, 0], daily: null, dailySolved: 4, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 } });
     // A save from before the streak starts it at the last day solved.
     expect(parsePuzzles({ stars: [], daily: { date: '2026-11-02', stars: 3 }, dailySolved: 9 })).toMatchObject({ streak: 1, bestStreak: 1 });
   });
@@ -116,5 +116,26 @@ describe('the cave puzzles', () => {
     expect(slips).toContain('⭐▫️▫️  ⏱ 0:59');
     expect(slips).toContain('❌ 2  💡 1');
     expect(slips).not.toContain('shareStreak');
+  });
+
+  it('opens endless puzzles after the path: each solvable by deduction, counted in order, with a run of three-star solves', () => {
+    for (let n = 0; n < 12; n++) {
+      const p = endlessPuzzle(n);
+      expect(p.tier).toBeGreaterThanOrEqual(3);
+      expect(solveByDeduction(p)).toEqual({ solved: true, steppedOnHazard: false });
+    }
+    expect(JSON.stringify(endlessPuzzle(5))).toBe(JSON.stringify(endlessPuzzle(5)));
+    let p = { ...EMPTY_PUZZLES, stars: Array(PUZZLE_COUNT - 1).fill(1) };
+    expect(isEndlessOpen(p)).toBe(false);
+    p = { ...p, stars: Array(PUZZLE_COUNT).fill(1) };
+    expect(isEndlessOpen(p)).toBe(true);
+    let r = withPuzzleResult(p, { kind: 'endless', n: 0 }, 3);
+    expect(r.embers).toBe(3 * ENDLESS_EMBERS_PER_STAR);
+    r = withPuzzleResult(r.progress, { kind: 'endless', n: 1 }, 3);
+    expect(r.progress.endless).toEqual({ solved: 2, run: 2, bestRun: 2 });
+    // A stale number pays nothing; a slip breaks the run but keeps the best.
+    expect(withPuzzleResult(r.progress, { kind: 'endless', n: 0 }, 3).embers).toBe(0);
+    r = withPuzzleResult(r.progress, { kind: 'endless', n: 2 }, 2);
+    expect(r.progress.endless).toEqual({ solved: 3, run: 0, bestRun: 2 });
   });
 });

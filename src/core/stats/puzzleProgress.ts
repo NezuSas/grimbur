@@ -12,9 +12,13 @@ export interface PuzzleProgress {
   /** Days in a row with the day's puzzle solved (as of `daily.date`), and the longest such run. */
   streak: number;
   bestStreak: number;
+  /** Endless puzzles (open once the path is done): how many solved, and the run of three-star solves in a row (now and best). */
+  endless: { solved: number; run: number; bestRun: number };
 }
 
-export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0 };
+export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 } };
+/** Embers an endless puzzle pays per star (less than the path: it never ends). */
+export const ENDLESS_EMBERS_PER_STAR = 2;
 
 /** The first day of the puzzle of the day: it numbers them (#1 that day) for sharing. */
 export const PUZZLE_EPOCH = '2026-11-01';
@@ -38,7 +42,10 @@ export function parsePuzzles(raw: unknown): PuzzleProgress {
   const n = count(r.dailySolved);
   // Saves from before the streak start it at the last day solved.
   const streak = daily ? Math.max(1, count(r.streak)) : 0;
-  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)) };
+  const e = (r.endless && typeof r.endless === 'object' ? r.endless : {}) as Record<string, unknown>;
+  const run = count(e.run);
+  const endless = { solved: count(e.solved), run, bestRun: Math.max(run, count(e.bestRun)) };
+  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless };
 }
 
 export const puzzleStarsAt = (p: PuzzleProgress | undefined, index: number): number => p?.stars[index] ?? 0;
@@ -58,7 +65,9 @@ export const dailyPuzzleStreak = (p: PuzzleProgress | undefined, today: string):
   return p.daily.date === today || p.daily.date === previousDayKey(today) ? p.streak : 0;
 };
 
-export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string };
+export type PuzzleTarget = { kind: 'path'; index: number } | { kind: 'daily'; date: string } | { kind: 'endless'; n: number };
+/** Endless puzzles open once every puzzle of the path is solved. */
+export const isEndlessOpen = (p: PuzzleProgress | undefined): boolean => puzzlesSolved(p) >= PUZZLE_COUNT;
 
 /** The progress after solving a puzzle with `stars`, and the embers it pays (only what is new). */
 export function withPuzzleResult(p: PuzzleProgress | undefined, target: PuzzleTarget, stars: number): { progress: PuzzleProgress; embers: number } {
@@ -73,6 +82,15 @@ export function withPuzzleResult(p: PuzzleProgress | undefined, target: PuzzleTa
     const next = Array.from({ length: Math.max(base.stars.length, index + 1) }, (_, i) => base.stars[i] ?? 0);
     next[index] = got;
     return { progress: { ...base, stars: next }, embers: (got - before) * EMBERS_PER_STAR };
+  }
+  if (target.kind === 'endless') {
+    // Only the next one counts (a stale screen solving an old number pays nothing).
+    if (Math.trunc(target.n) !== base.endless.solved) return { progress: base, embers: 0 };
+    const run = got === MAX_STARS ? base.endless.run + 1 : 0;
+    return {
+      progress: { ...base, endless: { solved: base.endless.solved + 1, run, bestRun: Math.max(base.endless.bestRun, run) } },
+      embers: got * ENDLESS_EMBERS_PER_STAR,
+    };
   }
   const before = dailyPuzzleStars(base, target.date);
   const first = base.daily?.date !== target.date;

@@ -2206,6 +2206,21 @@ export const en = {
   'puzzle.friends.none': 'None of your friends has solved it yet.',
   'puzzle.friends.you': 'You',
   'puzzle.friends.invite': 'Compare with friends: add them in the rankings',
+  'ach.d.puzzleStreak': 'Solve the puzzle of the day {n} days in a row.',
+  'ach.d.puzzleEndless': 'Solve {n} endless puzzles.',
+  'ach.puzzle_streak_7.name': 'A week of riddles',
+  'ach.puzzle_streak_30.name': 'A month of riddles',
+  'ach.puzzle_endless_25.name': 'Never-ending mind',
+  'puzzle.endless.title': 'Endless',
+  'puzzle.endless.number': 'Endless #{n}',
+  'puzzle.endless.body': 'Fresh master puzzles, one after another. {n} embers per star.',
+  'puzzle.endless.stats': 'Solved: {solved} · Best run of 3 stars: {best}',
+  'puzzle.endless.locked': 'Solve all 30 puzzles of the path to open the endless puzzles.',
+  'puzzle.endless.play': 'Play',
+  'puzzle.endless.another': 'Another one',
+  'puzzle.endless.run': '{n} three-star solves in a row',
+  'reminder.puzzle.title': 'Keep your {count}-day puzzle streak',
+  'reminder.puzzle.body': 'Today’s puzzle is waiting: solve it before midnight to keep the streak.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

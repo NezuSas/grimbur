@@ -14,7 +14,7 @@ import { RootStackParamList } from "../navigation/types";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { getLocalStats, peekLocalStats } from "../services/localStats";
 import { PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER, dailyPuzzleTier } from "../core/puzzles/puzzles";
-import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, MAX_STARS, dailyPuzzleStars, dailyPuzzleStreak, isPuzzleOpen, nextPuzzle, puzzleStarsAt, totalPuzzleStars } from "../core/stats/puzzleProgress";
+import { DAILY_PUZZLE_EMBERS, EMBERS_PER_STAR, ENDLESS_EMBERS_PER_STAR, MAX_STARS, dailyPuzzleStars, dailyPuzzleStreak, isEndlessOpen, isPuzzleOpen, nextPuzzle, puzzleStarsAt, totalPuzzleStars } from "../core/stats/puzzleProgress";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
 import { formatCountdown } from "../core/stats/countdown";
 import { useT } from "../i18n/useT";
@@ -27,6 +27,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 const TINT = "#4DD0E1";
 const GOLD = "#FFD54F";
 const STAR = require("../assets/sprites/ui/Icon_Star.png");
+const ENDLESS = "#CE93D8";
 const TIER_TINTS = ["#9EE37D", "#4FC3F7", "#B39DDB", "#FF9A3C", "#FF5252"];
 
 const Stars = ({ n, size }: { n: number; size: number }) => (
@@ -114,6 +115,41 @@ export default function PuzzlesScreen({ navigation }: Props) {
     </PressScale>
   );
 
+  const endless = puzzles?.endless ?? { solved: 0, run: 0, bestRun: 0 };
+  const endlessOpen = isEndlessOpen(puzzles);
+  // Past the path: fresh master puzzles without end (a locked teaser until the 30 are solved).
+  const endlessCard = (
+    <PressScale
+      onPress={() => endlessOpen && navigation.navigate("PuzzleScreen", { target: "endless", n: endless.solved })}
+      disabled={!endlessOpen}
+      style={[styles.endless, !endlessOpen && styles.endlessLocked]}
+      accessibilityRole="button"
+      accessibilityLabel={`${t("puzzle.endless.title")}. ${endlessOpen ? t("puzzle.endless.stats", { solved: endless.solved, best: endless.bestRun }) : t("puzzle.endless.locked")}`}
+    >
+      <View style={styles.endlessHead}>
+        <Ionicons name={endlessOpen ? "infinite" : "lock-closed"} size={18} color={ENDLESS} />
+        <Text style={styles.endlessTitle} maxFontSizeMultiplier={1.15}>
+          {t("puzzle.endless.title").toLocaleUpperCase()}
+        </Text>
+      </View>
+      <Text style={styles.endlessBody} maxFontSizeMultiplier={1.15}>
+        {endlessOpen ? t("puzzle.endless.body", { n: ENDLESS_EMBERS_PER_STAR }) : t("puzzle.endless.locked")}
+      </Text>
+      {endlessOpen ? (
+        <>
+          <Text style={styles.endlessStats} maxFontSizeMultiplier={1.15}>
+            {t("puzzle.endless.stats", { solved: endless.solved, best: endless.bestRun })}
+          </Text>
+          <View style={styles.endlessButton}>
+            <Text style={styles.endlessButtonText} maxFontSizeMultiplier={1.15}>
+              {`${t("puzzle.endless.play")} · #${endless.solved + 1}`.toLocaleUpperCase()}
+            </Text>
+          </View>
+        </>
+      ) : null}
+    </PressScale>
+  );
+
   const friendsToday = <FriendsToday date={today} friends={stats.friends} onAddFriends={() => navigation.navigate("HighScoresScreen")} />;
 
   const path = useMemo(
@@ -197,6 +233,7 @@ export default function PuzzlesScreen({ navigation }: Props) {
               {t("puzzle.pathNote", { n: EMBERS_PER_STAR })}
             </Text>
             {path}
+            {endlessCard}
           </ScrollView>
         </View>
       </SafeAreaView>
@@ -234,6 +271,14 @@ const styles = StyleSheet.create({
   dailyButton: { marginTop: 4, alignSelf: "stretch", minHeight: 40, borderRadius: 14, backgroundColor: TINT, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, borderBottomWidth: 3, borderBottomColor: "#00838F" },
   dailyButtonText: { color: "#06262B", fontWeight: "900", letterSpacing: 1, fontSize: 14 },
   tier: { gap: 6, alignItems: "center" },
+  endless: { alignSelf: "stretch", maxWidth: 520, width: "100%", gap: 4, padding: 12, borderRadius: 18, borderWidth: 2, borderColor: ENDLESS + "AA", backgroundColor: "rgba(40, 24, 48, 0.9)", alignItems: "center", marginTop: 6 },
+  endlessLocked: { opacity: 0.6, borderStyle: "dashed" },
+  endlessHead: { flexDirection: "row", alignItems: "center", gap: 6 },
+  endlessTitle: { color: ENDLESS, fontWeight: "900", letterSpacing: 2, fontSize: 14 },
+  endlessBody: { color: "#E6D6C2", fontSize: 12, textAlign: "center" },
+  endlessStats: { color: "#F3E5F5", fontSize: 12, fontWeight: "800" },
+  endlessButton: { marginTop: 4, alignSelf: "stretch", minHeight: 40, borderRadius: 14, backgroundColor: ENDLESS, alignItems: "center", justifyContent: "center", borderBottomWidth: 3, borderBottomColor: "#7B1FA2" },
+  endlessButtonText: { color: "#2A0E33", fontWeight: "900", letterSpacing: 1, fontSize: 14 },
   tierHead: { flexDirection: "row", alignItems: "baseline", gap: 8 },
   tierName: { fontWeight: "900", letterSpacing: 2, fontSize: 13 },
   tierSize: { color: "#8d8178", fontSize: 11, fontWeight: "700" },

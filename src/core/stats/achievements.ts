@@ -128,12 +128,15 @@ export type AchievementId =
   | 'puzzle_stars'
   | 'puzzle_daily_7'
   | 'puzzle_daily_30'
+  | 'puzzle_streak_7'
+  | 'puzzle_streak_30'
+  | 'puzzle_endless_25'
   // The quick descent
   | 'quick_1'
   | 'quick_10';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters' | 'puzzles' | 'puzzleStars' | 'puzzleDaily' | 'quickWins';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters' | 'puzzles' | 'puzzleStars' | 'puzzleDaily' | 'puzzleStreak' | 'puzzleEndless' | 'quickWins';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -376,6 +379,9 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('puzzle_stars', '💫', 'legend', 'puzzleStars', PUZZLE_COUNT * MAX_STARS, s => totalPuzzleStars(s.puzzles)),
   counted('puzzle_daily_7', '🔍', 'medium', 'puzzleDaily', 7, s => s.puzzles?.dailySolved ?? 0),
   counted('puzzle_daily_30', '🎓', 'hard', 'puzzleDaily', 30, s => s.puzzles?.dailySolved ?? 0),
+  counted('puzzle_streak_7', '🪔', 'medium', 'puzzleStreak', 7, s => s.puzzles?.bestStreak ?? 0),
+  counted('puzzle_streak_30', '🔭', 'legend', 'puzzleStreak', 30, s => s.puzzles?.bestStreak ?? 0),
+  counted('puzzle_endless_25', '🪐', 'hard', 'puzzleEndless', 25, s => s.puzzles?.endless?.solved ?? 0),
   // ── The quick descent ───────────────────────────────────────────────────
   counted('quick_1', '🏃', 'easy', 'quickWins', 1, s => s.quickWins ?? 0),
   counted('quick_10', '⏱️', 'medium', 'quickWins', 10, s => s.quickWins ?? 0),

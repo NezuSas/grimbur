@@ -22,7 +22,7 @@ import { NO_PERKS } from "../core/engine/heroes";
 import { stepTarget, travelPath } from "../core/engine/travel";
 import { provenSafeTiles } from "../core/engine/solver";
 import { dailyKey } from "../core/engine/seed";
-import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
+import { PUZZLE_COUNT, PUZZLES_PER_TIER, dailyPuzzle, endlessPuzzle, pathPuzzle, puzzleStars, type Puzzle } from "../core/puzzles/puzzles";
 import { recordPuzzle } from "../services/localStats";
 import characters from "../data/characters";
 import { emitSound } from "../audio/audioEventBus";
@@ -82,8 +82,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const target = route.params.target;
   const today = useMemo(() => dailyKey(), []);
   const isDaily = target === "daily";
-  const index = isDaily ? -1 : Math.max(0, Math.min(PUZZLE_COUNT - 1, Math.trunc(target)));
-  const puzzle = useMemo(() => (isDaily ? dailyPuzzle(today) : pathPuzzle(index)), [isDaily, today, index]);
+  const isEndless = target === "endless";
+  const endlessN = Math.max(0, Math.trunc(route.params.n ?? 0));
+  const index = typeof target === "number" ? Math.max(0, Math.min(PUZZLE_COUNT - 1, Math.trunc(target))) : -1;
+  const puzzle = useMemo(() => (isDaily ? dailyPuzzle(today) : isEndless ? endlessPuzzle(endlessN) : pathPuzzle(index)), [isDaily, isEndless, endlessN, today, index]);
   const gems = puzzle.entities.filter(e => e.type === "coin").length;
 
   const [state, dispatch] = useReducer(puzzleReducer, puzzle, p => openingState(p, hero));
@@ -93,7 +95,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const [hintWhy, setHintWhy] = useState<HintReason | null>(null);
   const [fail, setFail] = useState<{ tile: number; kind: string } | null>(null);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
-  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number } | null>(null);
+  const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number } | null>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
   const startedAt = useRef(0);
   useEffect(() => {
@@ -106,12 +108,12 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const solved = state.coins === 0 && gems > 0;
 
   useEffect(() => {
-    analytics.track("screen_view", { screen: isDaily ? "puzzle_daily" : `puzzle_${index + 1}` });
+    analytics.track("screen_view", { screen: isDaily ? "puzzle_daily" : isEndless ? "puzzle_endless" : `puzzle_${index + 1}` });
     return () => {
       if (walking.current) clearTimeout(walking.current);
       if (failTimer.current) clearTimeout(failTimer.current);
     };
-  }, [isDaily, index]);
+  }, [isDaily, isEndless, index]);
 
   const stopWalking = () => {
     if (walking.current) clearTimeout(walking.current);
@@ -146,13 +148,13 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     const stars = puzzleStars(mistakes, hints);
     haptic.notify(NotificationFeedbackType.Success);
     emitSound("LEVEL_UP");
-    analytics.track("puzzle_solved", { puzzle: isDaily ? "daily" : index + 1, stars, mistakes, hints });
+    analytics.track("puzzle_solved", { puzzle: isDaily ? "daily" : isEndless ? "endless" : index + 1, stars, mistakes, hints });
     const seconds = (Date.now() - startedAt.current) / 1000;
     // The day's try goes to the friends' board (kept only when better than an earlier one).
     if (isDaily) void submitPuzzleScore({ date: today, stars, mistakes, hints, seconds, characterIndex: hero });
-    const show = (embers: number, achievements: AchievementId[] = [], streak = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak }), 650);
-    recordPuzzle(isDaily ? { kind: "daily", date: today } : { kind: "path", index }, stars)
-      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today)))
+    const show = (embers: number, achievements: AchievementId[] = [], streak = 0, run = 0) => setTimeout(() => setResult({ stars, embers, achievements, seconds, streak, run }), 650);
+    recordPuzzle(isDaily ? { kind: "daily", date: today } : isEndless ? { kind: "endless", n: endlessN } : { kind: "path", index }, stars)
+      .then(r => show(r.embers, r.achievements, dailyPuzzleStreak(r.stats.puzzles, today), r.stats.puzzles?.endless.run ?? 0))
       .catch(() => show(0));
   }, [solved]);
 
@@ -238,7 +240,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     if (hintTile === null) setHints(h => h + 1);
   }, [hintTile]);
 
-  const hasNext = !isDaily && index + 1 < PUZZLE_COUNT;
+  const hasNext = index >= 0 && index + 1 < PUZZLE_COUNT;
   const share = () => {
     if (!result) return;
     analytics.track("puzzle_shared", { stars: result.stars });
@@ -247,7 +249,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }).catch(() => {});
   };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
-  const title = isDaily ? t("puzzle.daily") : t("puzzle.number", { n: index + 1 });
+  const title = isDaily ? t("puzzle.daily") : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
   const goal = gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failText = fail ? t(fail.kind === "pit" ? "puzzle.fail.pit" : "puzzle.fail.enemy") : null;
   // While a hint is lit, the banner says why that tile is safe: a hint that teaches, not only one that points.
@@ -359,6 +361,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             <Text style={styles.resultTime} maxFontSizeMultiplier={1.2}>
               {`⏱ ${formatSolveTime(result.seconds)}`}
               {isDaily && result.streak > 0 ? `   ·   🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : ""}
+              {isEndless && result.run > 1 ? `   ·   ⚡ ${t("puzzle.endless.run", { n: result.run })}` : ""}
             </Text>
             {result.embers > 0 ? (
               <View style={styles.embers}>
@@ -375,19 +378,21 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             ) : null}
             {isDaily ? (
               <PopButton label={t("puzzle.share")} icon="share-social" tint={TINT} onPress={share} />
+            ) : isEndless ? (
+              <PopButton label={t("puzzle.endless.another")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })} />
             ) : hasNext ? (
               <PopButton label={t("puzzle.next")} tint={TINT} onPress={() => navigation.replace("PuzzleScreen", { target: index + 1 })} />
             ) : (
               <PopButton label={t("puzzle.back")} tint={TINT} onPress={() => navigation.goBack()} />
             )}
             <View style={styles.resultLinks}>
-              {result.stars < 3 ? (
+              {result.stars < 3 && !isEndless ? (
                 <PopLink
                   label={t("puzzle.retry")}
                   onPress={() => navigation.replace("PuzzleScreen", { target })}
                 />
               ) : null}
-              {hasNext || isDaily ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}
+              {hasNext || isDaily || isEndless ? <PopLink label={t("puzzle.back")} onPress={() => navigation.goBack()} /> : null}
             </View>
             {!isDaily && (index + 1) % PUZZLES_PER_TIER === 0 && hasNext ? (
               <Text style={styles.tierUp} maxFontSizeMultiplier={1.2}>
