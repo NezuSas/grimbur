@@ -14,12 +14,12 @@ import { GAME_CONFIG } from "../../../config/gameConfig";
 export const FRIEND_TINT = { challenge: "#7FAFC6", duel: "#D58A7E" } as const;
 export const FRIEND_ART = { challenge: require("../../../assets/sprites/ui/Icon_Puzzle.webp"), duel: require("../../../assets/sprites/ui/Icon_Swords.webp") } as const;
 /** Each difficulty warms from calm green to legendary violet, so a row of them reads as a climb. */
-export const DEPTH_COLOR = ["#A3BF7C", "#D9B45A", "#D89A4C", "#CC6E44", "#C47268", "#B08DBE"];
+export const DEPTH_COLOR = ["#A3BF7C", "#C9A55A", "#C48B4E", "#B86A48", "#C47268", "#B08DBE"];
 
 /** A difficulty as a small coloured plate with one pip per step. */
 export const DepthBadge = ({ depth }: { depth: number }) => {
   const { t } = useT();
-  const c = DEPTH_COLOR[depth] ?? "#D9B45A";
+  const c = DEPTH_COLOR[depth] ?? "#C9A55A";
   return (
     <View style={[styles.depth, { borderColor: c + "AA", backgroundColor: c + "1F" }]}>
       <View style={styles.pips}>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   art: { width: 46, height: 46 },
   kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   codeBox: { alignItems: "center", paddingHorizontal: 8, paddingVertical: 6, borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", backgroundColor: "rgba(0,0,0,0.3)" },
-  code: { alignSelf: "stretch", textAlign: "center", color: "#D9B45A", fontWeight: "900", fontSize: 28, letterSpacing: 3 },
+  code: { alignSelf: "stretch", textAlign: "center", color: "#C9A55A", fontWeight: "900", fontSize: 28, letterSpacing: 3 },
   tools: { flexDirection: "row", gap: 6 },
   toolText: { color: "#EAE1D8", fontWeight: "900", fontSize: 11.5, letterSpacing: 1 },
   tool: { flex: 1, flexDirection: "row", gap: 6, minHeight: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },

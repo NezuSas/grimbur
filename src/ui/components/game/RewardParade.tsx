@@ -77,8 +77,8 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
     const tile = Math.floor((cardW - 48 - (cols - 1) * 8) / cols);
     return (
       <OverlayContainer fadeMs={0} dim={0.97}>
-        <PopupPanel tint="#D9B45A" width={cardW} style={styles.gridPanel} animate={!calm}>
-          <Text style={popupTitleStyle("#D9B45A")} accessibilityRole="header" maxFontSizeMultiplier={1.15}>
+        <PopupPanel tint="#C9A55A" width={cardW} style={styles.gridPanel} animate={!calm}>
+          <Text style={popupTitleStyle("#C9A55A")} accessibilityRole="header" maxFontSizeMultiplier={1.15}>
             {t("parade.all", { n: items.length }).toLocaleUpperCase()}
           </Text>
           <ScrollView style={{ maxHeight: height * 0.62, alignSelf: "stretch" }} contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   kicker: { fontWeight: "900", fontSize: 12.5, letterSpacing: 2.5 },
   title: { fontSize: 22 },
   line: { color: "#E6D6C4", fontSize: 13.5, fontWeight: "700", textAlign: "center" },
-  embers: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(216, 154, 76,0.15)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.5)" },
+  embers: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(196, 139, 78,0.15)", borderWidth: 1, borderColor: "rgba(196, 139, 78,0.5)" },
   embersText: { color: "#E2BE8C", fontWeight: "900", fontSize: 14 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", alignSelf: "stretch", marginTop: 4, gap: 10 },
   dots: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1, flexWrap: "wrap" },

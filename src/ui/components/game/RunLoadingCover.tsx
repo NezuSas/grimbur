@@ -41,7 +41,7 @@ const RunLoadingCover: React.FC<Props> = ({ visible }) => {
     >
       <View style={styles.center}>
         <SpriteImage source={require('../../../assets/sprites/items/Icon_Gem.webp')} style={styles.gem} resizeMode="contain" />
-        <ActivityIndicator size="large" color="#D9B45A" />
+        <ActivityIndicator size="large" color="#C9A55A" />
         <Text style={styles.text} allowFontScaling={false}>
           {t('loading.cave')}
         </Text>

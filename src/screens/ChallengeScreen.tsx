@@ -22,8 +22,8 @@ import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChallengeScreen">;
 
-const GOLD = "#D9B45A";
-const MEDAL = ["#D9B45A", "#CFD8DC", "#DBA48F"];
+const GOLD = "#C9A55A";
+const MEDAL = ["#C9A55A", "#CFD8DC", "#DBA48F"];
 
 /**
  * A friend challenge: the same cave for whoever has the code, played whenever each one wants. Without a code this screen creates one or
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   empty: { color: "#E1D4C8", fontSize: 14, fontWeight: "800", textAlign: "center" },
   emptySub: { color: "#C4AA91", fontSize: 12.5, textAlign: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(36, 28, 19,0.8)", paddingVertical: 8, paddingHorizontal: 10 },
-  rowMine: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.1)" },
+  rowMine: { borderColor: GOLD, backgroundColor: "rgba(201, 165, 90,0.1)" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   rankText: { color: "#EAE1D8", fontWeight: "900", fontSize: 15 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)" },

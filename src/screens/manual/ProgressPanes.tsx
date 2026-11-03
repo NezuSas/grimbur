@@ -23,10 +23,10 @@ export const WorldsPane = ({ kit }: { kit: Kit }) => {
       {fact("manual.worlds.intro", "#8EB7B0", icon("planet", "#8EB7B0"))}
       {fact("manual.worlds.cave", "#a1887f", image(BIOME_ART.cave.tileRevealed, "#a1887f"))}
       {fact("manual.worlds.crystal", "#7FAFC6", image(BIOME_ART.crystal.tileRevealed, "#7FAFC6"))}
-      {fact("manual.worlds.magma", "#CC6E44", image(BIOME_ART.magma.tileRevealed, "#CC6E44"))}
+      {fact("manual.worlds.magma", "#B86A48", image(BIOME_ART.magma.tileRevealed, "#B86A48"))}
       {fact("manual.worlds.lair", "#9A72AC", image(BIOME_ART.lair.tileRevealed, "#9A72AC"))}
-      {fact("manual.worlds.boss", "#CC5249", image(IMG.boss, "#CC5249"))}
-      {fact("manual.worlds.fury", "#CC6E44", icon("flame", "#CC6E44"))}
+      {fact("manual.worlds.boss", "#B5524A", image(IMG.boss, "#B5524A"))}
+      {fact("manual.worlds.fury", "#B86A48", icon("flame", "#B86A48"))}
       {fact("manual.worlds.calls", "#9A72AC", image(IMG.stalker, "#9A72AC"))}
     </>
   );
@@ -39,11 +39,11 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
       {heading(t("manual.modes.title"))}
       {fact("manual.modes.expedition", "#7E87B0", icon("map", "#7E87B0"))}
       {fact("manual.modes.daily", "#7FAFC6", icon("calendar", "#7FAFC6"))}
-      {fact("manual.modes.streak", "#D89A4C", icon("flame", "#D89A4C"))}
+      {fact("manual.modes.streak", "#C48B4E", icon("flame", "#C48B4E"))}
       {fact("manual.modes.missions", "#7FAFC6", icon("flag", "#7FAFC6"))}
-      {fact("manual.modes.rank", "#D9B45A", icon("medal", "#D9B45A"))}
+      {fact("manual.modes.rank", "#C9A55A", icon("medal", "#C9A55A"))}
       {fact("manual.modes.endless", "#B08DBE", icon("infinite", "#B08DBE"))}
-      {fact("manual.modes.depth", "#C4534A", icon("speedometer", "#C4534A"))}
+      {fact("manual.modes.depth", "#B0524A", icon("speedometer", "#B0524A"))}
       <View style={{ gap: 8 }}>
         {Array.from({ length: MAX_ASCENSION }, (_, k) => k + 1).map(n => (
           <View key={n} style={styles.depthRow}>
@@ -68,16 +68,16 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
 export const ForgePane = ({ kit }: { kit: Kit }) => {
   const { t, wide, heading, fact, icon, image } = kit;
   const upgradeGroups = [
-    { id: "power", label: t("forge.cat.power"), color: "#CC6E44" },
-    { id: "economy", label: t("forge.cat.economy"), color: "#D9B45A" },
+    { id: "power", label: t("forge.cat.power"), color: "#B86A48" },
+    { id: "economy", label: t("forge.cat.economy"), color: "#C9A55A" },
     { id: "relics", label: t("forge.cat.relics"), color: "#B08DBE" },
   ] as const;
   return (
     <>
       {heading(t("manual.forge.title"))}
-      {fact("manual.forge.embers", "#D89A4C", icon("flame", "#D89A4C"))}
-      {fact("manual.forge.upgrades", "#D9B45A", icon("hammer", "#D9B45A"))}
-      <SubHeading text={t("manual.forge.all")} color="#D9B45A" />
+      {fact("manual.forge.embers", "#C48B4E", icon("flame", "#C48B4E"))}
+      {fact("manual.forge.upgrades", "#C9A55A", icon("hammer", "#C9A55A"))}
+      <SubHeading text={t("manual.forge.all")} color="#C9A55A" />
       {upgradeGroups.map(group => (
         <View key={group.id} style={{ gap: 8 }}>
           <Text style={[styles.groupTitle, { color: group.color }]} maxFontSizeMultiplier={1.2}>
@@ -103,7 +103,7 @@ export const ForgePane = ({ kit }: { kit: Kit }) => {
         </View>
       ))}
       {fact("manual.forge.revive", "#D58A7E", icon("heart", "#D58A7E"))}
-      {fact("manual.forge.arrows", "#D89A4C", image(IMG.arrows, "#D89A4C"))}
+      {fact("manual.forge.arrows", "#C48B4E", image(IMG.arrows, "#C48B4E"))}
       {fact("manual.forge.daily", "#7FAFC6", icon("calendar", "#7FAFC6"))}
       {fact("manual.forge.collection", "#C98FA3", icon("shirt", "#C98FA3"))}
       {fact("manual.forge.achievements", "#8EAE7C", icon("ribbon", "#8EAE7C"))}
@@ -131,8 +131,8 @@ export const ScoringPane = ({ kit }: { kit: Kit }) => {
           { label: t("manual.score.trap"), value: `${S.trapPenalty}`, good: false },
         ]}
       />
-      {fact("manual.scoring.stars", "#D9B45A", icon("star", "#D9B45A"))}
-      {fact("manual.scoring.board", "#D9B45A", icon("podium", "#D9B45A"))}
+      {fact("manual.scoring.stars", "#C9A55A", icon("star", "#C9A55A"))}
+      {fact("manual.scoring.board", "#C9A55A", icon("podium", "#C9A55A"))}
       {fact("manual.scoring.pause", "#90a4ae", icon("pause-circle", "#90a4ae"))}
     </>
   );

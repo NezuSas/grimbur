@@ -39,7 +39,7 @@ export function duelResultView(
     case "lost":
       return { headline: t("duel.result.lose"), line: place + rivalLine, prize: stake > 0 ? t("duel.result.lostStake", { n: stake }) : "", color: "#D58A7E" };
     case "tie":
-      return { headline: t("duel.result.tie"), line: rivalLine, prize: stake > 0 ? (prize > 0 && prize !== stake ? t("duel.result.prize", { n: prize }) : t("duel.result.refund", { n: stake })) : "", color: "#D9B45A" };
+      return { headline: t("duel.result.tie"), line: rivalLine, prize: stake > 0 ? (prize > 0 && prize !== stake ? t("duel.result.prize", { n: prize }) : t("duel.result.refund", { n: stake })) : "", color: "#C9A55A" };
     case "leading":
       return { headline: t("duel.result.leading"), line: rivalLine, prize: "", color: "#A3BF7C" };
     default:

@@ -64,7 +64,7 @@ const PlayButton: React.FC<Props> = memo(({ title, subtitle, footnote, onPress, 
             ]}
           />
           <LinearGradient
-            colors={["#E0C47A", "#E8A93A"]}
+            colors={["#E0C47A", "#CC9846"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
             style={[styles.button, { minHeight: (compact ? 62 : 76) * ui, borderRadius: 22 * ui, paddingHorizontal: 18 * ui }]}
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     gap: 14,
     borderBottomWidth: 4,
     borderBottomColor: "#B07A1C",
-    shadowColor: "#D9B052",
+    shadowColor: "#C9A356",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.55,
     shadowRadius: 14,

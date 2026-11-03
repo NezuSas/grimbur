@@ -23,7 +23,7 @@ import { ENCOUNTER_ART, ENCOUNTER_TINT } from "../../ui/components/game/Encounte
 import { useEscapeKey } from "../../ui/hotkeys";
 
 const GEM = require("../../assets/sprites/items/Icon_Gem.webp");
-const WIN = "#D9B052";
+const WIN = "#C9A356";
 const LOSS = "#CF6F68";
 
 const artOf = (kind: string): ImageSourcePropType | null => {
@@ -49,7 +49,7 @@ export const RunBoardMap = ({ board, size, victory, heroArt }: { board: RunBoard
         const glow = step === undefined ? 0 : 0.18 + 0.5 * (step / Math.max(1, board.visited.length - 1));
         return (
           <View key={i} style={[styles.cell, { width: cell, height: cell, left: 2 + (i % board.cols) * cell, top: 2 + Math.floor(i / board.cols) * cell }]}>
-            <View style={[StyleSheet.absoluteFill, styles.tile, on ? { backgroundColor: `rgba(217, 180, 90,${glow.toFixed(2)})` } : null]} />
+            <View style={[StyleSheet.absoluteFill, styles.tile, on ? { backgroundColor: `rgba(201, 165, 90,${glow.toFixed(2)})` } : null]} />
             {art && !here ? <SpriteImage source={art} style={{ width: cell * 0.8, height: cell * 0.8, opacity: on ? 1 : 0.8 }} resizeMode="contain" /> : null}
             {here ? (
               <View style={[styles.hero, { width: cell, height: cell, borderRadius: cell / 2, borderColor: victory ? WIN : LOSS }]}>
@@ -167,7 +167,7 @@ const RunDetail = ({ run, onClose }: Props) => {
                 })}
                 {run.secrets ? (
                   <View style={styles.storyRow}>
-                    <Ionicons name="sparkles" size={18} color="#E6CC88" style={styles.storyIcon} />
+                    <Ionicons name="sparkles" size={18} color="#DCC48E" style={styles.storyIcon} />
                     <Text style={styles.storyText} maxFontSizeMultiplier={1.1}>
                       {run.secrets === 1 ? t("history.secret.one") : t("history.secret.other", { n: run.secrets })}
                     </Text>
@@ -226,13 +226,13 @@ const styles = StyleSheet.create({
   facts: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   fact: { flexDirection: "row", alignItems: "center", gap: 5, paddingVertical: 4, paddingHorizontal: 9, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.35)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   factText: { color: "#F3EADB", fontWeight: "900", fontSize: 13 },
-  cause: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(255,110,110,0.12)", borderWidth: 1, borderColor: "rgba(255,110,110,0.45)" },
+  cause: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(207, 111, 104,0.12)", borderWidth: 1, borderColor: "rgba(207, 111, 104,0.45)" },
   causeLabel: { color: "#FFB3B3", fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
   causeName: { color: "#F3EADB", fontSize: 13, fontWeight: "900" },
-  event: { color: "#D9B45A", fontSize: 12, fontWeight: "800" },
+  event: { color: "#C9A55A", fontSize: 12, fontWeight: "800" },
   section: { color: "#C2A88F", fontSize: 11, fontWeight: "900", letterSpacing: 1.5, marginTop: 2 },
   relics: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  relic: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.4)" },
+  relic: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(201, 165, 90,0.12)", borderWidth: 1, borderColor: "rgba(201, 165, 90,0.4)" },
   relicArt: { width: 30, height: 30 },
   none: { color: "#A8927D", fontSize: 12, fontStyle: "italic" },
   story: { gap: 4 },

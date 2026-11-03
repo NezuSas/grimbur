@@ -16,7 +16,7 @@ const SIDES: Side[] = [
 ];
 
 /** Light colour of each style: the blue of a console pad's light, the yellow of an arcade cabinet's marquee. */
-export const SKIN_LIGHT: Record<JoystickSkin, string> = { console: "#4DA3FF", arcade: "#D9B45A" };
+export const SKIN_LIGHT: Record<JoystickSkin, string> = { console: "#6C98C4", arcade: "#C9A55A" };
 
 type Props = {
   skin: JoystickSkin;

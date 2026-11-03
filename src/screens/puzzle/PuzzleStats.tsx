@@ -13,7 +13,7 @@ import { formatSolveTime } from "./shareText";
 import { useEscapeKey } from "../../ui/hotkeys";
 
 const TINT = "#6CB0B9";
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 type Props = { puzzles: PuzzleProgress | undefined; onClose: () => void };

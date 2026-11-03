@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   timeValue: {
-    color: "#00BFFF",
+    color: "#5A9CC0",
     fontWeight: "900",
     marginTop: -2,
   },
@@ -288,12 +288,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 12,
-    backgroundColor: "rgba(255,179,0,0.18)",
+    backgroundColor: "rgba(214, 160, 64,0.18)",
     borderWidth: 1,
-    borderColor: "#FFB300",
+    borderColor: "#D6A040",
   },
-  comboPipMax: { backgroundColor: "#D9B45A", borderColor: "#FFF8E1" },
-  comboText: { color: "#D9B45A", fontWeight: "900", fontSize: 13, includeFontPadding: false },
+  comboPipMax: { backgroundColor: "#C9A55A", borderColor: "#FFF8E1" },
+  comboText: { color: "#C9A55A", fontWeight: "900", fontSize: 13, includeFontPadding: false },
   rightGroup: {
     flex: 2,
     flexDirection: "row",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   levelText: {
-    color: "#D9B45A",
+    color: "#C9A55A",
     fontWeight: "900",
   },
 });

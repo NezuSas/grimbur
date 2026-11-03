@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 import { MIN_TOUCH } from "../../ui/layout/useGameLayout";
 import { BORDER, CARD } from "../../ui/components/manual/ManualParts";
 
-export const START_COLOR = "#D9B45A";
+export const START_COLOR = "#C9A55A";
 
 /** The styles shared by the topics of the guide. */
 export const manualStyles = StyleSheet.create({
@@ -16,18 +16,18 @@ export const manualStyles = StyleSheet.create({
   clueToken: { marginTop: 6, width: 30, height: 30 },
   note: { color: "#a9a9a9", fontStyle: "italic", fontSize: 13.5, paddingHorizontal: 4 },
   overlayGlyph: { flex: 1, alignItems: "center", justifyContent: "center" },
-  attackDot: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#E6194B", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center" },
+  attackDot: { width: 42, height: 42, borderRadius: 21, backgroundColor: "#B53A50", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center" },
   steps: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   step: { flex: 1, minWidth: 120, alignItems: "center", gap: 8, backgroundColor: CARD, borderRadius: 18, padding: 14, borderWidth: 1, borderColor: BORDER },
   stepNarrow: { flexBasis: "46%", flexGrow: 1 },
   stepNumber: { position: "absolute", top: 8, left: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: START_COLOR, alignItems: "center", justifyContent: "center" },
   stepNumberText: { color: "#2A2016", fontWeight: "900", fontSize: 13 },
   stepArt: { height: 66, alignItems: "center", justifyContent: "center" },
-  stepIcon: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#ef6c00" },
+  stepIcon: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#BF6A2A" },
   stepText: { color: "#F0EAE4", textAlign: "center", fontWeight: "800", fontSize: 13.5, lineHeight: 18 },
   cta: { minHeight: MIN_TOUCH + 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: START_COLOR, borderRadius: 18, paddingHorizontal: 18, borderBottomWidth: 4, borderBottomColor: "rgba(0,0,0,0.3)" },
   ctaText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1.5, fontSize: 15, flexShrink: 1 },
-  storyButton: { minHeight: MIN_TOUCH + 4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.5)", backgroundColor: "rgba(217, 180, 90,0.08)", paddingHorizontal: 16 },
+  storyButton: { minHeight: MIN_TOUCH + 4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.5)", backgroundColor: "rgba(201, 165, 90,0.08)", paddingHorizontal: 16 },
   storyButtonText: { color: START_COLOR, fontWeight: "900", letterSpacing: 1.5, fontSize: 14, flexShrink: 1 },
   lessonsTitle: { color: START_COLOR, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
   lessonsHint: { color: "#CBB49E", fontSize: 13, marginTop: 2 },
@@ -56,15 +56,15 @@ export const manualStyles = StyleSheet.create({
   relicGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   relic: { flexBasis: "100%", flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 12 },
   relicWide: { flexBasis: "48.5%", flexGrow: 1 },
-  relicCursed: { borderColor: "rgba(196, 83, 74,0.6)", backgroundColor: "rgba(196, 83, 74,0.07)" },
+  relicCursed: { borderColor: "rgba(176, 82, 74,0.6)", backgroundColor: "rgba(176, 82, 74,0.07)" },
   relicName: { color: "#F3EADB", fontWeight: "900", fontSize: 14.5 },
   relicDesc: { color: "#D6C4B2", fontSize: 13, lineHeight: 18, marginTop: 2 },
   upgradeEmoji: { fontSize: 24 },
   groupTitle: { fontWeight: "900", fontSize: 12.5, letterSpacing: 2, marginLeft: 4 },
-  depthRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(196, 83, 74,0.07)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(196, 83, 74,0.3)", padding: 10 },
-  depthNumber: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(196, 83, 74,0.25)", alignItems: "center", justifyContent: "center" },
+  depthRow: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(176, 82, 74,0.07)", borderRadius: 14, borderWidth: 1, borderColor: "rgba(176, 82, 74,0.3)", padding: 10 },
+  depthNumber: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(176, 82, 74,0.25)", alignItems: "center", justifyContent: "center" },
   depthNumberText: { color: "#ef9a9a", fontWeight: "900", fontSize: 16 },
-  tip: { flexDirection: "row", gap: 12, backgroundColor: "rgba(77,182,172,0.08)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(77,182,172,0.28)", padding: 14 },
-  tipIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(77,182,172,0.18)", alignItems: "center", justifyContent: "center" },
+  tip: { flexDirection: "row", gap: 12, backgroundColor: "rgba(111, 163, 156,0.08)", borderRadius: 16, borderWidth: 1, borderColor: "rgba(111, 163, 156,0.28)", padding: 14 },
+  tipIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(111, 163, 156,0.18)", alignItems: "center", justifyContent: "center" },
   tipTitle: { color: "#8EB7B0", fontWeight: "900", fontSize: 15, marginBottom: 2 },
 });

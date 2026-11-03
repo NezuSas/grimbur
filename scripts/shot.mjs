@@ -123,6 +123,14 @@ if (process.env.SHOT_CLIPS) {
       const clamp = cs.webkitLineClamp && cs.webkitLineClamp !== 'none';
       const ell = cs.textOverflow === 'ellipsis';
       if (!clamp && !ell) return false;
+      // A cut line reports its box's width as scrollWidth: measure the text itself from its font (one-line texts).
+      if (ell && cs.whiteSpace === 'nowrap') {
+        const p = document.createElement('span');
+        Object.assign(p.style, { position: 'absolute', left: '-9999px', visibility: 'hidden', whiteSpace: 'nowrap', fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle, fontVariant: cs.fontVariant, fontFeatureSettings: cs.fontFeatureSettings, letterSpacing: cs.letterSpacing, textTransform: cs.textTransform });
+        p.innerHTML = el.innerHTML; document.body.appendChild(p);
+        const natural = p.getBoundingClientRect().width; p.remove();
+        if (natural > el.getBoundingClientRect().width * 1.001) return true;
+      }
       return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight + 1;
     }).map(el => el.textContent.trim().slice(0, 90)))`,
   });

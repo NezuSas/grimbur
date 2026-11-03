@@ -21,7 +21,7 @@ type Action = "puzzles" | "pets";
 /** Any number of news fit: one per page. `action` adds a quiet link to try it right away. */
 const ITEMS: { key: string; art: ImageSourcePropType; tint: string; action?: Action }[] = [
   { key: "puzzles", art: require("../../assets/sprites/news/News_Puzzles.png"), tint: "#6CB0B9", action: "puzzles" },
-  { key: "quick", art: require("../../assets/sprites/news/News_Quick.png"), tint: "#D9B45A" },
+  { key: "quick", art: require("../../assets/sprites/news/News_Quick.png"), tint: "#C9A55A" },
   { key: "warden", art: require("../../assets/sprites/news/News_Warden.png"), tint: "#D28663" },
   { key: "pets", art: require("../../assets/sprites/news/News_Pets.png"), tint: "#8FBCD2", action: "pets" },
 ];

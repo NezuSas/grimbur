@@ -16,7 +16,7 @@ import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, typ
 import type { BiomeId } from "../../../core/engine/biomes";
 import type { TranslationKey } from "../../../i18n/en";
 
-const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#DCA45A", shield: "#7FAFC6", detector: "#8EAE7C", bomb: "#CC6E44" };
+const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#C99A5C", shield: "#7FAFC6", detector: "#8EAE7C", bomb: "#B86A48" };
 const GEM = require("../../../assets/sprites/items/Icon_Gem.webp");
 /** Each omen's door wears the art and colour of what it brings. */
 const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.webp");
@@ -26,7 +26,7 @@ const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
   arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.webp"), color: "#D28663" },
   dark: { art: require("../../../assets/sprites/items/Icon_Darkness.webp"), color: "#7E87B0" },
   shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.webp"), color: "#A1887F" },
-  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#CC5249" },
+  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#B5524A" },
 };
 
 type Props = {
@@ -95,7 +95,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
   return (
     <OverlayContainer>
       <PopupPanel
-        tint="#D9B45A"
+        tint="#C9A55A"
         width={cardW}
         style={styles.card}
         backdrop={
@@ -117,7 +117,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
               {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
           </View>
-          <Text style={[popupTitleStyle("#D9B45A"), styles.title]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
+          <Text style={[popupTitleStyle("#C9A55A"), styles.title]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
             {t("shop.title").toLocaleUpperCase()}
           </Text>
           <View style={styles.purse} accessible accessibilityLabel={t("shop.purse", { count: gems })}>
@@ -203,7 +203,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           <View style={styles.doors}>
             {portals.map((p, i) => {
               const on = !p.fork || chosen === i;
-              const look = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#D9B45A" };
+              const look = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#C9A55A" };
               const name = p.fork
                 ? p.door
                   ? omenText(t, p.door, "name").replace(/^[^:]*:\s*/, "")

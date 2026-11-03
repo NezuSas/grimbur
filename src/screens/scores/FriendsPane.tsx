@@ -17,7 +17,7 @@ import { seasonKeyOf } from "../../core/stats/season";
 import { dailyKey } from "../../core/engine/seed";
 import { haptic } from "../../shared/haptics";
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 
 /**
  * Friends: this player's friend code (to copy or share), a box to add a friend's code, and every friend with their best run and
@@ -179,18 +179,18 @@ const FriendsPane = ({ bottomInset = 0, embedded = false, onCount }: { bottomIns
 export default FriendsPane;
 
 const styles = StyleSheet.create({
-  codeBox: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.35)", backgroundColor: "rgba(34,26,18,0.92)" },
+  codeBox: { flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.35)", backgroundColor: "rgba(34,26,18,0.92)" },
   kicker: { color: GOLD, fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   code: { color: "#FFF4DE", fontWeight: "800", fontSize: 14, letterSpacing: 0.5 },
   iconButton: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: GOLD },
   addRow: { flexDirection: "row", gap: 8 },
-  input: { flex: 1, minHeight: 40, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.35)", color: "#FFF4DE", fontSize: 14 },
+  input: { fontFamily: "AlegreyaSans_700Bold", flex: 1, minHeight: 40, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(0,0,0,0.35)", color: "#FFF4DE", fontSize: 14 },
   addButton: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, borderRadius: 12, backgroundColor: GOLD },
   addText: { color: "#2A2016", fontWeight: "900", fontSize: 12 },
   error: { color: "#D58A7E", fontSize: 12, fontWeight: "700" },
   empty: { color: "#C2A88F", fontSize: 13, fontWeight: "600", textAlign: "center", marginTop: 12, paddingHorizontal: 12 },
   row: { flexDirection: "row", alignItems: "center", gap: 10, padding: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", backgroundColor: "rgba(34,26,18,0.9)" },
-  rowNew: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.1)" },
+  rowNew: { borderColor: GOLD, backgroundColor: "rgba(201, 165, 90,0.1)" },
   name: { color: "#FFF4DE", fontWeight: "900", fontSize: 14 },
   sub: { color: "#B99A7C", fontSize: 12, fontWeight: "600" },
   score: { color: GOLD, fontWeight: "900", fontSize: 16 },

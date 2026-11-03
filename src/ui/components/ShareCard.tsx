@@ -40,8 +40,8 @@ export type ShareCardData = {
   frame?: CosmeticId | null;
 };
 
-const GOLD = "#D9B45A";
-const RED = "#FF5A4E";
+const GOLD = "#C9A55A";
+const RED = "#C45C52";
 const ART = {
   background: require("../../assets/sprites/backgrounds/Cover_Background.jpg"),
   logo: require("../../assets/sprites/ui/Logo_Grimbur.png"),
@@ -199,7 +199,7 @@ const makeStyles = (u: number) =>
     nameplate: { alignItems: "center", gap: 6 * u, minWidth: 280 * u, maxWidth: 400 * u, paddingHorizontal: 22 * u, paddingVertical: 10 * u, borderRadius: 16 * u, borderWidth: 2.5 * u, backgroundColor: "rgba(16,10,5,0.88)" },
     playerName: { color: "#FFF4DE", fontSize: 32 * u, fontWeight: "900", letterSpacing: 4 * u },
     plateRow: { flexDirection: "row", alignItems: "center", gap: 12 * u },
-    titleTag: { paddingHorizontal: 12 * u, paddingVertical: 3 * u, borderRadius: 8 * u, borderWidth: 2 * u, borderColor: "#E8B04A", backgroundColor: "rgba(40,26,10,0.9)" },
+    titleTag: { paddingHorizontal: 12 * u, paddingVertical: 3 * u, borderRadius: 8 * u, borderWidth: 2 * u, borderColor: "#CFA052", backgroundColor: "rgba(40,26,10,0.9)" },
     titleTagText: { color: GOLD, fontSize: 19 * u, fontWeight: "900", letterSpacing: 1.5 * u },
     rank: { fontSize: 20 * u, fontWeight: "900", letterSpacing: 1 * u },
     right: { flex: 1, justifyContent: "center", alignItems: "center", paddingTop: 34 * u, paddingRight: 60 * u, paddingLeft: 10 * u, gap: 14 * u },
@@ -219,6 +219,6 @@ const makeStyles = (u: number) =>
     tile: { flexDirection: "row", alignItems: "center", gap: 10 * u, paddingVertical: 8 * u, paddingLeft: 10 * u, paddingRight: 20 * u, borderRadius: 16 * u, borderWidth: 2 * u, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(0,0,0,0.45)" },
     tileArt: { width: 40 * u, height: 40 * u },
     tileText: { color: "#FFF4DE", fontSize: 28 * u, fontWeight: "900" },
-    footer: { position: "absolute", left: 26 * u, right: 26 * u, bottom: 26 * u, height: 58 * u, alignItems: "center", justifyContent: "center", borderBottomLeftRadius: 20 * u, borderBottomRightRadius: 20 * u, backgroundColor: "rgba(0,0,0,0.55)", borderTopWidth: 1.5 * u, borderTopColor: "rgba(217, 180, 90,0.25)" },
+    footer: { position: "absolute", left: 26 * u, right: 26 * u, bottom: 26 * u, height: 58 * u, alignItems: "center", justifyContent: "center", borderBottomLeftRadius: 20 * u, borderBottomRightRadius: 20 * u, backgroundColor: "rgba(0,0,0,0.55)", borderTopWidth: 1.5 * u, borderTopColor: "rgba(201, 165, 90,0.25)" },
     footerText: { color: "#E9DCCB", fontSize: 25 * u, fontWeight: "800", letterSpacing: 1 * u },
   });

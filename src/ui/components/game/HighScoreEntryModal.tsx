@@ -104,7 +104,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
           {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}
         </Text>
       )}
-      <Text style={popupTitleStyle('#D9B45A')} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
+      <Text style={popupTitleStyle('#C9A55A')} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
         {t(challenge ? 'entry.challenge.title' : daily ? 'entry.daily.title' : 'entry.title').toLocaleUpperCase()}
       </Text>
       <Text style={styles.score} maxFontSizeMultiplier={1.3}>
@@ -131,7 +131,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
           setError(null);
         }}
         maxLength={20}
-        selectionColor="#D9B45A"
+        selectionColor="#C9A55A"
         returnKeyType="done"
         onSubmitEditing={submit}
         editable={!saving}
@@ -153,7 +153,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   return (
     <Animated.View style={[StyleSheet.absoluteFill, { opacity: fade, zIndex: 1001 }]} pointerEvents="box-none">
       <OverlayContainer keyboardAvoiding>
-        <PopupPanel tint="#D9B45A" width={Math.min((width - Math.max(insets.left, 12) - Math.max(insets.right, 12)) * 0.98, compact ? 640 : 380)} style={compact ? styles.cardRow : styles.card}>
+        <PopupPanel tint="#C9A55A" width={Math.min((width - Math.max(insets.left, 12) - Math.max(insets.right, 12)) * 0.98, compact ? 640 : 380)} style={compact ? styles.cardRow : styles.card}>
           {summary}
           {form}
         </PopupPanel>
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   form: { gap: 8, width: '100%' },
   formRow: { flex: 1.2 },
   badge: { color: '#F3EADB', fontSize: 18, fontWeight: '900' },
-  score: { color: '#D9B45A', fontWeight: '900', fontSize: 26 },
+  score: { color: '#C9A55A', fontWeight: '900', fontSize: 26 },
   trophy: { width: 54, height: 54, marginBottom: -2 },
   subtitle: { color: '#b5b5b5', fontSize: 12, letterSpacing: 0.5, textAlign: 'center' },
   input: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     borderWidth: 1,
-    borderColor: 'rgba(217, 180, 90,0.45)',
+    borderColor: 'rgba(201, 165, 90,0.45)',
   },
   error: { color: '#D58A7E', fontSize: 12, fontWeight: '700' },
   buttons: { flexDirection: 'row', gap: 10 },

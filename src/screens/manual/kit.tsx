@@ -150,7 +150,7 @@ export function buildKit({ t, wide, navigation, current, index, total }: Frame):
     </View>
   );
   const icon: Kit["icon"] = (name, tint) => <Art icon={name} tint={tint} />;
-  const image: Kit["image"] = (source, tint = "#D9B45A") => <Art image={source} tint={tint} />;
+  const image: Kit["image"] = (source, tint = "#C9A55A") => <Art image={source} tint={tint} />;
   const tileWith: Kit["tileWith"] = (source, glyph, tint) => (
     <Art tint={tint}>
       <SpriteImage source={source} style={{ width: 44, height: 44 }} resizeMode="stretch" accessibilityIgnoresInvertColors />

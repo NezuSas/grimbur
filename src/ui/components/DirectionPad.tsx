@@ -25,7 +25,7 @@ type Props = {
   noAttack?: boolean;
 };
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 
 const animateScale = (anim: Animated.Value, toValue: number) => {
   Animated.timing(anim, { toValue, duration: 90, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
@@ -218,7 +218,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, n
             height: D * Math.SQRT2,
             left: D / 2 + ARROWS.find(a => a.dir === active)!.dx * D - (D * Math.SQRT2) / 2,
             top: D / 2 + ARROWS.find(a => a.dir === active)!.dy * D - (D * Math.SQRT2) / 2,
-            backgroundColor: "rgba(217, 180, 90, 0.34)",
+            backgroundColor: "rgba(201, 165, 90, 0.34)",
             transform: [{ rotate: "45deg" }],
           }}
         />
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   disc: {
     backgroundColor: "rgba(22, 15, 9, 0.8)",
     borderWidth: 3,
-    borderColor: "rgba(217, 180, 90, 0.55)",
+    borderColor: "rgba(201, 165, 90, 0.55)",
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -297,17 +297,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     backgroundColor: "rgba(22, 15, 9, 0.95)",
     borderWidth: 2,
-    borderColor: "rgba(217, 180, 90, 0.3)",
+    borderColor: "rgba(201, 165, 90, 0.3)",
   },
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   // The medallion is painted: no border or Android elevation (that drew a square shadow behind the round art).
   attack: { alignItems: "center", justifyContent: "center", overflow: "visible" },
   attackReady: Platform.select({
-    ios: { shadowColor: "#FF6A2B", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.6, shadowRadius: 10 },
+    ios: { shadowColor: "#C46A3E", shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.6, shadowRadius: 10 },
     default: {},
   }) ?? {},
   aimLayer: { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(20,8,4,0.55)" },
-  countBadge: { position: "absolute", paddingHorizontal: 6, backgroundColor: "#1b120b", borderWidth: 2, borderColor: "#E8B04A", alignItems: "center", justifyContent: "center" },
+  countBadge: { position: "absolute", paddingHorizontal: 6, backgroundColor: "#1b120b", borderWidth: 2, borderColor: "#CFA052", alignItems: "center", justifyContent: "center" },
   countBadgeEmpty: { borderColor: "#8a8a92" },
   count: {
     color: "#E8D3A2",

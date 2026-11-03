@@ -11,7 +11,7 @@ import { YULE_FLOORS, YULE_PUZZLES, yuleProgress, type EventProgress } from "../
 import { useEscapeKey } from "../hotkeys";
 
 const PINE = "#8EAE7C";
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 
 type Props = { events: EventProgress | undefined; today: string; onClose: () => void; onPuzzles: () => void };
 

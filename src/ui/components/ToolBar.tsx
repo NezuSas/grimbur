@@ -85,7 +85,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {ability && (
         <ToolButton
           art={ABILITY_ART[ability]}
-          color="#D9B45A"
+          color="#C9A55A"
           size={size}
           label={`${abilityName}. ${abilityCd > 0 ? t("tool.cooldown", { name: abilityName, n: abilityCd }) : t("tool.ready", { name: abilityName })}. ${t(`ability.${ability}.desc`)}`}
           onPress={onAbility}
@@ -108,7 +108,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {bomb > 0 && (
         <ToolButton
           art={TOOL_ART.bomb}
-          color="#CC6E44"
+          color="#B86A48"
           size={size}
           label={`${t("tool.count", { name: t("tool.bomb.name"), count: bomb })}. ${t("tool.bomb.desc")}`}
           onPress={onBomb}

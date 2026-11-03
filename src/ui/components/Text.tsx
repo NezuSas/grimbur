@@ -6,6 +6,9 @@ type Ref = React.ComponentRef<typeof RNText>;
 
 const LINING: TextStyle['fontVariant'] = ['lining-nums'];
 
+/** How far a text held to a few lines may shrink on its own before an ellipsis cuts it. */
+const AUTO_MIN_SCALE = 0.7;
+
 /** The text's own font variants plus lining figures (unless it asks for old-style ones). */
 function withLining(v: TextStyle['fontVariant']): TextStyle['fontVariant'] {
   if (!v || !v.length) return LINING;
@@ -21,14 +24,51 @@ const Text = React.forwardRef<Ref, TextProps>(({ style, ...rest }, ref) => {
   const resolved = flat.fontFamily
     ? { ...flat, fontVariant: lining }
     : { ...flat, fontFamily: familyForWeight(flat.fontWeight, flat.fontSize), fontWeight: undefined, fontVariant: lining };
-  if (Platform.OS === 'web' && rest.adjustsFontSizeToFit && rest.numberOfLines) {
-    return <WebFitText ref={ref} style={resolved} {...rest} />;
+  // A text held to a few lines shrinks a little to fit before it is ever cut with an ellipsis (the inscription face of the
+  // titles is wide); one that already says how it fits keeps its own setting.
+  const fitProps =
+    rest.numberOfLines && rest.adjustsFontSizeToFit === undefined
+      ? { adjustsFontSizeToFit: true, minimumFontScale: rest.minimumFontScale ?? AUTO_MIN_SCALE }
+      : null;
+  const props = fitProps ? { ...rest, ...fitProps } : rest;
+  if (Platform.OS === 'web' && props.adjustsFontSizeToFit && props.numberOfLines) {
+    return <WebFitText ref={ref} style={resolved} {...props} />;
   }
-  return <RNText ref={ref} style={resolved} {...rest} />;
+  return <RNText ref={ref} style={resolved} {...props} />;
 });
 Text.displayName = 'Text';
 
 export default Text;
+
+/**
+ * How much wider than its box a one-line text is (above 1: the browser cuts it with an ellipsis). The text is laid out
+ * once more in a hidden copy with the same font settings (figures, spacing, case) and compared with the box's fractional
+ * width: `scrollWidth` and `clientWidth` are rounded, and a line a fifth of a pixel too long reads as fitting while it is
+ * already cut.
+ */
+let probe: HTMLSpanElement | null = null;
+function lineOverflow(el: HTMLElement): number {
+  const box = el.getBoundingClientRect().width;
+  if (!box || typeof document === 'undefined') return el.scrollWidth / Math.max(1, el.clientWidth);
+  if (!probe) {
+    probe = document.createElement('span');
+    probe.setAttribute('aria-hidden', 'true');
+    Object.assign(probe.style, { position: 'absolute', left: '-9999px', top: '0', visibility: 'hidden', whiteSpace: 'nowrap' });
+    document.body.appendChild(probe);
+  }
+  const cs = getComputedStyle(el);
+  const p = probe.style;
+  p.fontFamily = cs.fontFamily;
+  p.fontSize = cs.fontSize;
+  p.fontWeight = cs.fontWeight;
+  p.fontStyle = cs.fontStyle;
+  p.fontVariant = cs.fontVariant;
+  p.fontFeatureSettings = cs.fontFeatureSettings;
+  p.letterSpacing = cs.letterSpacing;
+  p.textTransform = cs.textTransform;
+  probe.innerHTML = el.innerHTML;
+  return probe.getBoundingClientRect().width / box;
+}
 
 /** How far the web shrinks a text that does not fit, at most (as on a phone: `minimumFontScale`, else half). */
 const MIN_SCALE = 0.5;
@@ -53,8 +93,10 @@ const WebFitText = React.forwardRef<Ref, TextProps>(({ style, minimumFontScale, 
     let scale = 1;
     for (let i = 0; i < 12 && scale > min; i++) {
       // Strict: a single pixel over the box is enough for the browser to draw an ellipsis.
-      if (el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight + 1) break;
-      const over = Math.max(el.scrollWidth / el.clientWidth, el.scrollHeight / Math.max(1, el.clientHeight));
+      const across = rest.numberOfLines === 1 ? lineOverflow(el) : el.scrollWidth / el.clientWidth;
+      const down = el.scrollHeight / Math.max(1, el.clientHeight + 1);
+      if (across <= 1.001 && down <= 1) break;
+      const over = Math.max(across, down);
       // One line shrinks in proportion to its width; a wrapped block more gently, as fewer words move between lines.
       scale = Math.max(min, scale * (rest.numberOfLines === 1 ? Math.min(0.97, 1 / over) : 0.93));
       el.style.fontSize = `${base * scale}px`;

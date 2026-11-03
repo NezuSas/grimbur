@@ -5,7 +5,7 @@ import Text from "../../ui/components/Text";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 
-const TINT = "#D9B45A";
+const TINT = "#C9A55A";
 const STEPS: { icon: React.ComponentProps<typeof Ionicons>["name"]; key: TranslationKey }[] = [
   { icon: "footsteps", key: "puzzle.guide.walk" },
   { icon: "pulse", key: "puzzle.guide.clues" },

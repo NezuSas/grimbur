@@ -336,7 +336,7 @@ const CoverCard: React.FC<Props> = ({
           ui={ui}
           compactCard={short}
           icon="play"
-          tint="#D9B052"
+          tint="#C9A356"
           title={savedRun.endless ? t("cover.resume.endless") : t("cover.resume")}
           subtitle={t("cover.resume.floor", { floor: savedRun.floor })}
           onPress={onPressResume}
@@ -490,13 +490,13 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
-  floorLight: { position: "absolute", bottom: 0, backgroundColor: "rgba(255,150,50,0.1)" },
+  floorLight: { position: "absolute", bottom: 0, backgroundColor: "rgba(208, 138, 72,0.1)" },
   medallion: {
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(16, 10, 5, 0.62)",
     borderWidth: 3,
-    borderColor: "rgba(217, 176, 82, 0.7)",
+    borderColor: "rgba(201, 163, 86, 0.7)",
     shadowColor: "#D38C46",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.7,
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   // A warm light behind the beast: it is what lifts a purple monster off a purple cave.
-  medallionGlow: { position: "absolute", backgroundColor: "rgba(255, 170, 60, 0.2)" },
+  medallionGlow: { position: "absolute", backgroundColor: "rgba(207, 148, 70, 0.2)" },
   menu: { gap: 8 },
   modeRow: { flexDirection: "row", gap: 8 },
   dock: {
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: "rgba(16, 10, 5, 0.82)",
     borderWidth: 1,
-    borderColor: "rgba(217, 176, 82,0.25)",
+    borderColor: "rgba(201, 163, 86,0.25)",
   },
   dockSolo: { flexDirection: "row", justifyContent: "center", marginTop: 2 },
   dockItem: { flex: 1, alignItems: "center", gap: 4, minHeight: MIN_TOUCH + 18 },
@@ -529,15 +529,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(40,26,12,0.9)",
     borderWidth: 1.5,
-    borderColor: "rgba(217, 176, 82,0.6)",
+    borderColor: "rgba(201, 163, 86,0.6)",
   },
   chips: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
   eventChip: { borderColor: "#81C784AA", backgroundColor: "rgba(27, 60, 32, 0.85)" },
   eventChipText: { color: "#C8E6C9" },
   eventChipIcon: { color: "#E3F2FD", fontSize: 15, fontWeight: "900" },
-  puzzleChip: { borderColor: "rgba(77,208,225,0.7)", paddingHorizontal: 10 },
+  puzzleChip: { borderColor: "rgba(108, 176, 185,0.7)", paddingHorizontal: 10 },
   puzzleChipText: { color: "#8FC0C5", fontSize: 13, letterSpacing: 1 },
-  puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#CC5249", borderWidth: 2, borderColor: "#1a120a" },
+  puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#B5524A", borderWidth: 2, borderColor: "#1a120a" },
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -547,9 +547,9 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     backgroundColor: "rgba(16, 10, 5,0.72)",
     borderWidth: 1.5,
-    borderColor: "rgba(216, 154, 76,0.6)",
+    borderColor: "rgba(196, 139, 78,0.6)",
   },
-  chipText: { color: "#D89A4C", fontWeight: "800", fontSize: 15 },
+  chipText: { color: "#C48B4E", fontWeight: "800", fontSize: 15 },
   dot: {
     position: "absolute",
     top: 0,
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: "#FF4D4D",
+    backgroundColor: "#C2544E",
     borderWidth: 2,
     borderColor: "#2A2016",
   },

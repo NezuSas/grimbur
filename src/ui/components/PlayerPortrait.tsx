@@ -37,6 +37,6 @@ export const PlayerTitle = ({ title }: { title?: unknown }) => {
 };
 
 const styles = StyleSheet.create({
-  plate: { alignSelf: "flex-start", marginTop: 2, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1, borderColor: "#E8B04A" },
-  plateText: { color: "#D9B45A", fontWeight: "900", fontSize: 11, letterSpacing: 0.8 },
+  plate: { alignSelf: "flex-start", marginTop: 2, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1, borderColor: "#CFA052" },
+  plateText: { color: "#C9A55A", fontWeight: "900", fontSize: 11, letterSpacing: 0.8 },
 });

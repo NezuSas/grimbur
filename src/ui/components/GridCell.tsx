@@ -402,7 +402,7 @@ const GridCell = memo(({
       {rippled.current && (
         <Animated.View
           pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(217, 180, 90,0.55)", borderRadius: 8, opacity: glow }]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(201, 165, 90,0.55)", borderRadius: 8, opacity: glow }]}
         />
       )}
 
@@ -412,14 +412,14 @@ const GridCell = memo(({
           style={[
             StyleSheet.absoluteFill,
             {
-              backgroundColor: vortex ? "rgba(156,39,176,0.15)" : "rgba(255,220,0,0.08)",
+              backgroundColor: vortex ? "rgba(156,39,176,0.15)" : "rgba(214, 184, 74,0.08)",
               opacity: tintOpacity,
             },
           ]}
         />
       )}
 
-      {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#DCA45A" : vortex ? "#A397BF" : "#D7CCC8"} /> : null}
+      {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#C99A5C" : vortex ? "#A397BF" : "#D7CCC8"} /> : null}
 
       {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }]}>
@@ -517,7 +517,7 @@ const GridCell = memo(({
       {/* The draft of a secret room: a glint in the corner, kept out of the clue tokens' way. */}
       {draft && !hideClue ? (
         <View pointerEvents="none" style={[styles.draft, { width: tileSize * 0.3, height: tileSize * 0.3, borderRadius: tileSize * 0.15 }]}>
-          <Ionicons name="sparkles" size={tileSize * 0.2} color="#E6CC88" />
+          <Ionicons name="sparkles" size={tileSize * 0.2} color="#DCC48E" />
         </View>
       ) : null}
 
@@ -607,37 +607,37 @@ const GridCell = memo(({
 
 const styles = StyleSheet.create({
   deduced: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderWidth: 2, alignItems: 'flex-end', justifyContent: 'flex-start', padding: 2 },
-  deducedSafe: { borderColor: 'rgba(105,240,174,0.7)', backgroundColor: 'rgba(105,240,174,0.10)' },
-  deducedDanger: { borderColor: 'rgba(204, 82, 73,0.75)', backgroundColor: 'rgba(204, 82, 73,0.12)' },
+  deducedSafe: { borderColor: 'rgba(125, 190, 152,0.7)', backgroundColor: 'rgba(125, 190, 152,0.10)' },
+  deducedDanger: { borderColor: 'rgba(181, 82, 74,0.75)', backgroundColor: 'rgba(181, 82, 74,0.12)' },
   deducedBadge: { alignItems: 'center', justifyContent: 'center' },
   draft: { position: 'absolute', left: 2, top: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(40,28,8,0.8)', borderWidth: 1, borderColor: 'rgba(255,224,130,0.7)', zIndex: 5 },
   verdictBadge: { position: 'absolute', right: 1, bottom: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fff' },
   deducedBadgeSafe: { backgroundColor: '#2E9E5B' },
-  deducedBadgeDanger: { backgroundColor: '#D32F2F' },
+  deducedBadgeDanger: { backgroundColor: '#A83A35' },
   loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#8CC4D6' },
   lootText: { color: '#F3EADB', fontWeight: '900' },
   cell: { alignItems: "center", justifyContent: "center" },
   creatureShadow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(0,0,0,0.55)" },
-  creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(255,72,40,0.16)" },
+  creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(194, 80, 58,0.16)" },
   bossAura: { position: "absolute", backgroundColor: "rgba(194, 58, 68, 0.28)", borderRadius: 8 },
   tileTone: { position: 'absolute', borderRadius: 6 },
   // The painted tiles already tell explored from unexplored; these only push the two a little further apart.
   toneLit: { backgroundColor: 'rgba(255,236,200,0.07)' },
   toneDark: { backgroundColor: 'rgba(4,0,18,0.28)' },
   sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B9D1DC', fontWeight: '900' },
-  stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
-  stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#DCC25C" },
+  stalkerAura: { position: "absolute", backgroundColor: "rgba(142, 94, 158, 0.3)", borderRadius: 8 },
+  stalkerCharged: { backgroundColor: "rgba(142, 94, 158, 0.65)", borderWidth: 2, borderColor: "#DCC25C" },
   bossCharged: { backgroundColor: "rgba(194, 58, 68, 0.62)", borderWidth: 2, borderColor: "#DCC25C" },
-  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(204, 82, 73,0.6)", backgroundColor: "rgba(204, 82, 73,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
-  aimLast: { borderWidth: 2, borderColor: "rgba(204, 82, 73,0.95)", backgroundColor: "rgba(204, 82, 73,0.24)" },
+  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(181, 82, 74,0.6)", backgroundColor: "rgba(181, 82, 74,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
+  aimLast: { borderWidth: 2, borderColor: "rgba(181, 82, 74,0.95)", backgroundColor: "rgba(181, 82, 74,0.24)" },
   aimRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,255,255,0.85)" },
-  highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#D9B45A", borderRadius: 6, zIndex: 6 },
+  highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#C9A55A", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
   bossHpText: { color: "#C23A44", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
   flagVerdict: { position: "absolute", borderWidth: 3 },
   flagRight: { borderColor: "#A3BF7C", backgroundColor: "rgba(163, 191, 124,0.18)" },
-  flagWrong: { borderColor: "#CF6F68", backgroundColor: "rgba(204, 82, 73,0.16)" },
+  flagWrong: { borderColor: "#CF6F68", backgroundColor: "rgba(181, 82, 74,0.16)" },
   playerHighlight: {
     position: "absolute",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -665,8 +665,8 @@ const styles = StyleSheet.create({
   },
   hintCountVortex: { borderColor: "#D3C2D8" },
   hintCountText: { color: "#F3EADB", fontWeight: "900", includeFontPadding: false },
-  chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#DCC25C", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
-  chargeMarkText: { color: "#B71C1C", fontWeight: "900", includeFontPadding: false },
+  chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#DCC25C", borderWidth: 1.5, borderColor: "#8E2A26", alignItems: "center", justifyContent: "center" },
+  chargeMarkText: { color: "#8E2A26", fontWeight: "900", includeFontPadding: false },
   flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(194, 58, 68,0.55)", borderRadius: 8 },
   killer: { position: "absolute", left: 1, top: 1, right: 1, bottom: 1, borderRadius: 8, borderWidth: 4, borderColor: "#C23A44", backgroundColor: "rgba(194, 58, 68,0.18)", zIndex: 9 },
 });
@@ -677,7 +677,11 @@ export default GridCell;
  * The clues of the tile the hero stands on, drawn above the hero (the hero's body would hide them): two small tokens at the
  * tile's top corner, each with its count, so the numbers the next step depends on are never covered.
  */
-export const HeroClues = ({ enemyCount, pitCount, tileSize }: { enemyCount: number; pitCount: number; tileSize: number }) => {
+/**
+ * The clues of the hero's own tile, drawn above its top-right corner. On the board's top row or right column that corner
+ * is outside the board, whose rounded frame clips it: there the tokens tuck inside the tile instead.
+ */
+export const HeroClues = ({ enemyCount, pitCount, tileSize, atTop = false, atRight = false }: { enemyCount: number; pitCount: number; tileSize: number; atTop?: boolean; atRight?: boolean }) => {
   if (enemyCount <= 0 && pitCount <= 0) return null;
   const size = Math.max(16, tileSize * 0.36);
   const countSize = Math.max(10, tileSize * 0.2);
@@ -691,7 +695,7 @@ export const HeroClues = ({ enemyCount, pitCount, tileSize }: { enemyCount: numb
     </View>
   );
   return (
-    <View pointerEvents="none" style={[heroClueStyles.row, { top: -size * 0.28, right: -size * 0.22, gap: 2 }]}>
+    <View pointerEvents="none" style={[heroClueStyles.row, { top: atTop ? 3 : -size * 0.28, right: atRight ? 3 : -size * 0.22, gap: 2 }]}>
       {enemyCount > 0 ? token(CLUE_ART.roar, enemyCount, false) : null}
       {pitCount > 0 ? token(CLUE_ART.vortex, pitCount, true) : null}
     </View>

@@ -25,8 +25,8 @@ type Props = {
   owned?: readonly RelicId[];
 };
 
-const GOLD = '#D9B45A';
-const RED = '#C4534A';
+const GOLD = '#C9A55A';
+const RED = '#B0524A';
 
 /**
  * The relic draft between floors. The game is played in landscape, where height is what runs out: a one-line header,

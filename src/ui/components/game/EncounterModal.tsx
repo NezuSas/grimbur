@@ -38,9 +38,9 @@ export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
 export const ENCOUNTER_TINT: Record<EncounterId, string> = {
   scout: "#A3BF7C",
   spring: "#7FAFC6",
-  gambler: "#D9B45A",
+  gambler: "#C9A55A",
   shrine: "#B08DBE",
-  miner: "#DCA45A",
+  miner: "#C99A5C",
   map: "#E8C07D",
   echo: "#8FC0C5",
   smith: "#D28663",

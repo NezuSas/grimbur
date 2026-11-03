@@ -9,7 +9,7 @@ type Props = {
 
 type Spark = { x: number; size: number; delay: number; duration: number; drift: number; color: string };
 
-const COLORS = ["#DCA45A", "#D38C46", "#FFD180", "#CC6E44"];
+const COLORS = ["#C99A5C", "#D38C46", "#FFD180", "#B86A48"];
 
 /** A few embers drifting up from the bottom of the screen. Purely decorative; ignores touches. */
 const EmberParticles: React.FC<Props> = ({ count = 12 }) => {

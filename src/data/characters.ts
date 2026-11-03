@@ -20,7 +20,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Cyan.webp"),
     winImage: require("../assets/sprites/characters/Win_Cyan.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Cyan.webp"),
-    arrowColor: "#00E5FF",
+    arrowColor: "#5FB4C4",
   },
   {
     id: 2,
@@ -50,7 +50,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Gold.webp"),
     winImage: require("../assets/sprites/characters/Win_Gold.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Gold.webp"),
-    arrowColor: "#FFD600",
+    arrowColor: "#D4B448",
   },
   {
     id: 5,
@@ -60,7 +60,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Pink.webp"),
     winImage: require("../assets/sprites/characters/Win_Pink.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Pink.webp"),
-    arrowColor: "#FF4FB0",
+    arrowColor: "#BF6496",
   },
   {
     id: 6,
@@ -70,7 +70,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Orange.webp"),
     winImage: require("../assets/sprites/characters/Win_Orange.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Orange.webp"),
-    arrowColor: "#FF9100",
+    arrowColor: "#CC8436",
   },
 ];
 

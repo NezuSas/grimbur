@@ -31,26 +31,26 @@ type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 
 /** Every topic wears a piece of the game's own painted art, so the guide looks like the game it explains. */
 const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string; art: ImageSourcePropType }[] = [
-  { id: "start", icon: "rocket", color: "#D9B45A", art: require("../assets/sprites/ui/Icon_Flag.webp") },
-  { id: "mission", icon: "flag", color: "#CC5249", art: require("../assets/sprites/enemies/Grimbur_Boss.webp") },
-  { id: "controls", icon: "game-controller", color: "#D9B45A", art: require("../assets/sprites/ui/Attack_Ready.webp") },
+  { id: "start", icon: "rocket", color: "#C9A55A", art: require("../assets/sprites/ui/Icon_Flag.webp") },
+  { id: "mission", icon: "flag", color: "#B5524A", art: require("../assets/sprites/enemies/Grimbur_Boss.webp") },
+  { id: "controls", icon: "game-controller", color: "#C9A55A", art: require("../assets/sprites/ui/Attack_Ready.webp") },
   { id: "explore", icon: "map", color: "#7FAFC6", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
   { id: "hazards", icon: "warning", color: "#D49242", art: require("../assets/sprites/tiles/Danger_Vortex.png") },
   { id: "techniques", icon: "bulb", color: "#6CB0B9", art: require("../assets/sprites/ui/Icon_Riddle.webp") },
   { id: "bestiary", icon: "paw", color: "#8EB7B0", art: require("../assets/sprites/enemies/Mimic_Enemy.webp") },
-  { id: "combat", icon: "flash", color: "#CC5249", art: require("../assets/sprites/items/Icon_Arrows.webp") },
+  { id: "combat", icon: "flash", color: "#B5524A", art: require("../assets/sprites/items/Icon_Arrows.webp") },
   { id: "powerups", icon: "shield", color: "#7FAFC6", art: require("../assets/sprites/items/Icon_Shield.webp") },
   { id: "heroes", icon: "people", color: "#C98FA3", art: characters[0].scoreImage },
   { id: "relics", icon: "sparkles", color: "#B08DBE", art: require("../assets/sprites/relics/phoenix.webp") },
   { id: "relicbook", icon: "book", color: "#D6AA48", art: require("../assets/sprites/relics/lantern.webp") },
   { id: "chronicle", icon: "document-text", color: "#e8c07d", art: require("../assets/sprites/ui/Icon_Book.webp") },
   { id: "encounters", icon: "compass", color: "#A3BF7C", art: require("../assets/sprites/encounters/Encounter_Scout.webp") },
-  { id: "tools", icon: "construct", color: "#D9B45A", art: require("../assets/sprites/tools/Tool_Bomb.webp") },
+  { id: "tools", icon: "construct", color: "#C9A55A", art: require("../assets/sprites/tools/Tool_Bomb.webp") },
   { id: "worlds", icon: "planet", color: "#8EB7B0", art: require("../assets/sprites/achievements/Ach_Depth.webp") },
   { id: "modes", icon: "layers", color: "#7E87B0", art: require("../assets/sprites/achievements/Ach_Endless.webp") },
-  { id: "forge", icon: "flame", color: "#D89A4C", art: require("../assets/sprites/ui/Icon_Hammer.webp") },
+  { id: "forge", icon: "flame", color: "#C48B4E", art: require("../assets/sprites/ui/Icon_Hammer.webp") },
   { id: "scoring", icon: "trophy", color: "#8EAE7C", art: require("../assets/sprites/ui/Icon_Trophy.webp") },
-  { id: "tips", icon: "bulb", color: "#4db6ac", art: require("../assets/sprites/ui/Icon_Star.webp") },
+  { id: "tips", icon: "bulb", color: "#6FA39C", art: require("../assets/sprites/ui/Icon_Star.webp") },
 ];
 
 const InstructionsScreen: React.FC<Props> = ({ navigation, route }) => {

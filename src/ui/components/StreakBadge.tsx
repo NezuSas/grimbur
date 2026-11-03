@@ -49,7 +49,7 @@ const StreakBadge: React.FC<Props> = ({ days, doneToday }) => {
 
 const styles = StyleSheet.create({
   wrap: { minWidth: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center", borderWidth: 2, paddingHorizontal: 8 },
-  lit: { backgroundColor: "rgba(255,154,60,0.18)", borderColor: "rgba(255,154,60,0.85)" },
+  lit: { backgroundColor: "rgba(211, 140, 70,0.18)", borderColor: "rgba(211, 140, 70,0.85)" },
   cold: { backgroundColor: "rgba(255,255,255,0.05)", borderColor: "rgba(255,255,255,0.18)" },
   days: { color: "#FFD9A8", fontWeight: "800", fontSize: 17, marginTop: -3 },
   check: {

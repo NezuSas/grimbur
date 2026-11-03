@@ -11,7 +11,7 @@ export const BORDER = "rgba(255,255,255,0.09)";
 type IconName = keyof typeof Ionicons.glyphMap;
 
 /** A picture for a card: any image or an icon on a tinted tile, always the same size so a column of cards lines up. */
-export const Art = ({ image, icon, tint = "#D9B45A", size = 56, children }: { image?: ImageSourcePropType; icon?: IconName; tint?: string; size?: number; children?: React.ReactNode }) => (
+export const Art = ({ image, icon, tint = "#C9A55A", size = 56, children }: { image?: ImageSourcePropType; icon?: IconName; tint?: string; size?: number; children?: React.ReactNode }) => (
   <View style={[styles.art, { width: size, height: size, borderRadius: size * 0.28, backgroundColor: tint + "1F", borderColor: tint + "55" }]}>
     {children ? (
       children
@@ -53,7 +53,7 @@ export const FactCard = ({ label, detail, badge, color, art }: { label: string; 
 );
 
 /** A small heading inside a topic (above a list of cards). */
-export const SubHeading = ({ text, color = "#D9B45A" }: { text: string; color?: string }) => (
+export const SubHeading = ({ text, color = "#C9A55A" }: { text: string; color?: string }) => (
   <Text style={[styles.sub, { color }]} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
     {text.toLocaleUpperCase()}
   </Text>
@@ -121,7 +121,7 @@ export const ScoreTable = ({ rows }: { rows: { label: string; value: string; goo
             </Text>
           ) : null}
         </View>
-        <View style={[styles.value, { backgroundColor: r.good ? "rgba(129,199,132,0.16)" : "rgba(196, 83, 74,0.16)", borderColor: r.good ? "#8EAE7C" : "#C4534A" }]}>
+        <View style={[styles.value, { backgroundColor: r.good ? "rgba(129,199,132,0.16)" : "rgba(176, 82, 74,0.16)", borderColor: r.good ? "#8EAE7C" : "#B0524A" }]}>
           <Text style={[styles.valueText, { color: r.good ? "#A5BC9E" : "#ef9a9a" }]} maxFontSizeMultiplier={1.2}>
             {r.value}
           </Text>
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   sub: { fontWeight: "900", fontSize: 13, letterSpacing: 2, marginTop: 6 },
   example: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 14 },
   exampleText: { flex: 1, color: "#DCCCBD", fontSize: 14, lineHeight: 20 },
-  q: { color: "#D9B45A", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
+  q: { color: "#C9A55A", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
   clueBadge: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   clueCount: { position: "absolute", right: -7, bottom: -7, width: 18, height: 18, borderRadius: 9, backgroundColor: "#2A2016", borderWidth: 1.5, borderColor: "#fff", alignItems: "center", justifyContent: "center" },
   clueCountText: { color: "#F3EADB", fontWeight: "900", fontSize: 11 },

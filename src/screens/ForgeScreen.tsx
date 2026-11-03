@@ -405,7 +405,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  error: { color: "#CC5249", fontWeight: "800", textAlign: "center" },
+  error: { color: "#B5524A", fontWeight: "800", textAlign: "center" },
   allBought: { color: GOLD, fontWeight: "900", fontSize: 14, textAlign: "center" },
 
   body: { flex: 1, flexDirection: "row", gap: 12, paddingHorizontal: 12, paddingTop: 2 },
@@ -415,9 +415,9 @@ const styles = StyleSheet.create({
   sideContent: { gap: 8, paddingBottom: 8 },
   browse: { flex: 1, gap: 8 },
 
-  show: { borderRadius: 20, borderWidth: 2, borderColor: "rgba(216, 154, 76,0.3)", backgroundColor: "rgba(36,28,19,0.92)", padding: 12, gap: 7, overflow: "hidden" },
-  showReady: { borderColor: EMBER, backgroundColor: "rgba(216, 154, 76,0.12)", shadowColor: EMBER, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
-  showMaxed: { borderColor: "rgba(217, 180, 90,0.55)", backgroundColor: "rgba(217, 180, 90,0.07)" },
+  show: { borderRadius: 20, borderWidth: 2, borderColor: "rgba(196, 139, 78,0.3)", backgroundColor: "rgba(36,28,19,0.92)", padding: 12, gap: 7, overflow: "hidden" },
+  showReady: { borderColor: EMBER, backgroundColor: "rgba(196, 139, 78,0.12)", shadowColor: EMBER, shadowOpacity: 0.5, shadowRadius: 14, elevation: 8 },
+  showMaxed: { borderColor: "rgba(201, 165, 90,0.55)", backgroundColor: "rgba(201, 165, 90,0.07)" },
   kicker: { color: "#E1D4C8", fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
   showTop: { flexDirection: "row", gap: 12, alignItems: "center" },
   showName: { color: "#F3EADB", fontWeight: "900", fontSize: 18 },
@@ -430,11 +430,11 @@ const styles = StyleSheet.create({
   owned: { color: "#B8997A", fontSize: 11.5, fontWeight: "800" },
   gearGrid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   // Two per row, or one when the column is too narrow for two to read in full.
-  gearChip: { flexBasis: "47%", minWidth: 130, flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(216, 154, 76,0.08)" },
+  gearChip: { flexBasis: "47%", minWidth: 130, flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 7, paddingVertical: 5, borderRadius: 10, backgroundColor: "rgba(196, 139, 78,0.08)" },
   gearText: { color: "#F3EEEA", fontSize: 11.5, fontWeight: "700", flexShrink: 1 },
   gearEmpty: { color: "#CAB39C", fontSize: 12.5 },
 
-  how: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(216, 154, 76,0.3)", backgroundColor: "rgba(216, 154, 76,0.06)", padding: 10, gap: 6 },
+  how: { borderRadius: 14, borderWidth: 1, borderColor: "rgba(196, 139, 78,0.3)", backgroundColor: "rgba(196, 139, 78,0.06)", padding: 10, gap: 6 },
   howHead: { flexDirection: "row", alignItems: "center", gap: 6 },
   howTitle: { color: EMBER, fontWeight: "900", fontSize: 11.5, flex: 1 },
   howItem: { flexDirection: "row", gap: 6, alignItems: "flex-start" },
@@ -446,20 +446,20 @@ const styles = StyleSheet.create({
   chipOn: { backgroundColor: EMBER, borderColor: EMBER },
   chipText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12.5 },
   chipTextOn: { color: "#1a0f00" },
-  chipBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#CC5249", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  chipBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#B5524A", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   chipBadgeText: { color: "#F3EADB", fontSize: 11, fontWeight: "900" },
   readyNote: { color: EMBER, fontWeight: "800", fontSize: 12, marginLeft: 2, flexShrink: 1 },
 
   tile: { alignItems: "center", gap: 5, paddingTop: 10, paddingBottom: 8, paddingHorizontal: 6, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(36,28,19,0.88)", overflow: "hidden", minHeight: 150 },
-  tileReady: { borderColor: EMBER, backgroundColor: "rgba(216, 154, 76,0.1)" },
-  tileMaxed: { borderColor: "rgba(217, 180, 90,0.45)", backgroundColor: "rgba(217, 180, 90,0.06)" },
-  tileSelected: { borderColor: "#FFE08A", borderWidth: 2.5, backgroundColor: "rgba(217, 180, 90,0.18)" },
+  tileReady: { borderColor: EMBER, backgroundColor: "rgba(196, 139, 78,0.1)" },
+  tileMaxed: { borderColor: "rgba(201, 165, 90,0.45)", backgroundColor: "rgba(201, 165, 90,0.06)" },
+  tileSelected: { borderColor: "#FFE08A", borderWidth: 2.5, backgroundColor: "rgba(201, 165, 90,0.18)" },
   tileName: { color: "#F3EADB", fontWeight: "800", fontSize: 12, textAlign: "center", lineHeight: 14, minHeight: 28 },
   tilePips: { flexDirection: "row", gap: 3 },
   tilePip: { width: 10, height: 5, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.16)" },
   cost: { flexDirection: "row", alignItems: "center", gap: 3, minWidth: 56, justifyContent: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" },
   costReady: { backgroundColor: EMBER, borderColor: EMBER },
-  costMaxed: { backgroundColor: "rgba(217, 180, 90,0.12)", borderColor: "rgba(217, 180, 90,0.5)" },
+  costMaxed: { backgroundColor: "rgba(201, 165, 90,0.12)", borderColor: "rgba(201, 165, 90,0.5)" },
   costText: { color: "#EAE1D8", fontWeight: "900", fontSize: 12 },
 
   toast: {

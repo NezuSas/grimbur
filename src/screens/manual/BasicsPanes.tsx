@@ -18,11 +18,11 @@ export const MissionPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.mission.title"))}
-      {fact("manual.mission.goal", "#CC5249", image(IMG.gem, "#7FAFC6"))}
-      {fact("manual.mission.currency", "#D89A4C", icon("flame", "#D89A4C"))}
-      {fact("manual.mission.survival", "#C4534A", icon("skull", "#C4534A"))}
-      {fact("manual.mission.grimbur", "#CC5249", image(IMG.boss, "#9A72AC"))}
-      {fact("manual.mission.relics", "#ffd700", <Art tint="#ffd700"><RelicIcon id="lantern" size={44} /></Art>)}
+      {fact("manual.mission.goal", "#B5524A", image(IMG.gem, "#7FAFC6"))}
+      {fact("manual.mission.currency", "#C48B4E", icon("flame", "#C48B4E"))}
+      {fact("manual.mission.survival", "#B0524A", icon("skull", "#B0524A"))}
+      {fact("manual.mission.grimbur", "#B5524A", image(IMG.boss, "#9A72AC"))}
+      {fact("manual.mission.relics", "#CDAA4A", <Art tint="#CDAA4A"><RelicIcon id="lantern" size={44} /></Art>)}
       {fact("manual.mission.heroes", "#C98FA3", image(characters[0].scoreImage, "#C98FA3"))}
     </>
   );
@@ -35,22 +35,22 @@ export const ControlsPane = ({ kit }: { kit: Kit }) => {
       {heading(t("manual.controls.title"))}
       {fact(
         "manual.controls.move",
-        "#D9B45A",
-        <Art tint="#D9B45A">
+        "#C9A55A",
+        <Art tint="#C9A55A">
           <JoystickBase skin="console" radius={25} thumb={{ x: 9, y: -2 }} active={null} />
         </Art>,
       )}
       {fact(
         "manual.controls.attack",
-        "#CC6E44",
-        <Art tint="#CC6E44">
+        "#B86A48",
+        <Art tint="#B86A48">
           <View style={styles.attackDot}>
             <GlyphIcon name="bolt" size={24} />
           </View>
         </Art>,
       )}
       {fact("manual.controls.travel", "#7FAFC6", tileWith(IMG.revealed, "footsteps", "#fff"))}
-      {fact("manual.controls.flag", "#C4534A", tileWith(IMG.hidden, "flag", "#CC5249"))}
+      {fact("manual.controls.flag", "#B0524A", tileWith(IMG.hidden, "flag", "#B5524A"))}
       {fact("manual.controls.ability", "#8EAE7C", image(ABILITY_ART.scout, "#8EAE7C"))}
     </>
   );
@@ -102,14 +102,14 @@ export const HazardsPane = ({ kit }: { kit: Kit }) => {
           <SpriteImage source={CLUE_ART.vortex} style={styles.clueToken} resizeMode="contain" accessibilityIgnoresInvertColors />
         </View>
       </View>
-      {fact("manual.hazards.guardianInfo", "#C4534A", image(IMG.guardian, "#C4534A"))}
+      {fact("manual.hazards.guardianInfo", "#B0524A", image(IMG.guardian, "#B0524A"))}
       {fact("manual.hazards.stalker", "#9A72AC", image(IMG.stalker, "#9A72AC"))}
       {fact("manual.hazards.sleeper", "#90a4ae", image(IMG.sleeper, "#90a4ae"))}
       {fact("manual.hazards.mimic", "#7FAFC6", image(IMG.mimic, "#7FAFC6"))}
-      {fact("manual.hazards.thief", "#D9B45A", image(IMG.thief, "#D9B45A"))}
-      {fact("manual.hazards.lieutenant", "#CC6E44", image(IMG.lieutenant, "#CC6E44"))}
+      {fact("manual.hazards.thief", "#C9A55A", image(IMG.thief, "#C9A55A"))}
+      {fact("manual.hazards.lieutenant", "#B86A48", image(IMG.lieutenant, "#B86A48"))}
       {fact("manual.hazards.chest", "#D6AA48", image(IMG.chest, "#D6AA48"))}
-      {fact("manual.hazards.secret", "#E6CC88", image(IMG.secret, "#E6CC88"))}
+      {fact("manual.hazards.secret", "#DCC48E", image(IMG.secret, "#DCC48E"))}
       {fact("manual.hazards.merchant", "#C47268", image(IMG.merchant, "#C47268"))}
       {fact("manual.hazards.vortexInfo", "#B08DBE", image(IMG.vortex, "#B08DBE"))}
       <Text style={styles.note} maxFontSizeMultiplier={1.3}>
@@ -124,10 +124,10 @@ export const CombatPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.combat.title"))}
-      {fact("manual.combat.strike", "#CC5249", image(IMG.arrows, "#CC5249"))}
+      {fact("manual.combat.strike", "#B5524A", image(IMG.arrows, "#B5524A"))}
       {fact("manual.combat.turn", "#D49242", icon("hourglass", "#D49242"))}
-      {fact("manual.combat.ammo", "#C4534A", image(IMG.arrows, "#C4534A"))}
-      {fact("manual.combat.combo", "#CC6E44", icon("trending-up", "#CC6E44"))}
+      {fact("manual.combat.ammo", "#B0524A", image(IMG.arrows, "#B0524A"))}
+      {fact("manual.combat.combo", "#B86A48", icon("trending-up", "#B86A48"))}
     </>
   );
 };
@@ -139,8 +139,8 @@ export const PowerupsPane = ({ kit }: { kit: Kit }) => {
       {heading(t("manual.powerups.title"))}
       {fact("manual.powerups.gem", "#7FAFC6", image(IMG.gem, "#7FAFC6"))}
       {fact("manual.powerups.shield", "#7FAFC6", image(IMG.shield, "#7FAFC6"))}
-      {fact("manual.powerups.ammo", "#DCA45A", image(IMG.arrows, "#DCA45A"))}
-      {fact("manual.powerups.traps", "#DCA45A", image(IMG.trap, "#DCA45A"))}
+      {fact("manual.powerups.ammo", "#C99A5C", image(IMG.arrows, "#C99A5C"))}
+      {fact("manual.powerups.traps", "#C99A5C", image(IMG.trap, "#C99A5C"))}
     </>
   );
 };

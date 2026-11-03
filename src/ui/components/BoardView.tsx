@@ -715,7 +715,7 @@ const BoardView: React.FC<Props> = memo(
           {/* The clues of the hero's tile, above the hero: its body would cover them where they matter most. */}
           {!dying && !unveil && visitedSet.has(playerIndex) ? (
             <View pointerEvents="none" style={{ position: "absolute", left: colIndex * tileSize, top: rowIndex * tileSize, width: tileSize, height: tileSize, zIndex: 22 }}>
-              <HeroClues {...heroNear} tileSize={tileSize} />
+              <HeroClues {...heroNear} tileSize={tileSize} atTop={rowIndex === 0} atRight={colIndex === cols - 1} />
             </View>
           ) : null}
 
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
   noteBadge: { alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
   noteSafe: { backgroundColor: "rgba(163, 191, 124,0.92)", borderColor: "#e8ffd8" },
   noteNot: { backgroundColor: "rgba(20,14,10,0.82)", borderColor: "rgba(255,255,255,0.55)" },
-  noteSlash: { position: "absolute", backgroundColor: "#CC5249", transform: [{ rotate: "-45deg" }], borderRadius: 2 },
+  noteSlash: { position: "absolute", backgroundColor: "#B5524A", transform: [{ rotate: "-45deg" }], borderRadius: 2 },
   step: { position: "absolute", alignItems: "center", justifyContent: "flex-end", paddingBottom: 3, zIndex: 4 },
   ghost: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 6 },
   ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },

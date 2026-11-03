@@ -35,10 +35,10 @@ import { useSettingsStore } from "../state/settings/store";
 type Props = NativeStackScreenProps<RootStackParamList, "FriendsScreen">;
 type Tab = "people" | "duels" | "challenges";
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 const DUEL = "#D58A7E";
 const CHALLENGE = "#7FAFC6";
-const OUTCOME_COLOR = { won: "#A3BF7C", lost: "#D58A7E", tie: "#D9B45A" } as const;
+const OUTCOME_COLOR = { won: "#A3BF7C", lost: "#D58A7E", tie: "#C9A55A" } as const;
 
 const SWORDS = require("../assets/sprites/ui/Icon_Swords.webp");
 const PUZZLE = require("../assets/sprites/ui/Icon_Puzzle.webp");
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   bodyNarrow: { flexDirection: "column", alignItems: "stretch" },
   section: { color: GOLD, fontWeight: "900", fontSize: 11, letterSpacing: 2 },
 
-  player: { width: "32%", maxWidth: 340, gap: 10, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", backgroundColor: "rgba(48,36,22,0.88)" },
+  player: { width: "32%", maxWidth: 340, gap: 10, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.45)", backgroundColor: "rgba(48,36,22,0.88)" },
   playerNarrow: { width: "100%", maxWidth: undefined },
   playerTop: { flexDirection: "row", alignItems: "center", gap: 12 },
   playerName: { color: "#F3EADB", fontWeight: "900", fontSize: 18 },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   netRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4 },
   netLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 13, flex: 1 },
   netValue: { fontWeight: "900", fontSize: 16 },
-  customize: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
+  customize: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.6)", backgroundColor: "rgba(201, 165, 90,0.1)" },
   customizeText: { color: GOLD, fontWeight: "900", fontSize: 12, letterSpacing: 1 },
 
   main: { flex: 1, gap: 10 },

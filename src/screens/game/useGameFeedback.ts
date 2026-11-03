@@ -196,12 +196,12 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
             // A chest: the relic it held is named where it was opened.
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
-            if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: `${RELICS[state.chestRelic].icon} ${relicName(state.chestRelic)}`, subColor: "#D9B45A", popScale: 1.15 }, e.tile);
+            if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: `${RELICS[state.chestRelic].icon} ${relicName(state.chestRelic)}`, subColor: "#C9A55A", popScale: 1.15 }, e.tile);
           } else if (e.pickup === "secret") {
             // A secret room: its cache shown where it was found.
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
-            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#E6CC88", popScale: 1.2 }, e.tile);
+            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#DCC48E", popScale: 1.2 }, e.tile);
           } else if (e.pickup === "thief") {
             emitSound("COIN_COLLECTED");
             pushPopup({ points: 0, type: "streak", sub: "💎 ✔", subColor: "#7FAFC6" }, e.tile);

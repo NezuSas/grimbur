@@ -51,7 +51,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
 type CategoryId = "sound" | "controls" | "access" | "language" | "data" | "about";
 const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: string; label: TranslationKey; rail: TranslationKey; hint: TranslationKey }[] = [
   { id: "sound", icon: "volume-high", tint: "#7FAFC6", label: "settings.section.sound", rail: "settings.section.sound", hint: "settings.hero.sound" },
-  { id: "controls", icon: "game-controller", tint: "#D89A4C", label: "settings.section.controls", rail: "settings.section.controls", hint: "settings.hero.controls" },
+  { id: "controls", icon: "game-controller", tint: "#C48B4E", label: "settings.section.controls", rail: "settings.section.controls", hint: "settings.hero.controls" },
   { id: "access", icon: "eye", tint: "#A3BF7C", label: "settings.section.accessibility", rail: "settings.rail.access", hint: "settings.hero.access" },
   { id: "language", icon: "language", tint: "#B08DBE", label: "settings.section.language", rail: "settings.section.language", hint: "settings.hero.language" },
   { id: "data", icon: "save", tint: "#8EB7B0", label: "settings.section.data", rail: "settings.rail.data", hint: "settings.hero.data" },
@@ -466,7 +466,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     <>
       {keyboardCard}
       <SettingCard title={t("settings.group.move")} full>
-        <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#D89A4C" stacked>
+        <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#C48B4E" stacked>
           <Segmented options={padOptions} value={movePad} onChange={setMovePad} accessibilityLabel={t("settings.movePad")} />
         </SettingRow>
         {movePad === "floating" && (
@@ -484,23 +484,23 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           </>
         )}
         <RowDivider />
-        <SettingRow label={t("settings.swipe")} hint={t("settings.swipeHint")} icon="swap-horizontal" tint="#4DB6AC">
+        <SettingRow label={t("settings.swipe")} hint={t("settings.swipeHint")} icon="swap-horizontal" tint="#6FA39C">
           <ToggleSwitch value={swipeMove} onValueChange={setSwipeMove} accessibilityLabel={t("settings.swipe")} />
         </SettingRow>
       </SettingCard>
 
       <SettingCard title={t("settings.group.attack")} full>
-        <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#CC6E44" stacked>
+        <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#B86A48" stacked>
           <Segmented options={attackOptions} value={attackButton} onChange={setAttackButton} accessibilityLabel={t("settings.attackButton")} />
         </SettingRow>
         <RowDivider />
-        <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate" tint="#C4534A">
+        <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate" tint="#B0524A">
           <ToggleSwitch value={dragAim} onValueChange={setDragAim} accessibilityLabel={t("settings.dragAim")} />
         </SettingRow>
       </SettingCard>
 
       <SettingCard title={t("settings.group.layout")} full>
-        <SettingRow label={t("settings.controls")} icon="game-controller" tint="#D9B45A" stacked>
+        <SettingRow label={t("settings.controls")} icon="game-controller" tint="#C9A55A" stacked>
           <Segmented options={controlOptions} value={controlPosition} onChange={setControlPosition} accessibilityLabel={t("settings.controls")} />
         </SettingRow>
         <RowDivider />
@@ -517,13 +517,13 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
       </SettingRow>
       <RowDivider />
-      <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#D9B45A">
+      <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#C9A55A">
         <ToggleSwitch value={deductionHint} onValueChange={setDeductionHint} accessibilityLabel={t("settings.deductionHint")} />
       </SettingRow>
       {remindersSupported() ? (
         <>
           <RowDivider />
-          <SettingRow label={t("settings.reminder")} hint={reminderDenied ? t("settings.reminderDenied") : t("settings.reminderHint")} icon="notifications" tint="#DCA45A">
+          <SettingRow label={t("settings.reminder")} hint={reminderDenied ? t("settings.reminderDenied") : t("settings.reminderHint")} icon="notifications" tint="#C99A5C">
             <ToggleSwitch value={remindersEnabled} onValueChange={onToggleReminders} accessibilityLabel={t("settings.reminder")} />
           </SettingRow>
         </>
@@ -606,7 +606,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const dataPane = (
     <>
       <SettingCard title={t("profile.title")}>
-        <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#D9B45A">
+        <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#C9A55A">
           <RoundAction icon={nameOpen ? "chevron-up" : "pencil"} label={t("profile.name")} onPress={() => setNameOpen(open => !open)} />
         </SettingRow>
         {nameOpen ? (
@@ -859,7 +859,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           {isReal(GAME_CONFIG.monetization.termsUrl) && (
             <>
               <RowDivider />
-              <SettingRow label={t("settings.terms")} icon="document-text" tint="#DCA45A">
+              <SettingRow label={t("settings.terms")} icon="document-text" tint="#C99A5C">
                 <RoundAction icon="open-outline" label={t("settings.terms")} onPress={() => void Linking.openURL(GAME_CONFIG.monetization.termsUrl).catch(() => {})} />
               </SettingRow>
             </>
@@ -951,18 +951,18 @@ const styles = StyleSheet.create({
   kbIntro: { color: "#CDBBA5", fontSize: 12.5, marginBottom: 8 },
   kbGroups: { flexDirection: "row", flexWrap: "wrap", gap: 14 },
   kbGroup: { flexGrow: 1, flexBasis: 220, gap: 4 },
-  kbGroupTitle: { color: "#D89A4C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.6, marginBottom: 2 },
+  kbGroupTitle: { color: "#C48B4E", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.6, marginBottom: 2 },
   kbRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 32 },
   kbLabel: { flex: 1, color: "#E6D6C2", fontWeight: "800", fontSize: 12.5 },
   kbCaps: { flexDirection: "row", gap: 5 },
   kbCap: { minWidth: 30, alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, borderWidth: 1, borderBottomWidth: 3 },
-  kbCapEdit: { borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
-  kbCapListening: { backgroundColor: "#D9B45A", borderColor: "#D9B45A" },
+  kbCapEdit: { borderColor: "rgba(201, 165, 90,0.6)", backgroundColor: "rgba(201, 165, 90,0.1)" },
+  kbCapListening: { backgroundColor: "#C9A55A", borderColor: "#C9A55A" },
   kbCapFixed: { borderColor: "rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.04)" },
   kbCapText: { color: "#FFF3E0", fontWeight: "900", fontSize: 12 },
   kbFooter: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
   kbMouse: { flex: 1, color: "#CDBBA5", fontSize: 12 },
-  kbReset: { color: "#D89A4C", fontWeight: "900", fontSize: 12, textDecorationLine: "underline" },
+  kbReset: { color: "#C48B4E", fontWeight: "900", fontSize: 12, textDecorationLine: "underline" },
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
   paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
@@ -972,7 +972,7 @@ const styles = StyleSheet.create({
   mainContent: { paddingLeft: 6, paddingRight: 14, paddingTop: 8, paddingBottom: 20, gap: 16 },
   master: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 50, borderRadius: 25, paddingHorizontal: 16, borderWidth: 2 },
   masterOn: { backgroundColor: GOLD, borderColor: "#EAD8A8" },
-  masterOff: { backgroundColor: "rgba(204, 82, 73,0.12)", borderColor: "rgba(255,138,128,0.7)" },
+  masterOff: { backgroundColor: "rgba(181, 82, 74,0.12)", borderColor: "rgba(255,138,128,0.7)" },
   masterText: { color: "#1a1200", fontWeight: "900", fontSize: 15, letterSpacing: 1.6 },
   langList: { gap: 10 },
   langTile: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(34,26,18,0.9)" },
@@ -983,10 +983,10 @@ const styles = StyleSheet.create({
   langName: { color: "#D6C4B2", fontWeight: "900", fontSize: 17 },
   langHint: { color: "#B99A7C", fontSize: 12, fontWeight: "600", marginTop: 2 },
   langEmpty: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)" },
-  me: { alignItems: "center", gap: 6, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", backgroundColor: "rgba(48,36,22,0.92)" },
+  me: { alignItems: "center", gap: 6, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.45)", backgroundColor: "rgba(48,36,22,0.92)" },
   meName: { color: "#F3EADB", fontWeight: "900", fontSize: 18, marginTop: 4 },
   meSub: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
-  meButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 42, alignSelf: "stretch", paddingHorizontal: 12, marginTop: 4, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
+  meButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 42, alignSelf: "stretch", paddingHorizontal: 12, marginTop: 4, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.6)", backgroundColor: "rgba(201, 165, 90,0.1)" },
   meButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
   aboutLogo: { width: "100%", maxWidth: 260, height: 84 },
   lair: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(226, 190, 140,0.4)", backgroundColor: "rgba(48,30,20,0.92)" },
@@ -995,23 +995,23 @@ const styles = StyleSheet.create({
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
   tryText: { flex: 1, color: "#D4C2B0", fontSize: 13, fontWeight: "700" },
   keyLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
-  keyText: { color: "#D9B45A", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
+  keyText: { color: "#C9A55A", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
   keyLast: { color: "#B99A7C", fontSize: 12, fontWeight: "700", textAlign: "center" },
   notice: { fontSize: 12.5, fontWeight: "700", paddingBottom: 10, paddingHorizontal: 4 },
   noticeOk: { color: "#A3BF7C" },
   noticeBad: { color: "#D58A7E" },
   restorePanel: { gap: 10, paddingBottom: 12 },
   codeInput: { minHeight: 72, maxHeight: 120, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#F3EADB", padding: 10, fontSize: 13, textAlignVertical: "top" },
-  nameInput: { minHeight: MIN_TOUCH, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#F3EADB", paddingHorizontal: 12, fontSize: 15, fontWeight: "700" },
+  nameInput: { fontFamily: "AlegreyaSans_700Bold", minHeight: MIN_TOUCH, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#F3EADB", paddingHorizontal: 12, fontSize: 15 },
   buttonRow: { flexDirection: "row", gap: 10 },
   pill: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
   pillGold: { backgroundColor: GOLD },
   pillGoldText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   pillGhost: { borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)" },
   pillGhostText: { color: "#F3EADB", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
-  pillDanger: { backgroundColor: "#CC5249" },
+  pillDanger: { backgroundColor: "#B5524A" },
   pillDangerText: { color: "#F3EADB", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
-  confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(204, 82, 73,0.1)", borderWidth: 1, borderColor: "rgba(204, 82, 73,0.4)" },
+  confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(181, 82, 74,0.1)", borderWidth: 1, borderColor: "rgba(181, 82, 74,0.4)" },
   confirmText: { color: "#F3EADB", fontSize: 13, fontWeight: "700" },
   confirmWarn: { color: "#D58A7E", fontSize: 12 },
   infoBox: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },

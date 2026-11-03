@@ -49,6 +49,6 @@ export default function ToolBar({ tool, onChange }: { tool: PuzzleTool; onChange
 const styles = StyleSheet.create({
   bar: { flexDirection: "row", gap: 4, padding: 3, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.5)", borderWidth: 1, borderColor: "rgba(255,255,255,0.16)" },
   tool: { width: 50, alignItems: "center", gap: 1, paddingVertical: 4, borderRadius: 11 },
-  toolOn: { backgroundColor: "#D9B45A" },
+  toolOn: { backgroundColor: "#C9A55A" },
   label: { color: "#bfb3a6", fontWeight: "900", fontSize: 9, letterSpacing: 0.3 },
 });

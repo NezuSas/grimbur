@@ -164,7 +164,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
             <View style={styles.depths} accessibilityRole="radiogroup">
               {DEPTHS.map(d => {
                 const on = depth === d;
-                const c = DEPTH_COLOR[d] ?? "#D9B45A";
+                const c = DEPTH_COLOR[d] ?? "#C9A55A";
                 return (
                   <PressScale
                     key={d}
@@ -298,6 +298,6 @@ const styles = StyleSheet.create({
   chipText: { color: "#DCCCBD", fontWeight: "900", fontSize: 13 },
   off: { opacity: 0.35 },
   small: { color: "#C4AA91", fontSize: 12, lineHeight: 16 },
-  input: { alignSelf: "stretch", minHeight: 56, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 2, color: "#F3EADB", fontSize: 26, fontWeight: "900", letterSpacing: 5, textAlign: "center", paddingHorizontal: 12 },
+  input: { fontFamily: "AlegreyaSans_900Black", alignSelf: "stretch", minHeight: 56, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 2, color: "#F3EADB", fontSize: 26, letterSpacing: 5, textAlign: "center", paddingHorizontal: 12 },
   error: { color: "#D58A7E", fontSize: 12.5, fontWeight: "700", textAlign: "center" },
 });

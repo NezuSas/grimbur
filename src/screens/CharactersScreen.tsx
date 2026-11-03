@@ -268,7 +268,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // On a harder depth the line says what that depth changes and what winning it pays on top.
   const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
   const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
-  const modeTint = mode === "daily" ? "#D38C46" : mode === "endless" ? "#A397BF" : mode === "quick" ? "#7FAFC6" : "#E8BA52";
+  const modeTint = mode === "daily" ? "#D38C46" : mode === "endless" ? "#A397BF" : mode === "quick" ? "#7FAFC6" : "#D2A85A";
 
   // The hero fills the stage above the roster.
   const rosterH = thumbSize + 14;
@@ -418,7 +418,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={styles.lengthRow} accessibilityRole="radiogroup" accessibilityLabel={t("heroes.length")}>
                   {([false, true] as const).map(q => {
                     const on = (mode === "quick") === q;
-                    const tint = q ? "#7FAFC6" : "#E8BA52";
+                    const tint = q ? "#7FAFC6" : "#D2A85A";
                     return (
                       <TouchableOpacity
                         key={q ? "quick" : "full"}
@@ -448,7 +448,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
               {event ? (
                 <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${t(`event.${event}.rule` as TranslationKey)}`}>
-                  <Ionicons name="flash" size={13} color="#D9B45A" />
+                  <Ionicons name="flash" size={13} color="#C9A55A" />
                   <Text style={styles.eventText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     <Text style={styles.eventName}>{`${t(`event.${event}.name` as TranslationKey).toLocaleUpperCase()}  `}</Text>
                     {t(`event.${event}.rule` as TranslationKey)}
@@ -661,8 +661,8 @@ const styles = StyleSheet.create({
   cooldownText: { color: "#E4D8CD", fontWeight: "800", fontSize: 11 },
   masteryTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   masteryFill: { height: "100%", borderRadius: 3 },
-  depthLocked: { borderColor: "rgba(217, 180, 90,0.55)", backgroundColor: "rgba(217, 180, 90,0.12)" },
-  depthHint: { color: "#D9B45A", fontSize: 12.5, fontWeight: "700" },
+  depthLocked: { borderColor: "rgba(201, 165, 90,0.55)", backgroundColor: "rgba(201, 165, 90,0.12)" },
+  depthHint: { color: "#C9A55A", fontSize: 12.5, fontWeight: "700" },
   root: { flex: 1, backgroundColor: "#000" },
   dim: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(4,2,14,0.55)" },
   safe: { flex: 1 },
@@ -696,11 +696,11 @@ const styles = StyleSheet.create({
   kickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 34, paddingLeft: 0 },
   kicker: { fontWeight: "900", letterSpacing: 2, fontSize: 11, flexShrink: 1 },
   modeRule: { color: "#E4D8CD", fontSize: 12, marginTop: -4 },
-  event: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.5)" },
+  event: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(201, 165, 90,0.12)", borderWidth: 1, borderColor: "rgba(201, 165, 90,0.5)" },
   eventText: { color: "#F3E6C8", fontSize: 11.5, fontWeight: "700", flexShrink: 1 },
-  eventName: { color: "#D9B45A", fontWeight: "900", letterSpacing: 1 },
+  eventName: { color: "#C9A55A", fontWeight: "900", letterSpacing: 1 },
   depth: { flexDirection: "row", alignItems: "center", gap: 6 },
-  depthButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,112,67,0.35)", borderWidth: 1, borderColor: "#CC6E44", alignItems: "center", justifyContent: "center" },
+  depthButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(184, 106, 72,0.35)", borderWidth: 1, borderColor: "#B86A48", alignItems: "center", justifyContent: "center" },
   depthLabel: { minWidth: 84, alignItems: "center" },
   depthText: { color: "#D58F62", fontWeight: "900", letterSpacing: 1, fontSize: 12 },
 

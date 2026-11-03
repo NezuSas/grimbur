@@ -32,7 +32,7 @@ export const StartPane = ({ kit }: { kit: Kit }) => {
                 <SpriteImage source={step.image} style={{ width: 58, height: 58 }} resizeMode="contain" accessibilityIgnoresInvertColors />
               ) : (
                 <View style={[styles.stepIcon, { backgroundColor: step.tint }]}>
-                  <Ionicons name={step.icon!} size={24} color="#bf360c" />
+                  <Ionicons name={step.icon!} size={24} color="#9C4020" />
                 </View>
               )}
             </View>

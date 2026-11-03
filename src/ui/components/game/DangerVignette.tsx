@@ -15,8 +15,8 @@ type Props = {
   beat: Animated.Value;
 };
 
-const ROAR = 'rgba(255,70,20,0.35)';
-const PIT = 'rgba(176,60,210,0.35)';
+const ROAR = 'rgba(192, 74, 48,0.35)';
+const PIT = 'rgba(144, 88, 168,0.35)';
 const CLEAR = 'rgba(0,0,0,0)';
 
 /**

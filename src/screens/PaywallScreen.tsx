@@ -21,7 +21,7 @@ import { useT } from "../i18n/useT";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PaywallScreen">;
 
-const GOLD = "#D9B052";
+const GOLD = "#C9A356";
 
 type Busy = "buying" | "restoring" | null;
 type Notice = { tone: "info" | "error" | "ok"; text: string } | null;
@@ -125,9 +125,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
 
   const features: { icon: keyof typeof Ionicons.glyphMap; tint: string; text: string }[] = [
     { icon: "layers", tint: "#7FAFC6", text: t("paywall.feat.floors", { from: cfg.freeFloors + 1, to: GAME_CONFIG.expedition.floors }) },
-    { icon: "skull", tint: "#CC6E44", text: t("paywall.feat.grimbur") },
+    { icon: "skull", tint: "#B86A48", text: t("paywall.feat.grimbur") },
     { icon: "infinite", tint: "#A397BF", text: t("paywall.feat.endless") },
-    { icon: "heart", tint: "#F06292", text: t("paywall.feat.support") },
+    { icon: "heart", tint: "#C27890", text: t("paywall.feat.support") },
   ];
 
   const pitch = (
@@ -177,7 +177,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         {t("paywall.success.body")}
       </Text>
       <Pressable style={[styles.cta, { alignSelf: "stretch" }]} onPress={leave} accessibilityRole="button" accessibilityLabel={t("paywall.success.continue")}>
-        <LinearGradient colors={["#E0C47A", "#E8A93A"]} style={styles.ctaFill}>
+        <LinearGradient colors={["#E0C47A", "#CC9846"]} style={styles.ctaFill}>
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {t("paywall.success.continue").toLocaleUpperCase()}
           </Text>
@@ -207,7 +207,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         accessibilityState={{ disabled: unavailable || !!busy, busy: busy === "buying" }}
         accessibilityLabel={t("paywall.buy", { price })}
       >
-        <LinearGradient colors={["#E0C47A", "#E8A93A"]} style={styles.ctaFill}>
+        <LinearGradient colors={["#E0C47A", "#CC9846"]} style={styles.ctaFill}>
           {busy === "buying" ? <ActivityIndicator color="#2A2016" /> : <Ionicons name="lock-open" size={22} color="#2A2016" />}
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {(busy === "buying" ? t("paywall.buying") : t("paywall.buyShort")).toLocaleUpperCase()}
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(24, 17, 11,0.92)",
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: "rgba(217, 176, 82,0.5)",
+    borderColor: "rgba(201, 163, 86,0.5)",
     padding: 16,
     gap: 12,
   },
@@ -312,9 +312,9 @@ const styles = StyleSheet.create({
     borderRadius: 39,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,170,60,0.16)",
+    backgroundColor: "rgba(207, 148, 70,0.16)",
     borderWidth: 2,
-    borderColor: "rgba(217, 176, 82,0.7)",
+    borderColor: "rgba(201, 163, 86,0.7)",
   },
   headline: { color: GOLD, fontWeight: "900", letterSpacing: 2 },
   tagline: { color: "#F3EEE8", fontWeight: "700" },
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   buy: { justifyContent: "center", alignItems: "stretch" },
   priceBlock: { alignItems: "center" },
   oneTime: { color: "#C0A58A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
-  price: { color: "#D9B45A", fontWeight: "900" },
+  price: { color: "#C9A55A", fontWeight: "900" },
   cta: { borderRadius: 18, overflow: "hidden", borderBottomWidth: 4, borderBottomColor: "#B07A1C" },
   ctaFill: { minHeight: MIN_TOUCH + 8, flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
   ctaText: { color: "#2A2016", fontWeight: "900", fontSize: 18, letterSpacing: 2, flexShrink: 1 },

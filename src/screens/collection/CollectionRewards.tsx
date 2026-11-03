@@ -13,8 +13,8 @@ import type { TranslationKey } from "../../i18n/en";
 import type { LocalStats } from "../../core/stats/runStats";
 import { COLLECTION_MILESTONES, collectionProgress, collectionRewards, type CosmeticId, type CosmeticKind } from "../../core/cosmetics/cosmetics";
 
-const GOLD = "#E8B04A";
-const TIER_COLOR = { rare: "#7FAFC6", epic: "#B08DBE", legendary: "#D9B45A" } as const;
+const GOLD = "#CFA052";
+const TIER_COLOR = { rare: "#7FAFC6", epic: "#B08DBE", legendary: "#C9A55A" } as const;
 
 type Props = {
   stats: LocalStats;
@@ -61,7 +61,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
         </Text>
         <View style={styles.reachedRow}>
           {COLLECTION_MILESTONES.map(m => (
-            <Ionicons key={m} name={progress.pct >= m ? "star" : "star-outline"} size={18} color={progress.pct >= m ? "#D9B45A" : "rgba(255,255,255,0.3)"} />
+            <Ionicons key={m} name={progress.pct >= m ? "star" : "star-outline"} size={18} color={progress.pct >= m ? "#C9A55A" : "rgba(255,255,255,0.3)"} />
           ))}
           <Text style={styles.reachedText} maxFontSizeMultiplier={1.1}>{`${reached}/${COLLECTION_MILESTONES.length}`}</Text>
         </View>
@@ -101,8 +101,8 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
                   ))}
                 </View>
                 <View style={[styles.state, done ? styles.stateDone : isNext ? styles.stateNext : null]}>
-                  {done ? <Ionicons name="checkmark" size={13} color="#1a0f00" /> : <Ionicons name="lock-closed" size={12} color={isNext ? "#D9B45A" : "#B99A7C"} />}
-                  <Text style={[styles.stateText, done && { color: "#1a0f00" }, isNext && { color: "#D9B45A" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                  {done ? <Ionicons name="checkmark" size={13} color="#1a0f00" /> : <Ionicons name="lock-closed" size={12} color={isNext ? "#C9A55A" : "#B99A7C"} />}
+                  <Text style={[styles.stateText, done && { color: "#1a0f00" }, isNext && { color: "#C9A55A" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {done ? t("cosmetic.earned").toLocaleUpperCase() : t("collection.rewards.left", { n: need(m) })}
                   </Text>
                 </View>
@@ -119,7 +119,7 @@ export default CollectionRewards;
 
 const styles = StyleSheet.create({
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
-  side: { width: "36%", maxWidth: 360, alignItems: "center", justifyContent: "center", gap: 6, padding: 12, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(232,176,74,0.45)", backgroundColor: "rgba(40,28,16,0.9)" },
+  side: { width: "36%", maxWidth: 360, alignItems: "center", justifyContent: "center", gap: 6, padding: 12, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(207, 160, 82,0.45)", backgroundColor: "rgba(40,28,16,0.9)" },
   medal: { width: 104, height: 104, alignItems: "center", justifyContent: "center" },
   medalArt: { position: "absolute", width: 104, height: 104, opacity: 0.9 },
   pct: { color: "#F3EADB", fontWeight: "900", fontSize: 26, textShadowColor: "#000", textShadowRadius: 8, textShadowOffset: { width: 0, height: 1 }, marginTop: -16 },
@@ -135,10 +135,10 @@ const styles = StyleSheet.create({
   list: { gap: 10, paddingBottom: 14 },
   stone: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(30,22,16,0.88)" },
   stoneDone: { borderColor: "rgba(163, 191, 124,0.55)", backgroundColor: "rgba(40,48,24,0.85)" },
-  stoneNext: { borderColor: "rgba(217, 180, 90,0.7)", backgroundColor: "rgba(60,44,20,0.92)" },
+  stoneNext: { borderColor: "rgba(201, 165, 90,0.7)", backgroundColor: "rgba(60,44,20,0.92)" },
   badge: { width: 54, height: 54, borderRadius: 27, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.2)", backgroundColor: "rgba(0,0,0,0.3)" },
   badgeDone: { backgroundColor: "#A3BF7C", borderColor: "#D7F5C4" },
-  badgeNext: { borderColor: "#D9B45A" },
+  badgeNext: { borderColor: "#C9A55A" },
   badgeText: { color: "#F3EADB", fontWeight: "900", fontSize: 15 },
   rewards: { flex: 1, gap: 6 },
   reward: { flexDirection: "row", alignItems: "center", gap: 10, padding: 4, paddingRight: 10, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.22)" },
@@ -146,6 +146,6 @@ const styles = StyleSheet.create({
   rewardKind: { fontWeight: "900", fontSize: 11, letterSpacing: 1.1 },
   state: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.35)", maxWidth: 140 },
   stateDone: { backgroundColor: "#A3BF7C" },
-  stateNext: { backgroundColor: "rgba(217, 180, 90,0.14)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.6)" },
+  stateNext: { backgroundColor: "rgba(201, 165, 90,0.14)", borderWidth: 1, borderColor: "rgba(201, 165, 90,0.6)" },
   stateText: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 0.5 },
 });

@@ -51,7 +51,7 @@ const GoalLine: React.FC<Props> = ({ goal, highlight = false, small = false, sca
         <GlyphIcon name={icon} size={(small ? 11 : 12) * scale} /> {text}
       </Text>
       <View style={[styles.track, highlight && { backgroundColor: "rgba(163, 191, 124,0.25)" }]}>
-        <View style={[styles.fill, { width: `${Math.round(Math.max(0, Math.min(1, goal.progress)) * 100)}%`, backgroundColor: highlight ? "#A3BF7C" : "#D89A4C" }]} />
+        <View style={[styles.fill, { width: `${Math.round(Math.max(0, Math.min(1, goal.progress)) * 100)}%`, backgroundColor: highlight ? "#A3BF7C" : "#C48B4E" }]} />
       </View>
     </View>
   );

@@ -57,7 +57,7 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
 ];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
-const RARITY_COLOR = { free: "#9FA8DA", rare: "#7FAFC6", legendary: "#D9B45A" } as const;
+const RARITY_COLOR = { free: "#9FA8DA", rare: "#7FAFC6", legendary: "#C9A55A" } as const;
 
 type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; price: number; onPress: (skin: SkinId) => void };
 
@@ -335,9 +335,9 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
               {info.premium ? (
-                <View style={[styles.tag, { borderColor: "#D9B45A", backgroundColor: "rgba(217, 180, 90,0.14)" }]}>
+                <View style={[styles.tag, { borderColor: "#C9A55A", backgroundColor: "rgba(201, 165, 90,0.14)" }]}>
                   <GlyphIcon name="star" size={12} />
-                  <Text style={[styles.tagText, { color: "#D9B45A" }]} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.tagText, { color: "#C9A55A" }]} maxFontSizeMultiplier={1.2}>
                     {t("skin.premium").toLocaleUpperCase()}
                   </Text>
                 </View>
@@ -457,20 +457,20 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(216, 154, 76,0.16)", borderWidth: 1.5, borderColor: "rgba(216, 154, 76,0.7)" },
-  balanceValue: { color: "#D89A4C", fontSize: 20, fontWeight: "900" },
+  balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(196, 139, 78,0.16)", borderWidth: 1.5, borderColor: "rgba(196, 139, 78,0.7)" },
+  balanceValue: { color: "#C48B4E", fontSize: 20, fontWeight: "900" },
 
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
   catsScroll: { flexGrow: 0 },
   cats: { flexDirection: "row", gap: 8, paddingHorizontal: 10, paddingVertical: 8 },
-  cat: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1.5, borderColor: "rgba(232,176,74,0.45)", backgroundColor: "rgba(255,255,255,0.05)" },
-  catOn: { backgroundColor: "#E8B04A", borderColor: "#E8B04A" },
+  cat: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1.5, borderColor: "rgba(207, 160, 82,0.45)", backgroundColor: "rgba(255,255,255,0.05)" },
+  catOn: { backgroundColor: "#CFA052", borderColor: "#CFA052" },
   catText: { color: "#EAE1D8", fontWeight: "900", fontSize: 13 },
   catTextOn: { color: "#1a0f00" },
-  rewardBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 10, marginBottom: 8, paddingHorizontal: 14, minHeight: 40, borderRadius: 14, backgroundColor: "#E8B04A", borderBottomWidth: 3, borderBottomColor: "rgba(0,0,0,0.3)" },
+  rewardBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 10, marginBottom: 8, paddingHorizontal: 14, minHeight: 40, borderRadius: 14, backgroundColor: "#CFA052", borderBottomWidth: 3, borderBottomColor: "rgba(0,0,0,0.3)" },
   rewardBannerText: { flex: 1, color: "#1a0f00", fontWeight: "900", fontSize: 13.5 },
   rewardBannerCta: { color: "#1a0f00", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
-  catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#CC6E44" },
+  catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#B86A48" },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   browse: { flex: 1, gap: 8 },
   tabs: { flexDirection: "row", gap: 8 },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   tabCount: { color: "#E4D8CD", fontWeight: "900", fontSize: 12 },
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.05)", alignItems: "center", justifyContent: "center" },
-  chipOn: { backgroundColor: "#E8BA52", borderColor: "#E8BA52" },
+  chipOn: { backgroundColor: "#D2A85A", borderColor: "#D2A85A" },
   chipText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12 },
   chipTextOn: { color: "#1a0f00" },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 14 },
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
   cardGlow: { position: "absolute", left: "12%", right: "12%", top: "8%", aspectRatio: 1, borderRadius: 999 },
   cardFoot: { position: "absolute", bottom: 6, left: 4, right: 4, alignItems: "center" },
   cardName: { color: "#F3EADB", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
-  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.6)" },
+  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(196, 139, 78,0.6)" },
   cardPriceText: { color: "#E2BE8C", fontWeight: "900", fontSize: 12 },
   cardStar: { position: "absolute", top: 4, left: 5 },
   cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#A3BF7C", alignItems: "center", justifyContent: "center" },

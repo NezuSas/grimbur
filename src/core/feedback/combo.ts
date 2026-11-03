@@ -19,7 +19,7 @@ export function comboLook(combo: number, max: number): ComboLook {
   return {
     label: atMax ? `x${combo} MAX` : `x${combo} COMBO`,
     scale: Math.min(1.5, 1 + 0.15 * (combo - 1)),
-    color: atMax ? '#D9B45A' : '#CC8638',
+    color: atMax ? '#C9A55A' : '#CC8638',
   };
 }
 

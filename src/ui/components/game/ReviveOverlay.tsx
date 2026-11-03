@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   glow: { position: "absolute", backgroundColor: FIRE, opacity: 0.07 },
   feather: { position: "absolute", top: 0, zIndex: 2 },
   gifts: { flexDirection: "row", gap: 8 },
-  gift: { flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,154,60,0.35)", backgroundColor: "rgba(0,0,0,0.35)" },
+  gift: { flex: 1, alignItems: "center", gap: 4, paddingVertical: 8, paddingHorizontal: 4, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(211, 140, 70,0.35)", backgroundColor: "rgba(0,0,0,0.35)" },
   giftArt: { width: 34, height: 34 },
   giftText: { color: "#F1E4D6", fontSize: 11.5, fontWeight: "800", textAlign: "center" },
   body: { color: "#CAB39C", fontSize: 12, fontWeight: "600", textAlign: "center" },

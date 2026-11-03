@@ -32,7 +32,7 @@ import EndlessPortal from "./puzzle/EndlessPortal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 const STAR = require("../assets/sprites/ui/Icon_Star.webp");
 const BOOK = require("../assets/sprites/ui/Icon_Book.webp");
 const CALENDAR = require("../assets/sprites/ui/Icon_Calendar.webp");
@@ -229,7 +229,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.archive.link", { n: Object.keys(puzzles?.archive ?? {}).length })}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#D9B45A" />
+              <Ionicons name="chevron-forward" size={16} color="#C9A55A" />
             </PressScale>
             <PressScale
               onPress={() => navigation.navigate("InstructionsScreen", { topic: "techniques" })}
@@ -241,7 +241,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.techniques")}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#D9B45A" />
+              <Ionicons name="chevron-forward" size={16} color="#C9A55A" />
             </PressScale>
             <FriendsToday date={today} friends={stats.friends} onAddFriends={() => navigation.navigate("HighScoresScreen")} />
           </ScrollView>

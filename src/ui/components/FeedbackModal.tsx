@@ -11,7 +11,7 @@ import { FEEDBACK_KINDS, FEEDBACK_MAX, FEEDBACK_MIN, sendFeedback, type Feedback
 
 const TINT = "#7FAFC6";
 const KIND_ICON: Record<FeedbackKind, keyof typeof Ionicons.glyphMap> = { bug: "bug", idea: "bulb", like: "heart", other: "chatbubble-ellipses" };
-const KIND_COLOR: Record<FeedbackKind, string> = { bug: "#D58A7E", idea: "#D9B45A", like: "#C98FA3", other: "#B0BEC5" };
+const KIND_COLOR: Record<FeedbackKind, string> = { bug: "#D58A7E", idea: "#C9A55A", like: "#C98FA3", other: "#B0BEC5" };
 
 type Props = {
   /** Where the note was written from (the screen), kept with it. */

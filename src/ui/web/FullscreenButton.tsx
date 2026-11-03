@@ -30,8 +30,8 @@ export default function FullscreenButton() {
       </Pressable>
       {howTo ? (
         <OverlayContainer>
-          <PopupPanel tint="#D9B45A" width={440}>
-            <Text style={popupTitleStyle("#D9B45A")} maxFontSizeMultiplier={1.15}>
+          <PopupPanel tint="#C9A55A" width={440}>
+            <Text style={popupTitleStyle("#C9A55A")} maxFontSizeMultiplier={1.15}>
               {t("web.fullscreen.go").toLocaleUpperCase()}
             </Text>
             <View style={styles.steps}>

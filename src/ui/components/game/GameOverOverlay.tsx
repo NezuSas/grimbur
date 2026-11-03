@@ -55,7 +55,7 @@ const ENDLESS_ART = require('../../../assets/sprites/achievements/Ach_Endless.we
 const TIER_TINT: Record<string, string> = { easy: '#A5BC9E', medium: '#94B3CC', hard: '#DBA48F', legend: '#B08DBE' };
 
 /** The colour of each kind of death lesson. */
-const REVIEW_LOOK: Record<DeathReview['kind'], string> = { hunter: '#9E8BCB', proven: '#D58A7E', avoidable: '#DCA45A', forced: '#A3BF7C' };
+const REVIEW_LOOK: Record<DeathReview['kind'], string> = { hunter: '#9E8BCB', proven: '#D58A7E', avoidable: '#C99A5C', forced: '#A3BF7C' };
 
 type Props = {
   visible: boolean;
@@ -287,7 +287,7 @@ const GameOverOverlay = ({
   const short = height < 340;
   // A landscape phone (height runs out): the same two rows of buttons, a little lower, so the run's rewards keep room.
   const snug = wide && height < 430;
-  const accent = victory || demo ? '#D9B45A' : '#CC5249';
+  const accent = victory || demo ? '#C9A55A' : '#B5524A';
   // The Ancestral Grimbur is filed apart: its own picture and name on the card.
   const killerSprite = !victory && deathCause ? (deathCause === 'boss' && ancientKiller ? ANCIENT_FRAMES.idle : KILLERS[deathCause]) : undefined;
   const heroSprite = victory || demo ? character.winImage : (character.loseImage ?? character.scoreImage);
@@ -346,7 +346,7 @@ const GameOverOverlay = ({
   const retryText = retryLabel ?? (near ? t('over.oneMore') : t('over.retry'));
   const notes: { key: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [
     ...(near
-      ? [{ key: 'near', icon: 'flame' as const, color: '#DCA45A', text: near.kind === 'floor' ? plural('over.nearFloor', near.gap, { n: near.gap }) : t('over.nearScore', { n: near.gap.toLocaleString() }) }]
+      ? [{ key: 'near', icon: 'flame' as const, color: '#C99A5C', text: near.kind === 'floor' ? plural('over.nearFloor', near.gap, { n: near.gap }) : t('over.nearScore', { n: near.gap.toLocaleString() }) }]
       : []),
     ...(payout && payout.welcomeBack > 0 ? [{ key: 'welcome', icon: 'gift' as const, color: '#A3BF7C', text: t('over.welcomeBack', { count: payout.welcomeBack }) }] : []),
     ...(dailyLabel && streakLost ? [{ key: 'lost', icon: 'heart-dislike' as const, color: '#D58A7E', text: t('over.streakLost', { best: bestStreak ?? streakLost }) }] : []),
@@ -368,20 +368,20 @@ const GameOverOverlay = ({
       if (row.kind === 'depth') return { key: 'u-depth', tint: '#D58F62', art: DEPTH_ART, kicker: t('parade.kicker.unlock'), title: t(`ascension.label.${unlocks?.depth ?? 1}` as TranslationKey), line: row.text, onTry: tryIt };
       return { key: 'u-endless', tint: '#7E87B0', art: ENDLESS_ART, kicker: t('parade.kicker.unlock'), title: t('parade.endless'), line: row.text, onTry: tryIt };
     }),
-    ...(rankUp ? [{ key: 'rank', tint: '#D9B45A', art: MEDAL_ART, kicker: t('parade.kicker.rank'), title: t(`rank.${rankUp}` as TranslationKey), line: t('parade.rankLine') }] : []),
+    ...(rankUp ? [{ key: 'rank', tint: '#C9A55A', art: MEDAL_ART, kicker: t('parade.kicker.rank'), title: t(`rank.${rankUp}` as TranslationKey), line: t('parade.rankLine') }] : []),
     ...(masteryUp
       ? [
           masteryUp.tier
             ? {
                 key: 'mastery',
-                tint: MASTERY_TIERS.find(m => m.id === masteryUp.tier)?.color ?? '#DCA45A',
+                tint: MASTERY_TIERS.find(m => m.id === masteryUp.tier)?.color ?? '#C99A5C',
                 art: skinArt(masteryUp.hero, 'classic').playerImage,
                 standing: true,
                 kicker: t('parade.kicker.masteryTier'),
                 title: t('parade.masteryTierTitle', { name: heroText(t, masteryUp.hero, 'name'), tier: t(`mastery.tier.${masteryUp.tier}` as TranslationKey) }),
                 line: t('parade.masteryTierLine', { level: masteryUp.level }),
               }
-            : { key: 'mastery', tint: '#DCA45A', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') },
+            : { key: 'mastery', tint: '#C99A5C', art: skinArt(masteryUp.hero, 'classic').playerImage, standing: true, kicker: t('parade.kicker.mastery'), title: t('parade.masteryTitle', { name: heroText(t, masteryUp.hero, 'name'), level: masteryUp.level }), line: t('parade.masteryLine') },
         ]
       : []),
     ...(questsDone
@@ -402,7 +402,7 @@ const GameOverOverlay = ({
     ...(petUp && petLook(petUp.pet as CosmeticId, petUp.stage)
       ? [{
           key: `pet-${petUp.pet}-${petUp.stage}`,
-          tint: PET_TINT[petUp.pet as CosmeticId] ?? '#D9B45A',
+          tint: PET_TINT[petUp.pet as CosmeticId] ?? '#C9A55A',
           art: petLook(petUp.pet as CosmeticId, petUp.stage)![0],
           kicker: t('parade.kicker.pet'),
           title: t(petUp.stage >= 2 ? 'parade.petAdult' : 'parade.petYoung', { name: t(`cosmetic.${petUp.pet}.name` as TranslationKey) }),
@@ -515,7 +515,7 @@ const GameOverOverlay = ({
             <GlyphIcon name="calendar" size={13} /> {t('over.daily', { date: dailyLabel }).toLocaleUpperCase()}
           </Text>
           {streak ? (
-            <Text style={[styles.daily, { color: '#D89A4C' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
+            <Text style={[styles.daily, { color: '#C48B4E' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
               <GlyphIcon name="flame" size={13} /> {plural('over.streak', streak)}
             </Text>
           ) : null}
@@ -544,7 +544,7 @@ const GameOverOverlay = ({
         )}
         <Text style={styles.tile2Label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>{label.toLocaleUpperCase()}</Text>
       </View>
-      {onPress ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#D89A4C" /> : null}
+      {onPress ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#C48B4E" /> : null}
     </TouchableOpacity>
   );
   const essentials = (
@@ -570,7 +570,7 @@ const GameOverOverlay = ({
         {tile('gems', stats[0].art, stats[0].value, stats[0].label, stats[0].color)}
         {tile('time', stats[1].art, stats[1].value, stats[1].label, stats[1].color)}
         {embers && embers > 0
-          ? tile('embers', require('../../../assets/sprites/items/Icon_Ember.webp'), `+${embers}`, t('cover.embers'), '#D89A4C', breakdown ? () => setShowBreakdown(v => !v) : undefined)
+          ? tile('embers', require('../../../assets/sprites/items/Icon_Ember.webp'), `+${embers}`, t('cover.embers'), '#C48B4E', breakdown ? () => setShowBreakdown(v => !v) : undefined)
           : tile('floor', require('../../../assets/sprites/ui/Icon_Flag.webp'), endless ? String(level) : `${level}/${floors}`, t('over.floorLabel'), '#A3BF7C')}
       </View>
       {breakdown && showBreakdown ? (
@@ -694,7 +694,7 @@ const GameOverOverlay = ({
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.forgeButton, canBuyNow && styles.forgeButtonPrimary, short && styles.iconButton, short && styles.iconShort]} onPress={onForge} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('cover.forge')}>
             <ButtonGloss />
             <GlyphIcon name="hammer" size={20} />
-            {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#D89A4C' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
+            {!short && <Text style={[styles.sideText, { color: canBuyNow ? '#1a0f00' : '#C48B4E' }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('cover.forge').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         {onShare ? (
@@ -706,7 +706,7 @@ const GameOverOverlay = ({
         {onCopyText ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
             <ButtonGloss />
-            <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#69F0AE' : '#7FAFC6'} />
+            <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#7DBE98' : '#7FAFC6'} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -778,12 +778,12 @@ const GameOverOverlay = ({
 export default GameOverOverlay;
 
 const styles = StyleSheet.create({
-  rewardsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'stretch', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(217, 180, 90,0.1)', borderWidth: 1.5, borderColor: 'rgba(217, 180, 90,0.55)' },
+  rewardsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, alignSelf: 'stretch', paddingVertical: 3, paddingHorizontal: 10, borderRadius: 14, backgroundColor: 'rgba(201, 165, 90,0.1)', borderWidth: 1.5, borderColor: 'rgba(201, 165, 90,0.55)' },
   rewardsArts: { flexDirection: 'row' },
   rewardsWell: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2D2318', overflow: 'hidden' },
   rewardsArt: { width: 22, height: 22 },
   rewardsText: { flex: 1, color: '#EAD8A8', fontSize: 13.5, fontWeight: '900' },
-  rewardsLink: { color: '#D9B45A', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
+  rewardsLink: { color: '#C9A55A', fontSize: 12, fontWeight: '900', letterSpacing: 1 },
   ghosts: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(148, 179, 204,0.12)', borderWidth: 1, borderColor: 'rgba(148, 179, 204,0.5)' },
   ghostsText: { flex: 1, color: '#E3F2FD', fontSize: 12, fontWeight: '800' },
   ghostsLink: { color: '#94B3CC', fontSize: 11, fontWeight: '900', letterSpacing: 1 },
@@ -810,8 +810,8 @@ const styles = StyleSheet.create({
   quoteLeft: { textAlign: 'center', fontSize: 13, maxWidth: 260 },
   extrasBox: { flexShrink: 1, minHeight: 0 },
   moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
-  headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(217, 180, 90,0.12)', borderWidth: 1, borderColor: 'rgba(217, 180, 90,0.5)' },
-  headlineText: { flex: 1, color: '#D9B45A', fontWeight: '900', fontSize: 14 },
+  headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(201, 165, 90,0.12)', borderWidth: 1, borderColor: 'rgba(201, 165, 90,0.5)' },
+  headlineText: { flex: 1, color: '#C9A55A', fontWeight: '900', fontSize: 14 },
   kickerText: { fontWeight: '900', fontSize: 12.5, letterSpacing: 2.5, textAlign: 'center' },
   headline2: { color: '#F3EADB', fontWeight: '900', fontSize: 28, letterSpacing: 3, textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 6 },
   glowOne: { position: 'absolute', opacity: 0.15 },
@@ -822,8 +822,8 @@ const styles = StyleSheet.create({
   peek: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 2 },
   peekText: { fontWeight: '900', fontSize: 11, letterSpacing: 0.8 },
   reviewText: { color: '#EADBC8', fontSize: 11.5, fontWeight: '700', lineHeight: 15 },
-  ribbon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(217, 180, 90,0.16)', borderWidth: 1.5, borderColor: 'rgba(217, 180, 90,0.6)' },
-  ribbonText: { color: '#D9B45A', fontWeight: '900', fontSize: 12.5, letterSpacing: 1.5 },
+  ribbon: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, alignSelf: 'stretch', paddingVertical: 5, borderRadius: 10, backgroundColor: 'rgba(201, 165, 90,0.16)', borderWidth: 1.5, borderColor: 'rgba(201, 165, 90,0.6)' },
+  ribbonText: { color: '#C9A55A', fontWeight: '900', fontSize: 12.5, letterSpacing: 1.5 },
   tiles2: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignSelf: 'stretch' },
   tile2: { flexBasis: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(0,0,0,0.35)' },
   tile2Snug: { paddingVertical: 5 },
@@ -839,7 +839,7 @@ const styles = StyleSheet.create({
   fallGlow: { position: 'absolute', width: 22, height: 22, borderRadius: 11, opacity: 0.3 },
   trackLair: { width: 22, height: 22, opacity: 0.7 },
   killer: { fontWeight: '900', fontSize: 14, letterSpacing: 2, textAlign: 'center', maxWidth: '100%' },
-  depth: { color: '#CC6E44', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
+  depth: { color: '#B86A48', fontWeight: '900', fontSize: 12, letterSpacing: 1.5, textAlign: 'center' },
   daily: { color: '#7FAFC6', fontWeight: '800', fontSize: 12, letterSpacing: 1.2, textAlign: 'center' },
   right: { flex: 1, width: '100%', gap: 8 },
   infoScroll: { flexShrink: 1, flexGrow: 0 },
@@ -853,8 +853,8 @@ const styles = StyleSheet.create({
   scoreRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 10 },
   scoreLabel: { color: '#C0A58A', fontWeight: '900', fontSize: 12, letterSpacing: 2 },
   // Fixed-width digits keep the counting score from jittering, so the best score can sit right beside it.
-  scoreValue: { color: '#D9B45A', fontWeight: '900', fontSize: 34, fontVariant: ['tabular-nums'] },
-  newBest: { color: '#D9B45A', fontWeight: '900', fontSize: 12, letterSpacing: 1.4 },
+  scoreValue: { color: '#C9A55A', fontWeight: '900', fontSize: 34, fontVariant: ['tabular-nums'] },
+  newBest: { color: '#C9A55A', fontWeight: '900', fontSize: 12, letterSpacing: 1.4 },
   best: { color: '#B99C7E', fontWeight: '800', fontSize: 11, letterSpacing: 1.2 },
   statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   stat: {
@@ -867,9 +867,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   statValue: { fontWeight: '900', fontSize: 16 },
-  embersPill: { backgroundColor: 'rgba(216, 154, 76,0.16)' },
+  embersPill: { backgroundColor: 'rgba(196, 139, 78,0.16)' },
   explain: { color: '#E2BE8C', fontSize: 12, fontWeight: '700', textAlign: 'center', maxWidth: 440 },
-  embersText: { color: '#D89A4C', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  embersText: { color: '#C48B4E', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   breakdown: { color: '#c9b79a', fontWeight: '700', fontSize: 11, letterSpacing: 0.4 },
   streakLost: { color: '#D58A7E', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   goals: { gap: 6, alignSelf: 'stretch' },
@@ -877,7 +877,7 @@ const styles = StyleSheet.create({
   noteRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   noteIcon: { marginTop: 1 },
   noteText: { flex: 1, fontWeight: '700', fontSize: 12.5, lineHeight: 17 },
-  unlockCard: { gap: 6, backgroundColor: 'rgba(118,255,3,0.1)', borderColor: 'rgba(118,255,3,0.7)', borderWidth: 2, borderRadius: 14, padding: 10 },
+  unlockCard: { gap: 6, backgroundColor: 'rgba(147, 196, 80,0.1)', borderColor: 'rgba(147, 196, 80,0.7)', borderWidth: 2, borderRadius: 14, padding: 10 },
   unlockTitle: { color: '#93C450', fontWeight: '900', fontSize: 13, letterSpacing: 1.5 },
   unlockRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   unlockText: { flex: 1, color: '#f4ffe6', fontWeight: '800', fontSize: 14 },
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
-    backgroundColor: 'rgba(217, 180, 90,0.1)',
+    backgroundColor: 'rgba(201, 165, 90,0.1)',
     borderRadius: 12,
     padding: 8,
   },
@@ -924,7 +924,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   forgeButton: { backgroundColor: '#5A3A1C' },
-  forgeButtonPrimary: { backgroundColor: '#D89A4C', borderBottomColor: '#8A4A00' },
+  forgeButtonPrimary: { backgroundColor: '#C48B4E', borderBottomColor: '#8A4A00' },
   iconButton: { flexGrow: 0, flexShrink: 0, flexBasis: MIN_TOUCH, width: MIN_TOUCH, minWidth: MIN_TOUCH, paddingHorizontal: 0 },
   // Landscape phones: buttons at phone scale (still comfortable touch targets), so the card is not all buttons.
   sideSnug: { minHeight: 40, borderRadius: 12 },

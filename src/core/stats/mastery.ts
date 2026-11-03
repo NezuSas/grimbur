@@ -73,9 +73,9 @@ export interface MasteryTier {
 export const MASTERY_TIERS: readonly MasteryTier[] = [
   { id: 'bronze', level: 10, color: '#D08A4E' },
   { id: 'silver', level: 20, color: '#CFD8DC' },
-  { id: 'gold', level: 30, color: '#D9B45A' },
+  { id: 'gold', level: 30, color: '#C9A55A' },
   { id: 'platinum', level: 40, color: '#8FC0C5' },
-  { id: 'legend', level: 50, color: '#E040FB' },
+  { id: 'legend', level: 50, color: '#A060B8' },
 ];
 
 /** The highest rank a mastery level has reached (null below the first). */

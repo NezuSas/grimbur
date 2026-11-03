@@ -92,7 +92,7 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
         {!small && frame ? (
           <PlayerPortrait source={portrait} size={face} frame={frame} />
         ) : (
-          <View style={{ width: small ? size * 0.5 : face * 0.88, height: small ? size * 0.5 : face * 0.88, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
+          <View style={{ width: small ? size * 0.5 : face * 0.88, height: small ? size * 0.5 : face * 0.88, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(207, 160, 82,0.7)" }}>
             <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
           </View>
         )}
@@ -131,7 +131,7 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
     const look = petLook(id, petStage) ?? PET_ART[id]!;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ width: size * 0.56, height: size * 0.56, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)", marginTop: size * 0.12 }}>
+        <View style={{ width: size * 0.56, height: size * 0.56, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(207, 160, 82,0.7)", marginTop: size * 0.12 }}>
           <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
         </View>
         <View style={{ position: "absolute", right: size * 0.04, top: size * 0.02 }}>
@@ -146,7 +146,7 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
     return (
       <ImageBackground source={require("../../assets/sprites/backgrounds/Bg_Lair.jpg")} style={{ width: size, height: size, alignItems: "center", justifyContent: "center", borderRadius: 16, overflow: "hidden" }} resizeMode="cover">
         <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(10,7,4,0.35)" }]} />
-        <View style={{ width: size * 0.42, height: size * 0.42, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(232,176,74,0.7)" }}>
+        <View style={{ width: size * 0.42, height: size * 0.42, borderRadius: size, overflow: "hidden", borderWidth: 2, borderColor: "rgba(207, 160, 82,0.7)" }}>
           <SpriteImage source={portrait} style={{ width: "100%", height: "100%" }} resizeMode="cover" accessibilityIgnoresInvertColors />
         </View>
         {small || calm ? (
@@ -183,6 +183,6 @@ export default CosmeticPreview;
 
 const styles = StyleSheet.create({
   titleName: { color: "#F3EADB", fontWeight: "900" },
-  titlePlate: { borderRadius: 8, paddingVertical: 3, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1.5, borderColor: "#E8B04A", maxWidth: "100%" },
-  titleText: { color: "#D9B45A", fontWeight: "900", letterSpacing: 1 },
+  titlePlate: { borderRadius: 8, paddingVertical: 3, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1.5, borderColor: "#CFA052", maxWidth: "100%" },
+  titleText: { color: "#C9A55A", fontWeight: "900", letterSpacing: 1 },
 });

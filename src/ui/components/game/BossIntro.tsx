@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   glow: { position: "absolute", backgroundColor: "rgba(194, 58, 68,0.22)" },
   name: {
-    color: "#CC5249",
+    color: "#B5524A",
     fontWeight: "900",
     fontSize: 34,
     letterSpacing: 6,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },
-  title: { color: "#D9B45A", fontSize: 15, fontStyle: "italic", letterSpacing: 1, marginTop: 2 },
+  title: { color: "#C9A55A", fontSize: 15, fontStyle: "italic", letterSpacing: 1, marginTop: 2 },
 });
 
 export default BossIntro;

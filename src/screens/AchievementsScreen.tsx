@@ -63,7 +63,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "AchievementsScreen">;
 type Filter = "all" | "todo" | "done";
 type Theme = AchievementTheme | "all";
 
-const GOLD = "#D9B052";
+const GOLD = "#C9A356";
 const TIER_COLOR: Record<AchievementTier, string> = {
   easy: "#A5BC9E",
   medium: "#94B3CC",
@@ -717,11 +717,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "rgba(216, 154, 76,0.14)",
+    backgroundColor: "rgba(196, 139, 78,0.14)",
     borderWidth: 1.5,
-    borderColor: "rgba(216, 154, 76,0.6)",
+    borderColor: "rgba(196, 139, 78,0.6)",
   },
-  headerChipText: { color: "#D89A4C", fontWeight: "900", fontSize: 15 },
+  headerChipText: { color: "#C48B4E", fontWeight: "900", fontSize: 15 },
 
   body: {
     flex: 1,
@@ -752,8 +752,8 @@ const styles = StyleSheet.create({
   show: { borderRadius: 18, borderWidth: 1.5, padding: 12, gap: 8 },
   showCompact: { padding: 10, gap: 6 },
   showEarned: {
-    backgroundColor: "rgba(217, 176, 82,0.1)",
-    borderColor: "rgba(217, 176, 82,0.6)",
+    backgroundColor: "rgba(201, 163, 86,0.1)",
+    borderColor: "rgba(201, 163, 86,0.6)",
   },
   showOpen: {
     backgroundColor: "rgba(36,28,19,0.88)",
@@ -820,15 +820,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     minHeight: 30,
     borderRadius: 15,
-    backgroundColor: "rgba(216, 154, 76,0.16)",
+    backgroundColor: "rgba(196, 139, 78,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(216, 154, 76,0.55)",
+    borderColor: "rgba(196, 139, 78,0.55)",
   },
   rewardDone: {
     backgroundColor: "rgba(163, 191, 124,0.1)",
     borderColor: "rgba(163, 191, 124,0.5)",
   },
-  rewardText: { color: "#D89A4C", fontWeight: "900", fontSize: 13 },
+  rewardText: { color: "#C48B4E", fontWeight: "900", fontSize: 13 },
   extra: {
     flexDirection: "row",
     alignItems: "center",
@@ -866,10 +866,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(217, 176, 82,0.35)",
-    backgroundColor: "rgba(217, 176, 82,0.07)",
+    borderColor: "rgba(201, 163, 86,0.35)",
+    backgroundColor: "rgba(201, 163, 86,0.07)",
   },
-  almostItemOn: { borderColor: GOLD, backgroundColor: "rgba(217, 176, 82,0.18)" },
+  almostItemOn: { borderColor: GOLD, backgroundColor: "rgba(201, 163, 86,0.18)" },
   almostArt: { width: 30, height: 30 },
   almostPct: { color: "#EAE1D8", fontWeight: "900", fontSize: 12 },
 
@@ -888,13 +888,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: "rgba(232,176,74,0.35)",
+    borderColor: "rgba(207, 160, 82,0.35)",
     backgroundColor: "rgba(255,255,255,0.05)",
   },
-  themeOn: { backgroundColor: "#E8B04A", borderColor: "#E8B04A" },
+  themeOn: { backgroundColor: "#CFA052", borderColor: "#CFA052" },
   themeComplete: {
     borderColor: GOLD,
-    backgroundColor: "rgba(217, 176, 82,0.12)",
+    backgroundColor: "rgba(201, 163, 86,0.12)",
   },
   themeArt: { width: 28, height: 28 },
   themeName: { color: "#EAE1D8", fontWeight: "900", fontSize: 12 },
@@ -931,8 +931,8 @@ const styles = StyleSheet.create({
     minHeight: 116,
   },
   tileEarned: {
-    backgroundColor: "rgba(217, 176, 82,0.09)",
-    borderColor: "rgba(217, 176, 82,0.45)",
+    backgroundColor: "rgba(201, 163, 86,0.09)",
+    borderColor: "rgba(201, 163, 86,0.45)",
   },
   tileOpen: {
     backgroundColor: "rgba(36,28,19,0.8)",
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
   tileSelected: {
     borderColor: "#FFE08A",
     borderWidth: 2.5,
-    backgroundColor: "rgba(217, 176, 82,0.2)",
+    backgroundColor: "rgba(201, 163, 86,0.2)",
   },
   tileArt: { width: 54, height: 54 },
   // Not earned yet: the emblem is there but dim, so the goal is visible without looking won.

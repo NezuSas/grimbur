@@ -13,7 +13,7 @@ import { WEEKLY_EMBERS, weeklyNumber } from "../../core/puzzles/weekly";
 import { loadFriendsWeekly, type WeeklyRow } from "../../services/weeklyScores";
 import { formatSolveTime } from "./shareText";
 
-const RED = "#CC5249";
+const RED = "#B5524A";
 const GRIMBUR = require("../../assets/sprites/enemies/Grimbur_Boss.webp");
 const SHOWN = 4;
 
@@ -60,10 +60,10 @@ export default function WeeklyCard({ week, state, left, friends, onPlay }: Props
       <View style={styles.head}>
         <SpriteImage source={GRIMBUR} style={styles.art} resizeMode="contain" />
         <View style={{ flex: 1, gap: 1 }}>
-          <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.1}>
             {`${t("puzzle.weekly.kicker")} #${weeklyNumber(week)}`.toLocaleUpperCase()}
           </Text>
-          <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+          <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} maxFontSizeMultiplier={1.1}>
             {t("puzzle.weekly.title")}
           </Text>
           <Text style={styles.left} maxFontSizeMultiplier={1.1}>
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   rank: { color: "#a88", fontWeight: "900", fontSize: 11, width: 12, textAlign: "center" },
   name: { flex: 1, color: "#F3D9D9", fontWeight: "800", fontSize: 11.5 },
   time: { color: "#E8D2B2", fontWeight: "900", fontSize: 11.5 },
-  button: { minHeight: 42, borderRadius: 14, backgroundColor: RED, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, borderBottomWidth: 3, borderBottomColor: "#B71C1C" },
-  buttonPractice: { backgroundColor: "rgba(204, 82, 73,0.15)", borderWidth: 1.5, borderColor: RED, borderBottomWidth: 1.5 },
+  button: { minHeight: 42, borderRadius: 14, backgroundColor: RED, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, borderBottomWidth: 3, borderBottomColor: "#8E2A26" },
+  buttonPractice: { backgroundColor: "rgba(181, 82, 74,0.15)", borderWidth: 1.5, borderColor: RED, borderBottomWidth: 1.5 },
   buttonText: { color: "#1a0505", fontWeight: "900", letterSpacing: 1, fontSize: 14 },
 });

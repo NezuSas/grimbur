@@ -16,13 +16,13 @@ export const SKIN_IDS: readonly SkinId[] = ['classic', 'ember', 'verdant', 'fros
 
 /** Representative accent colour per skin (classic is chosen by the UI per hero; this is a neutral fallback). */
 export const SKIN_ACCENT: Record<SkinId, string> = {
-  classic: '#E8BA52',
-  ember: '#CC6E44',
-  verdant: '#8BC34A',
+  classic: '#D2A85A',
+  ember: '#B86A48',
+  verdant: '#89A866',
   frost: '#7FAFC6',
   royal: '#9E8BCB',
   shadow: '#9575CD',
-  gilded: '#D9B45A',
+  gilded: '#C9A55A',
 };
 
 /** Skins that exist for each hero index, classic first (a theme equal to the hero's own colour is skipped). */

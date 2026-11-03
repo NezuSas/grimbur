@@ -13,7 +13,7 @@ import { CHEST_DAYS, CHEST_EMBERS, CHEST_FREEZE_DAY } from "../../core/stats/dai
 
 const CHEST_ART = require("../../assets/sprites/items/Icon_Chest.webp");
 const CHEST_SHUT_ART = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 
 type Props = {
   /** The calendar day today's chest is (1..7). */
@@ -160,7 +160,7 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
 const styles = StyleSheet.create({
   days: { flexDirection: "row", gap: 6, alignItems: "flex-end" },
   slot: { alignItems: "center", justifyContent: "center", gap: 3, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(0,0,0,0.35)" },
-  slotToday: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.14)" },
+  slotToday: { borderColor: GOLD, backgroundColor: "rgba(201, 165, 90,0.14)" },
   slotDone: { borderColor: "rgba(163, 191, 124,0.5)", backgroundColor: "rgba(163, 191, 124,0.08)" },
   slotBig: { borderStyle: "dashed" },
   slotDay: { color: "#C2A88F", fontSize: 10.5, fontWeight: "900", letterSpacing: 0.5 },

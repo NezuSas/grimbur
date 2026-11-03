@@ -30,7 +30,7 @@ import type { RunRecord } from "../core/stats/runStats";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ProgressScreen">;
 
-const GOLD = "#D9B052";
+const GOLD = "#C9A356";
 const TIER_COLOR: Record<AchievementTier, string> = { easy: "#A5BC9E", medium: "#94B3CC", hard: "#DBA48F", legend: "#B08DBE" };
 const TIERS: AchievementTier[] = ["easy", "medium", "hard", "legend"];
 const CHART_HEIGHT = 110;
@@ -204,13 +204,13 @@ const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
               </View>
             </Card>
 
-            <Card icon="hammer" order={5} tint="#D89A4C" title={t("cover.forge")} value={`${forgeBought}/${forgeTotal}`} basis={basis} caption={t("progress.forgeCaption", { embers: stats.lifetimeEmbers })}>
+            <Card icon="hammer" order={5} tint="#C48B4E" title={t("cover.forge")} value={`${forgeBought}/${forgeTotal}`} basis={basis} caption={t("progress.forgeCaption", { embers: stats.lifetimeEmbers })}>
               <View style={styles.track}>
-                <View style={[styles.fill, { width: `${Math.round((forgeBought / forgeTotal) * 100)}%`, backgroundColor: "#D89A4C" }]} />
+                <View style={[styles.fill, { width: `${Math.round((forgeBought / forgeTotal) * 100)}%`, backgroundColor: "#C48B4E" }]} />
               </View>
             </Card>
 
-            <Card icon="bonfire" order={6} tint="#CC6E44" title={t("progress.streak")} value={String(streak.current)} basis={basis} caption={streak.lost > 0 ? t("cover.streak.lost", { best: streak.best }) : t("progress.calendar")}>
+            <Card icon="bonfire" order={6} tint="#B86A48" title={t("progress.streak")} value={String(streak.current)} basis={basis} caption={streak.lost > 0 ? t("cover.streak.lost", { best: streak.best }) : t("progress.calendar")}>
               <View style={styles.calendar}>
                 {days.map(d => (
                   <View key={d.day} style={[styles.day, d.played && styles.dayOn, d.day === today && styles.dayToday]} />
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
   runDay: { color: "#B8997A", fontSize: 12 },
   runScore: { color: "#EAE1D8", fontWeight: "900", fontSize: 16, minWidth: 64, textAlign: "right" },
   chart: { flexDirection: "row", alignItems: "flex-end", gap: 4, borderBottomWidth: 1, borderColor: "rgba(255,255,255,0.15)" },
-  bestLine: { position: "absolute", left: 0, right: 0, top: 0, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(217, 176, 82,0.6)" },
+  bestLine: { position: "absolute", left: 0, right: 0, top: 0, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(201, 163, 86,0.6)" },
   // Up to 14 bars share whatever width the card has (fixed 26px slots overflowed narrow phones).
   barSlot: { flex: 1, maxWidth: 26, alignItems: "center", justifyContent: "flex-end", height: "100%" },
   bar: { width: "85%", maxWidth: 22, borderTopLeftRadius: 5, borderTopRightRadius: 5 },

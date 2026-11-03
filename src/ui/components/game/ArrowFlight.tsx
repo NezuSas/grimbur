@@ -96,7 +96,7 @@ const ArrowFlight = ({ shot, flight, tileSize, row, col, color, trail }: Props) 
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View style={[shaft, { backgroundColor: "#F5E6B8" }]} />
-            <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#D9B45A" }} />
+            <View style={{ width: 0, height: 0, borderTopWidth: head, borderBottomWidth: head, borderLeftWidth: head * 1.8, borderTopColor: "transparent", borderBottomColor: "transparent", borderLeftColor: "#C9A55A" }} />
           </View>
         )}
       </Animated.View>

@@ -60,7 +60,7 @@ export const BestiaryPane = ({ kit }: { kit: Kit }) => {
                       <View style={styles.hunt} accessible accessibilityLabel={`${t("bestiary.hunter")} ${stars}/3`}>
                         <View style={styles.stars}>
                           {[0, 1, 2].map(i => (
-                            <Ionicons key={i} name={i < stars ? "star" : "star-outline"} size={14} color={i < stars ? "#D9B45A" : "#6d5a48"} />
+                            <Ionicons key={i} name={i < stars ? "star" : "star-outline"} size={14} color={i < stars ? "#C9A55A" : "#6d5a48"} />
                           ))}
                         </View>
                         <Text style={styles.next} maxFontSizeMultiplier={1.1}>

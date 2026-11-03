@@ -26,7 +26,7 @@ export const framedWidth = (height: number) => Math.round(height * 0.75);
  * The hero standing in the full-body version of the frame the player wears: the same frame as on their portrait in the
  * rankings, drawn as a tall arch around the whole figure. Without a frame the hero stands alone, the same size.
  */
-const FramedHero = ({ source, height, frame, tint = "#E8B04A", style, onLoadEnd }: Props) => {
+const FramedHero = ({ source, height, frame, tint = "#CFA052", style, onLoadEnd }: Props) => {
   const art = frame ? FRAME_BODY_ART[frame] : undefined;
   const width = framedWidth(height);
   return (

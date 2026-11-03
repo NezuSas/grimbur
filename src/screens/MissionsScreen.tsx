@@ -31,7 +31,7 @@ import { themeArt, type AchievementTheme } from "../ui/achievementArt";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MissionsScreen">;
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 const TIER_COLOR = { easy: "#8EAE7C", medium: "#7FAFC6", hard: "#D28663" } as const;
 
 /** Each mission wears the painted emblem of what it counts. */
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   sideContent: { gap: 8, paddingBottom: 8 },
   main: { flex: 1, gap: 8 },
 
-  rankCard: { backgroundColor: CARD, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", padding: 12, gap: 6 },
+  rankCard: { backgroundColor: CARD, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.45)", padding: 12, gap: 6 },
   rankTop: { flexDirection: "row", alignItems: "center", gap: 10 },
   medal: { width: 72, height: 72, alignItems: "center", justifyContent: "center" },
   medalArt: { width: 72, height: 72 },
@@ -377,14 +377,14 @@ const styles = StyleSheet.create({
   rankTrack: { height: 9, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   rankNext: { color: "#E4D8CD", fontSize: 12.5, fontWeight: "800" },
   rankEarned: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
-  ladderButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 36, marginTop: 2, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.5)", backgroundColor: "rgba(217, 180, 90,0.08)" },
+  ladderButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 36, marginTop: 2, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.5)", backgroundColor: "rgba(201, 165, 90,0.08)" },
   ladderButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 1 },
   ladder: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 10, gap: 4 },
   ladderInfo: { color: "#DCCCBD", fontSize: 12, lineHeight: 17, marginBottom: 4 },
   ladderRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 10 },
-  ladderCurrent: { backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.45)" },
+  ladderCurrent: { backgroundColor: "rgba(201, 165, 90,0.12)", borderWidth: 1, borderColor: "rgba(201, 165, 90,0.45)" },
   ladderBadge: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
-  ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.14)" },
+  ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(201, 165, 90,0.14)" },
   ladderNumber: { color: "#B99A7C", fontWeight: "900", fontSize: 11 },
   ladderName: { color: "#F3EADB", fontWeight: "900", fontSize: 13 },
   ladderFrom: { color: "#B99A7C", fontSize: 11, fontWeight: "700" },
@@ -394,12 +394,12 @@ const styles = StyleSheet.create({
   tab: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)" },
   tabOn: { backgroundColor: GOLD, borderColor: GOLD },
   tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
-  tabBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#CC5249", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  tabBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#B5524A", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   tabBadgeText: { color: "#F3EADB", fontSize: 11, fontWeight: "900" },
   refreshBox: { flex: 1, minWidth: 120, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 },
   refresh: { color: "#B99A7C", fontWeight: "700", fontSize: 11.5, flexShrink: 1 },
   list: { gap: 8, paddingBottom: 16 },
-  weekly: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,138,101,0.7)", backgroundColor: "rgba(70,30,20,0.9)" },
+  weekly: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(210, 134, 99,0.7)", backgroundColor: "rgba(70,30,20,0.9)" },
   weeklyArt: { width: 48, height: 48 },
   weeklyKicker: { color: "#D28663", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   weeklyText: { color: "#F1E4D6", fontWeight: "700", fontSize: 12.5 },
@@ -410,21 +410,21 @@ const styles = StyleSheet.create({
   mission: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: CARD, borderRadius: 16, borderWidth: 1.5, borderColor: BORDER, overflow: "hidden", paddingRight: 10, minHeight: 66 },
   missionReady: { borderColor: "rgba(163, 191, 124,0.7)", backgroundColor: "rgba(163, 191, 124,0.08)" },
   missionClaimed: { opacity: 0.6 },
-  bonus: { borderColor: "rgba(217, 180, 90,0.45)" },
+  bonus: { borderColor: "rgba(201, 165, 90,0.45)" },
   tierBar: { width: 5, alignSelf: "stretch" },
   missionArt: { width: 44, height: 44 },
   missionBody: { flex: 1, paddingVertical: 10, gap: 7 },
   missionText: { color: "#F3EADB", fontWeight: "800", fontSize: 14 },
   bonusPips: { flexDirection: "row", gap: 4 },
-  bonusPip: { width: 14, height: 8, borderRadius: 4, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.5)" },
+  bonusPip: { width: 14, height: 8, borderRadius: 4, borderWidth: 1.5, borderColor: "rgba(201, 165, 90,0.5)" },
   bonusHint: { color: "#CBB49E", fontSize: 11.5, flexShrink: 1 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   track: { flex: 1, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   fill: { height: "100%", borderRadius: 4 },
   count: { color: "#E4D8CD", fontWeight: "800", fontSize: 12, minWidth: 50, textAlign: "right" },
-  reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(216, 154, 76,0.5)", backgroundColor: "rgba(216, 154, 76,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
-  rewardReady: { backgroundColor: GOLD, borderColor: "#E6CC88" },
-  rewardText: { color: "#D89A4C", fontWeight: "900", fontSize: 14 },
+  reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(196, 139, 78,0.5)", backgroundColor: "rgba(196, 139, 78,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
+  rewardReady: { backgroundColor: GOLD, borderColor: "#DCC48E" },
+  rewardText: { color: "#C48B4E", fontWeight: "900", fontSize: 14 },
   claimText: { color: "#1a1200", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   claimedChip: { minWidth: 76, alignItems: "center", justifyContent: "center" },
 });

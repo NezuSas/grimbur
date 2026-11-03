@@ -5,7 +5,7 @@ import Text from "../components/Text";
 import { useT } from "../../i18n/useT";
 import { enterFullscreen, useWebScreen } from "./webScreen";
 
-const GOLD = "#D9B45A";
+const GOLD = "#C9A55A";
 
 /**
  * The web build on a phone held upright: Grimbur is played lying down, so the whole game hides behind a card that asks to turn

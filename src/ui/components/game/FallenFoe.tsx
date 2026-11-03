@@ -14,7 +14,7 @@ const ART: Partial<Record<EntityType, number>> = {
 };
 const SPARK = require("../../../assets/sprites/items/Icon_Ember.webp");
 /** The colour of the shock ring each guardian leaves when it falls. */
-const RING: Partial<Record<EntityType, string>> = { enemy: "#CC6E44", stalker: "#9E8BCB", sleeper: "#8EB7B0", mimic: "#7FAFC6", thief: "#D9B45A" };
+const RING: Partial<Record<EntityType, string>> = { enemy: "#B86A48", stalker: "#9E8BCB", sleeper: "#8EB7B0", mimic: "#7FAFC6", thief: "#C9A55A" };
 /** A guardian puffs out in the first part of this, while its sparks and ring finish flying. */
 const FOE_FALL_MS = 650;
 

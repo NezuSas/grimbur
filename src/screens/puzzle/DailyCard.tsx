@@ -60,7 +60,7 @@ export default function DailyCard({ number, tier, stars, streak, bestStreak, wee
       <LinearGradient colors={["rgba(30,70,78,0.95)", "rgba(12,24,30,0.96)"]} style={StyleSheet.absoluteFill} />
       <View style={styles.head}>
         <SpriteImage source={CALENDAR} style={{ width: 18, height: 18 }} resizeMode="contain" />
-        <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
+        <Text style={styles.kicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.1}>
           {t("puzzle.daily").toLocaleUpperCase()}
         </Text>
         <View style={styles.number}>
@@ -73,7 +73,7 @@ export default function DailyCard({ number, tier, stars, streak, bestStreak, wee
           <SpriteImage source={RIDDLE} style={{ width: 52, height: 52 }} resizeMode="contain" />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Text style={[styles.tier, { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+          <Text style={[styles.tier, { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5} maxFontSizeMultiplier={1.1}>
             {t(`puzzle.tier.${tier}` as TranslationKey)}
           </Text>
           <Text style={styles.size} maxFontSizeMultiplier={1.1}>{`${size.rows}×${size.cols}`}</Text>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   card: { alignSelf: "stretch", gap: 8, padding: 12, borderRadius: 20, borderWidth: 2, borderColor: TINT + "AA", overflow: "hidden", backgroundColor: "#0c181e" },
   head: { flexDirection: "row", alignItems: "center", gap: 6 },
   kicker: { flex: 1, color: TINT, fontWeight: "900", letterSpacing: 1.6, fontSize: 11.5 },
-  number: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 8, backgroundColor: "rgba(77,208,225,0.18)", borderWidth: 1, borderColor: TINT + "77" },
+  number: { paddingHorizontal: 7, paddingVertical: 1, borderRadius: 8, backgroundColor: "rgba(108, 176, 185,0.18)", borderWidth: 1, borderColor: TINT + "77" },
   numberText: { color: "#E0F7FA", fontWeight: "900", fontSize: 12 },
   hero: { flexDirection: "row", alignItems: "center", gap: 10 },
   artRing: { width: 66, height: 66, borderRadius: 33, borderWidth: 2, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.35)", shadowOpacity: 0.8, shadowRadius: 12, shadowOffset: { width: 0, height: 0 } },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   day: { alignItems: "center", gap: 3 },
   dayLetter: { color: "#7fa3a8", fontWeight: "900", fontSize: 10 },
   dayDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
-  dayLit: { backgroundColor: "rgba(255,138,101,0.25)", borderColor: "#D28663" },
+  dayLit: { backgroundColor: "rgba(210, 134, 99,0.25)", borderColor: "#D28663" },
   dayToday: { borderColor: TINT, borderWidth: 2, borderStyle: "dashed" },
   streak: { color: "#FFCCBC", fontWeight: "800", fontSize: 11.5, textAlign: "center" },
   note: { color: "#cfe9ee", fontSize: 11.5, textAlign: "center" },

@@ -30,8 +30,8 @@ import { useSettingsStore } from "../../state/settings/store";
 
 export type CosmeticCategory = "deals" | CosmeticKind;
 
-const TIER_COLOR = { rare: "#7FAFC6", epic: "#B08DBE", legendary: "#D9B45A" } as const;
-const GOLD = "#E8B04A";
+const TIER_COLOR = { rare: "#7FAFC6", epic: "#B08DBE", legendary: "#C9A55A" } as const;
+const GOLD = "#CFA052";
 
 type Props = {
   category: CosmeticCategory;
@@ -294,7 +294,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
             <Text style={[styles.tagText, { color: tierColor }]} maxFontSizeMultiplier={1.2}>{tierLabel.toLocaleUpperCase()}</Text>
           </View>
           {deal && !deal.bought ? (
-            <View style={[styles.tag, { borderColor: "#CC6E44", backgroundColor: "rgba(255,112,67,0.16)" }]}>
+            <View style={[styles.tag, { borderColor: "#B86A48", backgroundColor: "rgba(184, 106, 72,0.16)" }]}>
               <Text style={[styles.tagText, { color: "#D28663" }]} maxFontSizeMultiplier={1.2}>-30%</Text>
             </View>
           ) : null}
@@ -438,27 +438,27 @@ const styles = StyleSheet.create({
   lockFill: { height: "100%", borderRadius: 3, backgroundColor: GOLD },
   browse: { flex: 1, gap: 8 },
   dealsHead: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 8 },
-  dealsTitle: { color: "#D9B45A", fontWeight: "900", fontSize: 13, letterSpacing: 2 },
+  dealsTitle: { color: "#C9A55A", fontWeight: "900", fontSize: 13, letterSpacing: 2 },
   dealsTime: { color: "#CAB39C", fontWeight: "700", fontSize: 12 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10, paddingBottom: 14 },
   card: { borderRadius: 16, alignItems: "center", justifyContent: "flex-start", overflow: "hidden" },
   cardFoot: { position: "absolute", bottom: 6, left: 4, right: 4, alignItems: "center" },
   cardName: { color: "#F3EADB", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
-  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.6)" },
+  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(196, 139, 78,0.6)" },
   cardPriceText: { color: "#E2BE8C", fontWeight: "900", fontSize: 12 },
   cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#A3BF7C", alignItems: "center", justifyContent: "center" },
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
   groupHead: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
-  groupTitle: { color: "#D9B45A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
-  groupCount: { color: "#1a0f00", backgroundColor: "#E8B04A", fontWeight: "900", fontSize: 11, paddingHorizontal: 7, borderRadius: 8, overflow: "hidden" },
+  groupTitle: { color: "#C9A55A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
+  groupCount: { color: "#1a0f00", backgroundColor: "#CFA052", fontWeight: "900", fontSize: 11, paddingHorizontal: 7, borderRadius: 8, overflow: "hidden" },
   gem: { width: 7, height: 7, transform: [{ rotate: "45deg" }], borderRadius: 1.5 },
   tag2: { flexDirection: "row", alignItems: "center", gap: 7, minHeight: 40, paddingLeft: 12, paddingRight: 8, borderRadius: 12, borderWidth: 1.5, backgroundColor: "rgba(40, 26, 10, 0.92)" },
-  tag2On: { borderColor: "#E8D3A2", borderWidth: 2.5, backgroundColor: "rgba(232,176,74,0.22)" },
-  tag2Glow: { shadowColor: "#D9B45A", shadowOpacity: 0.7, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
-  tag2Text: { color: "#D9B45A", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8, paddingRight: 4 },
+  tag2On: { borderColor: "#E8D3A2", borderWidth: 2.5, backgroundColor: "rgba(207, 160, 82,0.22)" },
+  tag2Glow: { shadowColor: "#C9A55A", shadowOpacity: 0.7, shadowRadius: 8, shadowOffset: { width: 0, height: 0 }, elevation: 5 },
+  tag2Text: { color: "#C9A55A", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8, paddingRight: 4 },
   tag2TextLocked: { color: "#CDBBA8" },
   tag2Price: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 9, backgroundColor: "rgba(0,0,0,0.5)" },
   tag2Worn: { width: 20, height: 20, borderRadius: 10, backgroundColor: "#A3BF7C", alignItems: "center", justifyContent: "center" },
-  dealBadge: { position: "absolute", top: 4, left: 4, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "#CC6E44" },
+  dealBadge: { position: "absolute", top: 4, left: 4, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "#B86A48" },
   dealBadgeText: { color: "#F3EADB", fontWeight: "900", fontSize: 11 },
 });
