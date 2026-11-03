@@ -21,6 +21,7 @@ import EmberIcon from "./EmberIcon";
 import { useT } from "../../i18n/useT";
 import type { Goal } from "../../core/stats/goals";
 import { formatCountdown } from "../../core/stats/countdown";
+import FullscreenButton from "../web/FullscreenButton";
 
 /** The painted title (the name is a brand, so it is never translated). */
 const LOGO = require("../../assets/sprites/ui/Logo_Grimbur.png");
@@ -437,9 +438,11 @@ const CoverCard: React.FC<Props> = ({
       >
         <Ionicons name="settings-outline" size={22} color="#fff" />
       </TouchableOpacity>
+      <View style={[styles.topRow, { top: Math.max(insets.top, 10), right: Math.max(insets.right, 12) + MIN_TOUCH + 8 }]} pointerEvents="box-none">
+        <FullscreenButton />
       {onPressFeedback ? (
         <TouchableOpacity
-          style={[styles.feedback, { top: Math.max(insets.top, 10) + (MIN_TOUCH - 34) / 2, right: Math.max(insets.right, 12) + MIN_TOUCH + 8 }]}
+          style={styles.feedback}
           onPress={onPressFeedback}
           hitSlop={6}
           accessibilityRole="button"
@@ -454,6 +457,7 @@ const CoverCard: React.FC<Props> = ({
           </Text>
         </TouchableOpacity>
       ) : null}
+      </View>
     </View>
   );
 };
@@ -558,8 +562,8 @@ const styles = StyleSheet.create({
     borderColor: "#2A2016",
   },
   dockLabel: { color: "#F3EEE8", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
+  topRow: { position: "absolute", height: MIN_TOUCH, flexDirection: "row", alignItems: "center", gap: 8 },
   feedback: {
-    position: "absolute",
     height: 34,
     flexDirection: "row",
     alignItems: "center",

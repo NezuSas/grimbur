@@ -24,6 +24,7 @@ import { sendStashedCrash } from "./src/services/crashReports";
 import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
+import TurnPhoneGate from "./src/ui/web/TurnPhoneGate";
 import { EMPTY_STARTUP, StartupParts, startupProgress } from "./src/core/startup/progress";
 import { getLocalStats } from "./src/services/localStats";
 import { syncCloudNow } from "./src/services/cloudBackup";
@@ -166,6 +167,7 @@ export default function App() {
     return (
       <View style={{ flex: 1, backgroundColor: "#0E0B1F" }} onLayout={hideNativeSplash}>
         <LoadingScreen progress={bar} />
+        <TurnPhoneGate />
         {assetsDownloaded && warmImages && (
           <ImageWarmup
             images={warmImages}
@@ -193,6 +195,7 @@ export default function App() {
             </ErrorBoundary>
           </NavigationContainer>
         </SafeAreaProvider>
+        <TurnPhoneGate />
       </GestureHandlerRootView>
     </View>
   );

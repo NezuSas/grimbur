@@ -2427,4 +2427,9 @@ export const es: Record<TranslationKey, string> = {
   'feedback.another': 'Escribir otra',
   'settings.feedback': 'Enviar comentarios',
   'settings.feedbackHint': 'Un error, una idea, algo que te gustó',
+  'web.turn.title': 'Gira tu teléfono',
+  'web.turn.body': 'Grimbur se juega con el teléfono acostado. Gíralo de lado para seguir jugando.',
+  'web.fullscreen.go': 'Pantalla completa',
+  'web.fullscreen.leave': 'Salir de pantalla completa',
+  'web.install.ios': 'En iPhone: toca Compartir y luego «Agregar a pantalla de inicio». Abre Grimbur desde su icono y ocupará toda la pantalla.',
 };

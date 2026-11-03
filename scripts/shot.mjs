@@ -72,7 +72,8 @@ const send = (method, params = {}) => new Promise(r => { const n = ++id; pending
 await send('Runtime.enable');
 await send('Page.enable');
 await send('Network.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: scale, mobile: false });
+await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: scale, mobile: !!process.env.SHOT_MOBILE });
+if (process.env.SHOT_MOBILE) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
 const started = Date.now();
 await send('Page.navigate', { url });
 const rendered = async () => (await send('Runtime.evaluate', { expression: `(document.getElementById('root')?.innerHTML.length ?? 0) > 2000 && [...document.images].every(i => i.complete)`, returnByValue: true })).result?.result?.value === true;

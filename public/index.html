@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!-- viewport-fit=cover: the game reaches behind a phone's notch; the safe-area insets keep its buttons clear of it. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Grimbur</title>
+    <meta name="description" content="Desciende. Deduce. Vence al Grimbur." />
+    <meta name="theme-color" content="#0E0B1F" />
+    <!-- Added to the home screen, the game opens as an app: full screen and landscape (Android), with no browser bar (iPhone). -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Grimbur" />
+    <link rel="apple-touch-icon" href="/icon-180.png" />
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        background-color: #0e0b1f;
+      }
+      /* The page never scrolls or bounces, and a phone's visible height (without the browser's bar) is the game's height. */
+      body {
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      @supports (height: 100dvh) {
+        html,
+        body {
+          height: 100dvh;
+        }
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+      input,
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Necesitas activar JavaScript para jugar a Grimbur.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

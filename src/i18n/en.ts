@@ -2426,6 +2426,11 @@ export const en = {
   'feedback.another': 'Write another',
   'settings.feedback': 'Send feedback',
   'settings.feedbackHint': 'A bug, an idea, something you liked',
+  'web.turn.title': 'Turn your phone',
+  'web.turn.body': 'Grimbur is played with the phone lying down. Turn it sideways to keep playing.',
+  'web.fullscreen.go': 'Full screen',
+  'web.fullscreen.leave': 'Leave full screen',
+  'web.install.ios': 'On iPhone: tap Share, then "Add to Home Screen". Open Grimbur from its icon and it fills the whole screen.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
