@@ -826,7 +826,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const aboutPane = (
     <>
       <View style={styles.lair}>
-        <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.png")} style={styles.lairBoss} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.webp")} style={styles.lairBoss} resizeMode="contain" accessibilityIgnoresInvertColors />
         <View style={{ flex: 1, gap: 6 }}>
           <Text style={styles.lairKicker} maxFontSizeMultiplier={1.2}>
             {t("settings.aboutKicker").toLocaleUpperCase()}

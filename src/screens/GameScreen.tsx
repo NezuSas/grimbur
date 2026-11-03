@@ -111,8 +111,8 @@ import { canSaveState, clearSavedRun, loadSavedRun, restoredState, saveRun } fro
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
 /** The Grimbur's lieutenant on the floor banner. */
-const LIEUTENANT_ART = require("../assets/sprites/enemies/Lieutenant_Boss.png");
-const WARDEN_ART = require("../assets/sprites/enemies/Warden_Boss.png");
+const LIEUTENANT_ART = require("../assets/sprites/enemies/Lieutenant_Boss.webp");
+const WARDEN_ART = require("../assets/sprites/enemies/Warden_Boss.webp");
 
 type Props = NativeStackScreenProps<RootStackParamList, "GameScreen">;
 

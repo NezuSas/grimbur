@@ -13,9 +13,16 @@ const CLASSIC_FILES = ['Cyan', 'Red', 'Green', 'Gold', 'Pink', 'Orange'];
 const SKINS_DIR = path.join(__dirname, '../../src/assets/sprites/skins');
 const CHAR_DIR = path.join(__dirname, '../../src/assets/sprites/characters');
 
-const pngSize = (file: string) => {
+/** Width and height of a WebP (VP8X, VP8L or VP8 chunk), read from its header. */
+const imgSize = (file: string) => {
   const b = fs.readFileSync(file);
-  return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+  const chunk = b.toString('ascii', 12, 16);
+  if (chunk === 'VP8X') return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+  if (chunk === 'VP8L') {
+    const bits = b.readUInt32LE(21);
+    return { w: (bits & 0x3fff) + 1, h: ((bits >> 14) & 0x3fff) + 1 };
+  }
+  return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
 };
 
 describe('skinArt', () => {
@@ -48,7 +55,7 @@ describe('skinArt', () => {
         expect(art.loseImage).toBeDefined();
         if (skin !== 'classic') {
           for (const kind of ['hero', 'attack', 'icon', 'win', 'lose']) {
-            expect(fs.existsSync(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`))).toBe(true);
+            expect(fs.existsSync(path.join(SKINS_DIR, skin, `${hero}_${kind}.webp`))).toBe(true);
           }
         }
       }
@@ -62,22 +69,22 @@ describe('skinArt', () => {
     for (let hero = 0; hero < HERO_COUNT; hero++) {
       for (const skin of skinsForHero(hero).slice(1)) {
         for (const [kind, prefix] of kinds) {
-          const orig = pngSize(path.join(CHAR_DIR, `${prefix}_${CLASSIC_FILES[hero]}.png`));
-          const gen = pngSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`));
+          const orig = imgSize(path.join(CHAR_DIR, `${prefix}_${CLASSIC_FILES[hero]}.webp`));
+          const gen = imgSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.webp`));
           expect(gen).toEqual(orig);
         }
       }
     }
   });
 
-  it('ships recoloured win and lose poses (384x384) for every generated skin', () => {
+  it('ships recoloured win and lose poses (512x512) for every generated skin', () => {
     for (let hero = 0; hero < HERO_COUNT; hero++) {
       for (const skin of skinsForHero(hero).slice(1)) {
         const art = skinArt(hero, skin);
         expect(art.winImage).toBeDefined();
         expect(art.loseImage).toBeDefined();
         for (const kind of ['win', 'lose']) {
-          expect(pngSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.png`))).toEqual({ w: 384, h: 384 });
+          expect(imgSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.webp`))).toEqual({ w: 512, h: 512 });
         }
       }
     }

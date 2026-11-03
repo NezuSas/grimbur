@@ -5,14 +5,14 @@ import type { DeathCause } from '../../../core/engine/types';
 import { formatNumberNow } from '../../../i18n/useT';
 
 export const KILLERS: Partial<Record<DeathCause, number>> = {
-  enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.png'),
-  stalker: require('../../../assets/sprites/enemies/Stalker_Enemy.png'),
-  sleeper: require('../../../assets/sprites/enemies/Sleeper_Enemy.png'),
-  boss: require('../../../assets/sprites/enemies/Grimbur_Boss.png'),
+  enemy: require('../../../assets/sprites/enemies/Guardian_Enemy.webp'),
+  stalker: require('../../../assets/sprites/enemies/Stalker_Enemy.webp'),
+  sleeper: require('../../../assets/sprites/enemies/Sleeper_Enemy.webp'),
+  boss: require('../../../assets/sprites/enemies/Grimbur_Boss.webp'),
   pit: require('../../../assets/sprites/tiles/Danger_Vortex.png'),
-  mimic: require('../../../assets/sprites/enemies/Mimic_Enemy.png'),
-  brute: require('../../../assets/sprites/enemies/Lieutenant_Boss.png'),
-  warden: require('../../../assets/sprites/enemies/Warden_Boss.png'),
+  mimic: require('../../../assets/sprites/enemies/Mimic_Enemy.webp'),
+  brute: require('../../../assets/sprites/enemies/Lieutenant_Boss.webp'),
+  warden: require('../../../assets/sprites/enemies/Warden_Boss.webp'),
 };
 
 /** Counts a number up to its value (a small reward moment for the score). */

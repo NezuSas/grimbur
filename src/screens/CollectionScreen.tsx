@@ -49,7 +49,7 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
   { id: "trail", art: require("../assets/sprites/cosmetics/Arrow_Fire.png") },
   { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
   { id: "title", art: require("../assets/sprites/ui/Icon_Medal.png") },
-  { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
+  { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
   { id: "flag", art: require("../assets/sprites/ui/Icon_Flag.png") },
   { id: "attack", art: require("../assets/sprites/ui/Attack_Ready.png") },
   { id: "celebration", art: require("../assets/sprites/ui/Icon_Sparkles.png") },

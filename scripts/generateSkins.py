@@ -112,7 +112,9 @@ SKIN_ACCENT = {
 
 KINDS = [('hero', 'Hero'), ('attack', 'Attack'), ('icon', 'Icon'), ('win', 'Win'), ('lose', 'Lose')]
 CONTACT_KINDS = ['hero', 'attack', 'icon', 'win', 'lose']
-QUANTIZE = True
+# Outfits are written as WebP (true colour, ~10x lighter than PNG for painted art); the PNG path is kept for --png.
+EXT = 'webp'
+QUANTIZE = False  # 2026-11-03: true colour, the painted art banded in a 256-colour palette
 
 
 # ---------------------------------------------------------------- colour helpers
@@ -175,6 +177,20 @@ def poly_mask(size, polys):
     return np.asarray(im, dtype=np.float32) / 255.0
 
 
+def scaled_regions(reg, k):
+    """Region polygons are written in the 384 px pose / 256 px portrait coordinates: scaled to the sprite's real size."""
+    if k == 1:
+        return reg
+    sp = lambda poly: [(x * k, y * k) for x, y in poly]
+    out = dict(reg)
+    out['include'] = [sp(p) for p in reg['include']]
+    out['exclude'] = [sp(p) for p in reg['exclude']]
+    for key in ('shirt', 'shirt_exclude'):
+        if key in reg:
+            out[key] = sp(reg[key])
+    return out
+
+
 def cloth_mask(h, s, v, m, alpha, kind='hero'):
     w = band_weight(h, m['hue_lo'], m['hue_hi'], m['hue_soft'])
     w = w * ramp(s, m['sat_min'] - m['sat_soft'] * 0.5, m['sat_soft'])
@@ -183,6 +199,7 @@ def cloth_mask(h, s, v, m, alpha, kind='hero'):
     reg = m.get('regions', {}).get(kind)
     if reg:
         size = (alpha.shape[1], alpha.shape[0])
+        reg = scaled_regions(reg, size[0] / (256 if kind == 'icon' else 384))
         w = w * poly_mask(size, reg['include'])
         if reg['exclude']:
             w = w * (1 - poly_mask(size, reg['exclude']))
@@ -231,6 +248,7 @@ def recolor(img, hero, skin, kind='hero'):
     reg = m.get('regions', {}).get(kind)
     if reg and skin in LEGENDARY:
         size = (alpha.shape[1], alpha.shape[0])
+        reg = scaled_regions(reg, size[0] / (256 if kind == 'icon' else 384))
         shirt = band_weight(h, 195, 285, 15) * ramp(s, 0.10, 0.08) * ramp(v, 0.12, 0.08) * (alpha > 0.02)
         shirt = shirt * poly_mask(size, [reg['shirt']]) * (1 - poly_mask(size, [reg['shirt_exclude']]))
         shirt = shirt * SHIRT_STRENGTH
@@ -318,11 +336,11 @@ def write_ts():
                 continue
             base = "../assets/sprites/skins/%s/%d_" % (skin, hero)
             L.append("    %d: {" % hero)
-            L.append("      playerImage: require('%shero.png')," % base)
-            L.append("      attackImage: require('%sattack.png')," % base)
-            L.append("      scoreImage: require('%sicon.png')," % base)
-            L.append("      winImage: require('%swin.png')," % base)
-            L.append("      loseImage: require('%slose.png')," % base)
+            L.append("      playerImage: require('%shero.%s')," % (base, EXT))
+            L.append("      attackImage: require('%sattack.%s')," % (base, EXT))
+            L.append("      scoreImage: require('%sicon.%s')," % (base, EXT))
+            L.append("      winImage: require('%swin.%s')," % (base, EXT))
+            L.append("      loseImage: require('%slose.%s')," % (base, EXT))
             L.append("    },")
         L.append("  },")
     L.append("};")
@@ -370,15 +388,20 @@ def main():
     results = {}
     for hero in range(HERO_COUNT):
         for kind, prefix in KINDS:
-            src = Image.open(os.path.join(SRC_DIR, '%s_%s.png' % (prefix, HERO_FILES[hero]))).convert('RGBA')
+            src = Image.open(os.path.join(SRC_DIR, '%s_%s.webp' % (prefix, HERO_FILES[hero]))).convert('RGBA')
             results[(hero, 'classic', kind)] = src
             for skin in skins_for(hero)[1:]:
                 out = recolor(src, hero, skin, kind)
                 results[(hero, skin, kind)] = out
                 d = os.path.join(OUT_DIR, skin)
                 os.makedirs(d, exist_ok=True)
-                path = os.path.join(d, '%d_%s.png' % (hero, kind))
-                if args.no_quantize or not QUANTIZE:
+                path = os.path.join(d, '%d_%s.%s' % (hero, kind, EXT))
+                stale = os.path.join(d, '%d_%s.png' % (hero, kind))
+                if EXT != 'png' and os.path.exists(stale):
+                    os.remove(stale)
+                if EXT == 'webp':
+                    out.save(path, 'WEBP', quality=88, method=6)
+                elif args.no_quantize or not QUANTIZE:
                     out.save(path, optimize=True)
                 else:
                     q = quantize(out)

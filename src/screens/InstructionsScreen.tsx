@@ -32,12 +32,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "InstructionsScreen">;
 /** Every topic wears a piece of the game's own painted art, so the guide looks like the game it explains. */
 const TOPICS: { id: TopicId; icon: keyof typeof Ionicons.glyphMap; color: string; art: ImageSourcePropType }[] = [
   { id: "start", icon: "rocket", color: "#FFD54F", art: require("../assets/sprites/ui/Icon_Flag.png") },
-  { id: "mission", icon: "flag", color: "#ff5252", art: require("../assets/sprites/enemies/Grimbur_Boss.png") },
+  { id: "mission", icon: "flag", color: "#ff5252", art: require("../assets/sprites/enemies/Grimbur_Boss.webp") },
   { id: "controls", icon: "game-controller", color: "#ffd54f", art: require("../assets/sprites/ui/Attack_Ready.png") },
-  { id: "explore", icon: "map", color: "#4fc3f7", art: require("../assets/sprites/tiles/Tile_Hidden.png") },
+  { id: "explore", icon: "map", color: "#4fc3f7", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
   { id: "hazards", icon: "warning", color: "#ffa726", art: require("../assets/sprites/tiles/Danger_Vortex.png") },
   { id: "techniques", icon: "bulb", color: "#4dd0e1", art: require("../assets/sprites/ui/Icon_Riddle.png") },
-  { id: "bestiary", icon: "paw", color: "#80cbc4", art: require("../assets/sprites/enemies/Mimic_Enemy.png") },
+  { id: "bestiary", icon: "paw", color: "#80cbc4", art: require("../assets/sprites/enemies/Mimic_Enemy.webp") },
   { id: "combat", icon: "flash", color: "#ff5252", art: require("../assets/sprites/items/Icon_Arrows.png") },
   { id: "powerups", icon: "shield", color: "#4fc3f7", art: require("../assets/sprites/items/Icon_Shield.png") },
   { id: "heroes", icon: "people", color: "#f48fb1", art: characters[0].scoreImage },

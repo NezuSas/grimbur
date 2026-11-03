@@ -57,7 +57,7 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const sceneArt =
     scene.art === "boss" ? (
-      <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.png")} style={{ width: art, height: art }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.webp")} style={{ width: art, height: art }} resizeMode="contain" accessibilityIgnoresInvertColors />
     ) : scene.art === "heroes" ? (
       <View style={styles.heroGrid}>
         {characters.map((c, i) => (

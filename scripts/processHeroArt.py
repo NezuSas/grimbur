@@ -18,16 +18,18 @@ from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src', 'assets', 'sprites', 'characters')
 
-CANVAS = 384
-ICON = 256
-# Vael (Hero_Cyan) measured: the subject is 336 px tall, its feet at y=359; its icon is 224 px tall with the bottom at y=239.
-HERO_HEIGHT = 336
-HERO_MAX_WIDTH = 330
-FEET_Y = 359
-MARGIN = 3
-ICON_HEIGHT = 224
-ICON_MAX_WIDTH = 212
-ICON_BOTTOM = 239
+# 2026-11-03: poses on a 512 canvas and the portrait on 384 (was 384 / 256), so the detailed painted art stays sharp on
+# high-density phone screens. Same framing as before, scaled by 4/3 and 3/2.
+CANVAS = 512
+ICON = 384
+# Vael (Hero_Cyan) measured on the old 384 canvas: the subject 336 px tall, feet at y=359; icon 224 tall, bottom at y=239.
+HERO_HEIGHT = 448
+HERO_MAX_WIDTH = 440
+FEET_Y = 479
+MARGIN = 4
+ICON_HEIGHT = 336
+ICON_MAX_WIDTH = 318
+ICON_BOTTOM = 358
 
 
 def bbox(im, threshold=12):

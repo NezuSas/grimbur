@@ -9,7 +9,7 @@ import type { Kit } from "./kit";
 
 const TINT = "#4DD0E1";
 const ART: Record<TechniqueId, ReturnType<typeof require>> = {
-  quiet: require("../../assets/sprites/tiles/Tile_Hidden.png"),
+  quiet: require("../../assets/sprites/tiles/Tile_Hidden.webp"),
   cornered: require("../../assets/sprites/ui/Icon_Flag.png"),
   full: require("../../assets/sprites/ui/Clue_Guardian.png"),
   typed: require("../../assets/sprites/ui/Clue_Vortex.png"),

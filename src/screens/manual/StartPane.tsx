@@ -10,10 +10,10 @@ import type { Kit } from "./kit";
 import { manualStyles as styles } from "./styles";
 
 const QUICK_STEPS: { image?: ImageSourcePropType; icon?: React.ComponentProps<typeof Ionicons>["name"]; tint?: string }[] = [
-  { image: require("../../assets/sprites/tiles/Tile_Hidden.png") },
+  { image: require("../../assets/sprites/tiles/Tile_Hidden.webp") },
   { image: require("../../assets/sprites/ui/Clue_Guardian.png") },
   { image: require("../../assets/sprites/items/Icon_Gem.png") },
-  { image: require("../../assets/sprites/enemies/Grimbur_Boss.png") },
+  { image: require("../../assets/sprites/enemies/Grimbur_Boss.webp") },
 ];
 
 export const StartPane = ({ kit }: { kit: Kit }) => {

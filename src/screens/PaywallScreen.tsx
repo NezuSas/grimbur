@@ -135,7 +135,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
       <View style={styles.pitchHead}>
         {!short && (
           <View style={styles.medallion}>
-            <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.png")} style={{ width: 62, height: 62 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+            <SpriteImage source={require("../assets/sprites/enemies/Grimbur_Boss.webp")} style={{ width: 62, height: 62 }} resizeMode="contain" accessibilityIgnoresInvertColors />
           </View>
         )}
         <View style={{ flex: 1, gap: 2 }}>

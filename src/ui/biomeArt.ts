@@ -14,39 +14,39 @@ export type ArtTheme = BiomeId | 'frost' | 'moss' | 'vault';
 export const BIOME_ART: Record<ArtTheme, BiomeArt> = {
   cave: {
     background: require('../assets/sprites/backgrounds/Cover_Background.png'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed.webp'),
   },
   crystal: {
     background: require('../assets/sprites/backgrounds/Bg_Crystal.jpg'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Crystal.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Crystal.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Crystal.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Crystal.webp'),
   },
   magma: {
     background: require('../assets/sprites/backgrounds/Bg_Magma.jpg'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Magma.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Magma.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Magma.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Magma.webp'),
   },
   lair: {
     background: require('../assets/sprites/backgrounds/Bg_Lair.jpg'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Lair.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Lair.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Lair.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Lair.webp'),
   },
   // Board themes with tiles of their own, over the backdrop of the cave they suit best.
   frost: {
     background: require('../assets/sprites/backgrounds/Bg_Crystal.jpg'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Frost.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Frost.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Frost.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Frost.webp'),
   },
   moss: {
     background: require('../assets/sprites/backgrounds/Cover_Background.png'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Moss.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Moss.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Moss.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Moss.webp'),
   },
   vault: {
     background: require('../assets/sprites/backgrounds/Bg_Magma.jpg'),
-    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Vault.png'),
-    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Vault.png'),
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Vault.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Vault.webp'),
   },
 };
 

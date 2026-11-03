@@ -20,7 +20,7 @@ const art = {
   achCount: require('../assets/sprites/achievements/Ach_Collector.png'),
   speed: require('../assets/sprites/achievements/Ach_Speed.png'),
   heroes: require('../assets/sprites/achievements/Ach_Heroes.png'),
-  hunt: require('../assets/sprites/enemies/Guardian_Enemy.png'),
+  hunt: require('../assets/sprites/enemies/Guardian_Enemy.webp'),
 } as const;
 
 /** The hunter's marks show the creature they are about. */

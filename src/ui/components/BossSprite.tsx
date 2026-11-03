@@ -4,30 +4,30 @@ import SpriteImage from "./SpriteImage";
 
 /** The four frames of the Grimbur, cut from one sheet so they share scale and baseline (scripts/sliceBossSheet.py). */
 export const BOSS_FRAMES = {
-  idle: require("../../assets/sprites/enemies/Grimbur_Boss.png"),
-  breathe: require("../../assets/sprites/enemies/Grimbur_Boss_Breathe.png"),
-  attack: require("../../assets/sprites/enemies/Grimbur_Boss_Attack.png"),
-  hurt: require("../../assets/sprites/enemies/Grimbur_Boss_Hurt.png"),
+  idle: require("../../assets/sprites/enemies/Grimbur_Boss.webp"),
+  breathe: require("../../assets/sprites/enemies/Grimbur_Boss_Breathe.webp"),
+  attack: require("../../assets/sprites/enemies/Grimbur_Boss_Attack.webp"),
+  hurt: require("../../assets/sprites/enemies/Grimbur_Boss_Hurt.webp"),
 } as const;
 
 /** The Ancestral Grimbur: the same four poses, frozen into ice and runes (cut from one sheet, like the Grimbur's). */
 export const ANCIENT_FRAMES = {
-  idle: require("../../assets/sprites/enemies/Ancient_Boss.png"),
-  breathe: require("../../assets/sprites/enemies/Ancient_Boss_Breathe.png"),
-  attack: require("../../assets/sprites/enemies/Ancient_Boss_Attack.png"),
-  hurt: require("../../assets/sprites/enemies/Ancient_Boss_Hurt.png"),
+  idle: require("../../assets/sprites/enemies/Ancient_Boss.webp"),
+  breathe: require("../../assets/sprites/enemies/Ancient_Boss_Breathe.webp"),
+  attack: require("../../assets/sprites/enemies/Ancient_Boss_Attack.webp"),
+  hurt: require("../../assets/sprites/enemies/Ancient_Boss_Hurt.webp"),
 } as const;
 
 /** The Grimbur's lieutenant: two frames (it rears on the breath frame when it winds up or is hit). */
 const MINI_FRAMES = {
-  idle: require("../../assets/sprites/enemies/Lieutenant_Boss.png"),
-  breathe: require("../../assets/sprites/enemies/Lieutenant_Boss_Breathe.png"),
+  idle: require("../../assets/sprites/enemies/Lieutenant_Boss.webp"),
+  breathe: require("../../assets/sprites/enemies/Lieutenant_Boss_Breathe.webp"),
 } as const;
 
 /** The Magma Colossus: two frames, like the lieutenant (it rears and its lava flares on the second). */
 const WARDEN_FRAMES = {
-  idle: require("../../assets/sprites/enemies/Warden_Boss.png"),
-  breathe: require("../../assets/sprites/enemies/Warden_Boss_Breathe.png"),
+  idle: require("../../assets/sprites/enemies/Warden_Boss.webp"),
+  breathe: require("../../assets/sprites/enemies/Warden_Boss_Breathe.webp"),
 } as const;
 
 const BREATH_MS = 850;

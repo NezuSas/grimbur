@@ -182,7 +182,7 @@ const ScoreBar: React.FC<Props> = memo(
         <View style={compact ? styles.rightCompact : styles.rightGroup}>
           {bossHearts !== undefined ? (
             <ScoreCounter
-              icon={require("../../assets/sprites/enemies/Grimbur_Boss.png")}
+              icon={require("../../assets/sprites/enemies/Grimbur_Boss.webp")}
               value={`${bossHearts}`}
               label={t("hud.bossHearts").toLocaleUpperCase()}
               iconDim={statIconSize}

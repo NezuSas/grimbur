@@ -13,15 +13,13 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SPRITES = os.path.join(ROOT, 'src', 'assets', 'sprites')
+# Heroes and creatures stay in true colour (their painted detail bands in a palette); skins are written true colour too.
 TARGETS = [
-    os.path.join(SPRITES, 'characters'),
     os.path.join(SPRITES, 'backgrounds'),
-    os.path.join(SPRITES, 'enemies'),
     os.path.join(SPRITES, 'relics'),
     os.path.join(SPRITES, 'forge'),
     os.path.join(SPRITES, 'tools'),
     os.path.join(SPRITES, 'items'),
-    os.path.join(SPRITES, 'tiles'),
     os.path.join(SPRITES, 'ui'),
     os.path.join(SPRITES, 'achievements'),
     os.path.join(SPRITES, 'cosmetics'),

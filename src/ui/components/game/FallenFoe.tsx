@@ -5,12 +5,12 @@ import { Burst } from "../Burst";
 import type { EntityType } from "../../../core/engine/types";
 
 const ART: Partial<Record<EntityType, number>> = {
-  enemy: require("../../../assets/sprites/enemies/Guardian_Enemy.png"),
-  stalker: require("../../../assets/sprites/enemies/Stalker_Enemy.png"),
-  sleeper: require("../../../assets/sprites/enemies/Sleeper_Enemy.png"),
-  mimic: require("../../../assets/sprites/enemies/Mimic_Enemy.png"),
-  thief: require("../../../assets/sprites/enemies/Thief_Enemy.png"),
-  boss: require("../../../assets/sprites/enemies/Grimbur_Boss.png"),
+  enemy: require("../../../assets/sprites/enemies/Guardian_Enemy.webp"),
+  stalker: require("../../../assets/sprites/enemies/Stalker_Enemy.webp"),
+  sleeper: require("../../../assets/sprites/enemies/Sleeper_Enemy.webp"),
+  mimic: require("../../../assets/sprites/enemies/Mimic_Enemy.webp"),
+  thief: require("../../../assets/sprites/enemies/Thief_Enemy.webp"),
+  boss: require("../../../assets/sprites/enemies/Grimbur_Boss.webp"),
 };
 const SPARK = require("../../../assets/sprites/items/Icon_Ember.png");
 /** The colour of the shock ring each guardian leaves when it falls. */

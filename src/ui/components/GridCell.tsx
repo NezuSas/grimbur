@@ -18,13 +18,13 @@ import { LAVA_TURNS } from "../../core/engine/generator";
 const TRAP_SPRUNG = require("../../assets/sprites/tiles/Trap_Sprung.png");
 
 export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" | "chest" | "boss" | "pit" | "coin" | "shield" | "ammo", ImageSourcePropType> = {
-  enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.png"),
-  stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.png"),
-  sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.png"),
-  mimic:    require("../../assets/sprites/enemies/Mimic_Enemy.png"),
-  thief:    require("../../assets/sprites/enemies/Thief_Enemy.png"),
+  enemy:    require("../../assets/sprites/enemies/Guardian_Enemy.webp"),
+  stalker:  require("../../assets/sprites/enemies/Stalker_Enemy.webp"),
+  sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.webp"),
+  mimic:    require("../../assets/sprites/enemies/Mimic_Enemy.webp"),
+  thief:    require("../../assets/sprites/enemies/Thief_Enemy.webp"),
   chest:    require("../../assets/sprites/items/Icon_Chest.png"),
-  boss:     require("../../assets/sprites/enemies/Grimbur_Boss.png"),
+  boss:     require("../../assets/sprites/enemies/Grimbur_Boss.webp"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
   shield:   require("../../assets/sprites/items/Icon_Shield.png"),
   ammo:     require("../../assets/sprites/items/Icon_Arrows.png"),
@@ -42,11 +42,11 @@ export const CLUE_ART = {
 
 type Creature = "enemy" | "stalker" | "sleeper" | "mimic" | "thief";
 const BREATHE: Record<Creature, ImageSourcePropType> = {
-  enemy:   require("../../assets/sprites/enemies/Guardian_Enemy_Breathe.png"),
-  stalker: require("../../assets/sprites/enemies/Stalker_Enemy_Breathe.png"),
-  sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy_Breathe.png"),
-  mimic: require("../../assets/sprites/enemies/Mimic_Enemy_Breathe.png"),
-  thief: require("../../assets/sprites/enemies/Thief_Enemy_Breathe.png"),
+  enemy:   require("../../assets/sprites/enemies/Guardian_Enemy_Breathe.webp"),
+  stalker: require("../../assets/sprites/enemies/Stalker_Enemy_Breathe.webp"),
+  sleeper: require("../../assets/sprites/enemies/Sleeper_Enemy_Breathe.webp"),
+  mimic: require("../../assets/sprites/enemies/Mimic_Enemy_Breathe.webp"),
+  thief: require("../../assets/sprites/enemies/Thief_Enemy_Breathe.webp"),
 };
 
 export const NO_HINTS: NearbyHazards = { enemy: false, pit: false, enemyCount: 0, pitCount: 0 };

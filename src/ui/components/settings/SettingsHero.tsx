@@ -166,7 +166,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
                 {[0, 1, 2].map(c => (
                   <SpriteImage
                     key={c}
-                    source={r === 1 && c === 1 ? require("../../../assets/sprites/tiles/Tile_Revealed_Lair.png") : require("../../../assets/sprites/tiles/Tile_Hidden_Lair.png")}
+                    source={r === 1 && c === 1 ? require("../../../assets/sprites/tiles/Tile_Revealed_Lair.webp") : require("../../../assets/sprites/tiles/Tile_Hidden_Lair.webp")}
                     style={{ width: tile, height: tile }}
                     resizeMode="cover"
                   />

@@ -14,7 +14,7 @@ import { loadFriendsWeekly, type WeeklyRow } from "../../services/weeklyScores";
 import { formatSolveTime } from "./shareText";
 
 const RED = "#FF5252";
-const GRIMBUR = require("../../assets/sprites/enemies/Grimbur_Boss.png");
+const GRIMBUR = require("../../assets/sprites/enemies/Grimbur_Boss.webp");
 const SHOWN = 4;
 
 type Props = {

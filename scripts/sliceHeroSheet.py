@@ -8,7 +8,7 @@ loose piece (a thrown bomb, a spark, an arrow tip) goes to the nearest big blob,
 neighbouring cell still stays with its owner.
 
   python scripts/sliceHeroSheet.py <sheet.png> <Colour>      # Colour = Cyan, Red, Green, Gold, Pink or Orange
-Writes src/assets/sprites/characters/{Hero,Attack,Win,Lose,Icon}_<Colour>.png.
+Writes src/assets/sprites/characters/{Hero,Attack,Win,Lose,Icon}_<Colour>.png; then run scripts/toWebp.py on them (the game loads .webp).
 """
 import os
 import sys
