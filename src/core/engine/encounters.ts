@@ -25,6 +25,8 @@ export interface Encounter {
   relic?: RelicId;
   /** The gambler's die, 1 to 6: 4 or more wins (shown rolling, then landing on it). */
   die?: number;
+  /** What a scene that can give one thing or another gave (the spring: a shield or an arrow; the shrine: a detector or a bomb). */
+  gift?: 'shield' | 'arrow' | 'detector' | 'bomb';
 }
 
 export const ENCOUNTER_FROM = 2;
@@ -130,8 +132,8 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
       if (roll() < SPRING_LUCK) {
         // A shield already held (or one the Blood Gems would refuse) becomes an arrow.
         return state.shield || relicCount(state.relics, 'blood_gems') > 0
-          ? { ...state, attack: state.attack + 1, encounter: { ...enc, outcome: 'win' } }
-          : { ...state, shield: true, encounter: { ...enc, outcome: 'win' } };
+          ? { ...state, attack: state.attack + 1, encounter: { ...enc, outcome: 'win', gift: 'arrow' } }
+          : { ...state, shield: true, encounter: { ...enc, outcome: 'win', gift: 'shield' } };
       }
       return { ...state, gems: Math.max(0, state.gems - SPRING_LOSS), encounter: { ...enc, outcome: 'lose' } };
     }
@@ -143,8 +145,9 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
       return { ...state, gems: state.gems - GAMBLER_STAKE + (won ? GAMBLER_PAYOUT : 0), encounter: { ...enc, outcome: won ? 'win' : 'lose', die } };
     }
     case 'shrine': {
-      const items = state.items.detector < MAX_ITEMS ? { ...state.items, detector: state.items.detector + 1 } : { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) };
-      return { ...state, attack: state.attack - SHRINE_ARROWS, items, encounter: { ...enc, outcome: 'done' } };
+      const detector = state.items.detector < MAX_ITEMS;
+      const items = detector ? { ...state.items, detector: state.items.detector + 1 } : { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) };
+      return { ...state, attack: state.attack - SHRINE_ARROWS, items, encounter: { ...enc, outcome: 'done', gift: detector ? 'detector' : 'bomb' } };
     }
     case 'miner': {
       const items = { ...state.items, bomb: state.items.bomb - MINER_BOMBS };

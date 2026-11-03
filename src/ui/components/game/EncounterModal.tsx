@@ -6,6 +6,7 @@ import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import OverlayContainer from "./OverlayContainer";
 import GamblerDie from "./GamblerDie";
+import EncounterReveal, { revealArts } from "./EncounterReveal";
 import { PopButton, PopLink, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import type { TranslationKey } from "../../../i18n/en";
@@ -72,22 +73,32 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
   const wide = width > height;
 
   const relicName = encounter.relic ? t(`relic.${encounter.relic}.name` as TranslationKey) : "";
-  // The gambler's throw is shown: the die tumbles on the card, and the result is told once it has landed.
+  // What came of the scene is shown before it is told: the gambler's die tumbles, every other scene plays its exchange
+  // (what was paid, then what it brought, after a moment of suspense when luck was in play).
   const rolled = id === "gambler" && (outcome === "win" || outcome === "lose") && encounter.die != null;
+  const revealed = !!outcome && outcome !== "skip" && id !== "gambler";
   const [landed, setLanded] = useState(false);
-  const rolling = rolled && !landed;
+  const rolling = (rolled || revealed) && !landed;
   const resultText =
     outcome === "skip"
       ? t("encounter.skipped")
       : rolling
-        ? t("encounter.gambler.rolling")
+        ? t(rolled ? "encounter.gambler.rolling" : k("acting"))
         : outcome
-          ? t(k(outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0 })
+          ? t(k(outcome === "done" && encounter.gift === "bomb" ? "doneBomb" : outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0 })
           : null;
 
   return (
     <OverlayContainer>
       <PopupPanel tint={tint} width={Math.min(width * 0.9, 620)} style={wide ? styles.row : undefined}>
+        {/* The exchange's pictures, warmed while the choice is open (unseen). */}
+        {!outcome ? (
+          <View pointerEvents="none" style={styles.warm}>
+            {revealArts(id).map((art, i) => (
+              <SpriteImage key={i} source={art} style={styles.warmImage} />
+            ))}
+          </View>
+        ) : null}
         <View style={[styles.artBox, { width: artSize, height: artSize, borderColor: tint, backgroundColor: tint + "1F" }]}>
           <SpriteImage source={ENCOUNTER_ART[id]} style={{ width: artSize * 0.96, height: artSize * 0.96 }} resizeMode="contain" />
         </View>
@@ -102,8 +113,19 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
             <View style={[styles.dieRow, wide && { alignSelf: "flex-start" }]}>
               <GamblerDie face={encounter.die!} size={Math.min(56, artSize * 0.42)} rim={tint} won={outcome === "win"} onLanded={() => setLanded(true)} />
             </View>
+          ) : revealed ? (
+            <View style={[styles.dieRow, wide && { alignSelf: "flex-start" }]}>
+              <EncounterReveal encounter={encounter} tint={tint} size={Math.min(46, artSize * 0.34)} onLanded={() => setLanded(true)} />
+            </View>
           ) : null}
-          <Text style={[styles.line, wide && { textAlign: "left" }, rolled && landed && { color: outcome === "win" ? "#A3BF7C" : "#D58A7E" }]} maxFontSizeMultiplier={1.15}>
+          <Text
+            style={[
+              styles.line,
+              wide && { textAlign: "left" },
+              (rolled || revealed) && landed && (outcome === "win" || outcome === "lose") && { color: outcome === "win" ? "#A3BF7C" : "#D58A7E" },
+            ]}
+            maxFontSizeMultiplier={1.15}
+          >
             {resultText ?? t(k("body"), ENCOUNTER_PARAMS)}
           </Text>
           {outcome ? (
@@ -134,6 +156,8 @@ const styles = StyleSheet.create({
   cant: { color: "#D58A7E", fontSize: 11.5, fontWeight: "800" },
   button: { alignSelf: "stretch", marginTop: 4 },
   dieRow: { alignSelf: "center", marginVertical: -4 },
+  warm: { position: "absolute", width: 1, height: 1, opacity: 0, overflow: "hidden" },
+  warmImage: { width: 1, height: 1 },
 });
 
 export default EncounterModal;

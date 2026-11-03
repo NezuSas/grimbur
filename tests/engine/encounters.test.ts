@@ -71,6 +71,23 @@ describe('encounters', () => {
     const after = resolveEncounter(withEncounter('shrine', { attack: 3, items: { detector: 0, bomb: 0 } }), true);
     expect(after.attack).toBe(2);
     expect(after.items.detector).toBe(1);
+    expect(after.encounter!.gift).toBe('detector');
+  });
+
+  it('the shrine gives a bomb when the bag holds the most detectors, and says so', () => {
+    const after = resolveEncounter(withEncounter('shrine', { attack: 3, items: { detector: 99, bomb: 0 } }), true);
+    expect(after.items.bomb).toBe(1);
+    expect(after.encounter!.gift).toBe('bomb');
+  });
+
+  it('a lucky spring tells what it gave: a shield, or an arrow when one is held', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      for (const shield of [false, true]) {
+        const enc = resolveEncounter(withEncounter('spring', { runSeed: seed, shield }), true).encounter!;
+        if (enc.outcome === 'win') expect(enc.gift).toBe(shield ? 'arrow' : 'shield');
+        else expect(enc.gift).toBeUndefined();
+      }
+    }
   });
 });
 
