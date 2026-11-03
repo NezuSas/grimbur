@@ -20,6 +20,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
+import { useKeyboardControls } from "../ui/useKeyboardControls";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { useFocusEffect, useIsFocused } from "@react-navigation/native";
@@ -831,6 +832,18 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleDetector = useCallback(() => handleItem("detector"), [handleItem]);
   const handleBomb = useCallback(() => handleItem("bomb"), [handleItem]);
   const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
+  // A computer's keyboard plays the run too (arrows/WASD, Space or Shift+direction to shoot, Q ability, Z undo, P pause),
+  // only while the board is live: no card, pause or end of run in front.
+  useKeyboardControls(
+    {
+      onMove: manualMove,
+      onAttack: manualAttack,
+      onPause: canPause ? openPause : undefined,
+      onAbility: handleAbility,
+      onUndo: state.undo && !state.undoUsed ? handleUndo : undefined,
+    },
+    isFocused && canPause && !paused && !intermission && !state.encounter,
+  );
 
   // The gems the floor started with (the HUD counts found / total). Gems are never added within a floor, so the count at the
   // floor's first render is its total.

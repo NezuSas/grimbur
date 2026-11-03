@@ -2374,6 +2374,21 @@ export const en = {
   'puzzle.guide.next': 'Next',
   'puzzle.guide.done': 'Got it',
   'puzzle.guide.skip': 'Skip',
+  'settings.group.keyboard': 'Keyboard (computer)',
+  'settings.keys.move': 'Walk',
+  'settings.keys.shoot': 'Shoot where you face',
+  'settings.keys.aim': 'Shoot a side',
+  'settings.keys.ability': 'Hero ability',
+  'settings.keys.undo': 'Undo a step',
+  'settings.keys.pause': 'Pause',
+  'settings.keys.puzzles': 'In the puzzles',
+  'settings.keys.space': 'Space',
+  'settings.keys.shift': 'Shift',
+  'settings.keys.flag': 'flag',
+  'settings.keys.note': 'note',
+  'settings.keys.hint': 'hint',
+  'settings.keys.restart': 'restart',
+  'settings.keys.go': 'play / continue',
 } as const;
 
 export type TranslationKey = keyof typeof en;

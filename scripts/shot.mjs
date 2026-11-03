@@ -92,6 +92,14 @@ for (const c of (process.env.SHOT_CLICKS ?? '').split(';').filter(Boolean)) {
 }
 const probe = await send('Runtime.evaluate', { expression: `JSON.stringify({ ready: document.readyState, root: document.getElementById('root')?.innerHTML.length ?? -1, scripts: [...document.scripts].map(s => s.src.slice(0, 60)) })`, returnByValue: true });
 if (process.env.SHOT_DEBUG) console.log('PAGE', probe.result?.result?.value);
+// SHOT_KEYS="Enter,w,w,d": real key presses (after the clicks), 400 ms apart, to check the keyboard controls.
+for (const k of (process.env.SHOT_KEYS ?? '').split(',').filter(Boolean)) {
+  const named = { Enter: [13, 'Enter', String.fromCharCode(13)], ArrowUp: [38, 'ArrowUp'], ArrowDown: [40, 'ArrowDown'], ArrowLeft: [37, 'ArrowLeft'], ArrowRight: [39, 'ArrowRight'], Space: [32, ' ', ' '] }[k];
+  const [code, key, text] = named ?? [k.toUpperCase().charCodeAt(0), k, k];
+  await send('Input.dispatchKeyEvent', { type: 'keyDown', key, windowsVirtualKeyCode: code, ...(text ? { text } : {}) });
+  await send('Input.dispatchKeyEvent', { type: 'keyUp', key, windowsVirtualKeyCode: code });
+  await sleep(400);
+}
 // SHOT_EVAL="<js expression>": print what it returns (to inspect the page while debugging a layout).
 if (process.env.SHOT_EVAL) {
   const r = await send('Runtime.evaluate', { expression: process.env.SHOT_EVAL, returnByValue: true });

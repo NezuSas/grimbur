@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useReducer, useRef, useState } from "rea
 import { TUTORIAL_CHAPTERS } from "../core/tutorial/lessons";
 import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
+import { useKeyboardControls } from "../ui/useKeyboardControls";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -172,6 +173,9 @@ export default function TutorialScreen({ navigation, route }: Props) {
 
   const highlight = step.highlight;
   const flagSet = React.useMemo(() => new Set(flags), [flags]);
+
+  // A computer's keyboard walks and shoots here too.
+  useKeyboardControls({ onMove: move, onAttack: () => attack() }, true);
 
   return (
     <ImageBackground

@@ -4,6 +4,7 @@ import HighScoreEntryModal from "../ui/components/game/HighScoreEntryModal";
 import ReviveOverlay from "../ui/components/game/ReviveOverlay";
 import { ImageBackground, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
+import { useKeyboardControls } from "../ui/useKeyboardControls";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -273,6 +274,9 @@ export default function LessonScreen({ navigation, route }: Props) {
       </TouchableOpacity>
     </View>
   );
+
+  // A computer's keyboard walks and shoots here too.
+  useKeyboardControls({ onMove: move, onAttack: attack }, true);
 
   return (
     <ImageBackground

@@ -1,7 +1,7 @@
 import React from "react";
 import { forceYule, isYuleForced } from "../core/events/yule";
 import GlyphIcon from "../ui/components/GlyphIcon";
-import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking } from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView, TextInput, Share, ImageBackground, Linking, Platform } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -347,8 +347,44 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     </>
   );
 
+  // On a computer the keyboard plays: the keys, listed once here (runs, lessons and puzzles).
+  const keyRows: { label: string; keys: string[] }[] = [
+    { label: t("settings.keys.move"), keys: ["↑ ↓ ← →", "W A S D"] },
+    { label: t("settings.keys.shoot"), keys: [t("settings.keys.space")] },
+    { label: t("settings.keys.aim"), keys: [`${t("settings.keys.shift")} + ↑ ↓ ← →`] },
+    { label: t("settings.keys.ability"), keys: ["Q"] },
+    { label: t("settings.keys.undo"), keys: ["Z"] },
+    { label: t("settings.keys.pause"), keys: ["P", "Esc"] },
+    { label: t("settings.keys.puzzles"), keys: [`F ${t("settings.keys.flag")}`, `N ${t("settings.keys.note")}`, `H ${t("settings.keys.hint")}`, `R ${t("settings.keys.restart")}`, `Enter ${t("settings.keys.go")}`] },
+  ];
+  const keyboardCard =
+    Platform.OS === "web" ? (
+      <SettingCard title={t("settings.group.keyboard")} full>
+        {keyRows.map((row, i) => (
+          <React.Fragment key={row.label}>
+            {i > 0 ? <RowDivider /> : null}
+            <View style={styles.kbRow} accessible accessibilityLabel={`${row.label}: ${row.keys.join(", ")}`}>
+              <Text style={styles.kbLabel} maxFontSizeMultiplier={1.2}>
+                {row.label}
+              </Text>
+              <View style={styles.kbCaps}>
+                {row.keys.map(k => (
+                  <View key={k} style={styles.kbCap}>
+                    <Text style={styles.kbCapText} maxFontSizeMultiplier={1.1}>
+                      {k}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </React.Fragment>
+        ))}
+      </SettingCard>
+    ) : null;
+
   const controlsPane = (
     <>
+      {keyboardCard}
       <SettingCard title={t("settings.group.move")} full>
         <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#FFAB40" stacked>
           <Segmented options={padOptions} value={movePad} onChange={setMovePad} accessibilityLabel={t("settings.movePad")} />
@@ -826,6 +862,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  kbRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, paddingHorizontal: 4 },
+  kbLabel: { width: 150, color: "#E6D6C2", fontWeight: "800", fontSize: 13 },
+  kbCaps: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  kbCap: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, borderWidth: 1, borderBottomWidth: 3, borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.07)" },
+  kbCapText: { color: "#FFF3E0", fontWeight: "900", fontSize: 12 },
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
   paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
