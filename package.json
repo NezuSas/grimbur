@@ -18,7 +18,9 @@
     "test:stress": "jest tests/engine/engine-stress.test.ts",
     "generate-feature": "tsx scripts/generateFeature.ts",
     "lint": "eslint src App.tsx",
-    "test:rules": "npx firebase-tools@13.35.1 emulators:exec --only firestore --project demo-rules \"jest --testPathIgnorePatterns /node_modules/ --testMatch **/tests/rules/*.test.ts\""
+    "test:rules": "npx firebase-tools@13.35.1 emulators:exec --only firestore --project demo-rules \"jest --testPathIgnorePatterns /node_modules/ --testMatch **/tests/rules/*.test.ts\"",
+    "web:build": "expo export -p web --output-dir dist",
+    "web:beta": "npm run web:build && npx firebase-tools hosting:channel:deploy beta --expires 30d"
   },
   "dependencies": {
     "@expo-google-fonts/fredoka": "^0.4.1",

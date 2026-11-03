@@ -650,3 +650,35 @@ describe("the Grimbur's weekly challenge among friends", () => {
     await assertFails(getDocs(query(collection(db(), 'weekly_scores'), limit(5))));
   });
 });
+
+describe('feedback (testers notes)', () => {
+  const note = (patch: Record<string, unknown> = {}) => ({
+    pid: UID, name: 'Oscar', kind: 'bug', text: 'The hero walked into a wall', where: 'cover', platform: 'web', version: '1.3.0',
+    width: 1280, height: 720, ua: 'Mozilla/5.0', at: serverTimestamp(), ...patch,
+  });
+
+  it('takes a note from its signed-in author, and nobody reads, changes or deletes it', async () => {
+    const ref = await assertSucceeds(addDoc(collection(authed(UID), 'feedback'), note()));
+    await assertFails(getDoc(doc(authed(UID), 'feedback', ref.id)));
+    await assertFails(getDocs(query(collection(authed(UID), 'feedback'), limit(5))));
+    await assertFails(updateDoc(doc(authed(UID), 'feedback', ref.id), { text: 'changed text' }));
+    await assertFails(deleteDoc(doc(authed(UID), 'feedback', ref.id)));
+  });
+
+  it('refuses a note without sign-in or under another pid', async () => {
+    await assertFails(addDoc(collection(db(), 'feedback'), note()));
+    await assertFails(addDoc(collection(authed('VANDAL0000000000'), 'feedback'), note()));
+  });
+
+  const bad: [string, Record<string, unknown>][] = [
+    ['an unknown kind', { kind: 'spam' }],
+    ['too short a text', { text: 'ok' }],
+    ['too long a text', { text: 'x'.repeat(1001) }],
+    ['a made-up date', { at: new Date(0) }],
+    ['an extra field', { admin: true }],
+    ['a size as text', { width: '1280' }],
+  ];
+  it.each(bad)('rejects %s', async (_label, patch) => {
+    await assertFails(addDoc(collection(authed(UID), 'feedback'), note(patch)));
+  });
+});

@@ -221,6 +221,29 @@ service cloud.firestore {
         && validName(d.name);
     }
 
+    // Testers' notes from inside the game (services/feedback.ts): written once by their author, read only from the console.
+    function validFeedback(d) {
+      return d.keys().hasOnly(['pid', 'name', 'kind', 'text', 'where', 'platform', 'version', 'width', 'height', 'ua', 'at'])
+        && d.keys().hasAll(['pid', 'name', 'kind', 'text', 'where', 'platform', 'version', 'width', 'height', 'ua', 'at'])
+        && validPid(d.pid)
+        && d.name is string && d.name.size() <= 20
+        && d.kind in ['bug', 'idea', 'like', 'other']
+        && d.text is string && d.text.size() >= 3 && d.text.size() <= 1000
+        && d.where is string && d.where.size() <= 40
+        && d.platform is string && d.platform.size() <= 10
+        && d.version is string && d.version.size() <= 20
+        && isInt(d.width) && d.width >= 0 && d.width <= 20000
+        && isInt(d.height) && d.height >= 0 && d.height <= 20000
+        && d.ua is string && d.ua.size() <= 300
+        && d.at == request.time;
+    }
+
+    match /feedback/{id} {
+      allow read: if false;
+      allow create: if validFeedback(request.resource.data) && isOwner(request.resource.data.pid);
+      allow update, delete: if false;
+    }
+
     match /weekly_scores/{id} {
       allow list: if false;
       allow get: if true;

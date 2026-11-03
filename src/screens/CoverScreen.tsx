@@ -2,7 +2,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import Snowfall from "../ui/components/Snowfall";
 import YuleModal from "../ui/components/YuleModal";
 import { isYuleDay } from "../core/events/yule";
-import { ImageBackground, View, StyleSheet } from "react-native";
+import { ImageBackground, Platform, View, StyleSheet } from "react-native";
+import FeedbackModal from "../ui/components/FeedbackModal";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { RootStackParamList } from "../navigation/types";
@@ -108,6 +109,7 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
   const streak = useMemo(() => streakStatus(stats, today), [stats, today]);
   // Christmas in the cave (December): snow on the cover and a card with the month's keepsakes.
   const yule = isYuleDay(today);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [yuleOpen, setYuleOpen] = useState(() => __DEV__ && !!route.params?.devYule);
   const goal = useMemo(() => nextGoals(stats, 1)[0] ?? null, [stats]);
   const achievementsSeen = useSettingsStore(st => st.achievementsSeen);
@@ -176,10 +178,12 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
           onPressForge={() => navigation.navigate("ForgeScreen")}
           onPressAchievements={() => navigation.navigate("AchievementsScreen")}
           onPressSettings={() => navigation.navigate("SettingsScreen")}
+          onPressFeedback={Platform.OS === "web" ? () => setFeedbackOpen(true) : undefined}
         />
         <NewsBanner />
         {yule ? <Snowfall calm={calm} /> : null}
       </ImageBackground>
+      {feedbackOpen ? <FeedbackModal where="cover" onClose={() => setFeedbackOpen(false)} /> : null}
       {yuleOpen ? (
         <YuleModal
           events={stats.events}

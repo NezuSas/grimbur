@@ -82,6 +82,8 @@ type Props = {
   onPressEvent?: () => void;
   puzzleWaiting?: boolean;
   onPressSettings: () => void;
+  /** Testing builds: a "Beta - Feedback" pill beside the gear opens the feedback card. */
+  onPressFeedback?: () => void;
 };
 
 /** The Grimbur breathes: a slow, small swell so the cover is alive without being noisy. */
@@ -175,6 +177,7 @@ const CoverCard: React.FC<Props> = ({
   onPressAchievements,
   onPressCollection,
   onPressSettings,
+  onPressFeedback,
 }) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
@@ -434,6 +437,23 @@ const CoverCard: React.FC<Props> = ({
       >
         <Ionicons name="settings-outline" size={22} color="#fff" />
       </TouchableOpacity>
+      {onPressFeedback ? (
+        <TouchableOpacity
+          style={[styles.feedback, { top: Math.max(insets.top, 10) + (MIN_TOUCH - 34) / 2, right: Math.max(insets.right, 12) + MIN_TOUCH + 8 }]}
+          onPress={onPressFeedback}
+          hitSlop={6}
+          accessibilityRole="button"
+          accessibilityLabel={t("feedback.title")}
+        >
+          <Text style={styles.feedbackBeta} maxFontSizeMultiplier={1}>
+            {t("feedback.beta").toLocaleUpperCase()}
+          </Text>
+          <Ionicons name="chatbubble-ellipses" size={15} color="#4FC3F7" />
+          <Text style={styles.feedbackText} maxFontSizeMultiplier={1.1}>
+            {t("feedback.open")}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 };
@@ -538,6 +558,21 @@ const styles = StyleSheet.create({
     borderColor: "#2A2016",
   },
   dockLabel: { color: "#F3EEE8", fontSize: 11, fontWeight: "700", letterSpacing: 0.5, maxWidth: "100%", textShadowColor: "rgba(0,0,0,0.9)", textShadowRadius: 6 },
+  feedback: {
+    position: "absolute",
+    height: 34,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingLeft: 5,
+    paddingRight: 12,
+    borderRadius: 17,
+    backgroundColor: "rgba(10,14,24,0.72)",
+    borderWidth: 1,
+    borderColor: "rgba(79,195,247,0.55)",
+  },
+  feedbackBeta: { color: "#0b1a24", backgroundColor: "#4FC3F7", fontWeight: "900", fontSize: 9.5, letterSpacing: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 9, overflow: "hidden" },
+  feedbackText: { color: "#E1F5FE", fontWeight: "800", fontSize: 13 },
   settings: {
     position: "absolute",
     width: MIN_TOUCH,

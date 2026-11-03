@@ -44,6 +44,7 @@ import type { TranslationKey } from "../i18n/en";
 import { GAME_CONFIG } from "../config/gameConfig";
 import { isReal } from "../config/isReal";
 import appJson from "../../app.json";
+import FeedbackModal from "../ui/components/FeedbackModal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
 
@@ -72,6 +73,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const setKeyBindings = useSettingsStore(st => st.setKeyBindings);
   // The action waiting for its new key (Settings > Controls > Keyboard), if any.
   const [rebinding, setRebinding] = React.useState<KeyAction | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
   React.useEffect(() => {
     if (rebinding === null || Platform.OS !== "web" || typeof window === "undefined") return;
     const onKey = (e: KeyboardEvent) => {
@@ -834,6 +836,11 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </View>
       </View>
+      <SettingCard>
+        <SettingRow label={t("settings.feedback")} hint={t("settings.feedbackHint")} icon="chatbubble-ellipses" tint="#4FC3F7">
+          <RoundAction icon="create-outline" label={t("settings.feedback")} onPress={() => setFeedbackOpen(true)} />
+        </SettingRow>
+      </SettingCard>
       {isReal(GAME_CONFIG.support.email) || isReal(GAME_CONFIG.monetization.privacyUrl) || isReal(GAME_CONFIG.monetization.termsUrl) ? (
         <SettingCard>
           {isReal(GAME_CONFIG.support.email) && (
@@ -935,6 +942,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           </View>
         )}
       </SafeAreaView>
+      {feedbackOpen ? <FeedbackModal where="settings" onClose={() => setFeedbackOpen(false)} /> : null}
     </ImageBackground>
   );
 };
