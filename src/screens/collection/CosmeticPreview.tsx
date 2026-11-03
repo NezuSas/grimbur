@@ -1,13 +1,14 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, Easing, ImageBackground, StyleSheet, View } from "react-native";
+import React from "react";
+import { ImageBackground, StyleSheet, View } from "react-native";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
-import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, TRAIL_LOOKS, PET_ART, PET_TINT, petLook } from "../../ui/cosmeticArt";
+import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, PET_ART, PET_TINT, petLook } from "../../ui/cosmeticArt";
 import Companion from "../../ui/components/game/Companion";
 import GemShower from "../../ui/components/game/GemShower";
 import { PlayerPortrait } from "../../ui/components/PlayerPortrait";
+import TrailPreview from "./TrailPreview";
 import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
 import { cosmeticText } from "../../i18n/keys";
@@ -27,40 +28,6 @@ type Props = {
   frame?: CosmeticId;
   /** A companion's growth stage (its adult form, its aura). */
   petStage?: number;
-};
-
-/** A trail's arrow gliding back and forth with its wake (still when calm or small). */
-const TrailPreview = ({ id, size, small }: { id: CosmeticId; size: number; small?: boolean }) => {
-  const calm = useSettingsStore(s => s.reduceFlash);
-  const look = TRAIL_LOOKS[id]!;
-  const glide = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (calm || small) return;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glide, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(glide, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [calm, small, glide]);
-  const w = size * 0.95;
-  return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-      {!small
-        ? [0, 1, 2, 3, 4].map(i => (
-            <View
-              key={i}
-              style={{ position: "absolute", left: size * (0.08 + i * 0.07), top: size * 0.5 - size * 0.02 + (i % 2 ? -1 : 1) * size * 0.05, width: size * 0.05, height: size * 0.05, borderRadius: size, backgroundColor: look.colors[i % 2], opacity: 0.3 + i * 0.12 }}
-            />
-          ))
-        : null}
-      <Animated.View style={{ transform: [{ translateX: glide.interpolate({ inputRange: [0, 1], outputRange: [-size * 0.05, size * 0.05] }) }] }}>
-        <SpriteImage source={look.arrow} style={{ width: w, height: w / 3 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-      </Animated.View>
-    </View>
-  );
 };
 
 /** What a cosmetic looks like, as the player will see it: an arrow in flight, a framed portrait, a title, a patch of floor. */
