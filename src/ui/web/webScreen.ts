@@ -8,7 +8,7 @@ import { Platform } from "react-native";
  */
 const web = Platform.OS === "web" && typeof window !== "undefined" && typeof document !== "undefined";
 
-type FsDoc = Document & { webkitFullscreenElement?: Element | null };
+type FsDoc = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> | void };
 type FsEl = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
 type LockableOrientation = ScreenOrientation & { lock?: (o: string) => Promise<void> };
 
@@ -20,6 +20,9 @@ export const isTouchWeb = (): boolean =>
 export const isIOSWeb = (): boolean =>
   web && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
+/** An iPhone (or iPod): its browsers (Safari, and Chrome on it, which is Safari inside) never put a page in full screen. */
+export const isIPhoneWeb = (): boolean => web && /iPhone|iPod/.test(navigator.userAgent);
+
 /** Opened from the home screen as an app: the browser draws no bar. */
 export const isStandalone = (): boolean =>
   web &&
@@ -28,36 +31,50 @@ export const isStandalone = (): boolean =>
 
 export const isFullscreen = (): boolean => web && !!(document.fullscreenElement ?? (document as FsDoc).webkitFullscreenElement);
 
-/** The browser can put the page in full screen (not an iPhone, whose Safari only does it for videos). */
+/**
+ * The browser can put the page in full screen. Never an iPhone: its Safari only does it for videos, even where the function
+ * exists (calling it fails quietly, and the button seemed to do nothing).
+ */
 export const canFullscreen = (): boolean => {
-  if (!web) return false;
+  if (!web || isIPhoneWeb()) return false;
   const el = document.documentElement as FsEl;
   return typeof el.requestFullscreen === "function" || typeof el.webkitRequestFullscreen === "function";
 };
 
-/** Full screen, then landscape locked (Android). Must run inside a tap. Never throws. */
-export async function enterFullscreen(): Promise<void> {
-  if (!web) return;
+/**
+ * Full screen, then landscape locked (Android). Must run inside a tap. Never throws; says whether the page is full screen
+ * after it (false: the browser refused, and the player is better told how to add the game to the home screen).
+ */
+export async function enterFullscreen(): Promise<boolean> {
+  if (!web) return false;
   try {
     const el = document.documentElement as FsEl;
     if (!isFullscreen()) {
-      if (typeof el.requestFullscreen === "function") await el.requestFullscreen({ navigationUI: "hide" });
+      // Safari on an iPad knows the unprefixed call only lately, and refuses options it does not know: the plain call first.
+      if (typeof el.webkitRequestFullscreen === "function" && isIOSWeb()) await el.webkitRequestFullscreen();
+      else if (typeof el.requestFullscreen === "function") await el.requestFullscreen({ navigationUI: "hide" });
       else await el.webkitRequestFullscreen?.();
     }
   } catch {
-    return;
+    return false;
   }
+  // Some browsers neither throw nor go full screen: look once the change has had a moment.
+  await new Promise(r => setTimeout(r, 350));
+  if (!isFullscreen()) return false;
   try {
     await (screen.orientation as LockableOrientation | undefined)?.lock?.("landscape");
   } catch {
     // Not every browser locks; the turn-your-phone card covers the rest.
   }
+  return true;
 }
 
 export async function exitFullscreen(): Promise<void> {
   if (!web || !isFullscreen()) return;
   try {
-    await document.exitFullscreen();
+    const doc = document as FsDoc;
+    if (typeof document.exitFullscreen === "function") await document.exitFullscreen();
+    else await doc.webkitExitFullscreen?.();
   } catch {
     // Already out.
   }

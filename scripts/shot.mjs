@@ -74,6 +74,8 @@ await send('Page.enable');
 await send('Network.enable');
 await send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: scale, mobile: !!process.env.SHOT_MOBILE });
 if (process.env.SHOT_MOBILE) await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+// SHOT_UA="<user agent>": browse as another browser (an iPhone's Safari, to see what the web build offers there).
+if (process.env.SHOT_UA) await send('Emulation.setUserAgentOverride', { userAgent: process.env.SHOT_UA, platform: process.env.SHOT_UA.includes('iPhone') ? 'iPhone' : undefined });
 const started = Date.now();
 await send('Page.navigate', { url });
 const rendered = async () => (await send('Runtime.evaluate', { expression: `(document.getElementById('root')?.innerHTML.length ?? 0) > 2000 && [...document.images].every(i => i.complete)`, returnByValue: true })).result?.result?.value === true;
@@ -135,12 +137,10 @@ if (process.env.SHOT_CLIPS) {
       const ell = cs.textOverflow === 'ellipsis';
       if (!clamp && !ell) return false;
       // A cut line reports its box's width as scrollWidth: measure the text itself from its font (one-line texts).
+      // A cut line still lays out whole: the range over its text is wider than its box (by as little as a fraction).
       if (ell && cs.whiteSpace === 'nowrap') {
-        const p = document.createElement('span');
-        Object.assign(p.style, { position: 'absolute', left: '-9999px', visibility: 'hidden', whiteSpace: 'nowrap', fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle, fontVariant: cs.fontVariant, fontFeatureSettings: cs.fontFeatureSettings, letterSpacing: cs.letterSpacing, textTransform: cs.textTransform });
-        p.innerHTML = el.innerHTML; document.body.appendChild(p);
-        const natural = p.getBoundingClientRect().width; p.remove();
-        if (natural > el.getBoundingClientRect().width * 1.001) return true;
+        const r = document.createRange(); r.selectNodeContents(el);
+        if (r.getBoundingClientRect().width > el.getBoundingClientRect().width * 1.001) return true;
       }
       return el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight + 1;
     }).map(el => el.textContent.trim().slice(0, 90)))`,

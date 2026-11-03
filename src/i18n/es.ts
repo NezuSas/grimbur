@@ -2441,4 +2441,8 @@ export const es: Record<TranslationKey, string> = {
   'web.fullscreen.go': 'Pantalla completa',
   'web.fullscreen.leave': 'Salir de pantalla completa',
   'web.install.ios': 'En iPhone: toca Compartir y luego «Agregar a pantalla de inicio». Abre Grimbur desde su icono y ocupará toda la pantalla.',
+  'web.install.why': 'Safari no deja que una página use toda la pantalla. Agrega Grimbur a tu pantalla de inicio y se abrirá como una app, sin barras:',
+  'web.install.step1': 'Toca el botón Compartir (el cuadro con una flecha hacia arriba).',
+  'web.install.step2': 'Elige «Agregar a pantalla de inicio» y luego «Agregar».',
+  'web.install.step3': 'Abre Grimbur desde su icono y gira el teléfono.',
 };

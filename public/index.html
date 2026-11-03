@@ -21,8 +21,16 @@
         height: 100%;
         background-color: #0e0b1f;
       }
-      /* The page never scrolls or bounces, and a phone's visible height (without the browser's bar) is the game's height. */
+      /* The page never scrolls or bounces, and a phone's visible height (without the browser's bar) is the game's height.
+         Pinned to the screen's edges: opened from an iPhone's home screen, a body sized by height alone left a strip at
+         the bottom (or was cut) under the see-through status bar. */
       body {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: 0;
         overflow: hidden;
         overscroll-behavior: none;
         touch-action: manipulation;
@@ -31,10 +39,13 @@
         user-select: none;
       }
       @supports (height: 100dvh) {
-        html,
-        body {
+        html {
           height: 100dvh;
         }
+      }
+      /* The body takes its height from its pinned edges, not from a height of its own. */
+      body {
+        height: auto;
       }
       #root {
         display: flex;

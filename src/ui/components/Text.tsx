@@ -41,33 +41,18 @@ Text.displayName = 'Text';
 export default Text;
 
 /**
- * How much wider than its box a one-line text is (above 1: the browser cuts it with an ellipsis). The text is laid out
- * once more in a hidden copy with the same font settings (figures, spacing, case) and compared with the box's fractional
- * width: `scrollWidth` and `clientWidth` are rounded, and a line a fifth of a pixel too long reads as fitting while it is
- * already cut.
+ * How much wider than its box a one-line text is (above 1: the browser cuts it with an ellipsis). The text's own drawn
+ * extent (a range over it: the whole line, even where the browser cuts it) against the box's fractional width:
+ * `scrollWidth` and `clientWidth` are rounded, and a line a fifth of a pixel too long reads as fitting while it is
+ * already cut. A label whose box hugs its text measures exactly 1, so it never shrinks itself step by step (a copy laid
+ * out apart differed by a rounding, and the box shrank with the text down to the smallest size).
  */
-let probe: HTMLSpanElement | null = null;
 function lineOverflow(el: HTMLElement): number {
   const box = el.getBoundingClientRect().width;
-  if (!box || typeof document === 'undefined') return el.scrollWidth / Math.max(1, el.clientWidth);
-  if (!probe) {
-    probe = document.createElement('span');
-    probe.setAttribute('aria-hidden', 'true');
-    Object.assign(probe.style, { position: 'absolute', left: '-9999px', top: '0', visibility: 'hidden', whiteSpace: 'nowrap' });
-    document.body.appendChild(probe);
-  }
-  const cs = getComputedStyle(el);
-  const p = probe.style;
-  p.fontFamily = cs.fontFamily;
-  p.fontSize = cs.fontSize;
-  p.fontWeight = cs.fontWeight;
-  p.fontStyle = cs.fontStyle;
-  p.fontVariant = cs.fontVariant;
-  p.fontFeatureSettings = cs.fontFeatureSettings;
-  p.letterSpacing = cs.letterSpacing;
-  p.textTransform = cs.textTransform;
-  probe.innerHTML = el.innerHTML;
-  return probe.getBoundingClientRect().width / box;
+  if (!box || typeof document === 'undefined' || !document.createRange) return el.scrollWidth / Math.max(1, el.clientWidth);
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return range.getBoundingClientRect().width / box;
 }
 
 /** How far the web shrinks a text that does not fit, at most (as on a phone: `minimumFontScale`, else half). */

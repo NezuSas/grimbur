@@ -2440,6 +2440,10 @@ export const en = {
   'web.fullscreen.go': 'Full screen',
   'web.fullscreen.leave': 'Leave full screen',
   'web.install.ios': 'On iPhone: tap Share, then "Add to Home Screen". Open Grimbur from its icon and it fills the whole screen.',
+  'web.install.why': 'Safari never lets a page use the whole screen. Add Grimbur to your home screen and it opens like an app, with no bars:',
+  'web.install.step1': 'Tap the Share button (the square with an arrow pointing up).',
+  'web.install.step2': 'Choose "Add to Home Screen", then "Add".',
+  'web.install.step3': 'Open Grimbur from its icon and turn the phone.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
