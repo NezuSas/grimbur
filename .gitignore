@@ -54,3 +54,4 @@ __pycache__/
 
 # Firebase emulator logs
 *-debug.log
+.firebase/
