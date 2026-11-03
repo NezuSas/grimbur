@@ -25,6 +25,7 @@ import { analytics, installGlobalErrorHandler } from "./src/services/analytics";
 import ErrorBoundary from "./src/ui/components/ErrorBoundary";
 import LoadingScreen from "./src/ui/components/LoadingScreen";
 import TurnPhoneGate from "./src/ui/web/TurnPhoneGate";
+import WebGestureInsets from "./src/ui/web/WebGestureInsets";
 import { EMPTY_STARTUP, StartupParts, startupProgress } from "./src/core/startup/progress";
 import { getLocalStats } from "./src/services/localStats";
 import { syncCloudNow } from "./src/services/cloudBackup";
@@ -188,12 +189,14 @@ export default function App() {
     <View style={{ flex: 1, backgroundColor: "black" }} onLayout={onLayoutRootView}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
+          <WebGestureInsets>
           {/* The dev harness owns the URL on web: deep links are only wired on the real app. */}
           <NavigationContainer theme={DarkTheme} linking={devLaunch ? undefined : linking} initialState={devLaunch?.initialState}>
             <ErrorBoundary>
               <StackNavigator />
             </ErrorBoundary>
           </NavigationContainer>
+          </WebGestureInsets>
         </SafeAreaProvider>
         <TurnPhoneGate />
       </GestureHandlerRootView>

@@ -1,5 +1,6 @@
 import React from "react";
 import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import { isTouchWeb } from "../web/webScreen";
 import Text from "./Text";
 import { useT } from "../../i18n/useT";
 import { useSettingsStore } from "../../state/settings/store";
@@ -20,7 +21,7 @@ type Props = {
 export default function KeyHint({ action, text, style }: Props) {
   const { t } = useT();
   const bindings = useSettingsStore(s => s.keyBindings);
-  if (Platform.OS !== "web") return null;
+  if (Platform.OS !== "web" || isTouchWeb()) return null;
   const label = text ?? (action ? keyCap(keyOf(bindings, action), t("settings.keys.spaceShort")) : "");
   if (!label) return null;
   return (

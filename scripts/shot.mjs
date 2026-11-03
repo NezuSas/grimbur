@@ -108,7 +108,8 @@ for (const k of (process.env.SHOT_KEYS ?? '').split(',').filter(Boolean)) {
 }
 // SHOT_EVAL="<js expression>": print what it returns (to inspect the page while debugging a layout).
 if (process.env.SHOT_EVAL) {
-  const r = await send('Runtime.evaluate', { expression: process.env.SHOT_EVAL, returnByValue: true });
+  const r = await send('Runtime.evaluate', { expression: process.env.SHOT_EVAL, returnByValue: true, awaitPromise: true, userGesture: true });
+  await sleep(1500);
   console.log('EVAL', JSON.stringify(r.result?.result?.value ?? r.result?.exceptionDetails?.text));
 }
 // SHOT_CLIPS=1: list every text the page cuts short (one line with an ellipsis, or clamped to a few lines) or that spills out of its box.
