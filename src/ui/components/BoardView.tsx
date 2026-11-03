@@ -221,6 +221,23 @@ type Props = {
   secretTile?: number | null;
 };
 
+const HERO_PLATE = require("../../assets/sprites/ui/Hero_Plate.png");
+const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];
+
+/**
+ * The hero with a thin dark outline (its silhouette drawn eight times, a hair to every side, under the art): a hero in gold on
+ * the gold vault, in green on the moss, in ice blue on the frost, still reads at a glance. Both poses stay mounted and swap by
+ * opacity, each with its outline.
+ */
+const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType; visible: boolean; line: number }) => (
+  <View pointerEvents="none" style={[styles.heroLayer, { opacity: visible ? 1 : 0 }]}>
+    {OUTLINE_OFFSETS.map(([dx, dy], k) => (
+      <SpriteImage key={k} source={source} style={[styles.heroLayer, { left: dx * line, top: dy * line, tintColor: "#140a05", opacity: 0.9 }]} />
+    ))}
+    <SpriteImage source={source} style={styles.heroLayer} />
+  </View>
+);
+
 const BoardView: React.FC<Props> = memo(
   ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
@@ -338,6 +355,7 @@ const BoardView: React.FC<Props> = memo(
     // Breath and step together, kept on the hero's feet: the body narrows a touch as it swells (volume holds), and
     // the scale around the middle is shifted back down so only the chest rises and the feet stay planted.
     const heroBody = tileSize * 0.8;
+    const outline = Math.max(1.2, tileSize * 0.02);
     const bodyX = useMemo(() => Animated.multiply(stretchX, heroBreath.interpolate({ inputRange: [1, 1.04], outputRange: [1, 0.985] })), [stretchX, heroBreath]);
     const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
     const feet = useMemo(() => bodyY.interpolate({ inputRange: [0, 2], outputRange: [heroBody / 2, -heroBody / 2] }), [bodyY, heroBody]);
@@ -665,6 +683,8 @@ const BoardView: React.FC<Props> = memo(
             ]}
             pointerEvents="none"
           >
+            {/* A dark pool and a shadow at the feet: whatever the board's colours, the hero stands out from the tile. */}
+            <SpriteImage pointerEvents="none" source={HERO_PLATE} style={{ position: "absolute", width: tileSize * 1.04, height: tileSize * 1.04, left: -tileSize * 0.02, top: -tileSize * 0.02 }} />
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
             {pet && !dying ? (
               <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, [lastSide.current === "left" ? "right" : "left"]: 0, zIndex: 3 }}>
@@ -686,18 +706,8 @@ const BoardView: React.FC<Props> = memo(
                 ],
               }}
             >
-              {idleSource && (
-                <SpriteImage
-                  style={[styles.heroLayer, { opacity: drawn ? 0 : 1 }]}
-                  source={idleSource}
-                />
-              )}
-              {attackSource && (
-                <SpriteImage
-                  style={[styles.heroLayer, { opacity: drawn ? 1 : 0 }]}
-                  source={attackSource}
-                />
-              )}
+              {idleSource && <OutlinedSprite source={idleSource} visible={!drawn} line={outline} />}
+              {attackSource && <OutlinedSprite source={attackSource} visible={drawn} line={outline} />}
             </Animated.View>
             </Animated.View>
           </Animated.View>

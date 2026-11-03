@@ -149,6 +149,15 @@ export function readDevHarness(): DevLaunch | null {
       const owned = COSMETICS.filter(c => c.price > 0).map(c => c.id);
       window.localStorage.setItem(STATS_KEY, JSON.stringify({ ...EMPTY_STATS, ...saved, cosmetics: { ...EMPTY_STATS.cosmetics, ...saved.cosmetics, owned } }));
     }
+    // ?equip=board_vault,pet_dragon owns and wears those looks (to check how they sit together on the board).
+    if (q.get("equip")) {
+      const saved = JSON.parse(window.localStorage.getItem(STATS_KEY) ?? "{}");
+      const ids = q.get("equip")!.split(",").filter(id => COSMETICS.some(c => c.id === id));
+      const cos = { ...EMPTY_STATS.cosmetics, ...saved.cosmetics };
+      const equipped = { ...cos.equipped };
+      for (const id of ids) equipped[COSMETICS.find(c => c.id === id)!.kind] = id;
+      window.localStorage.setItem(STATS_KEY, JSON.stringify({ ...EMPTY_STATS, ...saved, cosmetics: { ...cos, owned: [...new Set([...(cos.owned ?? []), ...ids])], equipped } }));
+    }
     // ?monetization=on previews the locked states; &owned=1 pretends the full game was bought.
     // The veteran also has a name, a few finished duels and some challenges, so Friends shows its lists.
     if (preset === "veteran") {
