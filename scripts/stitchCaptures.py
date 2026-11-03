@@ -28,8 +28,10 @@ def main(out: str, sheet: str, grid: str, view: str, overlap: str, caps: list[st
         cx, cy = i % cols, i // cols
         x0, x1 = region(cx * qw, (cx + 1) * qw, sw, m)
         y0, y1 = region(cy * qh, (cy + 1) * qh, sh, m)
-        s = min(vw / (x1 - x0), vh / (y1 - y0))
         cap = Image.open(path).convert('RGB')
+        # The browser window can change size between captures: each capture's own size is the view it was drawn in.
+        cw, ch = cap.size if cap.size != (vw, vh) else (vw, vh)
+        s = min(cw / (x1 - x0), ch / (y1 - y0))
         box = (round((cx * qw - x0) * s), round((cy * qh - y0) * s), round(((cx + 1) * qw - x0) * s), round(((cy + 1) * qh - y0) * s))
         canvas.paste(cap.crop(box).resize((qw, qh), Image.LANCZOS), (cx * qw, cy * qh))
     canvas.save(out)

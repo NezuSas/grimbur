@@ -68,7 +68,8 @@ BRAM_REGIONS = {
 HERO_MASKS = {
     0: dict(hue_lo=170, hue_hi=262, hue_soft=14, sat_min=0.22, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=205),
     1: dict(hue_lo=336, hue_hi=3, hue_soft=6, sat_min=0.62, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=352),
-    2: dict(stone=True, hue_lo=68, hue_hi=160, hue_soft=14, sat_min=0.34, sat_soft=0.14, val_min=0.20, val_soft=0.10, hue_center=100),
+    # Borin (2026-11-03 art): an olive moss green, hue ~52-90.
+    2: dict(stone=True, hue_lo=50, hue_hi=150, hue_soft=6, sat_min=0.30, sat_soft=0.12, val_min=0.10, val_soft=0.08, hue_center=68),
     3: dict(hue_lo=24, hue_hi=60, hue_soft=4, sat_min=0.72, sat_soft=0.08, val_min=0.55, val_soft=0.12, hue_center=40, min_density=0.42),
     # Mira: crimson/magenta hood and cape (the wand gem is hue ~300-315, outside the band; cream and brass stay natural).
     4: dict(hue_lo=322, hue_hi=358, hue_soft=8, sat_min=0.45, sat_soft=0.14, val_min=0.16, val_soft=0.10, hue_center=342),
