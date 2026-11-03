@@ -11,8 +11,8 @@ import RelicIcon from "../../ui/components/RelicIcon";
 import { relicText } from "../../i18n/keys";
 
 const GOLD = "#FFD54F";
-const TROPHY = require("../../assets/sprites/ui/Icon_Trophy.png");
-const CROWN = require("../../assets/sprites/ui/Icon_Medal.png");
+const TROPHY = require("../../assets/sprites/ui/Icon_Trophy.webp");
+const CROWN = require("../../assets/sprites/ui/Icon_Medal.webp");
 
 type Props = {
   season: SeasonState;

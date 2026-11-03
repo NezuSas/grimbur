@@ -8,12 +8,12 @@ import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin,
 
 /** The painted art of each Settings category, shown on the rail and on the pane's showcase. */
 export const SETTINGS_ART = {
-  sound: require("../../../assets/sprites/tools/Tool_Detector.png"),
-  controls: require("../../../assets/sprites/forge/swift.png"),
-  access: require("../../../assets/sprites/tools/Ability_Scout.png"),
-  language: require("../../../assets/sprites/forge/scribe.png"),
-  data: require("../../../assets/sprites/forge/satchel.png"),
-  about: require("../../../assets/sprites/relics/lantern.png"),
+  sound: require("../../../assets/sprites/tools/Tool_Detector.webp"),
+  controls: require("../../../assets/sprites/forge/swift.webp"),
+  access: require("../../../assets/sprites/tools/Ability_Scout.webp"),
+  language: require("../../../assets/sprites/forge/scribe.webp"),
+  data: require("../../../assets/sprites/forge/satchel.webp"),
+  about: require("../../../assets/sprites/relics/lantern.webp"),
 } as const;
 
 /** A slow breath, so the showcase feels alive without pulling the eye away from the settings. */
@@ -117,7 +117,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
             { transform: [{ translateX: drift.interpolate({ inputRange: [0, 1], outputRange: [-padSize * 0.16, padSize * 0.16] }) }] },
           ]}
         />
-        {attack === "center" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.png")} style={[styles.centerAttack, { width: knob * 0.8, height: knob * 0.8 }]} resizeMode="contain" /> : null}
+        {attack === "center" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.webp")} style={[styles.centerAttack, { width: knob * 0.8, height: knob * 0.8 }]} resizeMode="contain" /> : null}
       </View>
     ) : (
       <View style={[styles.cross, { width: padSize, height: padSize }]}>
@@ -137,7 +137,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
           </View>
         ))}
         <View style={[styles.crossMid, { width: padSize / 3, height: padSize / 3, left: padSize / 3, top: padSize / 3 }]}>
-          {attack === "center" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.png")} style={{ width: padSize / 3.3, height: padSize / 3.3 }} resizeMode="contain" /> : null}
+          {attack === "center" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.webp")} style={{ width: padSize / 3.3, height: padSize / 3.3 }} resizeMode="contain" /> : null}
         </View>
       </View>
     );
@@ -149,7 +149,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
   );
   const attackCol = (
     <View style={[styles.previewSide, { width: side }]} key="attack">
-      {attack === "side" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.png")} style={{ width: attackSize, height: attackSize }} resizeMode="contain" /> : null}
+      {attack === "side" ? <SpriteImage source={require("../../../assets/sprites/ui/Attack_Ready.webp")} style={{ width: attackSize, height: attackSize }} resizeMode="contain" /> : null}
     </View>
   );
 

@@ -45,8 +45,8 @@ const METRIC_ART: Record<MissionDef["metric"], AchievementTheme> = {
   relics: "relics",
   heroes: "heroes",
 };
-const MEDAL = require("../assets/sprites/ui/Icon_Medal.png");
-const CHEST = require("../assets/sprites/ui/Icon_Trophy.png");
+const MEDAL = require("../assets/sprites/ui/Icon_Medal.webp");
+const CHEST = require("../assets/sprites/ui/Icon_Trophy.webp");
 
 /** The days left in the week (the weekly missions change on Monday). */
 const daysToMonday = (now: Date): number => 7 - ((now.getDay() + 6) % 7);
@@ -328,7 +328,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                   {/* The challenge of the week: one cave for everyone, at this week's depth, on its own board. */}
                   <Rise delay={0}>
                     <PressScale onPress={() => navigation.navigate("ChallengeScreen", { code: weekly.code })} accessibilityRole="button" style={styles.weekly}>
-                      <SpriteImage source={require("../assets/sprites/ui/Icon_Swords.png")} style={styles.weeklyArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+                      <SpriteImage source={require("../assets/sprites/ui/Icon_Swords.webp")} style={styles.weeklyArt} resizeMode="contain" accessibilityIgnoresInvertColors />
                       <View style={{ flex: 1, gap: 2 }}>
                         <Text style={styles.weeklyKicker} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                           {`${t("weekly.title")} · ${t(`ascension.label.${weekly.depth}` as TranslationKey)}`.toLocaleUpperCase()}

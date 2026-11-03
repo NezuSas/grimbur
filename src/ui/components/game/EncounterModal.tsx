@@ -26,14 +26,14 @@ import type { GameState } from "../../../core/engine/types";
 
 /** The picture and colour of each scene. */
 export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
-  scout: require("../../../assets/sprites/encounters/Encounter_Scout.png"),
-  spring: require("../../../assets/sprites/encounters/Encounter_Spring.png"),
-  gambler: require("../../../assets/sprites/encounters/Encounter_Gambler.png"),
-  shrine: require("../../../assets/sprites/encounters/Encounter_Shrine.png"),
-  miner: require("../../../assets/sprites/encounters/Encounter_Miner.png"),
-  map: require("../../../assets/sprites/encounters/Encounter_Map.png"),
-  echo: require("../../../assets/sprites/encounters/Encounter_Echo.png"),
-  smith: require("../../../assets/sprites/encounters/Encounter_Smith.png"),
+  scout: require("../../../assets/sprites/encounters/Encounter_Scout.webp"),
+  spring: require("../../../assets/sprites/encounters/Encounter_Spring.webp"),
+  gambler: require("../../../assets/sprites/encounters/Encounter_Gambler.webp"),
+  shrine: require("../../../assets/sprites/encounters/Encounter_Shrine.webp"),
+  miner: require("../../../assets/sprites/encounters/Encounter_Miner.webp"),
+  map: require("../../../assets/sprites/encounters/Encounter_Map.webp"),
+  echo: require("../../../assets/sprites/encounters/Encounter_Echo.webp"),
+  smith: require("../../../assets/sprites/encounters/Encounter_Smith.webp"),
 };
 export const ENCOUNTER_TINT: Record<EncounterId, string> = {
   scout: "#9EE37D",

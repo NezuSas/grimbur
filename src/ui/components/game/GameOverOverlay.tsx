@@ -47,11 +47,11 @@ import { achievementArt } from '../../achievementArt';
 import { skinArt } from '../../../data/skinArt';
 import { useEnterKey } from '../../hotkeys';
 
-const MEDAL_ART = require('../../../assets/sprites/ui/Icon_Medal.png');
-const FLAG_ART = require('../../../assets/sprites/ui/Icon_Flag.png');
-const BOOK_ART = require('../../../assets/sprites/ui/Icon_Book.png');
-const DEPTH_ART = require('../../../assets/sprites/achievements/Ach_Depth.png');
-const ENDLESS_ART = require('../../../assets/sprites/achievements/Ach_Endless.png');
+const MEDAL_ART = require('../../../assets/sprites/ui/Icon_Medal.webp');
+const FLAG_ART = require('../../../assets/sprites/ui/Icon_Flag.webp');
+const BOOK_ART = require('../../../assets/sprites/ui/Icon_Book.webp');
+const DEPTH_ART = require('../../../assets/sprites/achievements/Ach_Depth.webp');
+const ENDLESS_ART = require('../../../assets/sprites/achievements/Ach_Endless.webp');
 const TIER_TINT: Record<string, string> = { easy: '#A5D6A7', medium: '#90CAF9', hard: '#FFAB91', legend: '#CE93D8' };
 
 /** The colour of each kind of death lesson. */
@@ -309,8 +309,8 @@ const GameOverOverlay = ({
 
 
   const stats = [
-    { art: require('../../../assets/sprites/items/Icon_Gem.png'), label: t('over.gems'), value: String(totalCoins), color: '#7FE3FF' },
-    { art: require('../../../assets/sprites/tools/Tool_Undo.png'), label: t('over.time'), value: formatTime(time), color: '#C8B6FF' },
+    { art: require('../../../assets/sprites/items/Icon_Gem.webp'), label: t('over.gems'), value: String(totalCoins), color: '#7FE3FF' },
+    { art: require('../../../assets/sprites/tools/Tool_Undo.webp'), label: t('over.time'), value: formatTime(time), color: '#C8B6FF' },
   ];
 
   const parts = payout
@@ -560,7 +560,7 @@ const GameOverOverlay = ({
       <View style={styles.tiles2}>
         {tile(
           'score',
-          require('../../../assets/sprites/ui/Icon_Trophy.png'),
+          require('../../../assets/sprites/ui/Icon_Trophy.webp'),
           <CountedScore score={score} active={visible} calm={calm} style={[styles.tile2Value, { color: '#FFE7A8' }]} />,
           bestScore && !isNewBest
             ? `${t('over.score')} · ${(endless ? t('over.bestFloor', { floor: bestScore }) : t('over.best', { score: bestScore }))}`
@@ -570,8 +570,8 @@ const GameOverOverlay = ({
         {tile('gems', stats[0].art, stats[0].value, stats[0].label, stats[0].color)}
         {tile('time', stats[1].art, stats[1].value, stats[1].label, stats[1].color)}
         {embers && embers > 0
-          ? tile('embers', require('../../../assets/sprites/items/Icon_Ember.png'), `+${embers}`, t('cover.embers'), '#FFAB40', breakdown ? () => setShowBreakdown(v => !v) : undefined)
-          : tile('floor', require('../../../assets/sprites/ui/Icon_Flag.png'), endless ? String(level) : `${level}/${floors}`, t('over.floorLabel'), '#9EE37D')}
+          ? tile('embers', require('../../../assets/sprites/items/Icon_Ember.webp'), `+${embers}`, t('cover.embers'), '#FFAB40', breakdown ? () => setShowBreakdown(v => !v) : undefined)
+          : tile('floor', require('../../../assets/sprites/ui/Icon_Flag.webp'), endless ? String(level) : `${level}/${floors}`, t('over.floorLabel'), '#9EE37D')}
       </View>
       {breakdown && showBreakdown ? (
         <Text style={styles.breakdown} maxFontSizeMultiplier={1.2}>
@@ -592,7 +592,7 @@ const GameOverOverlay = ({
                     <View style={[styles.trackFall, { backgroundColor: accent }]} />
                   </View>
                 ) : floor === floors ? (
-                  <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.png')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
+                  <SpriteImage source={require('../../../assets/sprites/ui/Icon_Skull.webp')} style={[styles.trackLair, victory && { opacity: 1 }]} resizeMode="contain" />
                 ) : (
                   <View style={[styles.trackDot, floor <= level && { backgroundColor: accent, borderColor: accent }]} />
                 )}

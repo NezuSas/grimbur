@@ -10,9 +10,9 @@ import type { Kit } from "./kit";
 const TINT = "#4DD0E1";
 const ART: Record<TechniqueId, ReturnType<typeof require>> = {
   quiet: require("../../assets/sprites/tiles/Tile_Hidden.webp"),
-  cornered: require("../../assets/sprites/ui/Icon_Flag.png"),
-  full: require("../../assets/sprites/ui/Clue_Guardian.png"),
-  typed: require("../../assets/sprites/ui/Clue_Vortex.png"),
+  cornered: require("../../assets/sprites/ui/Icon_Flag.webp"),
+  full: require("../../assets/sprites/ui/Clue_Guardian.webp"),
+  typed: require("../../assets/sprites/ui/Clue_Vortex.webp"),
 };
 
 /** The deduction techniques: what each move is, and a small board to practise it (played like a puzzle, without stars). */

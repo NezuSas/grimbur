@@ -17,10 +17,10 @@ import { useEscapeKey } from '../../hotkeys';
 export type PauseSummary = { floor: number; floors: number; score: number; gems: number; arrows: number; relics: readonly RelicId[] };
 
 const TILE_ART: Record<'floor' | 'score' | 'gems' | 'arrows', ImageSourcePropType> = {
-  floor: require('../../../assets/sprites/ui/Icon_Flag.png'),
-  score: require('../../../assets/sprites/ui/Icon_Trophy.png'),
-  gems: require('../../../assets/sprites/items/Icon_Gem.png'),
-  arrows: require('../../../assets/sprites/items/Icon_Arrows.png'),
+  floor: require('../../../assets/sprites/ui/Icon_Flag.webp'),
+  score: require('../../../assets/sprites/ui/Icon_Trophy.webp'),
+  gems: require('../../../assets/sprites/items/Icon_Gem.webp'),
+  arrows: require('../../../assets/sprites/items/Icon_Arrows.webp'),
 };
 
 type Props = {

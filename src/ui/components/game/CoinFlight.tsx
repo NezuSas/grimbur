@@ -3,7 +3,7 @@ import { Animated, Easing, View } from 'react-native';
 import { AnimatedSprite } from "../SpriteImage";
 import { Burst } from "../Burst";
 
-const GEM = require("../../../assets/sprites/items/Icon_Gem.png");
+const GEM = require("../../../assets/sprites/items/Icon_Gem.webp");
 const SIZE = 32;
 /** The sparks get a head start before the gem leaves the tile. */
 const LIFT_MS = 110;

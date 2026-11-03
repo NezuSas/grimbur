@@ -40,8 +40,8 @@ const DUEL = "#FF8A80";
 const CHALLENGE = "#4FC3F7";
 const OUTCOME_COLOR = { won: "#9EE37D", lost: "#FF8A80", tie: "#FFD54F" } as const;
 
-const SWORDS = require("../assets/sprites/ui/Icon_Swords.png");
-const PUZZLE = require("../assets/sprites/ui/Icon_Puzzle.png");
+const SWORDS = require("../assets/sprites/ui/Icon_Swords.webp");
+const PUZZLE = require("../assets/sprites/ui/Icon_Puzzle.webp");
 
 const ModeCard = ({ art, tint, title, hint, onPress, delay }: { art: ImageSourcePropType; tint: string; title: string; hint: string; onPress: () => void; delay: number }) => (
   <Rise delay={delay}>

@@ -45,12 +45,12 @@ const RED = "#FF5A4E";
 const ART = {
   background: require("../../assets/sprites/backgrounds/Cover_Background.png"),
   logo: require("../../assets/sprites/ui/Logo_Grimbur.png"),
-  gem: require("../../assets/sprites/items/Icon_Gem.png"),
-  time: require("../../assets/sprites/tools/Tool_Undo.png"),
-  depth: require("../../assets/sprites/items/Icon_Ember.png"),
-  streak: require("../../assets/sprites/ui/Icon_Calendar.png"),
-  skull: require("../../assets/sprites/ui/Icon_Skull.png"),
-  trophy: require("../../assets/sprites/ui/Icon_Trophy.png"),
+  gem: require("../../assets/sprites/items/Icon_Gem.webp"),
+  time: require("../../assets/sprites/tools/Tool_Undo.webp"),
+  depth: require("../../assets/sprites/items/Icon_Ember.webp"),
+  streak: require("../../assets/sprites/ui/Icon_Calendar.webp"),
+  skull: require("../../assets/sprites/ui/Icon_Skull.webp"),
+  trophy: require("../../assets/sprites/ui/Icon_Trophy.webp"),
 } as const;
 
 /**

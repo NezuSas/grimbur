@@ -2,8 +2,8 @@ import React from 'react';
 import type { StyleProp, ImageStyle } from 'react-native';
 import SpriteImage from './SpriteImage';
 
-const EMBER = require('../../assets/sprites/items/Icon_Ember.png');
-const EMBER_PILE = require('../../assets/sprites/items/Icon_EmberPile.png');
+const EMBER = require('../../assets/sprites/items/Icon_Ember.webp');
+const EMBER_PILE = require('../../assets/sprites/items/Icon_EmberPile.webp');
 
 /**
  * The ember currency, as painted art instead of the 🔥 emoji (which renders differently on every phone

@@ -26,11 +26,11 @@ type Props = {
 };
 
 const FIRE = "#FF9A3C";
-const PHOENIX = require("../../../assets/sprites/relics/phoenix.png");
+const PHOENIX = require("../../../assets/sprites/relics/phoenix.webp");
 const GIFTS: { key: string; art: ImageSourcePropType; text: "revive.gift.back" | "revive.gift.shield" | "revive.gift.arrows" }[] = [
-  { key: "back", art: require("../../../assets/sprites/tools/Tool_Undo.png"), text: "revive.gift.back" },
-  { key: "shield", art: require("../../../assets/sprites/items/Icon_Shield.png"), text: "revive.gift.shield" },
-  { key: "arrows", art: require("../../../assets/sprites/items/Icon_Arrows.png"), text: "revive.gift.arrows" },
+  { key: "back", art: require("../../../assets/sprites/tools/Tool_Undo.webp"), text: "revive.gift.back" },
+  { key: "shield", art: require("../../../assets/sprites/items/Icon_Shield.webp"), text: "revive.gift.shield" },
+  { key: "arrows", art: require("../../../assets/sprites/items/Icon_Arrows.webp"), text: "revive.gift.arrows" },
 ];
 
 /**

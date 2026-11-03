@@ -3,7 +3,7 @@ import { Animated, Easing, StyleSheet, View } from "react-native";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { useT } from "../../i18n/useT";
 
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 /**
  * The stars still possible, in the banner while playing: three to start, one goes out with every mistake or hint (it shakes,

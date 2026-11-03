@@ -107,20 +107,20 @@ export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = 
 
 /** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */
 export const ATTACK_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
-  attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.png'),
-  attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom.png'),
-  attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal.png'),
-  attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow.png'),
+  attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.webp'),
+  attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom.webp'),
+  attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal.webp'),
+  attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow.webp'),
 };
 
 /** The flag planted on a tile the player marks as dangerous. */
 export const FLAG_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
-  flag_skull: require('../assets/sprites/cosmetics/Flag_Skull.png'),
-  flag_crystal: require('../assets/sprites/cosmetics/Flag_Crystal.png'),
-  flag_ember: require('../assets/sprites/cosmetics/Flag_Ember.png'),
-  flag_royal: require('../assets/sprites/cosmetics/Flag_Royal.png'),
-  flag_frost: require('../assets/sprites/cosmetics/Flag_Frost.png'),
-  flag_gold: require('../assets/sprites/cosmetics/Flag_Gold.png'),
+  flag_skull: require('../assets/sprites/cosmetics/Flag_Skull.webp'),
+  flag_crystal: require('../assets/sprites/cosmetics/Flag_Crystal.webp'),
+  flag_ember: require('../assets/sprites/cosmetics/Flag_Ember.webp'),
+  flag_royal: require('../assets/sprites/cosmetics/Flag_Royal.webp'),
+  flag_frost: require('../assets/sprites/cosmetics/Flag_Frost.webp'),
+  flag_gold: require('../assets/sprites/cosmetics/Flag_Gold.webp'),
 };
 
 /** The tiles and backdrop a board theme paints the floor with. */
@@ -142,15 +142,15 @@ export interface CelebrationLook {
   spin: boolean;
 }
 
-const GEM = require('../assets/sprites/items/Icon_Gem.png');
-const EMBER = require('../assets/sprites/items/Icon_Ember.png');
-const STAR = require('../assets/sprites/ui/Icon_Star.png');
+const GEM = require('../assets/sprites/items/Icon_Gem.webp');
+const EMBER = require('../assets/sprites/items/Icon_Ember.webp');
+const STAR = require('../assets/sprites/ui/Icon_Star.webp');
 
 /** No celebration worn: the gems and arrows every victory has always rained. */
-export const DEFAULT_CELEBRATION: CelebrationLook = { sprites: [GEM, GEM, GEM, require('../assets/sprites/items/Icon_Arrows.png'), GEM, GEM, GEM], motion: 'fall', size: [18, 39], spin: true };
+export const DEFAULT_CELEBRATION: CelebrationLook = { sprites: [GEM, GEM, GEM, require('../assets/sprites/items/Icon_Arrows.webp'), GEM, GEM, GEM], motion: 'fall', size: [18, 39], spin: true };
 
 export const CELEBRATION_LOOKS: Partial<Record<CosmeticId, CelebrationLook>> = {
-  celeb_embers: { sprites: [EMBER, EMBER, require('../assets/sprites/items/Icon_EmberPile.png')], motion: 'rise', size: [16, 34], spin: false },
+  celeb_embers: { sprites: [EMBER, EMBER, require('../assets/sprites/items/Icon_EmberPile.webp')], motion: 'rise', size: [16, 34], spin: false },
   celeb_gems: { sprites: [GEM], motion: 'fall', size: [22, 48], spin: true },
   celeb_stars: { sprites: [STAR], motion: 'burst', size: [18, 40], spin: true },
   celeb_arrows: {
@@ -161,19 +161,19 @@ export const CELEBRATION_LOOKS: Partial<Record<CosmeticId, CelebrationLook>> = {
   },
   celeb_relics: {
     sprites: [
-      require('../assets/sprites/relics/phoenix.png'),
-      require('../assets/sprites/relics/lantern.png'),
-      require('../assets/sprites/relics/lucky_coin.png'),
-      require('../assets/sprites/relics/quiver.png'),
-      require('../assets/sprites/relics/frost.png'),
-      require('../assets/sprites/relics/greed.png'),
+      require('../assets/sprites/relics/phoenix.webp'),
+      require('../assets/sprites/relics/lantern.webp'),
+      require('../assets/sprites/relics/lucky_coin.webp'),
+      require('../assets/sprites/relics/quiver.webp'),
+      require('../assets/sprites/relics/frost.webp'),
+      require('../assets/sprites/relics/greed.webp'),
     ],
     motion: 'fall',
     size: [28, 50],
     spin: false,
   },
-  celeb_skulls: { sprites: [require('../assets/sprites/ui/Icon_Skull.png'), require('../assets/sprites/ui/Icon_Monster.png')], motion: 'fall', size: [24, 44], spin: true },
-  celeb_hoard: { sprites: [GEM, EMBER, STAR, require('../assets/sprites/relics/lucky_coin.png'), GEM, STAR], motion: 'burst', size: [20, 44], spin: true },
+  celeb_skulls: { sprites: [require('../assets/sprites/ui/Icon_Skull.webp'), require('../assets/sprites/ui/Icon_Monster.webp')], motion: 'fall', size: [24, 44], spin: true },
+  celeb_hoard: { sprites: [GEM, EMBER, STAR, require('../assets/sprites/relics/lucky_coin.webp'), GEM, STAR], motion: 'burst', size: [20, 44], spin: true },
 };
 
 export const allCosmeticImages = (): ImageSourcePropType[] => [

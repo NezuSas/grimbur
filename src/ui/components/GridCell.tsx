@@ -23,12 +23,12 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" 
   sleeper:  require("../../assets/sprites/enemies/Sleeper_Enemy.webp"),
   mimic:    require("../../assets/sprites/enemies/Mimic_Enemy.webp"),
   thief:    require("../../assets/sprites/enemies/Thief_Enemy.webp"),
-  chest:    require("../../assets/sprites/items/Icon_Chest.png"),
+  chest:    require("../../assets/sprites/items/Icon_Chest.webp"),
   boss:     require("../../assets/sprites/enemies/Grimbur_Boss.webp"),
   pit:      require("../../assets/sprites/tiles/Danger_Vortex.png"),
-  shield:   require("../../assets/sprites/items/Icon_Shield.png"),
-  ammo:     require("../../assets/sprites/items/Icon_Arrows.png"),
-  coin:     require("../../assets/sprites/items/Icon_Gem.png"),
+  shield:   require("../../assets/sprites/items/Icon_Shield.webp"),
+  ammo:     require("../../assets/sprites/items/Icon_Arrows.webp"),
+  coin:     require("../../assets/sprites/items/Icon_Gem.webp"),
 };
 
 /** The second frame of each guardian: generated as one sheet per character, so the pair always matches. */
@@ -36,8 +36,8 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" 
 const ENEMY_OUTLINE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
 export const CLUE_ART = {
-  roar: require("../../assets/sprites/ui/Clue_Guardian.png"),
-  vortex: require("../../assets/sprites/ui/Clue_Vortex.png"),
+  roar: require("../../assets/sprites/ui/Clue_Guardian.webp"),
+  vortex: require("../../assets/sprites/ui/Clue_Vortex.webp"),
 } as const;
 
 type Creature = "enemy" | "stalker" | "sleeper" | "mimic" | "thief";

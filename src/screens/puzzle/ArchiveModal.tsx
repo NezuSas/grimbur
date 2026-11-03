@@ -14,7 +14,7 @@ import { TIER_TINTS } from "./ChapterMap";
 import { useEscapeKey } from "../../ui/hotkeys";
 
 const TINT = "#4DD0E1";
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 type Props = {
   today: string;

@@ -22,7 +22,7 @@ import { ENCOUNTERS, type EncounterId } from "../../core/engine/encounters";
 import { ENCOUNTER_ART, ENCOUNTER_TINT } from "../../ui/components/game/EncounterModal";
 import { useEscapeKey } from "../../ui/hotkeys";
 
-const GEM = require("../../assets/sprites/items/Icon_Gem.png");
+const GEM = require("../../assets/sprites/items/Icon_Gem.webp");
 const WIN = "#F2C14E";
 const LOSS = "#FF6E6E";
 

@@ -12,7 +12,7 @@ import { formatChallengeCode } from "../../../core/challenge/code";
 import { GAME_CONFIG } from "../../../config/gameConfig";
 
 export const FRIEND_TINT = { challenge: "#4FC3F7", duel: "#FF8A80" } as const;
-export const FRIEND_ART = { challenge: require("../../../assets/sprites/ui/Icon_Puzzle.png"), duel: require("../../../assets/sprites/ui/Icon_Swords.png") } as const;
+export const FRIEND_ART = { challenge: require("../../../assets/sprites/ui/Icon_Puzzle.webp"), duel: require("../../../assets/sprites/ui/Icon_Swords.webp") } as const;
 /** Each difficulty warms from calm green to legendary violet, so a row of them reads as a climb. */
 export const DEPTH_COLOR = ["#9EE37D", "#FFD54F", "#FFAB40", "#FF7043", "#E57373", "#CE93D8"];
 

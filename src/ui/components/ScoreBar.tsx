@@ -88,7 +88,7 @@ const ShieldBadge: React.FC<{ shield: boolean; breakKey: number; calm: boolean; 
   if (!shield && !ghost) return null;
   return (
     <View style={[styles.shieldBadge, !shield && styles.shieldBadgeBroken]} accessible accessibilityLabel={label}>
-      <SpriteImage source={require("../../assets/sprites/items/Icon_Shield.png")} style={{ width: 22, height: 22 }} resizeMode="contain" />
+      <SpriteImage source={require("../../assets/sprites/items/Icon_Shield.webp")} style={{ width: 22, height: 22 }} resizeMode="contain" />
       {!shield && <Animated.View pointerEvents="none" style={[styles.shieldBlink, { opacity: blink }]} />}
     </View>
   );
@@ -191,7 +191,7 @@ const ScoreBar: React.FC<Props> = memo(
             />
           ) : (
             <ScoreCounter
-              icon={require("../../assets/sprites/items/Icon_Gem.png")}
+              icon={require("../../assets/sprites/items/Icon_Gem.webp")}
               value={gemsTotal !== undefined ? Math.max(0, gemsTotal - coins) : coins}
               suffix={gemsTotal !== undefined ? `/${gemsTotal}` : undefined}
               popScale={gemPop}
@@ -204,7 +204,7 @@ const ScoreBar: React.FC<Props> = memo(
             />
           )}
           <ScoreCounter
-            icon={require("../../assets/sprites/items/Icon_Arrows.png")}
+            icon={require("../../assets/sprites/items/Icon_Arrows.webp")}
             value={attackValue}
             iconDim={statIconSize}
             compact={compact}

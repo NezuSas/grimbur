@@ -17,12 +17,12 @@ import { useSettingsStore } from "../state/settings/store";
 
 type Props = NativeStackScreenProps<RootStackParamList, "LevelCompleteScreen">;
 
-const STAR = require("../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../assets/sprites/ui/Icon_Star.webp");
 const ART: Record<"score" | "gems" | "kills" | "time", ImageSourcePropType> = {
-  score: require("../assets/sprites/ui/Icon_Trophy.png"),
-  gems: require("../assets/sprites/items/Icon_Gem.png"),
-  kills: require("../assets/sprites/ui/Icon_Swords.png"),
-  time: require("../assets/sprites/tools/Tool_Undo.png"),
+  score: require("../assets/sprites/ui/Icon_Trophy.webp"),
+  gems: require("../assets/sprites/items/Icon_Gem.webp"),
+  kills: require("../assets/sprites/ui/Icon_Swords.webp"),
+  time: require("../assets/sprites/tools/Tool_Undo.webp"),
 };
 /** The expedition's floors, the last one the Grimbur's lair. */
 const FLOORS = 10;
@@ -161,7 +161,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
                     <React.Fragment key={floor}>
                       {i > 0 ? <View style={[styles.trackLine, floor <= level && { backgroundColor: accent }]} /> : null}
                       {lair ? (
-                        <SpriteImage source={require("../assets/sprites/ui/Icon_Skull.png")} style={styles.trackLair} resizeMode="contain" />
+                        <SpriteImage source={require("../assets/sprites/ui/Icon_Skull.webp")} style={styles.trackLair} resizeMode="contain" />
                       ) : (
                         <View style={[styles.trackDot, done && { backgroundColor: accent, borderColor: accent }, floor === level + 1 && styles.trackNext]} />
                       )}

@@ -591,7 +591,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             </View>
           </View>
           <View style={styles.gemsLeft} accessible accessibilityLabel={t("puzzle.gemsLeft", { n: state.coins, total: gems })}>
-            <SpriteImage source={require("../assets/sprites/items/Icon_Gem.png")} style={{ width: 22, height: 22 }} />
+            <SpriteImage source={require("../assets/sprites/items/Icon_Gem.webp")} style={{ width: 22, height: 22 }} />
             <Text style={styles.gemsText} maxFontSizeMultiplier={1.2}>
               {`${gems - state.coins}/${gems}`}
             </Text>

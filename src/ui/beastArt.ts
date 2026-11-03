@@ -14,7 +14,7 @@ export const BEAST_ART: Record<BeastId, ImageSourcePropType> = {
   ancient: require("../assets/sprites/enemies/Ancient_Boss.webp"),
   pit: require("../assets/sprites/tiles/Danger_Vortex.png"),
   trap: require("../assets/sprites/tiles/Trap_Sprung.png"),
-  chest: require("../assets/sprites/items/Icon_Chest.png"),
+  chest: require("../assets/sprites/items/Icon_Chest.webp"),
 };
 
 /** The colour of each creature (cards, banner rims). */

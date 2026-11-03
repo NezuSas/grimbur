@@ -33,9 +33,9 @@ import EndlessPortal from "./puzzle/EndlessPortal";
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 
 const GOLD = "#FFD54F";
-const STAR = require("../assets/sprites/ui/Icon_Star.png");
-const BOOK = require("../assets/sprites/ui/Icon_Book.png");
-const CALENDAR = require("../assets/sprites/ui/Icon_Calendar.png");
+const STAR = require("../assets/sprites/ui/Icon_Star.webp");
+const BOOK = require("../assets/sprites/ui/Icon_Book.webp");
+const CALENDAR = require("../assets/sprites/ui/Icon_Calendar.webp");
 const PER_CHAPTER = PUZZLE_COUNT / PUZZLE_TIERS.length;
 
 /** What changed on the path since `prev`: the stars won, where the hero stood, and the chapter just opened (null: nothing). */

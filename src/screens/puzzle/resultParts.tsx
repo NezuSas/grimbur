@@ -5,7 +5,7 @@ import SpriteImage from "../../ui/components/SpriteImage";
 import { emitSound } from "../../audio/audioEventBus";
 import { haptic } from "../../shared/haptics";
 
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 /** When the result card's pieces arrive (ms after it opens): the stars first, then the numbers, then what was won. */
 export const STAR_START = 260;

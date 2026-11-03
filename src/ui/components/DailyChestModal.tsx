@@ -11,8 +11,8 @@ import { useT } from "../../i18n/useT";
 import { emitSound } from "../../audio/audioEventBus";
 import { CHEST_DAYS, CHEST_EMBERS, CHEST_FREEZE_DAY } from "../../core/stats/dailyChest";
 
-const CHEST_ART = require("../../assets/sprites/items/Icon_Chest.png");
-const CHEST_SHUT_ART = require("../../assets/sprites/items/Icon_Chest_Closed.png");
+const CHEST_ART = require("../../assets/sprites/items/Icon_Chest.webp");
+const CHEST_SHUT_ART = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
 const GOLD = "#FFD54F";
 
 type Props = {

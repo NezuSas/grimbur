@@ -65,7 +65,7 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
         ))}
       </View>
     ) : (
-      <SpriteImage source={require("../assets/sprites/items/Icon_Gem.png")} style={{ width: art * 0.8, height: art * 0.8 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <SpriteImage source={require("../assets/sprites/items/Icon_Gem.webp")} style={{ width: art * 0.8, height: art * 0.8 }} resizeMode="contain" accessibilityIgnoresInvertColors />
     );
 
   return (

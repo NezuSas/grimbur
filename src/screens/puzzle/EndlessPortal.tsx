@@ -10,7 +10,7 @@ import { ENDLESS_EMBERS_PER_STAR } from "../../core/stats/puzzleProgress";
 
 const TINT = "#CE93D8";
 const VORTEX = require("../../assets/sprites/tiles/Danger_Vortex.png");
-const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.png");
+const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.webp");
 
 type Props = {
   width: number;

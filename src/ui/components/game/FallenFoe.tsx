@@ -12,7 +12,7 @@ const ART: Partial<Record<EntityType, number>> = {
   thief: require("../../../assets/sprites/enemies/Thief_Enemy.webp"),
   boss: require("../../../assets/sprites/enemies/Grimbur_Boss.webp"),
 };
-const SPARK = require("../../../assets/sprites/items/Icon_Ember.png");
+const SPARK = require("../../../assets/sprites/items/Icon_Ember.webp");
 /** The colour of the shock ring each guardian leaves when it falls. */
 const RING: Partial<Record<EntityType, string>> = { enemy: "#FF7043", stalker: "#B388FF", sleeper: "#80CBC4", mimic: "#4FC3F7", thief: "#FFD54F" };
 /** A guardian puffs out in the first part of this, while its sparks and ring finish flying. */

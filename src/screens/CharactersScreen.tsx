@@ -58,7 +58,7 @@ import { equippedSkin, ownedSkins } from "../core/skins/ownership";
 import { heroAccent } from "../data/heroAccent";
 import { SPARKS, Spark, Thumb, Swatch } from "./characters/parts";
 
-const MEDAL_ART = require("../assets/sprites/ui/Icon_Medal.png");
+const MEDAL_ART = require("../assets/sprites/ui/Icon_Medal.webp");
 
 type Props = NativeStackScreenProps<RootStackParamList, "CharactersScreen">;
 

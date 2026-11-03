@@ -12,10 +12,10 @@ import { PUZZLE_TIERS, PUZZLES_PER_TIER } from "../../core/puzzles/puzzles";
 import { CHAPTER_STARS, MAX_STARS, chapterCrowns, chapterStars, hasCrown, isChestWaiting, isPuzzleOpen, puzzleBestTime, puzzleStarsAt, type PuzzleProgress } from "../../core/stats/puzzleProgress";
 import { formatSolveTime } from "./shareText";
 
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
-const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.png");
-const MEDAL = require("../../assets/sprites/ui/Icon_Medal.png");
-const CHEST = require("../../assets/sprites/items/Icon_Chest_Closed.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
+const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.webp");
+const MEDAL = require("../../assets/sprites/ui/Icon_Medal.webp");
+const CHEST = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
 const GOLD = "#FFD54F";
 
 export const TIER_TINTS = ["#9EE37D", "#4FC3F7", "#B39DDB", "#FF9A3C", "#FF5252", "#E1F5FE"];

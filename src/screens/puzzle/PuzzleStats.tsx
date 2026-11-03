@@ -14,7 +14,7 @@ import { useEscapeKey } from "../../ui/hotkeys";
 
 const TINT = "#4DD0E1";
 const GOLD = "#FFD54F";
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 type Props = { puzzles: PuzzleProgress | undefined; onClose: () => void };
 

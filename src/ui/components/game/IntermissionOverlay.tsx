@@ -17,16 +17,16 @@ import type { BiomeId } from "../../../core/engine/biomes";
 import type { TranslationKey } from "../../../i18n/en";
 
 const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#FFB74D", shield: "#4FC3F7", detector: "#81C784", bomb: "#FF7043" };
-const GEM = require("../../../assets/sprites/items/Icon_Gem.png");
+const GEM = require("../../../assets/sprites/items/Icon_Gem.webp");
 /** Each omen's door wears the art and colour of what it brings. */
-const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.png");
+const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.webp");
 const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
-  bounty: { art: require("../../../assets/sprites/items/Icon_Gem.png"), color: "#4FC3F7" },
-  calm: { art: require("../../../assets/sprites/relics/lantern.png"), color: "#9EE37D" },
-  arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.png"), color: "#FF8A65" },
-  dark: { art: require("../../../assets/sprites/items/Icon_Darkness.png"), color: "#7986CB" },
-  shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.png"), color: "#A1887F" },
-  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.png"), color: "#FF5252" },
+  bounty: { art: require("../../../assets/sprites/items/Icon_Gem.webp"), color: "#4FC3F7" },
+  calm: { art: require("../../../assets/sprites/relics/lantern.webp"), color: "#9EE37D" },
+  arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.webp"), color: "#FF8A65" },
+  dark: { art: require("../../../assets/sprites/items/Icon_Darkness.webp"), color: "#7986CB" },
+  shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.webp"), color: "#A1887F" },
+  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#FF5252" },
 };
 
 type Props = {

@@ -76,9 +76,9 @@ export const PARAMS: Params = {
 };
 
 export const IMG = {
-  gem: require("../../assets/sprites/items/Icon_Gem.png"),
-  shield: require("../../assets/sprites/items/Icon_Shield.png"),
-  arrows: require("../../assets/sprites/items/Icon_Arrows.png"),
+  gem: require("../../assets/sprites/items/Icon_Gem.webp"),
+  shield: require("../../assets/sprites/items/Icon_Shield.webp"),
+  arrows: require("../../assets/sprites/items/Icon_Arrows.webp"),
   boss: require("../../assets/sprites/enemies/Grimbur_Boss.webp"),
   guardian: require("../../assets/sprites/enemies/Guardian_Enemy.webp"),
   stalker: require("../../assets/sprites/enemies/Stalker_Enemy.webp"),
@@ -86,9 +86,9 @@ export const IMG = {
   mimic: require("../../assets/sprites/enemies/Mimic_Enemy.webp"),
   thief: require("../../assets/sprites/enemies/Thief_Enemy.webp"),
   lieutenant: require("../../assets/sprites/enemies/Lieutenant_Boss.webp"),
-  chest: require("../../assets/sprites/items/Icon_Chest.png"),
-  secret: require("../../assets/sprites/ui/Icon_Sparkles.png"),
-  merchant: require("../../assets/sprites/items/Icon_Merchant.png"),
+  chest: require("../../assets/sprites/items/Icon_Chest.webp"),
+  secret: require("../../assets/sprites/ui/Icon_Sparkles.webp"),
+  merchant: require("../../assets/sprites/items/Icon_Merchant.webp"),
   vortex: require("../../assets/sprites/tiles/Danger_Vortex.png"),
   trap: require("../../assets/sprites/tiles/Trap_Sprung.png"),
   hidden: require("../../assets/sprites/tiles/Tile_Hidden.webp"),

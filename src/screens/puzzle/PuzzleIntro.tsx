@@ -11,7 +11,7 @@ import { formatSolveTime } from "./shareText";
 import KeyHint from "../../ui/components/KeyHint";
 
 const GOLD = "#FFD54F";
-const GEM = require("../../assets/sprites/items/Icon_Gem.png");
+const GEM = require("../../assets/sprites/items/Icon_Gem.webp");
 
 type Props = {
   /** "Puzzle 15", "Puzzle of the day #3", ... */

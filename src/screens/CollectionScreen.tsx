@@ -43,16 +43,16 @@ type Category = "skins" | "rewards" | CosmeticCategory;
 /** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
 /** Each category wears a piece of its own painted art. */
 const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
-  { id: "deals", art: require("../assets/sprites/items/Icon_Gem.png") },
-  { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.png") },
-  { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.png") },
+  { id: "deals", art: require("../assets/sprites/items/Icon_Gem.webp") },
+  { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.webp") },
+  { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.webp") },
   { id: "trail", art: require("../assets/sprites/cosmetics/Arrow_Fire.png") },
   { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
-  { id: "title", art: require("../assets/sprites/ui/Icon_Medal.png") },
+  { id: "title", art: require("../assets/sprites/ui/Icon_Medal.webp") },
   { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
-  { id: "flag", art: require("../assets/sprites/ui/Icon_Flag.png") },
-  { id: "attack", art: require("../assets/sprites/ui/Attack_Ready.png") },
-  { id: "celebration", art: require("../assets/sprites/ui/Icon_Sparkles.png") },
+  { id: "flag", art: require("../assets/sprites/ui/Icon_Flag.webp") },
+  { id: "attack", art: require("../assets/sprites/ui/Attack_Ready.webp") },
+  { id: "celebration", art: require("../assets/sprites/ui/Icon_Sparkles.webp") },
   { id: "pet", art: require("../assets/sprites/cosmetics/Pet_Firefly_A.png") },
 ];
 

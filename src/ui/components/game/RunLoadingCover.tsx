@@ -40,7 +40,7 @@ const RunLoadingCover: React.FC<Props> = ({ visible }) => {
       accessibilityLabel={t('loading.cave')}
     >
       <View style={styles.center}>
-        <SpriteImage source={require('../../../assets/sprites/items/Icon_Gem.png')} style={styles.gem} resizeMode="contain" />
+        <SpriteImage source={require('../../../assets/sprites/items/Icon_Gem.webp')} style={styles.gem} resizeMode="contain" />
         <ActivityIndicator size="large" color="#FFD54F" />
         <Text style={styles.text} allowFontScaling={false}>
           {t('loading.cave')}

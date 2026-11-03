@@ -39,7 +39,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
     <View style={styles.body}>
       <View style={styles.side}>
         <View style={styles.medal}>
-          <SpriteImage source={require("../../assets/sprites/ui/Icon_Trophy.png")} style={styles.medalArt} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <SpriteImage source={require("../../assets/sprites/ui/Icon_Trophy.webp")} style={styles.medalArt} resizeMode="contain" accessibilityIgnoresInvertColors />
           <Text style={styles.pct} maxFontSizeMultiplier={1.1} accessibilityLabel={t("collection.rewards.a11y", { pct: progress.pct })}>
             {`${progress.pct}%`}
           </Text>

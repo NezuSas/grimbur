@@ -106,13 +106,13 @@ const Breathing = ({ children, calm }: { children: React.ReactNode; calm: boolea
 
 /** A round icon button with its name underneath: the menu dock. */
 const DOCK_ART = {
-  forge: require("../../assets/sprites/ui/Icon_Hammer.png"),
-  missions: require("../../assets/sprites/ui/Icon_Flag.png"),
-  rankings: require("../../assets/sprites/ui/Icon_Trophy.png"),
-  friends: require("../../assets/sprites/ui/Icon_Swords.png"),
+  forge: require("../../assets/sprites/ui/Icon_Hammer.webp"),
+  missions: require("../../assets/sprites/ui/Icon_Flag.webp"),
+  rankings: require("../../assets/sprites/ui/Icon_Trophy.webp"),
+  friends: require("../../assets/sprites/ui/Icon_Swords.webp"),
   collection: require("../../assets/sprites/cosmetics/Frame_Gold.png"),
-  achievements: require("../../assets/sprites/ui/Icon_Medal.png"),
-  manual: require("../../assets/sprites/ui/Icon_Puzzle.png"),
+  achievements: require("../../assets/sprites/ui/Icon_Medal.webp"),
+  manual: require("../../assets/sprites/ui/Icon_Puzzle.webp"),
 } as const;
 
 const DockButton = ({ art, label, onPress, ui, dot, dotLabel, size }: { art: keyof typeof DOCK_ART; label: string; onPress: () => void; ui: number; dot?: boolean; dotLabel?: string; size: number }) => (

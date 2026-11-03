@@ -12,10 +12,10 @@ import { DAILY_PUZZLE_EMBERS, MAX_STARS } from "../../core/stats/puzzleProgress"
 import { TIER_TINTS } from "./ChapterMap";
 
 const TINT = "#4DD0E1";
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
-const RIDDLE = require("../../assets/sprites/ui/Icon_Riddle.png");
-const CALENDAR = require("../../assets/sprites/ui/Icon_Calendar.png");
-const FLAME = require("../../assets/sprites/ui/Icon_Flame.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
+const RIDDLE = require("../../assets/sprites/ui/Icon_Riddle.webp");
+const CALENDAR = require("../../assets/sprites/ui/Icon_Calendar.webp");
+const FLAME = require("../../assets/sprites/ui/Icon_Flame.webp");
 
 type Props = {
   /** The puzzle of the day's number (#1 on the first day) and its level. */

@@ -98,7 +98,7 @@ const HighScoreEntryModal = ({ visible, score, level, totalCoins, time, daily, c
   const summary = (
     <View style={[styles.summary, compact && styles.summaryRow]}>
       {/* With the keyboard up a landscape phone has little room left: only the title and the score stay. */}
-      {!keyboardUp && <SpriteImage source={require('../../../assets/sprites/ui/Icon_Trophy.png')} style={styles.trophy} resizeMode="contain" />}
+      {!keyboardUp && <SpriteImage source={require('../../../assets/sprites/ui/Icon_Trophy.webp')} style={styles.trophy} resizeMode="contain" />}
       {!keyboardUp && (
         <Text style={styles.badge} maxFontSizeMultiplier={1.3}>
           {t(challenge ? 'entry.challenge.badge' : daily ? 'entry.daily.badge' : 'entry.badge').toLocaleUpperCase()}

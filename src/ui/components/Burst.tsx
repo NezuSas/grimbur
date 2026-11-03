@@ -4,7 +4,7 @@ import SpriteImage from "./SpriteImage";
 import { useSettingsStore } from "../../state/settings/store";
 
 export const SPARKS = Array.from({ length: 9 }, (_, i) => ({ angle: (i / 9) * Math.PI * 2 + 0.4, dist: 38 + (i % 3) * 16, size: 10 + (i % 3) * 3 }));
-const EMBER_SPRITE = require("../../assets/sprites/items/Icon_Ember.png");
+const EMBER_SPRITE = require("../../assets/sprites/items/Icon_Ember.webp");
 
 /**
  * Painted sparks thrown out from the middle of the parent: embers off the Forge's anvil by default, or any other

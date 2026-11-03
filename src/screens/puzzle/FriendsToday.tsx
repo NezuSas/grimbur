@@ -9,7 +9,7 @@ import type { FriendEntry } from "../../core/social/friends";
 import { loadFriendsPuzzle, type PuzzleRow } from "../../services/puzzleScores";
 import { formatSolveTime } from "./shareText";
 
-const STAR = require("../../assets/sprites/ui/Icon_Star.png");
+const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 const TINT = "#4DD0E1";
 const SHOWN = 6;
 

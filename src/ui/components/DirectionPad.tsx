@@ -42,9 +42,9 @@ type AttackButtonProps = {
 };
 
 const ATTACK_ART = {
-  ready: require("../../assets/sprites/ui/Attack_Ready.png"),
-  empty: require("../../assets/sprites/ui/Attack_Empty.png"),
-  arrow: require("../../assets/sprites/ui/Attack_Arrow.png"),
+  ready: require("../../assets/sprites/ui/Attack_Ready.webp"),
+  empty: require("../../assets/sprites/ui/Attack_Empty.webp"),
+  arrow: require("../../assets/sprites/ui/Attack_Arrow.webp"),
 } as const;
 
 /** The painted arrow is drawn pointing right: the turn that points it the way the player aims. */
