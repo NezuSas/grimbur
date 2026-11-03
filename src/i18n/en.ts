@@ -1044,6 +1044,7 @@ export const en = {
   'hud.level': 'Level',
   'hud.floorOf': '{level}/{floors}',
   'popup.shield': 'SHIELD',
+  'popup.recovered': 'Gems recovered',
   'error.title': 'Something went wrong',
   'error.body': 'The cave collapsed. Your best score is safe.',
   'error.retry': 'Try again',

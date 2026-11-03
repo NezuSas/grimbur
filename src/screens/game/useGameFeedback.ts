@@ -10,7 +10,7 @@ import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemSt
 import { tileCenter } from "../../core/feedback/geometry";
 import { coinReward, killValue } from "../../core/engine/scoring";
 import { floorEffects } from "../../core/engine/events";
-import { RELICS, relicCount } from "../../core/engine/relics";
+import { relicCount } from "../../core/engine/relics";
 import { useT } from "../../i18n/useT";
 import { SECRET_ARROWS, SECRET_GEMS, secretScore } from "../../core/engine/generator";
 import { relicText } from "../../i18n/keys";
@@ -18,6 +18,9 @@ import type { GameState } from "../../core/engine/types";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import { useGameLayout } from "../../ui/layout/useGameLayout";
 import type { Popup } from "./types";
+import { RELIC_IMAGES } from "../../ui/relicImages";
+import { GLYPHS } from "../../ui/glyphArt";
+import { CLUE_ART } from "../../ui/components/GridCell";
 import { landMs } from "../../ui/components/game/ArrowFlight";
 
 type Params = {
@@ -196,15 +199,15 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
             // A chest: the relic it held is named where it was opened.
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
-            if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: `${RELICS[state.chestRelic].icon} ${relicName(state.chestRelic)}`, subColor: "#C9A55A", popScale: 1.15 }, e.tile);
+            if (state.chestRelic) pushPopup({ points: 0, type: "streak", sub: relicName(state.chestRelic), subColor: "#C9A55A", popScale: 1.1, art: RELIC_IMAGES[state.chestRelic] }, e.tile);
           } else if (e.pickup === "secret") {
             // A secret room: its cache shown where it was found.
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
-            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#DCC48E", popScale: 1.2 }, e.tile);
+            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#DCC48E", popScale: 1.1, art: GLYPHS.sparkles }, e.tile);
           } else if (e.pickup === "thief") {
             emitSound("COIN_COLLECTED");
-            pushPopup({ points: 0, type: "streak", sub: "💎 ✔", subColor: "#7FAFC6" }, e.tile);
+            pushPopup({ points: 0, type: "streak", sub: t("popup.recovered"), subColor: "#7FAFC6", art: GLYPHS.gem }, e.tile);
           } else {
             emitSound("POWERUP");
             pushPopup({ points: e.pickup === "ammo" ? GAME_CONFIG.pickups.ammoAmount : 0, type: e.pickup }, e.tile);
@@ -232,10 +235,10 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
     }
     // A vortex now costs an arrow (or a shop gem), and a few relics/omens pay shop gems without a pickup: say so.
     if (sameFloor && state.vortexCost && state.vortexCost !== prev.vortexCost) {
-      pushPopup({ points: 0, type: "streak", sub: state.vortexCost === "arrow" ? "🌀 -1 🏹" : "🌀 -1 💎", subColor: "#A397BF" }, state.playerIndex);
+      pushPopup({ points: 0, type: "streak", sub: "−1", subColor: "#A397BF", art: CLUE_ART.vortex, subArt: state.vortexCost === "arrow" ? GLYPHS.arrows : GLYPHS.gem }, state.playerIndex);
     }
     if (state.gems > prev.gems && !has("coin") && state.totalCoins === prev.totalCoins) {
-      pushPopup({ points: 0, type: "streak", sub: `+${state.gems - prev.gems} 💎`, subColor: "#7FAFC6" }, state.playerIndex);
+      pushPopup({ points: 0, type: "streak", sub: `+${state.gems - prev.gems}`, subColor: "#7FAFC6", subArt: GLYPHS.gem }, state.playerIndex);
     }
   }, [state]);
 

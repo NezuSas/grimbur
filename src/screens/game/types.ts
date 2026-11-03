@@ -1,3 +1,4 @@
+import type { ImageSourcePropType } from "react-native";
 import type { PopupType } from "../../ui/components/game/ScorePopup";
 import type { RunPayout } from "../../core/stats/runStats";
 import type { Goal } from "../../core/stats/goals";
@@ -40,6 +41,10 @@ export type Popup = {
   sub?: string | null;
   subColor?: string;
   popScale?: number;
+  /** A painted picture leading the label (the chest's relic, the vortex, a gem) instead of the type's glyph. */
+  art?: ImageSourcePropType;
+  /** A painted picture after the second line ("-1" then the arrows it cost). */
+  subArt?: ImageSourcePropType;
 };
 
 /** What the game-over card shows about the run that just ended (built from what the stats service returns). */

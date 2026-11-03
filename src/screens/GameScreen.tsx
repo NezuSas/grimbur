@@ -28,7 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import ScoreBar from "../ui/components/ScoreBar";
 import BoardView from "../ui/components/BoardView";
-import { ASSETS } from "../ui/components/GridCell";
+import { ASSETS, CLUE_ART } from "../ui/components/GridCell";
 import ScreenFlashes from "../ui/components/game/ScreenFlashes";
 import GameOverlays from "./game/GameOverlays";
 import RunLoadingCover from "../ui/components/game/RunLoadingCover";
@@ -52,6 +52,7 @@ import Fanfare from "../ui/components/game/Fanfare";
 import EncounterModal from "../ui/components/game/EncounterModal";
 import { FAMILY_COLOR } from "../ui/familyLook";
 import { RELIC_IMAGES } from "../ui/relicImages";
+import { GLYPHS } from "../ui/glyphArt";
 import { BEAST_ART, BEAST_TINT } from "../ui/beastArt";
 import type { BeastId } from "../core/stats/bestiary";
 import { NotificationFeedbackType } from "../shared/haptics";
@@ -1137,10 +1138,23 @@ export default function GameScreen({ navigation, route }: Props) {
           sub={p.sub}
           subColor={p.subColor}
           popScale={p.popScale}
+          art={p.art}
+          subArt={p.subArt}
           onComplete={() => removePopup(p.id)}
         />
       ))}
 
+      {/* Development: one of each label, held still (for screenshots). */}
+      {__DEV__ && route.params?.devPopups ? (
+        <>
+          <ScorePopup points={0} type="streak" sub="Linterna del minero" subColor="#C9A55A" popScale={1.1} art={RELIC_IMAGES.lantern} x={180} y={140} hold onComplete={() => {}} />
+          <ScorePopup points={120} type="coin" x={420} y={140} hold onComplete={() => {}} />
+          <ScorePopup points={300} type="kill" sub="x3 COMBO" subColor="#C8763A" x={600} y={140} hold onComplete={() => {}} />
+          <ScorePopup points={250} type="streak" sub={t("secret.found", { gems: 3, arrows: 1 })} subColor="#DCC48E" popScale={1.1} art={GLYPHS.sparkles} x={200} y={260} hold onComplete={() => {}} />
+          <ScorePopup points={0} type="streak" sub="−1" subColor="#A397BF" art={CLUE_ART.vortex} subArt={GLYPHS.arrows} x={420} y={260} hold onComplete={() => {}} />
+          <ScorePopup points={0} type="shield" x={600} y={260} hold onComplete={() => {}} />
+        </>
+      ) : null}
       {activeCoins.map(c => (
         <CoinFlight
           key={c.id}

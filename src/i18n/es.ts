@@ -1045,6 +1045,7 @@ export const es: Record<TranslationKey, string> = {
   'hud.level': 'Nivel',
   'hud.floorOf': '{level}/{floors}',
   'popup.shield': 'ESCUDO',
+  'popup.recovered': 'Gemas recuperadas',
   'error.title': 'Algo salió mal',
   'error.body': 'La cueva se derrumbó. Tu mejor puntaje está a salvo.',
   'error.retry': 'Intentar de nuevo',
