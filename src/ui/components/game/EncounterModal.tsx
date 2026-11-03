@@ -85,7 +85,7 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
       : rolling
         ? t(rolled ? "encounter.gambler.rolling" : k("acting"))
         : outcome
-          ? t(k(outcome === "done" && encounter.gift === "bomb" ? "doneBomb" : outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0 })
+          ? t(k(outcome === "done" && encounter.gift === "bomb" ? "doneBomb" : outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0, path: encounter.tiles ?? 0 })
           : null;
 
   return (

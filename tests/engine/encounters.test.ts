@@ -1,6 +1,6 @@
-import { MAP_GEMS, SMITH_ARROWS, ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, GAMBLER_WIN_FROM, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, resolveEncounter } from '../../src/core/engine/encounters';
+import { MAP_GEMS, SMITH_ARROWS, ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, GAMBLER_WIN_FROM, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, gemPath, resolveEncounter } from '../../src/core/engine/encounters';
 import { gameReducer } from '../../src/core/engine/reducer';
-import { coin, createState } from '../helpers/state';
+import { coin, createState, enemy, pit } from '../helpers/state';
 import type { GameState } from '../../src/core/engine/types';
 
 const withEncounter = (id: 'scout' | 'spring' | 'gambler' | 'shrine', extra: Partial<GameState> = {}): GameState =>
@@ -65,6 +65,32 @@ describe('encounters', () => {
       faces.add(enc.die!);
     }
     expect(faces.size).toBe(6);
+  });
+
+  it('the torn map lights the shortest safe path to the nearest real gem, around the dangers', () => {
+    // 8x15 board, hero at 0. The gem at 3 sits behind an enemy at 1 and a vortex at 16: the path goes around them.
+    const base = createState({ entities: [coin(3), enemy(1), pit(16)] });
+    const s: GameState = { ...base, playerIndex: 0, visited: [0] };
+    const path = gemPath(s)!;
+    expect(path[path.length - 1]).toBe(3);
+    expect(path).not.toContain(1);
+    expect(path).not.toContain(16);
+    for (let i = 1; i < path.length; i++) {
+      const a = path[i - 1], b = path[i];
+      expect(Math.abs(Math.floor(a / 15) - Math.floor(b / 15)) + Math.abs((a % 15) - (b % 15))).toBe(1);
+    }
+    const after = resolveEncounter({ ...s, gems: MAP_GEMS, level: 3, runSeed: 7, encounter: { id: 'map' } }, true);
+    expect(after.gems).toBe(0);
+    expect(after.encounter!.tiles).toBe(path.length);
+    for (const t of path) expect(after.visited).toContain(t);
+  });
+
+  it('the torn map cannot be bought when no gem can be reached safely', () => {
+    // The gem at 0 is boxed in by vortexes; the hero is far away.
+    const base = createState({ entities: [coin(0), pit(1), pit(15)] });
+    const s: GameState = { ...base, playerIndex: 50, visited: [50], gems: 10 };
+    expect(gemPath(s)).toBeNull();
+    expect(canTake('map', s)).toBe(false);
   });
 
   it('the shrine turns an arrow into a detector charge', () => {

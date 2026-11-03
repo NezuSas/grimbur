@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import { emitSound } from "../../../audio/audioEventBus";
 import { useSettingsStore } from "../../../state/settings/store";
+import { RayBurst, Shockwave, SparkBurst } from "./encounterFx";
 
 /** Where the pips of each face sit on a 3x3 grid (row, column). */
 const PIPS: Record<number, [number, number][]> = {
@@ -54,6 +55,7 @@ type Props = {
 const GamblerDie = ({ face, size, rim, won, onLanded }: Props) => {
   const calm = useSettingsStore(s => s.reduceFlash);
   const [shown, setShown] = useState(() => (calm ? face : 1 + Math.floor(Math.random() * 6)));
+  const [down, setDown] = useState(false);
   const spin = useRef(new Animated.Value(0)).current;
   const hop = useRef(new Animated.Value(0)).current;
   const land = useRef(new Animated.Value(calm ? 1 : 0)).current;
@@ -82,6 +84,7 @@ const GamblerDie = ({ face, size, rim, won, onLanded }: Props) => {
         setTimeout(() => {
           if (final) {
             setShown(face);
+            setDown(true);
             emitSound(won ? "COIN_COLLECTED" : "UI_TAP");
             Animated.spring(land, { toValue: 1, friction: 4, tension: 160, useNativeDriver: true }).start();
             landedRef.current();
@@ -115,6 +118,28 @@ const GamblerDie = ({ face, size, rim, won, onLanded }: Props) => {
           { width: size * 1.45, height: size * 1.45, borderRadius: size, backgroundColor: won ? rim + "55" : "rgba(181, 82, 74,0.35)", opacity: glow },
         ]}
       />
+      {/* The die's shadow on the table: it shrinks while the die is up in the air. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.shadow,
+          {
+            width: size * 0.9,
+            height: size * 0.22,
+            borderRadius: size,
+            bottom: size * 0.08,
+            transform: [{ scaleX: hop.interpolate({ inputRange: [0, 1], outputRange: [1, 0.55] }) }],
+            opacity: hop.interpolate({ inputRange: [0, 1], outputRange: [0.55, 0.25] }),
+          },
+        ]}
+      />
+      {!calm ? (
+        <>
+          <RayBurst size={size * 2.6} color={(won ? rim : "#B5524A") + "AA"} play={down} />
+          <Shockwave size={size * 2.2} color={won ? rim : "#B5524A"} play={down} />
+          <SparkBurst size={size * 2.6} color={won ? rim : "#B5524A"} play={down} />
+        </>
+      ) : null}
       <Animated.View style={{ transform: [{ translateY }, { rotate }, { scale }] }}>
         <DieFace face={shown} size={size} rim={rim} />
       </Animated.View>
@@ -134,6 +159,7 @@ const styles = StyleSheet.create({
   },
   pip: { position: "absolute", backgroundColor: "#2A1A10" },
   glow: { position: "absolute" },
+  shadow: { position: "absolute", backgroundColor: "#000" },
 });
 
 export default GamblerDie;

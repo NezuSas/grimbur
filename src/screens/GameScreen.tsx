@@ -146,6 +146,12 @@ export default function GameScreen({ navigation, route }: Props) {
   // Between two floors: the shop and the fork, shown once the level-complete card is dismissed.
   // Development only: `devIntermission` opens the between-floors screen, for screenshots.
   const [intermission, setIntermission] = useState(() => __DEV__ && !!route.params?.devIntermission);
+  // Dev harness: `window.__replayEncounter()` plays the shown scene's outcome again (to capture its animation frame by frame).
+  const [devEncounterKey, setDevEncounterKey] = useState(0);
+  useEffect(() => {
+    if (!__DEV__ || typeof window === "undefined") return;
+    (window as unknown as { __replayEncounter?: () => void }).__replayEncounter = () => setDevEncounterKey(k => k + 1);
+  }, []);
   const [door, setDoor] = useState<0 | 1>(0);
   // Feedback that is only seen: the shield blink, a hard shake, a refused step onto a flag, the gem streak pop.
   const [toast, setToast] = useState<{ text: string; key: number } | null>(null);
@@ -1237,7 +1243,7 @@ export default function GameScreen({ navigation, route }: Props) {
       />
 
       {/* Over everything, the pick and the shop included: the moment it marks often happens there. */}
-      {__DEV__ && route.params?.devEncounter ? <EncounterModal encounter={route.params.devEncounter} state={{ ...state, attack: 3, gems: 5 }} onChoose={() => {}} onClose={() => {}} /> : null}
+      {__DEV__ && route.params?.devEncounter ? <EncounterModal key={devEncounterKey} encounter={route.params.devEncounter} state={{ ...state, attack: 3, gems: 5 }} onChoose={() => {}} onClose={() => {}} /> : null}
       {fanfare && !showGameOver ? (
         <Fanfare fanfareKey={fanfare.key} tint={fanfare.tint} art={fanfare.art} kicker={fanfare.kicker} title={fanfare.title} line={fanfare.line} top={insets.top + 10} calm={reduceFlash} hold={__DEV__ && !!route.params?.devFanfare} onDone={() => setFanfare(null)} />
       ) : null}

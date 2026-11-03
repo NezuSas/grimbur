@@ -25,6 +25,8 @@ export interface Encounter {
   relic?: RelicId;
   /** The gambler's die, 1 to 6: 4 or more wins (shown rolling, then landing on it). */
   die?: number;
+  /** How many tiles the torn map's safe path lit. */
+  tiles?: number;
   /** What a scene that can give one thing or another gave (the spring: a shield or an arrow; the shrine: a detector or a bomb). */
   gift?: 'shield' | 'arrow' | 'detector' | 'bomb';
 }
@@ -50,7 +52,7 @@ export const SHRINE_ARROWS = 1;
 export const MINER_BOMBS = 1;
 /** Shop gems the miner gives instead when every relic is already maxed. */
 export const MINER_GEMS = 3;
-/** The torn map: shop gems for the place of the nearest gem still hidden. */
+/** The torn map: shop gems for a safe path to the nearest gem not reached yet (its tiles are lit, as if walked). */
 export const MAP_GEMS = 2;
 /** The echo: most of the time it gives away the nearest danger (flagged), otherwise an arrow falls into the dark. */
 export const ECHO_LUCK = 0.7;
@@ -77,17 +79,48 @@ export function canTake(id: EncounterId, s: Pick<GameState, 'attack' | 'gems' | 
   if (id === 'gambler') return s.gems >= GAMBLER_STAKE;
   if (id === 'shrine') return s.attack >= SHRINE_ARROWS && (s.items.detector < MAX_ITEMS || s.items.bomb < MAX_ITEMS);
   if (id === 'miner') return s.items.bomb >= MINER_BOMBS;
-  if (id === 'map') return s.gems >= MAP_GEMS && !!s.entities && hiddenGem(s as GameState) !== null;
+  if (id === 'map') return s.gems >= MAP_GEMS && !!s.entities && gemPath(s as GameState) !== null;
   if (id === 'smith') return !!s.shield;
   // The echo stakes an arrow, and has to have something left to give away.
   if (id === 'echo') return s.attack >= 1 && !!s.entities && echoDanger(s as GameState) !== null;
   return true;
 }
 
-/** The nearest gem the hero has not seen yet (the torn map points at it), or null. */
-export function hiddenGem(s: Pick<GameState, 'cols' | 'visited' | 'entities' | 'playerIndex'>): number | null {
+/** A tile the torn map lets the hero cross: nothing on it that a clue warns of, no trap, no thief. */
+const mapSafe = (e: GameEntity | undefined) => !e || !(isClueHazard(e.type) || e.type === 'trap' || e.type === 'thief');
+
+/**
+ * The torn map's safe path: the shortest walk over safe tiles from the hero to the nearest gem not reached yet (a real gem:
+ * the map knows a mimic), the hero's own tile left out. Null when no gem can be reached safely.
+ */
+export function gemPath(s: Pick<GameState, 'rows' | 'cols' | 'visited' | 'entities' | 'playerIndex'>): number[] | null {
   const seen = new Set(s.visited);
-  return nearestTile(s.entities.filter(e => e.type === 'coin' && !seen.has(e.index)).map(e => e.index), s.playerIndex, s.cols);
+  const gems = new Set(s.entities.filter(e => e.type === 'coin' && !seen.has(e.index)).map(e => e.index));
+  if (!gems.size) return null;
+  const at = new Map<number, GameEntity>();
+  for (const e of s.entities) at.set(e.index, e);
+  const from = new Map<number, number>([[s.playerIndex, -1]]);
+  const queue = [s.playerIndex];
+  for (let q = 0; q < queue.length; q++) {
+    const i = queue[q];
+    if (gems.has(i)) {
+      const path: number[] = [];
+      for (let t = i; t !== s.playerIndex; t = from.get(t)!) path.unshift(t);
+      return path;
+    }
+    const r = Math.floor(i / s.cols);
+    const c = i % s.cols;
+    for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+      const nr = r + dr;
+      const nc = c + dc;
+      if (nr < 0 || nc < 0 || nr >= s.rows || nc >= s.cols) continue;
+      const n = nr * s.cols + nc;
+      if (from.has(n) || !mapSafe(at.get(n))) continue;
+      from.set(n, i);
+      queue.push(n);
+    }
+  }
+  return null;
 }
 
 /** The nearest danger the echo gives away: a clue hazard not explored and not already flagged. */
@@ -157,8 +190,14 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
       return { ...state, ...gainRelicNow({ ...state, items }, relic), encounter: { ...enc, outcome: 'win', relic } };
     }
     case 'map': {
-      const gem = hiddenGem(state);
-      return { ...state, gems: state.gems - MAP_GEMS, visited: gem === null ? state.visited : [...state.visited, gem], encounter: { ...enc, outcome: 'done' } };
+      const path = gemPath(state) ?? [];
+      const seen = new Set(state.visited);
+      return {
+        ...state,
+        gems: state.gems - MAP_GEMS,
+        visited: [...state.visited, ...path.filter(t => !seen.has(t))],
+        encounter: { ...enc, outcome: 'done', tiles: path.length },
+      };
     }
     case 'echo': {
       const danger = echoDanger(state);

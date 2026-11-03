@@ -109,8 +109,19 @@ for (const k of (process.env.SHOT_KEYS ?? '').split(',').filter(Boolean)) {
 // SHOT_EVAL="<js expression>": print what it returns (to inspect the page while debugging a layout).
 if (process.env.SHOT_EVAL) {
   const r = await send('Runtime.evaluate', { expression: process.env.SHOT_EVAL, returnByValue: true, awaitPromise: true, userGesture: true });
-  await sleep(1500);
+  if (!process.env.SHOT_FRAMES) await sleep(1500);
   console.log('EVAL', JSON.stringify(r.result?.result?.value ?? r.result?.exceptionDetails?.text));
+}
+// SHOT_FRAMES="ms,ms,...": after SHOT_EVAL, a shot at each of these times (ms after it), saved as <out>_f<ms>.png, to see an
+// animation in motion (e.g. SHOT_EVAL="window.__replayEncounter()").
+if (process.env.SHOT_FRAMES) {
+  const t0 = Date.now();
+  for (const ms of process.env.SHOT_FRAMES.split(',').map(Number)) {
+    const wait = ms - (Date.now() - t0);
+    if (wait > 0) await sleep(wait);
+    const f = await send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(out.replace(/\.png$/, `_f${ms}.png`), Buffer.from(f.result.data, 'base64'));
+  }
 }
 // SHOT_CLIPS=1: list every text the page cuts short (one line with an ellipsis, or clamped to a few lines) or that spills out of its box.
 if (process.env.SHOT_CLIPS) {
