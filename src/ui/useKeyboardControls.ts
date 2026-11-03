@@ -18,7 +18,7 @@ const DIRECTION: Partial<Record<string, Direction>> = { up: "UP", down: "DOWN", 
 
 /**
  * Plays a board from a computer's keyboard (web only; phones have the pad), with the player's keys (core/input/keyBindings):
- * arrows or the walking keys move, the shooting key shoots where the hero faces, Shift + a direction shoots that way, then the
+ * arrows or the walking keys move one tile per press (a held key does not repeat), the shooting key shoots where the hero faces, Shift + a direction shoots that way, then the
  * ability, undo and pause keys (Esc pauses too). Keys do nothing while `enabled` is
  * false (a card is open, the run is over) or while typing in a field.
  */
@@ -41,6 +41,8 @@ export function useKeyboardControls(handlers: KeyHandlers, enabled: boolean): vo
       const dir = DIRECTION[action];
       if (dir) {
         e.preventDefault();
+        // One press, one step: a held key repeating would walk the hero on and on, into whatever lies ahead.
+        if (e.repeat) return;
         if (e.shiftKey && h.onAttack) h.onAttack(dir);
         else h.onMove(dir);
         return;
