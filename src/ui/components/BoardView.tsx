@@ -16,7 +16,7 @@ import Companion, { type CompanionLook } from "./game/Companion";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
 import Text from "./Text";
-import GridCell, { ASSETS, CLUE_ART, NO_HINTS } from "./GridCell";
+import GridCell, { ASSETS, CLUE_ART, HeroClues, NO_HINTS } from "./GridCell";
 import { ANCIENT_FRAMES } from "./BossSprite";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
@@ -295,6 +295,8 @@ const BoardView: React.FC<Props> = memo(
       setSprung(new Set());
     }, [level]);
     const shown = useMemo(() => (Object.keys(ghosts).length > 0 ? { ...entityMap, ...ghosts } : entityMap), [entityMap, ghosts]);
+    // The hero's own tile: its clues are drawn above the hero (HeroClues), where the body cannot cover them.
+    const heroNear = getNearbyHazards(playerIndex, rows, cols, shown);
 
     // One breathing value for every clue badge, wind-up aura, bobbing gem and swelling vortex
     // (a loop per cell used to cost one timer each).
@@ -699,6 +701,13 @@ const BoardView: React.FC<Props> = memo(
             </Animated.View>
             </Animated.View>
           </Animated.View>
+
+          {/* The clues of the hero's tile, above the hero: its body would cover them where they matter most. */}
+          {!dying && !unveil && visitedSet.has(playerIndex) ? (
+            <View pointerEvents="none" style={{ position: "absolute", left: colIndex * tileSize, top: rowIndex * tileSize, width: tileSize, height: tileSize, zIndex: 22 }}>
+              <HeroClues {...heroNear} tileSize={tileSize} />
+            </View>
+          ) : null}
 
           {fallen.map(f => (
             <FallenFoe

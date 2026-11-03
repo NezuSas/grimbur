@@ -482,7 +482,7 @@ const GridCell = memo(({
       )}
 
       {/* Clues: a round amber token for guardians, a violet diamond for vortexes. Always numbered; side by side. */}
-      {showHints && (
+      {showHints && !isPlayerHere && (
         <View style={styles.hintContainer} pointerEvents="none">
           {roar && (
             <Animated.View style={{ width: badge, height: badge, transform: [{ scale: hintScale }] }}>
@@ -661,3 +661,33 @@ const styles = StyleSheet.create({
 });
 
 export default GridCell;
+
+/**
+ * The clues of the tile the hero stands on, drawn above the hero (the hero's body would hide them): two small tokens at the
+ * tile's top corner, each with its count, so the numbers the next step depends on are never covered.
+ */
+export const HeroClues = ({ enemyCount, pitCount, tileSize }: { enemyCount: number; pitCount: number; tileSize: number }) => {
+  if (enemyCount <= 0 && pitCount <= 0) return null;
+  const size = Math.max(16, tileSize * 0.36);
+  const countSize = Math.max(10, tileSize * 0.2);
+  const token = (art: number, n: number, vortex: boolean) => (
+    <View style={{ width: size, height: size }}>
+      <View style={[heroClueStyles.disc, { width: size, height: size, borderRadius: size / 2 }]} />
+      <SpriteImage source={art} style={{ width: size, height: size }} resizeMode="contain" />
+      <View style={[styles.hintCount, vortex && styles.hintCountVortex, { minWidth: countSize + 3, height: countSize + 3, borderRadius: (countSize + 3) / 2 }]}>
+        <Text style={[styles.hintCountText, { fontSize: countSize }]}>{n}</Text>
+      </View>
+    </View>
+  );
+  return (
+    <View pointerEvents="none" style={[heroClueStyles.row, { top: -size * 0.28, right: -size * 0.22, gap: 2 }]}>
+      {enemyCount > 0 ? token(CLUE_ART.roar, enemyCount, false) : null}
+      {pitCount > 0 ? token(CLUE_ART.vortex, pitCount, true) : null}
+    </View>
+  );
+};
+
+const heroClueStyles = StyleSheet.create({
+  row: { position: "absolute", flexDirection: "row", zIndex: 30 },
+  disc: { position: "absolute", backgroundColor: "rgba(20,12,8,0.78)", borderWidth: 1, borderColor: "rgba(255,217,160,0.55)" },
+});
