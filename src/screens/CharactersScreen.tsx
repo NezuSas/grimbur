@@ -268,7 +268,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   // On a harder depth the line says what that depth changes and what winning it pays on top.
   const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
   const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
-  const modeTint = mode === "daily" ? "#FF9A3C" : mode === "endless" ? "#B39DDB" : mode === "quick" ? "#4FC3F7" : "#E8BA52";
+  const modeTint = mode === "daily" ? "#D38C46" : mode === "endless" ? "#A397BF" : mode === "quick" ? "#7FAFC6" : "#E8BA52";
 
   // The hero fills the stage above the roster.
   const rosterH = thumbSize + 14;
@@ -287,7 +287,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const haloSize = Math.min(stage.w, stage.h) * 1.05;
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <StatusBar hidden />
       <View style={styles.dim} />
       <SafeAreaView style={styles.safe} edges={["top", "left", "right", "bottom"]}>
@@ -418,7 +418,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View style={styles.lengthRow} accessibilityRole="radiogroup" accessibilityLabel={t("heroes.length")}>
                   {([false, true] as const).map(q => {
                     const on = (mode === "quick") === q;
-                    const tint = q ? "#4FC3F7" : "#E8BA52";
+                    const tint = q ? "#7FAFC6" : "#E8BA52";
                     return (
                       <TouchableOpacity
                         key={q ? "quick" : "full"}
@@ -448,7 +448,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
               {event ? (
                 <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${t(`event.${event}.rule` as TranslationKey)}`}>
-                  <Ionicons name="flash" size={13} color="#FFD54F" />
+                  <Ionicons name="flash" size={13} color="#D9B45A" />
                   <Text style={styles.eventText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     <Text style={styles.eventName}>{`${t(`event.${event}.name` as TranslationKey).toLocaleUpperCase()}  `}</Text>
                     {t(`event.${event}.rule` as TranslationKey)}
@@ -534,7 +534,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     const done = questDone(stats.heroQuests?.[selected], k);
                     return (
                       <View key={k} style={styles.questRow}>
-                        <Ionicons name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#9EE37D" : "#8a7663"} />
+                        <Ionicons name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#A3BF7C" : "#8a7663"} />
                         <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {t(`quest.${selected}.${k}` as TranslationKey, { n: q.n })}
                         </Text>
@@ -652,17 +652,17 @@ const styles = StyleSheet.create({
   masteryMedal: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
   masteryMedalArt: { width: 48, height: 48 },
   masteryMedalNum: { position: "absolute", bottom: -4, right: -4, minWidth: 24, height: 24, borderRadius: 12, paddingHorizontal: 4, alignItems: "center", justifyContent: "center", borderWidth: 2, backgroundColor: "#1A120B" },
-  masteryMedalText: { color: "#FFE7A8", fontWeight: "900", fontSize: 12 },
+  masteryMedalText: { color: "#EAD8A8", fontWeight: "900", fontSize: 12 },
   masteryXp: { color: "#E4D8CD", fontWeight: "800", fontSize: 11.5 },
   stageBadge: { position: "absolute", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 5, paddingLeft: 6, paddingRight: 12, height: 30, borderRadius: 15, borderWidth: 1.5, backgroundColor: "rgba(22,14,8,0.92)", zIndex: 5 },
-  stageBadgeText: { color: "#FFE7A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
+  stageBadgeText: { color: "#EAD8A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   abilityLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   cooldownChip: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.08)" },
   cooldownText: { color: "#E4D8CD", fontWeight: "800", fontSize: 11 },
   masteryTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   masteryFill: { height: "100%", borderRadius: 3 },
-  depthLocked: { borderColor: "rgba(255,213,79,0.55)", backgroundColor: "rgba(255,213,79,0.12)" },
-  depthHint: { color: "#FFD54F", fontSize: 12.5, fontWeight: "700" },
+  depthLocked: { borderColor: "rgba(217, 180, 90,0.55)", backgroundColor: "rgba(217, 180, 90,0.12)" },
+  depthHint: { color: "#D9B45A", fontSize: 12.5, fontWeight: "700" },
   root: { flex: 1, backgroundColor: "#000" },
   dim: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(4,2,14,0.55)" },
   safe: { flex: 1 },
@@ -696,16 +696,16 @@ const styles = StyleSheet.create({
   kickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, minHeight: 34, paddingLeft: 0 },
   kicker: { fontWeight: "900", letterSpacing: 2, fontSize: 11, flexShrink: 1 },
   modeRule: { color: "#E4D8CD", fontSize: 12, marginTop: -4 },
-  event: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.5)" },
+  event: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.5)" },
   eventText: { color: "#F3E6C8", fontSize: 11.5, fontWeight: "700", flexShrink: 1 },
-  eventName: { color: "#FFD54F", fontWeight: "900", letterSpacing: 1 },
+  eventName: { color: "#D9B45A", fontWeight: "900", letterSpacing: 1 },
   depth: { flexDirection: "row", alignItems: "center", gap: 6 },
-  depthButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,112,67,0.35)", borderWidth: 1, borderColor: "#FF7043", alignItems: "center", justifyContent: "center" },
+  depthButton: { width: 34, height: 34, borderRadius: 17, backgroundColor: "rgba(255,112,67,0.35)", borderWidth: 1, borderColor: "#CC6E44", alignItems: "center", justifyContent: "center" },
   depthLabel: { minWidth: 84, alignItems: "center" },
-  depthText: { color: "#FF9A5C", fontWeight: "900", letterSpacing: 1, fontSize: 12 },
+  depthText: { color: "#D58F62", fontWeight: "900", letterSpacing: 1, fontSize: 12 },
 
   name: {
-    color: "#fff",
+    color: "#F3EADB",
     fontWeight: "900",
     letterSpacing: 4,
     textShadowOffset: { width: 0, height: 0 },
@@ -726,14 +726,14 @@ const styles = StyleSheet.create({
   },
   masteryBox: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
   masteryHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  masteryLevel: { color: "#fff", fontWeight: "900", fontSize: 13 },
+  masteryLevel: { color: "#F3EADB", fontWeight: "900", fontSize: 13 },
   masteryNext: { color: "#D9C6B2", fontSize: 12, fontWeight: "600" },
   questBox: { gap: 4, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.3)" },
   questRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   questText: { flex: 1, color: "#EADBC8", fontSize: 12.5, fontWeight: "700" },
-  questTextDone: { color: "#9EE37D", textDecorationLine: "line-through" },
+  questTextDone: { color: "#A3BF7C", textDecorationLine: "line-through" },
   cardLabel: { fontWeight: "900", letterSpacing: 1.2, fontSize: 11 },
-  cardName: { color: "#fff", fontWeight: "900" },
+  cardName: { color: "#F3EADB", fontWeight: "900" },
   cardDesc: { color: "#E7DCD2" },
   abilityHead: { flexDirection: "row", alignItems: "center", gap: 10 },
   abilityIcon: { width: 44, height: 44, borderRadius: 22, borderWidth: 2, alignItems: "center", justifyContent: "center" },
@@ -745,7 +745,7 @@ const styles = StyleSheet.create({
   recordRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 2 },
   recordText: { fontWeight: "800", fontSize: 12, flexShrink: 1 },
   lockInfo: { flexDirection: "row", alignItems: "flex-start", gap: 10, padding: 10, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
-  lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
+  lockTitle: { color: "#F3EADB", fontWeight: "900", fontSize: 14 },
   lockSub: { color: "#E1D4C8", fontSize: 12, marginTop: 1 },
   lockTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", marginTop: 6, overflow: "hidden" },
   lockFill: { height: "100%", borderRadius: 3 },

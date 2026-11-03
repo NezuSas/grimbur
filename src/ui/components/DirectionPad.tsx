@@ -25,7 +25,7 @@ type Props = {
   noAttack?: boolean;
 };
 
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 
 const animateScale = (anim: Animated.Value, toValue: number) => {
   Animated.timing(anim, { toValue, duration: 90, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
@@ -218,7 +218,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, n
             height: D * Math.SQRT2,
             left: D / 2 + ARROWS.find(a => a.dir === active)!.dx * D - (D * Math.SQRT2) / 2,
             top: D / 2 + ARROWS.find(a => a.dir === active)!.dy * D - (D * Math.SQRT2) / 2,
-            backgroundColor: "rgba(255, 213, 79, 0.34)",
+            backgroundColor: "rgba(217, 180, 90, 0.34)",
             transform: [{ rotate: "45deg" }],
           }}
         />
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   disc: {
     backgroundColor: "rgba(22, 15, 9, 0.8)",
     borderWidth: 3,
-    borderColor: "rgba(255, 213, 79, 0.55)",
+    borderColor: "rgba(217, 180, 90, 0.55)",
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     backgroundColor: "rgba(22, 15, 9, 0.95)",
     borderWidth: 2,
-    borderColor: "rgba(255, 213, 79, 0.3)",
+    borderColor: "rgba(217, 180, 90, 0.3)",
   },
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   // The medallion is painted: no border or Android elevation (that drew a square shadow behind the round art).
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   countBadge: { position: "absolute", paddingHorizontal: 6, backgroundColor: "#1b120b", borderWidth: 2, borderColor: "#E8B04A", alignItems: "center", justifyContent: "center" },
   countBadgeEmpty: { borderColor: "#8a8a92" },
   count: {
-    color: "#FFE3A0",
+    color: "#E8D3A2",
     fontWeight: "900",
     includeFontPadding: false,
   },

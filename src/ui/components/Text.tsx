@@ -1,15 +1,26 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import { Platform, StyleSheet, Text as RNText, TextProps } from 'react-native';
+import { Platform, StyleSheet, Text as RNText, TextProps, TextStyle } from 'react-native';
 import { familyForWeight } from '../fonts';
 
 type Ref = React.ComponentRef<typeof RNText>;
 
+const LINING: TextStyle['fontVariant'] = ['lining-nums'];
+
+/** The text's own font variants plus lining figures (unless it asks for old-style ones). */
+function withLining(v: TextStyle['fontVariant']): TextStyle['fontVariant'] {
+  if (!v || !v.length) return LINING;
+  if (!Array.isArray(v)) return v;
+  return v.includes('lining-nums') || v.includes('oldstyle-nums') ? v : [...v, 'lining-nums'];
+}
+
 /** Drop-in replacement for react-native's Text that uses the game's typeface and weight files. */
 const Text = React.forwardRef<Ref, TextProps>(({ style, ...rest }, ref) => {
   const flat = StyleSheet.flatten(style) ?? {};
+  // Alegreya Sans draws old-style figures by default; scores, timers and counters read evenly with lining ones.
+  const lining = withLining(flat.fontVariant);
   const resolved = flat.fontFamily
-    ? flat
-    : { ...flat, fontFamily: familyForWeight(flat.fontWeight), fontWeight: undefined };
+    ? { ...flat, fontVariant: lining }
+    : { ...flat, fontFamily: familyForWeight(flat.fontWeight, flat.fontSize), fontWeight: undefined, fontVariant: lining };
   if (Platform.OS === 'web' && rest.adjustsFontSizeToFit && rest.numberOfLines) {
     return <WebFitText ref={ref} style={resolved} {...rest} />;
   }

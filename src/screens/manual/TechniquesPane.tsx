@@ -7,7 +7,7 @@ import { TECHNIQUES, type TechniqueId } from "../../core/puzzles/techniques";
 import { asKey } from "./kit";
 import type { Kit } from "./kit";
 
-const TINT = "#4DD0E1";
+const TINT = "#6CB0B9";
 const ART: Record<TechniqueId, ReturnType<typeof require>> = {
   quiet: require("../../assets/sprites/tiles/Tile_Hidden.webp"),
   cornered: require("../../assets/sprites/ui/Icon_Flag.webp"),

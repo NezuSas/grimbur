@@ -30,7 +30,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Red.webp"),
     winImage: require("../assets/sprites/characters/Win_Red.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Red.webp"),
-    arrowColor: "#FF1744",
+    arrowColor: "#C23A44",
   },
   {
     id: 3,
@@ -40,7 +40,7 @@ const characters: Character[] = [
     playerImage: require("../assets/sprites/characters/Hero_Green.webp"),
     winImage: require("../assets/sprites/characters/Win_Green.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Green.webp"),
-    arrowColor: "#76FF03",
+    arrowColor: "#93C450",
   },
   {
     id: 4,

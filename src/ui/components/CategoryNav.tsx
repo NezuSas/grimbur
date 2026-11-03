@@ -74,7 +74,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
                   <Ionicons name={c.icon} size={20} color={c.tint} />
                 </View>
               )}
-              <Text style={[styles.railLabel, on && { color: "#fff" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+              <Text style={[styles.railLabel, on && { color: "#F3EADB" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                 {c.label}
               </Text>
               {on ? <View style={[styles.railBar, { backgroundColor: c.tint }]} /> : null}
@@ -99,7 +99,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
               style={[styles.topChip, on && { backgroundColor: c.tint + "26", borderColor: c.tint }]}
             >
               {c.art ? <SpriteImage source={c.art} style={styles.chipArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : <Ionicons name={c.icon} size={18} color={c.tint} />}
-              <Text style={[styles.topChipText, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+              <Text style={[styles.topChipText, on && { color: "#F3EADB" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                 {c.label}
               </Text>
             </TouchableOpacity>

@@ -11,15 +11,15 @@ import type { TranslationKey } from "../../../i18n/en";
 import { formatChallengeCode } from "../../../core/challenge/code";
 import { GAME_CONFIG } from "../../../config/gameConfig";
 
-export const FRIEND_TINT = { challenge: "#4FC3F7", duel: "#FF8A80" } as const;
+export const FRIEND_TINT = { challenge: "#7FAFC6", duel: "#D58A7E" } as const;
 export const FRIEND_ART = { challenge: require("../../../assets/sprites/ui/Icon_Puzzle.webp"), duel: require("../../../assets/sprites/ui/Icon_Swords.webp") } as const;
 /** Each difficulty warms from calm green to legendary violet, so a row of them reads as a climb. */
-export const DEPTH_COLOR = ["#9EE37D", "#FFD54F", "#FFAB40", "#FF7043", "#E57373", "#CE93D8"];
+export const DEPTH_COLOR = ["#A3BF7C", "#D9B45A", "#D89A4C", "#CC6E44", "#C47268", "#B08DBE"];
 
 /** A difficulty as a small coloured plate with one pip per step. */
 export const DepthBadge = ({ depth }: { depth: number }) => {
   const { t } = useT();
-  const c = DEPTH_COLOR[depth] ?? "#FFD54F";
+  const c = DEPTH_COLOR[depth] ?? "#D9B45A";
   return (
     <View style={[styles.depth, { borderColor: c + "AA", backgroundColor: c + "1F" }]}>
       <View style={styles.pips}>
@@ -83,7 +83,7 @@ const CodeTicket = ({ mode, code, depth, children }: Props) => {
         </Text>
       </View>
       <View style={styles.tools}>
-        <PressScale onPress={() => void copy()} style={[styles.tool, copied && { backgroundColor: "#9EE37D", borderColor: "#9EE37D" }]} accessibilityRole="button" accessibilityLabel={copied ? t("challenge.copied") : t("challenge.copy")}>
+        <PressScale onPress={() => void copy()} style={[styles.tool, copied && { backgroundColor: "#A3BF7C", borderColor: "#A3BF7C" }]} accessibilityRole="button" accessibilityLabel={copied ? t("challenge.copied") : t("challenge.copy")}>
           <Ionicons name={copied ? "checkmark" : "copy"} size={16} color={copied ? "#1a0f00" : "#EAE1D8"} />
           <Text style={[styles.toolText, copied && { color: "#1a0f00" }]} maxFontSizeMultiplier={1.1}>
             {(copied ? t("challenge.copied") : t("challenge.copy")).toLocaleUpperCase()}
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   art: { width: 46, height: 46 },
   kicker: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   codeBox: { alignItems: "center", paddingHorizontal: 8, paddingVertical: 6, borderRadius: 14, borderWidth: 1.5, borderStyle: "dashed", backgroundColor: "rgba(0,0,0,0.3)" },
-  code: { alignSelf: "stretch", textAlign: "center", color: "#FFD54F", fontWeight: "900", fontSize: 28, letterSpacing: 3 },
+  code: { alignSelf: "stretch", textAlign: "center", color: "#D9B45A", fontWeight: "900", fontSize: 28, letterSpacing: 3 },
   tools: { flexDirection: "row", gap: 6 },
   toolText: { color: "#EAE1D8", fontWeight: "900", fontSize: 11.5, letterSpacing: 1 },
   tool: { flex: 1, flexDirection: "row", gap: 6, minHeight: 38, borderRadius: 19, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", backgroundColor: "rgba(255,255,255,0.08)", alignItems: "center", justifyContent: "center" },

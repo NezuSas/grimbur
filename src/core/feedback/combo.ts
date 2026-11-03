@@ -14,12 +14,12 @@ export interface ComboLook {
 
 /** `max` is the cap of the combo in this run: reaching it reads "MAX". */
 export function comboLook(combo: number, max: number): ComboLook {
-  if (combo <= 1) return { label: null, scale: 1, color: '#FF3B30' };
+  if (combo <= 1) return { label: null, scale: 1, color: '#C2463D' };
   const atMax = combo >= max;
   return {
     label: atMax ? `x${combo} MAX` : `x${combo} COMBO`,
     scale: Math.min(1.5, 1 + 0.15 * (combo - 1)),
-    color: atMax ? '#FFD54F' : '#FF9800',
+    color: atMax ? '#D9B45A' : '#CC8638',
   };
 }
 

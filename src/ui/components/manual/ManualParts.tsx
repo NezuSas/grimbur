@@ -11,7 +11,7 @@ export const BORDER = "rgba(255,255,255,0.09)";
 type IconName = keyof typeof Ionicons.glyphMap;
 
 /** A picture for a card: any image or an icon on a tinted tile, always the same size so a column of cards lines up. */
-export const Art = ({ image, icon, tint = "#FFD54F", size = 56, children }: { image?: ImageSourcePropType; icon?: IconName; tint?: string; size?: number; children?: React.ReactNode }) => (
+export const Art = ({ image, icon, tint = "#D9B45A", size = 56, children }: { image?: ImageSourcePropType; icon?: IconName; tint?: string; size?: number; children?: React.ReactNode }) => (
   <View style={[styles.art, { width: size, height: size, borderRadius: size * 0.28, backgroundColor: tint + "1F", borderColor: tint + "55" }]}>
     {children ? (
       children
@@ -53,7 +53,7 @@ export const FactCard = ({ label, detail, badge, color, art }: { label: string; 
 );
 
 /** A small heading inside a topic (above a list of cards). */
-export const SubHeading = ({ text, color = "#FFD54F" }: { text: string; color?: string }) => (
+export const SubHeading = ({ text, color = "#D9B45A" }: { text: string; color?: string }) => (
   <Text style={[styles.sub, { color }]} accessibilityRole="header" maxFontSizeMultiplier={1.2}>
     {text.toLocaleUpperCase()}
   </Text>
@@ -121,8 +121,8 @@ export const ScoreTable = ({ rows }: { rows: { label: string; value: string; goo
             </Text>
           ) : null}
         </View>
-        <View style={[styles.value, { backgroundColor: r.good ? "rgba(129,199,132,0.16)" : "rgba(239,83,80,0.16)", borderColor: r.good ? "#81c784" : "#ef5350" }]}>
-          <Text style={[styles.valueText, { color: r.good ? "#a5d6a7" : "#ef9a9a" }]} maxFontSizeMultiplier={1.2}>
+        <View style={[styles.value, { backgroundColor: r.good ? "rgba(129,199,132,0.16)" : "rgba(196, 83, 74,0.16)", borderColor: r.good ? "#8EAE7C" : "#C4534A" }]}>
+          <Text style={[styles.valueText, { color: r.good ? "#A5BC9E" : "#ef9a9a" }]} maxFontSizeMultiplier={1.2}>
             {r.value}
           </Text>
         </View>
@@ -139,21 +139,21 @@ const styles = StyleSheet.create({
   factHead: { flexDirection: "row", gap: 14, alignItems: "flex-start" },
   factArt: { paddingTop: 2 },
   factTitleRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  factLabel: { flex: 1, color: "#fff", fontWeight: "900", fontSize: 16 },
+  factLabel: { flex: 1, color: "#F3EADB", fontWeight: "900", fontSize: 16 },
   factDetail: { color: "#DCCCBD", fontSize: 14.5, lineHeight: 21 },
   tag: { maxWidth: 140, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 10, borderWidth: 1 },
   tagText: { fontWeight: "900", fontSize: 11, letterSpacing: 0.8, textAlign: "center" },
   sub: { fontWeight: "900", fontSize: 13, letterSpacing: 2, marginTop: 6 },
   example: { flexDirection: "row", alignItems: "center", gap: 16, backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 14 },
   exampleText: { flex: 1, color: "#DCCCBD", fontSize: 14, lineHeight: 20 },
-  q: { color: "#FFD54F", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
+  q: { color: "#D9B45A", fontWeight: "900", fontSize: 22, textShadowColor: "rgba(0,0,0,0.7)", textShadowRadius: 4 },
   clueBadge: { width: 30, height: 30, alignItems: "center", justifyContent: "center" },
   clueCount: { position: "absolute", right: -7, bottom: -7, width: 18, height: 18, borderRadius: 9, backgroundColor: "#2A2016", borderWidth: 1.5, borderColor: "#fff", alignItems: "center", justifyContent: "center" },
-  clueCountText: { color: "#fff", fontWeight: "900", fontSize: 11 },
+  clueCountText: { color: "#F3EADB", fontWeight: "900", fontSize: 11 },
   table: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, paddingHorizontal: 14 },
   tableRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 11 },
   tableDivider: { borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)" },
-  tableLabel: { color: "#fff", fontWeight: "800", fontSize: 14.5 },
+  tableLabel: { color: "#F3EADB", fontWeight: "800", fontSize: 14.5 },
   tableNote: { color: "#C2A88F", fontSize: 12, marginTop: 1 },
   value: { minWidth: 70, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10, borderWidth: 1, alignItems: "center" },
   valueText: { fontWeight: "900", fontSize: 14 },

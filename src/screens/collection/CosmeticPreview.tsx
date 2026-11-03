@@ -182,7 +182,7 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
 export default CosmeticPreview;
 
 const styles = StyleSheet.create({
-  titleName: { color: "#fff", fontWeight: "900" },
+  titleName: { color: "#F3EADB", fontWeight: "900" },
   titlePlate: { borderRadius: 8, paddingVertical: 3, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1.5, borderColor: "#E8B04A", maxWidth: "100%" },
-  titleText: { color: "#FFD54F", fontWeight: "900", letterSpacing: 1 },
+  titleText: { color: "#D9B45A", fontWeight: "900", letterSpacing: 1 },
 });

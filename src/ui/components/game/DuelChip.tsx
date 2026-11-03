@@ -22,7 +22,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
     return (
       <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.offline")} accessibilityLiveRegion="polite">
         <View style={[styles.chip, { borderColor: "#FF8A80AA" }]}>
-          <Ionicons name="cloud-offline" size={14} color="#FF8A80" />
+          <Ionicons name="cloud-offline" size={14} color="#D58A7E" />
           <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("duel.chip.offline")}</Text>
         </View>
       </View>
@@ -46,7 +46,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
       <View style={styles.panel}>
         {rows.map(r => {
           const ahead = level !== r.level ? level > r.level : score > r.score;
-          const color = r.status === "away" ? "#D6C4B2" : r.status === "done" ? "#80DEEA" : ahead ? "#9EE37D" : "#FF8A80";
+          const color = r.status === "away" ? "#D6C4B2" : r.status === "done" ? "#8FC0C5" : ahead ? "#A3BF7C" : "#D58A7E";
           return (
             <View key={r.pid} style={styles.row}>
               <Ionicons name={r.status === "done" ? "flag" : "flash"} size={13} color={color} />
@@ -68,5 +68,5 @@ const styles = StyleSheet.create({
   chip: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(28, 19, 11,0.92)", borderWidth: 1.5, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, maxWidth: "70%" },
   panel: { backgroundColor: "rgba(28, 19, 11,0.92)", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)", borderRadius: 14, paddingHorizontal: 10, paddingVertical: 4, gap: 1, maxWidth: "70%" },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
-  text: { color: "#fff", fontWeight: "800", fontSize: 12, flexShrink: 1 },
+  text: { color: "#F3EADB", fontWeight: "800", fontSize: 12, flexShrink: 1 },
 });

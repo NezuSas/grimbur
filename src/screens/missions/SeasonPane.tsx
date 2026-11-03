@@ -10,7 +10,7 @@ import { SEASON_REWARDS, SEASON_TIERS, seasonClaimable, seasonRelicFor, tiersRea
 import RelicIcon from "../../ui/components/RelicIcon";
 import { relicText } from "../../i18n/keys";
 
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 const TROPHY = require("../../assets/sprites/ui/Icon_Trophy.webp");
 const CROWN = require("../../assets/sprites/ui/Icon_Medal.webp");
 
@@ -111,7 +111,7 @@ export default SeasonPane;
 
 const styles = StyleSheet.create({
   wrap: { gap: 10 },
-  head: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.4)", backgroundColor: "rgba(34,26,18,0.92)" },
+  head: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.4)", backgroundColor: "rgba(34,26,18,0.92)" },
   headArt: { width: 52, height: 52 },
   kicker: { color: GOLD, fontWeight: "900", fontSize: 12, letterSpacing: 1.5 },
   points: { color: "#FFF4DE", fontWeight: "900", fontSize: 18 },
@@ -126,13 +126,13 @@ const styles = StyleSheet.create({
   link: { position: "absolute", top: 15, right: "50%", width: "100%", height: 3, backgroundColor: "rgba(255,255,255,0.12)" },
   linkOn: { backgroundColor: GOLD },
   dot: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.25)", backgroundColor: "#2A2019" },
-  dotLast: { width: 36, height: 36, borderRadius: 18, marginTop: -2, borderColor: "rgba(255,213,79,0.6)" },
+  dotLast: { width: 36, height: 36, borderRadius: 18, marginTop: -2, borderColor: "rgba(217, 180, 90,0.6)" },
   dotPaid: { backgroundColor: "#B8962E", borderColor: GOLD },
   dotReady: { backgroundColor: GOLD, borderColor: "#FFF2B0" },
   dotText: { color: "#E9D8C4", fontWeight: "900", fontSize: 13 },
   dotArt: { width: 26, height: 26 },
   reward: { color: "#9C8670", fontWeight: "800", fontSize: 11 },
-  featured: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(206,147,216,0.4)", backgroundColor: "rgba(206,147,216,0.08)" },
+  featured: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: "rgba(176, 141, 190,0.4)", backgroundColor: "rgba(176, 141, 190,0.08)" },
   featuredText: { flex: 1, color: "#E1D2EE", fontSize: 12, fontWeight: "600" },
   how: { color: "#B99A7C", fontSize: 12, fontWeight: "600", textAlign: "center", paddingHorizontal: 8 },
 });

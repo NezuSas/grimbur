@@ -124,7 +124,7 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
       <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
-        source={require("../assets/sprites/backgrounds/Cover_Background.png")}
+        source={require("../assets/sprites/backgrounds/Cover_Background.jpg")}
         style={StyleSheet.absoluteFill}
         imageStyle={{ width: "100%", height: "100%" }}
         resizeMode="cover"

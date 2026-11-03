@@ -18,8 +18,8 @@ import { Burst } from "../../ui/components/Burst";
 /** The anvil sparks now live with the shared UI (the board throws gems with them); the Forge keeps its import. */
 export { Burst, SPARKS } from "../../ui/components/Burst";
 
-export const EMBER = "#FFAB40";
-export const GOLD = "#FFD54F";
+export const EMBER = "#D89A4C";
+export const GOLD = "#D9B45A";
 
 /** The ember balance: the number rolls to its new value and the chip pops, so paying feels like paying. */
 export const Balance: React.FC<{ value: number; label: string }> = ({ value, label }) => {
@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: MIN_TOUCH,
     borderRadius: MIN_TOUCH / 2,
-    backgroundColor: "rgba(255,171,64,0.16)",
+    backgroundColor: "rgba(216, 154, 76,0.16)",
     borderWidth: 1.5,
-    borderColor: "rgba(255,171,64,0.7)",
+    borderColor: "rgba(216, 154, 76,0.7)",
   },
   balanceValue: { color: EMBER, fontSize: 20, fontWeight: "900" },
   card: {
@@ -248,25 +248,25 @@ const styles = StyleSheet.create({
     gap: 8,
     overflow: "hidden",
   },
-  cardAffordable: { borderColor: EMBER, backgroundColor: "rgba(255,171,64,0.1)" },
-  cardMaxed: { borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.07)" },
+  cardAffordable: { borderColor: EMBER, backgroundColor: "rgba(216, 154, 76,0.1)" },
+  cardMaxed: { borderColor: "rgba(217, 180, 90,0.5)", backgroundColor: "rgba(217, 180, 90,0.07)" },
   // flex: 1 so a short description grows to match its row's tallest card and every buy button sits on the same line.
   cardTop: { flexDirection: "row", gap: 12, alignItems: "center", flex: 1 },
   badge: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255,171,64,0.14)",
+    backgroundColor: "rgba(216, 154, 76,0.14)",
     borderWidth: 2,
-    borderColor: "rgba(255,171,64,0.55)",
+    borderColor: "rgba(216, 154, 76,0.55)",
   },
-  badgeMaxed: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.16)" },
+  badgeMaxed: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.16)" },
   cardText: { flex: 1, gap: 3 },
-  name: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  name: { color: "#F3EADB", fontWeight: "900", fontSize: 16 },
   desc: { color: "#E4D8CD", fontSize: 12.5, lineHeight: 17 },
   pips: { flexDirection: "row", gap: 5, marginTop: 3 },
   pip: { width: 20, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.16)" },
   pipOn: { backgroundColor: EMBER },
-  pipNext: { borderWidth: 1.5, borderColor: "rgba(255,171,64,0.8)", backgroundColor: "transparent" },
+  pipNext: { borderWidth: 1.5, borderColor: "rgba(216, 154, 76,0.8)", backgroundColor: "transparent" },
 
   cta: { minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, overflow: "hidden" },
   ctaBig: { minHeight: 50, borderRadius: 16 },
@@ -274,9 +274,9 @@ const styles = StyleSheet.create({
   ctaGlow: { ...StyleSheet.absoluteFill, backgroundColor: "#fff" },
   ctaBuyText: { color: "#1a0f00", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
   ctaLocked: { backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.14)" },
-  fill: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: "rgba(255,171,64,0.28)" },
+  fill: { position: "absolute", left: 0, top: 0, bottom: 0, backgroundColor: "rgba(216, 154, 76,0.28)" },
   ctaLockedText: { color: "#EAE1D8", fontWeight: "800", fontSize: 14 },
-  ctaMaxed: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.5)" },
+  ctaMaxed: { backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.5)" },
   ctaMaxedText: { color: GOLD, fontWeight: "900", letterSpacing: 2, fontSize: 13 },
 
   ring: { position: "absolute", borderWidth: 3, borderColor: "#FFF3D6" },

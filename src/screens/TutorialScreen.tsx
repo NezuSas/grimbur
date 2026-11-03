@@ -181,7 +181,7 @@ export default function TutorialScreen({ navigation, route }: Props) {
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
-      source={require("../assets/sprites/backgrounds/Cover_Background.png")}
+      source={require("../assets/sprites/backgrounds/Cover_Background.jpg")}
       style={styles.container}
       resizeMode="cover"
     >
@@ -295,12 +295,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   bannerText: { flex: 1, gap: 2 },
-  stepLabel: { color: "#FFD54F", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
-  instruction: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  stepLabel: { color: "#D9B45A", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  instruction: { color: "#F3EADB", fontWeight: "700", fontSize: 15 },
   playButton: {
     minHeight: MIN_TOUCH,
     minWidth: 120,
-    backgroundColor: "#FFD54F",
+    backgroundColor: "#D9B45A",
     borderRadius: 14,
     paddingHorizontal: 14,
     justifyContent: "center",

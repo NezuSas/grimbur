@@ -19,6 +19,6 @@ export const BEAST_ART: Record<BeastId, ImageSourcePropType> = {
 
 /** The colour of each creature (cards, banner rims). */
 export const BEAST_TINT: Record<BeastId, string> = {
-  enemy: "#FF8A65", stalker: "#B388FF", sleeper: "#80CBC4", mimic: "#4FC3F7", thief: "#FFD54F",
-  brute: "#FF7043", warden: "#FF6E40", boss: "#FF5252", ancient: "#80DEEA", pit: "#CE93D8", trap: "#BCAAA4", chest: "#FFCA28",
+  enemy: "#D28663", stalker: "#9E8BCB", sleeper: "#8EB7B0", mimic: "#7FAFC6", thief: "#D9B45A",
+  brute: "#CC6E44", warden: "#FF6E40", boss: "#CC5249", ancient: "#8FC0C5", pit: "#B08DBE", trap: "#BCAAA4", chest: "#D6AA48",
 };

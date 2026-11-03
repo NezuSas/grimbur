@@ -25,8 +25,8 @@ type Props = {
   owned?: readonly RelicId[];
 };
 
-const GOLD = '#FFD54F';
-const RED = '#EF5350';
+const GOLD = '#D9B45A';
+const RED = '#C4534A';
 
 /**
  * The relic draft between floors. The game is played in landscape, where height is what runs out: a one-line header,
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   lit: { position: 'absolute', top: 0, left: 18, right: 18, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.22)' },
   // Fixed slots, the same on every card, so icons, names and descriptions start at the same height on all of them.
   tagSlot: { height: 13, justifyContent: 'center' },
-  cursedTag: { color: '#FF8A80', fontWeight: '900', fontSize: 11, letterSpacing: 1.2 },
+  cursedTag: { color: '#D58A7E', fontWeight: '900', fontSize: 11, letterSpacing: 1.2 },
   iconWell: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   nameSlot: { alignSelf: 'stretch', height: 34, justifyContent: 'center' },
-  name: { color: '#fff', fontWeight: '900', fontSize: 13, lineHeight: 16, letterSpacing: 1, textAlign: 'center' },
+  name: { color: '#F3EADB', fontWeight: '900', fontSize: 13, lineHeight: 16, letterSpacing: 1, textAlign: 'center' },
   descSlot: { alignSelf: 'stretch' },
   description: { color: '#d4cfe9', fontSize: 12, lineHeight: 16, textAlign: 'center' },
   hint: { color: '#a59fc4', fontSize: 11.5, letterSpacing: 0.5, textAlign: 'center', maxWidth: 620, alignSelf: 'center' },
-  lair: { color: '#FF8A80', fontWeight: '900', fontSize: 12.5 },
+  lair: { color: '#D58A7E', fontWeight: '900', fontSize: 12.5 },
 });

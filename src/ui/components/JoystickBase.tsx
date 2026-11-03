@@ -16,7 +16,7 @@ const SIDES: Side[] = [
 ];
 
 /** Light colour of each style: the blue of a console pad's light, the yellow of an arcade cabinet's marquee. */
-export const SKIN_LIGHT: Record<JoystickSkin, string> = { console: "#4DA3FF", arcade: "#FFD54F" };
+export const SKIN_LIGHT: Record<JoystickSkin, string> = { console: "#4DA3FF", arcade: "#D9B45A" };
 
 type Props = {
   skin: JoystickSkin;
@@ -133,7 +133,7 @@ const ArcadeStick = ({ radius: R, thumb, active }: Omit<Props, "skin">) => {
       <View style={{ position: "absolute", left: R + p.x - (B * lift) / 2 + B * 0.1, top: R + p.y - (B * lift) / 2 + B * 0.16, width: B * lift, height: B * lift, borderRadius: B, backgroundColor: "rgba(0,0,0,0.4)" }} />
       <View style={{ position: "absolute", left: R + p.x - (B * lift) / 2, top: R + p.y - (B * lift) / 2, width: B * lift, height: B * lift }}>
         <LinearGradient
-          colors={["#ff8a80", "#e53935", "#7f0000"]}
+          colors={["#D58A7E", "#B8423A", "#7f0000"]}
           start={{ x: 0.3, y: 0.15 }}
           end={{ x: 0.8, y: 0.95 }}
           style={[styles.fill, { borderRadius: B, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.25)" }]}

@@ -77,8 +77,8 @@ const RewardParade = ({ items, startOnGrid = false, startIndex = 0, calm = false
     const tile = Math.floor((cardW - 48 - (cols - 1) * 8) / cols);
     return (
       <OverlayContainer fadeMs={0} dim={0.97}>
-        <PopupPanel tint="#FFD54F" width={cardW} style={styles.gridPanel} animate={!calm}>
-          <Text style={popupTitleStyle("#FFD54F")} accessibilityRole="header" maxFontSizeMultiplier={1.15}>
+        <PopupPanel tint="#D9B45A" width={cardW} style={styles.gridPanel} animate={!calm}>
+          <Text style={popupTitleStyle("#D9B45A")} accessibilityRole="header" maxFontSizeMultiplier={1.15}>
             {t("parade.all", { n: items.length }).toLocaleUpperCase()}
           </Text>
           <ScrollView style={{ maxHeight: height * 0.62, alignSelf: "stretch" }} contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
@@ -203,8 +203,8 @@ const styles = StyleSheet.create({
   kicker: { fontWeight: "900", fontSize: 12.5, letterSpacing: 2.5 },
   title: { fontSize: 22 },
   line: { color: "#E6D6C4", fontSize: 13.5, fontWeight: "700", textAlign: "center" },
-  embers: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(255,171,64,0.15)", borderWidth: 1, borderColor: "rgba(255,171,64,0.5)" },
-  embersText: { color: "#FFCC80", fontWeight: "900", fontSize: 14 },
+  embers: { flexDirection: "row", alignItems: "center", gap: 4, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "rgba(216, 154, 76,0.15)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.5)" },
+  embersText: { color: "#E2BE8C", fontWeight: "900", fontSize: 14 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", alignSelf: "stretch", marginTop: 4, gap: 10 },
   dots: { flexDirection: "row", alignItems: "center", gap: 5, flexShrink: 1, flexWrap: "wrap" },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.22)" },
@@ -221,6 +221,6 @@ const styles = StyleSheet.create({
   miniStanding: { width: 50, height: 50 },
   // Two lines: the longest kickers ("Nuevo rango de maestría", "Fragmento de la crónica") do not fit one in a small tile.
   miniKicker: { fontWeight: "900", fontSize: 9.5, letterSpacing: 1, textAlign: "center" },
-  miniTitle: { color: "#fff", fontWeight: "800", fontSize: 11.5, textAlign: "center" },
-  miniEmbers: { color: "#FFCC80", fontWeight: "900", fontSize: 11 },
+  miniTitle: { color: "#F3EADB", fontWeight: "800", fontSize: 11.5, textAlign: "center" },
+  miniEmbers: { color: "#E2BE8C", fontWeight: "900", fontSize: 11 },
 });

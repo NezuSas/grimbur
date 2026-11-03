@@ -147,9 +147,9 @@ const styles = StyleSheet.create({
   dim: { backgroundColor: "rgba(10,0,6,0.72)" },
   bar: { position: "absolute", left: 0, right: 0, backgroundColor: "#000" },
   center: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
-  glow: { position: "absolute", backgroundColor: "rgba(255,23,68,0.22)" },
+  glow: { position: "absolute", backgroundColor: "rgba(194, 58, 68,0.22)" },
   name: {
-    color: "#FF5252",
+    color: "#CC5249",
     fontWeight: "900",
     fontSize: 34,
     letterSpacing: 6,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 6,
   },
-  title: { color: "#FFD54F", fontSize: 15, fontStyle: "italic", letterSpacing: 1, marginTop: 2 },
+  title: { color: "#D9B45A", fontSize: 15, fontStyle: "italic", letterSpacing: 1, marginTop: 2 },
 });
 
 export default BossIntro;

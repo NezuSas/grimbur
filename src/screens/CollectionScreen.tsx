@@ -57,7 +57,7 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
 ];
 
 const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
-const RARITY_COLOR = { free: "#9FA8DA", rare: "#4FC3F7", legendary: "#FFD54F" } as const;
+const RARITY_COLOR = { free: "#9FA8DA", rare: "#7FAFC6", legendary: "#D9B45A" } as const;
 
 type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; price: number; onPress: (skin: SkinId) => void };
 
@@ -77,7 +77,7 @@ const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, price, o
       accessibilityLabel={`${skinText(t, skin)}. ${t(`skin.tier.${info.tier}` as TranslationKey)}${info.premium ? `. ${t("skin.premium")}` : ""}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
       style={[
         styles.card,
-        { width: size, height: size * 1.22, borderColor: selected ? "#FFE3A0" : rarity + "88", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accentOf(hero, skin) + "33" : "rgba(30, 22, 16, 0.85)" },
+        { width: size, height: size * 1.22, borderColor: selected ? "#E8D3A2" : rarity + "88", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accentOf(hero, skin) + "33" : "rgba(30, 22, 16, 0.85)" },
       ]}
     >
       <View style={[styles.cardGlow, { backgroundColor: accentOf(hero, skin) + (selected ? "40" : "22") }]} />
@@ -234,7 +234,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const detailImage = Math.max(60, Math.min(stageSize.h, stageSize.w));
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }}>
         <ScreenHeader
           title={t("collection.title")}
@@ -335,17 +335,17 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
               {info.premium ? (
-                <View style={[styles.tag, { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.14)" }]}>
+                <View style={[styles.tag, { borderColor: "#D9B45A", backgroundColor: "rgba(217, 180, 90,0.14)" }]}>
                   <GlyphIcon name="star" size={12} />
-                  <Text style={[styles.tagText, { color: "#FFD54F" }]} maxFontSizeMultiplier={1.2}>
+                  <Text style={[styles.tagText, { color: "#D9B45A" }]} maxFontSizeMultiplier={1.2}>
                     {t("skin.premium").toLocaleUpperCase()}
                   </Text>
                 </View>
               ) : null}
               {owned ? (
-                <View style={[styles.tag, { borderColor: "#9EE37D", backgroundColor: equipped ? "rgba(158,227,125,0.14)" : undefined }]}>
-                  {equipped ? <Ionicons name="checkmark" size={11} color="#9EE37D" /> : null}
-                  <Text style={[styles.tagText, { color: "#9EE37D" }]} maxFontSizeMultiplier={1.2}>
+                <View style={[styles.tag, { borderColor: "#A3BF7C", backgroundColor: equipped ? "rgba(163, 191, 124,0.14)" : undefined }]}>
+                  {equipped ? <Ionicons name="checkmark" size={11} color="#A3BF7C" /> : null}
+                  <Text style={[styles.tagText, { color: "#A3BF7C" }]} maxFontSizeMultiplier={1.2}>
                     {(equipped ? t("skin.equipped") : t("skin.owned")).toLocaleUpperCase()}
                   </Text>
                 </View>
@@ -457,8 +457,8 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
-  balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(255,171,64,0.16)", borderWidth: 1.5, borderColor: "rgba(255,171,64,0.7)" },
-  balanceValue: { color: "#FFAB40", fontSize: 20, fontWeight: "900" },
+  balance: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "rgba(216, 154, 76,0.16)", borderWidth: 1.5, borderColor: "rgba(216, 154, 76,0.7)" },
+  balanceValue: { color: "#D89A4C", fontSize: 20, fontWeight: "900" },
 
   body: { flex: 1, flexDirection: "row", gap: 12, padding: 10, paddingTop: 0 },
   catsScroll: { flexGrow: 0 },
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
   rewardBanner: { flexDirection: "row", alignItems: "center", gap: 8, marginHorizontal: 10, marginBottom: 8, paddingHorizontal: 14, minHeight: 40, borderRadius: 14, backgroundColor: "#E8B04A", borderBottomWidth: 3, borderBottomColor: "rgba(0,0,0,0.3)" },
   rewardBannerText: { flex: 1, color: "#1a0f00", fontWeight: "900", fontSize: 13.5 },
   rewardBannerCta: { color: "#1a0f00", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
-  catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#FF7043" },
+  catDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#CC6E44" },
   showcase: { width: "40%", maxWidth: 460, alignItems: "center", gap: 6 },
   browse: { flex: 1, gap: 8 },
   tabs: { flexDirection: "row", gap: 8 },
@@ -490,24 +490,24 @@ const styles = StyleSheet.create({
   card: { borderRadius: 16, alignItems: "center", justifyContent: "flex-start", paddingTop: 4, overflow: "hidden" },
   cardGlow: { position: "absolute", left: "12%", right: "12%", top: "8%", aspectRatio: 1, borderRadius: 999 },
   cardFoot: { position: "absolute", bottom: 6, left: 4, right: 4, alignItems: "center" },
-  cardName: { color: "#fff", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
-  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(255,171,64,0.6)" },
-  cardPriceText: { color: "#FFCC80", fontWeight: "900", fontSize: 12 },
+  cardName: { color: "#F3EADB", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
+  cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.6)" },
+  cardPriceText: { color: "#E2BE8C", fontWeight: "900", fontSize: 12 },
   cardStar: { position: "absolute", top: 4, left: 5 },
-  cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#9EE37D", alignItems: "center", justifyContent: "center" },
+  cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#A3BF7C", alignItems: "center", justifyContent: "center" },
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
 
   stage: { flex: 1, minHeight: 90, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   stageLayer: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" },
   halo: { position: "absolute", borderWidth: 2 },
   stageLock: { position: "absolute", top: 4, right: 8, width: 28, height: 28, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
-  outfitName: { color: "#fff", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
+  outfitName: { color: "#F3EADB", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center", textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 12 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" },
   tag: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9, borderWidth: 1 },
   tagText: { fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   lockInfo: { alignSelf: "stretch", gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.28)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
   lockRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  lockTitle: { color: "#fff", fontWeight: "900", fontSize: 14 },
+  lockTitle: { color: "#F3EADB", fontWeight: "900", fontSize: 14 },
   lockNeed: { flex: 1, textAlign: "right", color: "#CAB39C", fontWeight: "700", fontSize: 12 },
   lockSub: { color: "#E1D4C8", fontSize: 12 },
   lockTrack: { height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },

@@ -767,7 +767,7 @@ const BoardView: React.FC<Props> = memo(
                   borderRadius: tileSize,
                   backgroundColor: "#FFFFFF",
                   borderWidth: 1,
-                  borderColor: "#FF1744",
+                  borderColor: "#C23A44",
                   opacity: strike.interpolate({ inputRange: [0, 0.12, 0.6, 1], outputRange: [0, 1, 1, 0.35] }),
                   transform: [{ translateY: offset }, { rotate: angle }, { scaleX: strike.interpolate({ inputRange: [0, 0.3], outputRange: [0.1, 1], extrapolate: "clamp" }) }],
                 }}
@@ -789,7 +789,7 @@ const BoardView: React.FC<Props> = memo(
                       width: tileSize * 2.4,
                       height: tileSize * 2.4,
                       borderRadius: tileSize * 1.2,
-                      backgroundColor: isPit ? "rgba(156,39,176,0.35)" : "rgba(255,23,68,0.32)",
+                      backgroundColor: isPit ? "rgba(156,39,176,0.35)" : "rgba(194, 58, 68,0.32)",
                       opacity: strike.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.95, 0.6] }),
                       transform: [{ scale: strike.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }],
                     }}
@@ -822,9 +822,9 @@ const BoardView: React.FC<Props> = memo(
 const styles = StyleSheet.create({
   note: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 3 },
   noteBadge: { alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
-  noteSafe: { backgroundColor: "rgba(158,227,125,0.92)", borderColor: "#e8ffd8" },
+  noteSafe: { backgroundColor: "rgba(163, 191, 124,0.92)", borderColor: "#e8ffd8" },
   noteNot: { backgroundColor: "rgba(20,14,10,0.82)", borderColor: "rgba(255,255,255,0.55)" },
-  noteSlash: { position: "absolute", backgroundColor: "#FF5252", transform: [{ rotate: "-45deg" }], borderRadius: 2 },
+  noteSlash: { position: "absolute", backgroundColor: "#CC5249", transform: [{ rotate: "-45deg" }], borderRadius: 2 },
   step: { position: "absolute", alignItems: "center", justifyContent: "flex-end", paddingBottom: 3, zIndex: 4 },
   ghost: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 6 },
   ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },

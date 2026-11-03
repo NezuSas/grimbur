@@ -18,12 +18,12 @@ export const MissionPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.mission.title"))}
-      {fact("manual.mission.goal", "#ff5252", image(IMG.gem, "#4fc3f7"))}
-      {fact("manual.mission.currency", "#ffab40", icon("flame", "#ffab40"))}
-      {fact("manual.mission.survival", "#ef5350", icon("skull", "#ef5350"))}
-      {fact("manual.mission.grimbur", "#ff5252", image(IMG.boss, "#ba68c8"))}
+      {fact("manual.mission.goal", "#CC5249", image(IMG.gem, "#7FAFC6"))}
+      {fact("manual.mission.currency", "#D89A4C", icon("flame", "#D89A4C"))}
+      {fact("manual.mission.survival", "#C4534A", icon("skull", "#C4534A"))}
+      {fact("manual.mission.grimbur", "#CC5249", image(IMG.boss, "#9A72AC"))}
       {fact("manual.mission.relics", "#ffd700", <Art tint="#ffd700"><RelicIcon id="lantern" size={44} /></Art>)}
-      {fact("manual.mission.heroes", "#f48fb1", image(characters[0].scoreImage, "#f48fb1"))}
+      {fact("manual.mission.heroes", "#C98FA3", image(characters[0].scoreImage, "#C98FA3"))}
     </>
   );
 };
@@ -35,23 +35,23 @@ export const ControlsPane = ({ kit }: { kit: Kit }) => {
       {heading(t("manual.controls.title"))}
       {fact(
         "manual.controls.move",
-        "#ffd54f",
-        <Art tint="#ffd54f">
+        "#D9B45A",
+        <Art tint="#D9B45A">
           <JoystickBase skin="console" radius={25} thumb={{ x: 9, y: -2 }} active={null} />
         </Art>,
       )}
       {fact(
         "manual.controls.attack",
-        "#ff7043",
-        <Art tint="#ff7043">
+        "#CC6E44",
+        <Art tint="#CC6E44">
           <View style={styles.attackDot}>
             <GlyphIcon name="bolt" size={24} />
           </View>
         </Art>,
       )}
-      {fact("manual.controls.travel", "#4fc3f7", tileWith(IMG.revealed, "footsteps", "#fff"))}
-      {fact("manual.controls.flag", "#ef5350", tileWith(IMG.hidden, "flag", "#ff5252"))}
-      {fact("manual.controls.ability", "#81c784", image(ABILITY_ART.scout, "#81c784"))}
+      {fact("manual.controls.travel", "#7FAFC6", tileWith(IMG.revealed, "footsteps", "#fff"))}
+      {fact("manual.controls.flag", "#C4534A", tileWith(IMG.hidden, "flag", "#CC5249"))}
+      {fact("manual.controls.ability", "#8EAE7C", image(ABILITY_ART.scout, "#8EAE7C"))}
     </>
   );
 };
@@ -77,10 +77,10 @@ export const ExplorePane = ({ kit }: { kit: Kit }) => {
           {t("manual.explore.tiles")}
         </Text>
       </View>
-      {fact("manual.explore.gems", "#4fc3f7", image(IMG.gem, "#4fc3f7"))}
-      {fact("manual.explore.clue", "#ffa726", image(CLUE_ART.roar, "#ffa726"))}
+      {fact("manual.explore.gems", "#7FAFC6", image(IMG.gem, "#7FAFC6"))}
+      {fact("manual.explore.clue", "#D49242", image(CLUE_ART.roar, "#D49242"))}
       <ClueExample hidden={IMG.hidden} revealed={IMG.revealed} caption={t("manual.explore.clue.example")} />
-      {fact("manual.explore.pace", "#81c784", icon("footsteps", "#81c784"))}
+      {fact("manual.explore.pace", "#8EAE7C", icon("footsteps", "#8EAE7C"))}
     </>
   );
 };
@@ -102,16 +102,16 @@ export const HazardsPane = ({ kit }: { kit: Kit }) => {
           <SpriteImage source={CLUE_ART.vortex} style={styles.clueToken} resizeMode="contain" accessibilityIgnoresInvertColors />
         </View>
       </View>
-      {fact("manual.hazards.guardianInfo", "#ef5350", image(IMG.guardian, "#ef5350"))}
-      {fact("manual.hazards.stalker", "#ba68c8", image(IMG.stalker, "#ba68c8"))}
+      {fact("manual.hazards.guardianInfo", "#C4534A", image(IMG.guardian, "#C4534A"))}
+      {fact("manual.hazards.stalker", "#9A72AC", image(IMG.stalker, "#9A72AC"))}
       {fact("manual.hazards.sleeper", "#90a4ae", image(IMG.sleeper, "#90a4ae"))}
-      {fact("manual.hazards.mimic", "#4fc3f7", image(IMG.mimic, "#4fc3f7"))}
-      {fact("manual.hazards.thief", "#ffd54f", image(IMG.thief, "#ffd54f"))}
-      {fact("manual.hazards.lieutenant", "#ff7043", image(IMG.lieutenant, "#ff7043"))}
-      {fact("manual.hazards.chest", "#ffca28", image(IMG.chest, "#ffca28"))}
-      {fact("manual.hazards.secret", "#ffe082", image(IMG.secret, "#ffe082"))}
-      {fact("manual.hazards.merchant", "#e57373", image(IMG.merchant, "#e57373"))}
-      {fact("manual.hazards.vortexInfo", "#ce93d8", image(IMG.vortex, "#ce93d8"))}
+      {fact("manual.hazards.mimic", "#7FAFC6", image(IMG.mimic, "#7FAFC6"))}
+      {fact("manual.hazards.thief", "#D9B45A", image(IMG.thief, "#D9B45A"))}
+      {fact("manual.hazards.lieutenant", "#CC6E44", image(IMG.lieutenant, "#CC6E44"))}
+      {fact("manual.hazards.chest", "#D6AA48", image(IMG.chest, "#D6AA48"))}
+      {fact("manual.hazards.secret", "#E6CC88", image(IMG.secret, "#E6CC88"))}
+      {fact("manual.hazards.merchant", "#C47268", image(IMG.merchant, "#C47268"))}
+      {fact("manual.hazards.vortexInfo", "#B08DBE", image(IMG.vortex, "#B08DBE"))}
       <Text style={styles.note} maxFontSizeMultiplier={1.3}>
         {t("manual.hazards.note")}
       </Text>
@@ -124,10 +124,10 @@ export const CombatPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.combat.title"))}
-      {fact("manual.combat.strike", "#ff5252", image(IMG.arrows, "#ff5252"))}
-      {fact("manual.combat.turn", "#ffa726", icon("hourglass", "#ffa726"))}
-      {fact("manual.combat.ammo", "#ef5350", image(IMG.arrows, "#ef5350"))}
-      {fact("manual.combat.combo", "#ff7043", icon("trending-up", "#ff7043"))}
+      {fact("manual.combat.strike", "#CC5249", image(IMG.arrows, "#CC5249"))}
+      {fact("manual.combat.turn", "#D49242", icon("hourglass", "#D49242"))}
+      {fact("manual.combat.ammo", "#C4534A", image(IMG.arrows, "#C4534A"))}
+      {fact("manual.combat.combo", "#CC6E44", icon("trending-up", "#CC6E44"))}
     </>
   );
 };
@@ -137,10 +137,10 @@ export const PowerupsPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.powerups.title"))}
-      {fact("manual.powerups.gem", "#4fc3f7", image(IMG.gem, "#4fc3f7"))}
-      {fact("manual.powerups.shield", "#4fc3f7", image(IMG.shield, "#4fc3f7"))}
-      {fact("manual.powerups.ammo", "#ffb74d", image(IMG.arrows, "#ffb74d"))}
-      {fact("manual.powerups.traps", "#ffb74d", image(IMG.trap, "#ffb74d"))}
+      {fact("manual.powerups.gem", "#7FAFC6", image(IMG.gem, "#7FAFC6"))}
+      {fact("manual.powerups.shield", "#7FAFC6", image(IMG.shield, "#7FAFC6"))}
+      {fact("manual.powerups.ammo", "#DCA45A", image(IMG.arrows, "#DCA45A"))}
+      {fact("manual.powerups.traps", "#DCA45A", image(IMG.trap, "#DCA45A"))}
     </>
   );
 };

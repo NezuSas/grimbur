@@ -28,7 +28,7 @@ export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePr
       })
     : [];
   const all: ImageSourcePropType[] = [
-    require('../assets/sprites/backgrounds/Cover_Background.png'),
+    require('../assets/sprites/backgrounds/Cover_Background.jpg'),
     require('../assets/sprites/tiles/Tile_Hidden.webp'),
     require('../assets/sprites/tiles/Tile_Revealed.webp'),
     require('../assets/sprites/tiles/Danger_Vortex.png'),

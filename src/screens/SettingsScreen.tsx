@@ -50,12 +50,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "SettingsScreen">;
 
 type CategoryId = "sound" | "controls" | "access" | "language" | "data" | "about";
 const CATEGORIES: { id: CategoryId; icon: keyof typeof Ionicons.glyphMap; tint: string; label: TranslationKey; rail: TranslationKey; hint: TranslationKey }[] = [
-  { id: "sound", icon: "volume-high", tint: "#4FC3F7", label: "settings.section.sound", rail: "settings.section.sound", hint: "settings.hero.sound" },
-  { id: "controls", icon: "game-controller", tint: "#FFAB40", label: "settings.section.controls", rail: "settings.section.controls", hint: "settings.hero.controls" },
-  { id: "access", icon: "eye", tint: "#9EE37D", label: "settings.section.accessibility", rail: "settings.rail.access", hint: "settings.hero.access" },
-  { id: "language", icon: "language", tint: "#CE93D8", label: "settings.section.language", rail: "settings.section.language", hint: "settings.hero.language" },
-  { id: "data", icon: "save", tint: "#80CBC4", label: "settings.section.data", rail: "settings.rail.data", hint: "settings.hero.data" },
-  { id: "about", icon: "information-circle", tint: "#FFCC80", label: "settings.section.about", rail: "settings.section.about", hint: "settings.hero.about" },
+  { id: "sound", icon: "volume-high", tint: "#7FAFC6", label: "settings.section.sound", rail: "settings.section.sound", hint: "settings.hero.sound" },
+  { id: "controls", icon: "game-controller", tint: "#D89A4C", label: "settings.section.controls", rail: "settings.section.controls", hint: "settings.hero.controls" },
+  { id: "access", icon: "eye", tint: "#A3BF7C", label: "settings.section.accessibility", rail: "settings.rail.access", hint: "settings.hero.access" },
+  { id: "language", icon: "language", tint: "#B08DBE", label: "settings.section.language", rail: "settings.section.language", hint: "settings.hero.language" },
+  { id: "data", icon: "save", tint: "#8EB7B0", label: "settings.section.data", rail: "settings.rail.data", hint: "settings.hero.data" },
+  { id: "about", icon: "information-circle", tint: "#E2BE8C", label: "settings.section.about", rail: "settings.section.about", hint: "settings.hero.about" },
 ];
 
 const LANGUAGE_BADGE: Record<LanguagePreference, string> = { auto: "A", en: "EN", es: "ES" };
@@ -336,8 +336,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       accessibilityState={{ checked: soundEnabled }}
       accessibilityLabel={t("settings.sound")}
     >
-      <Ionicons name={soundEnabled ? "volume-high" : "volume-mute"} size={22} color={soundEnabled ? "#1a1200" : "#FF8A80"} />
-      <Text style={[styles.masterText, !soundEnabled && { color: "#FF8A80" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
+      <Ionicons name={soundEnabled ? "volume-high" : "volume-mute"} size={22} color={soundEnabled ? "#1a1200" : "#D58A7E"} />
+      <Text style={[styles.masterText, !soundEnabled && { color: "#D58A7E" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
         {(soundEnabled ? t("settings.soundOn") : t("settings.soundOff")).toLocaleUpperCase()}
       </Text>
     </PressScale>
@@ -345,7 +345,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const soundPane = (
     <>
       <SettingCard title={t("settings.volumes")} full>
-        <SettingRow label={t("settings.music")} icon="musical-notes" tint="#B39DDB" stacked dimmed={!soundEnabled}>
+        <SettingRow label={t("settings.music")} icon="musical-notes" tint="#A397BF" stacked dimmed={!soundEnabled}>
           <LevelSlider
             value={musicVolume}
             steps={VOLUME_STEPS}
@@ -355,7 +355,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           />
         </SettingRow>
         <RowDivider />
-        <SettingRow label={t("settings.effects")} icon="pulse" tint="#FF8A65" stacked dimmed={!soundEnabled}>
+        <SettingRow label={t("settings.effects")} icon="pulse" tint="#D28663" stacked dimmed={!soundEnabled}>
           <LevelSlider
             value={sfxVolume}
             steps={VOLUME_STEPS}
@@ -466,13 +466,13 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     <>
       {keyboardCard}
       <SettingCard title={t("settings.group.move")} full>
-        <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#FFAB40" stacked>
+        <SettingRow label={t("settings.movePad")} hint={t("settings.movePadHint")} icon="navigate-circle" tint="#D89A4C" stacked>
           <Segmented options={padOptions} value={movePad} onChange={setMovePad} accessibilityLabel={t("settings.movePad")} />
         </SettingRow>
         {movePad === "floating" && (
           <>
             <RowDivider />
-            <SettingRow label={t("settings.joystickSkin")} icon="color-palette" tint="#F48FB1" stacked>
+            <SettingRow label={t("settings.joystickSkin")} icon="color-palette" tint="#C98FA3" stacked>
               <Segmented options={skinOptions} value={joystickSkin} onChange={setJoystickSkin} accessibilityLabel={t("settings.joystickSkin")} />
               <View style={styles.tryRow}>
                 <JoystickPreview skin={joystickSkin} radius={56} onActiveChange={setTryingStick} />
@@ -490,21 +490,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       </SettingCard>
 
       <SettingCard title={t("settings.group.attack")} full>
-        <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#FF7043" stacked>
+        <SettingRow label={t("settings.attackButton")} hint={t("settings.attackHint")} icon="flash" tint="#CC6E44" stacked>
           <Segmented options={attackOptions} value={attackButton} onChange={setAttackButton} accessibilityLabel={t("settings.attackButton")} />
         </SettingRow>
         <RowDivider />
-        <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate" tint="#EF5350">
+        <SettingRow label={t("settings.dragAim")} hint={t("settings.dragAimHint")} icon="locate" tint="#C4534A">
           <ToggleSwitch value={dragAim} onValueChange={setDragAim} accessibilityLabel={t("settings.dragAim")} />
         </SettingRow>
       </SettingCard>
 
       <SettingCard title={t("settings.group.layout")} full>
-        <SettingRow label={t("settings.controls")} icon="game-controller" tint="#FFD54F" stacked>
+        <SettingRow label={t("settings.controls")} icon="game-controller" tint="#D9B45A" stacked>
           <Segmented options={controlOptions} value={controlPosition} onChange={setControlPosition} accessibilityLabel={t("settings.controls")} />
         </SettingRow>
         <RowDivider />
-        <SettingRow label={t("settings.controlSize")} icon="resize" tint="#81C784" stacked>
+        <SettingRow label={t("settings.controlSize")} icon="resize" tint="#8EAE7C" stacked>
           <Segmented options={sizeOptions} value={controlSize} onChange={setControlSize} accessibilityLabel={t("settings.controlSize")} />
         </SettingRow>
       </SettingCard>
@@ -513,17 +513,17 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 
   const accessPane = (
     <SettingCard>
-      <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#9EE37D">
+      <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#A3BF7C">
         <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
       </SettingRow>
       <RowDivider />
-      <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#FFD54F">
+      <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#D9B45A">
         <ToggleSwitch value={deductionHint} onValueChange={setDeductionHint} accessibilityLabel={t("settings.deductionHint")} />
       </SettingRow>
       {remindersSupported() ? (
         <>
           <RowDivider />
-          <SettingRow label={t("settings.reminder")} hint={reminderDenied ? t("settings.reminderDenied") : t("settings.reminderHint")} icon="notifications" tint="#FFB74D">
+          <SettingRow label={t("settings.reminder")} hint={reminderDenied ? t("settings.reminderDenied") : t("settings.reminderHint")} icon="notifications" tint="#DCA45A">
             <ToggleSwitch value={remindersEnabled} onValueChange={onToggleReminders} accessibilityLabel={t("settings.reminder")} />
           </SettingRow>
         </>
@@ -551,7 +551,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           >
             <View style={[styles.langBadge, on && styles.langBadgeOn]}>
               {option.value === "auto" ? (
-                <Ionicons name="phone-portrait-outline" size={20} color={on ? "#1a1200" : "#CE93D8"} />
+                <Ionicons name="phone-portrait-outline" size={20} color={on ? "#1a1200" : "#B08DBE"} />
               ) : (
                 <Text style={[styles.langBadgeText, on && { color: "#1a1200" }]} maxFontSizeMultiplier={1.1}>
                   {LANGUAGE_BADGE[option.value]}
@@ -559,7 +559,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
               )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.langName, on && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+              <Text style={[styles.langName, on && { color: "#F3EADB" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                 {option.label}
               </Text>
               {option.value === "auto" ? (
@@ -596,7 +596,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
       </PressScale>
       <View style={styles.infoBox}>
-        <Ionicons name="checkmark-done" size={16} color="#9ee37d" />
+        <Ionicons name="checkmark-done" size={16} color="#A3BF7C" />
         <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
           {t("settings.autosave")}
         </Text>
@@ -606,7 +606,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const dataPane = (
     <>
       <SettingCard title={t("profile.title")}>
-        <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#FFD54F">
+        <SettingRow label={t("profile.name")} hint={playerName ? t("profile.nameHint", { name: playerName }) : t("profile.nameNone")} icon="person-circle-outline" tint="#D9B45A">
           <RoundAction icon={nameOpen ? "chevron-up" : "pencil"} label={t("profile.name")} onPress={() => setNameOpen(open => !open)} />
         </SettingRow>
         {nameOpen ? (
@@ -643,7 +643,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       </SettingCard>
 
       <SettingCard title={t("settings.group.cloud")}>
-        <SettingRow label={t("cloud.toggle")} hint={t("cloud.hint")} icon="cloud-outline" tint="#81D4FA">
+        <SettingRow label={t("cloud.toggle")} hint={t("cloud.hint")} icon="cloud-outline" tint="#8FBCD2">
           <ToggleSwitch value={!!cloud.key} onValueChange={v => void onToggleCloud(v)} accessibilityLabel={t("cloud.toggle")} />
         </SettingRow>
         {cloud.key ? (
@@ -682,7 +682,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       </SettingCard>
 
       <SettingCard title={t("settings.group.backup")}>
-        <SettingRow label={t("backup.copy")} hint={t("backup.copyHint")} icon="copy-outline" tint="#80CBC4">
+        <SettingRow label={t("backup.copy")} hint={t("backup.copyHint")} icon="copy-outline" tint="#8EB7B0">
           <RoundAction icon="copy" onPress={onCopyCode} label={t("backup.copy")} />
         </SettingRow>
         {backupNotice ? (
@@ -691,7 +691,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         ) : null}
         <RowDivider />
-        <SettingRow label={t("backup.restore")} hint={t("backup.restoreHint")} icon="download-outline" tint="#4FC3F7">
+        <SettingRow label={t("backup.restore")} hint={t("backup.restoreHint")} icon="download-outline" tint="#7FAFC6">
           <RoundAction
             icon={restoreOpen ? "chevron-up" : "chevron-down"}
             label={t("backup.restore")}
@@ -776,7 +776,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           </SettingRow>
           <RowDivider />
           {/* Christmas in the cave before December, to try it on a phone (until the app is closed). */}
-          <SettingRow label="Probar Navidad en la cueva" hint="Solo pruebas: enciende el evento aunque no sea diciembre, hasta cerrar la app." icon="snow-outline" tint="#81C784">
+          <SettingRow label="Probar Navidad en la cueva" hint="Solo pruebas: enciende el evento aunque no sea diciembre, hasta cerrar la app." icon="snow-outline" tint="#8EAE7C">
             <ToggleSwitch
               value={yuleTest}
               onValueChange={v => {
@@ -794,7 +794,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           label={t("settings.delete")}
           hint={deleteStep === 2 ? t("settings.deleteDone") : deleteStep === 1 ? t("settings.deleteConfirm") : t("settings.deleteHint")}
           icon="trash-outline"
-          tint="#FF8A80"
+          tint="#D58A7E"
         >
           <RoundAction
             icon={deleteStep === 2 ? "checkmark" : "trash"}
@@ -837,21 +837,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </View>
       </View>
       <SettingCard>
-        <SettingRow label={t("settings.feedback")} hint={t("settings.feedbackHint")} icon="chatbubble-ellipses" tint="#4FC3F7">
+        <SettingRow label={t("settings.feedback")} hint={t("settings.feedbackHint")} icon="chatbubble-ellipses" tint="#7FAFC6">
           <RoundAction icon="create-outline" label={t("settings.feedback")} onPress={() => setFeedbackOpen(true)} />
         </SettingRow>
       </SettingCard>
       {isReal(GAME_CONFIG.support.email) || isReal(GAME_CONFIG.monetization.privacyUrl) || isReal(GAME_CONFIG.monetization.termsUrl) ? (
         <SettingCard>
           {isReal(GAME_CONFIG.support.email) && (
-            <SettingRow label={t("settings.contact")} hint={GAME_CONFIG.support.email} icon="mail" tint="#4FC3F7">
+            <SettingRow label={t("settings.contact")} hint={GAME_CONFIG.support.email} icon="mail" tint="#7FAFC6">
               <RoundAction icon="open-outline" label={t("settings.contact")} onPress={() => void Linking.openURL(`mailto:${GAME_CONFIG.support.email}`).catch(() => {})} />
             </SettingRow>
           )}
           {isReal(GAME_CONFIG.monetization.privacyUrl) && (
             <>
               <RowDivider />
-              <SettingRow label={t("settings.privacy")} icon="shield-checkmark" tint="#81C784">
+              <SettingRow label={t("settings.privacy")} icon="shield-checkmark" tint="#8EAE7C">
                 <RoundAction icon="open-outline" label={t("settings.privacy")} onPress={() => void Linking.openURL(GAME_CONFIG.monetization.privacyUrl).catch(() => {})} />
               </SettingRow>
             </>
@@ -859,7 +859,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           {isReal(GAME_CONFIG.monetization.termsUrl) && (
             <>
               <RowDivider />
-              <SettingRow label={t("settings.terms")} icon="document-text" tint="#FFB74D">
+              <SettingRow label={t("settings.terms")} icon="document-text" tint="#DCA45A">
                 <RoundAction icon="open-outline" label={t("settings.terms")} onPress={() => void Linking.openURL(GAME_CONFIG.monetization.termsUrl).catch(() => {})} />
               </SettingRow>
             </>
@@ -926,7 +926,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("settings.title")} onBack={() => navigation.goBack()} />
 
@@ -951,18 +951,18 @@ const styles = StyleSheet.create({
   kbIntro: { color: "#CDBBA5", fontSize: 12.5, marginBottom: 8 },
   kbGroups: { flexDirection: "row", flexWrap: "wrap", gap: 14 },
   kbGroup: { flexGrow: 1, flexBasis: 220, gap: 4 },
-  kbGroupTitle: { color: "#FFAB40", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.6, marginBottom: 2 },
+  kbGroupTitle: { color: "#D89A4C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.6, marginBottom: 2 },
   kbRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 32 },
   kbLabel: { flex: 1, color: "#E6D6C2", fontWeight: "800", fontSize: 12.5 },
   kbCaps: { flexDirection: "row", gap: 5 },
   kbCap: { minWidth: 30, alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, borderWidth: 1, borderBottomWidth: 3 },
-  kbCapEdit: { borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
-  kbCapListening: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  kbCapEdit: { borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
+  kbCapListening: { backgroundColor: "#D9B45A", borderColor: "#D9B45A" },
   kbCapFixed: { borderColor: "rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.04)" },
   kbCapText: { color: "#FFF3E0", fontWeight: "900", fontSize: 12 },
   kbFooter: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
   kbMouse: { flex: 1, color: "#CDBBA5", fontSize: 12 },
-  kbReset: { color: "#FFAB40", fontWeight: "900", fontSize: 12, textDecorationLine: "underline" },
+  kbReset: { color: "#D89A4C", fontWeight: "900", fontSize: 12, textDecorationLine: "underline" },
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
   paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },
@@ -971,54 +971,54 @@ const styles = StyleSheet.create({
   sideContent: { paddingLeft: 4, paddingRight: 8, paddingTop: 8, paddingBottom: 20, gap: 12 },
   mainContent: { paddingLeft: 6, paddingRight: 14, paddingTop: 8, paddingBottom: 20, gap: 16 },
   master: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 50, borderRadius: 25, paddingHorizontal: 16, borderWidth: 2 },
-  masterOn: { backgroundColor: GOLD, borderColor: "#FFE7A8" },
-  masterOff: { backgroundColor: "rgba(255,82,82,0.12)", borderColor: "rgba(255,138,128,0.7)" },
+  masterOn: { backgroundColor: GOLD, borderColor: "#EAD8A8" },
+  masterOff: { backgroundColor: "rgba(204, 82, 73,0.12)", borderColor: "rgba(255,138,128,0.7)" },
   masterText: { color: "#1a1200", fontWeight: "900", fontSize: 15, letterSpacing: 1.6 },
   langList: { gap: 10 },
   langTile: { flexDirection: "row", alignItems: "center", gap: 14, minHeight: 64, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(34,26,18,0.9)" },
   langTileOn: { borderColor: GOLD, backgroundColor: "rgba(72,54,24,0.95)" },
-  langBadge: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "rgba(206,147,216,0.6)", backgroundColor: "rgba(206,147,216,0.14)" },
-  langBadgeOn: { backgroundColor: GOLD, borderColor: "#FFE7A8" },
-  langBadgeText: { color: "#CE93D8", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
+  langBadge: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", borderWidth: 1.5, borderColor: "rgba(176, 141, 190,0.6)", backgroundColor: "rgba(176, 141, 190,0.14)" },
+  langBadgeOn: { backgroundColor: GOLD, borderColor: "#EAD8A8" },
+  langBadgeText: { color: "#B08DBE", fontWeight: "900", fontSize: 15, letterSpacing: 1 },
   langName: { color: "#D6C4B2", fontWeight: "900", fontSize: 17 },
   langHint: { color: "#B99A7C", fontSize: 12, fontWeight: "600", marginTop: 2 },
   langEmpty: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: "rgba(255,255,255,0.2)" },
-  me: { alignItems: "center", gap: 6, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", backgroundColor: "rgba(48,36,22,0.92)" },
-  meName: { color: "#fff", fontWeight: "900", fontSize: 18, marginTop: 4 },
+  me: { alignItems: "center", gap: 6, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", backgroundColor: "rgba(48,36,22,0.92)" },
+  meName: { color: "#F3EADB", fontWeight: "900", fontSize: 18, marginTop: 4 },
   meSub: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
-  meButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 42, alignSelf: "stretch", paddingHorizontal: 12, marginTop: 4, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
+  meButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 42, alignSelf: "stretch", paddingHorizontal: 12, marginTop: 4, borderRadius: 21, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
   meButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
   aboutLogo: { width: "100%", maxWidth: 260, height: 84 },
-  lair: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,204,128,0.4)", backgroundColor: "rgba(48,30,20,0.92)" },
+  lair: { flexDirection: "row", alignItems: "center", gap: 14, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(226, 190, 140,0.4)", backgroundColor: "rgba(48,30,20,0.92)" },
   lairBoss: { width: 96, height: 96 },
-  lairKicker: { color: "#FFCC80", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
+  lairKicker: { color: "#E2BE8C", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
   tryRow: { flexDirection: "row", alignItems: "center", gap: 16, marginTop: 10 },
   tryText: { flex: 1, color: "#D4C2B0", fontSize: 13, fontWeight: "700" },
   keyLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
-  keyText: { color: "#FFD54F", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
+  keyText: { color: "#D9B45A", fontWeight: "900", fontSize: 22, letterSpacing: 3, textAlign: "center", paddingVertical: 8, backgroundColor: "rgba(255,255,255,0.05)", borderRadius: 12 },
   keyLast: { color: "#B99A7C", fontSize: 12, fontWeight: "700", textAlign: "center" },
   notice: { fontSize: 12.5, fontWeight: "700", paddingBottom: 10, paddingHorizontal: 4 },
-  noticeOk: { color: "#9ee37d" },
-  noticeBad: { color: "#FF8A80" },
+  noticeOk: { color: "#A3BF7C" },
+  noticeBad: { color: "#D58A7E" },
   restorePanel: { gap: 10, paddingBottom: 12 },
-  codeInput: { minHeight: 72, maxHeight: 120, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#fff", padding: 10, fontSize: 13, textAlignVertical: "top" },
-  nameInput: { minHeight: MIN_TOUCH, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#fff", paddingHorizontal: 12, fontSize: 15, fontWeight: "700" },
+  codeInput: { minHeight: 72, maxHeight: 120, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#F3EADB", padding: 10, fontSize: 13, textAlignVertical: "top" },
+  nameInput: { minHeight: MIN_TOUCH, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(0,0,0,0.35)", color: "#F3EADB", paddingHorizontal: 12, fontSize: 15, fontWeight: "700" },
   buttonRow: { flexDirection: "row", gap: 10 },
   pill: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 14, alignItems: "center", justifyContent: "center", paddingHorizontal: 10 },
   pillGold: { backgroundColor: GOLD },
   pillGoldText: { color: "#1a1200", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   pillGhost: { borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)" },
-  pillGhostText: { color: "#fff", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
-  pillDanger: { backgroundColor: "#FF5252" },
-  pillDangerText: { color: "#fff", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
-  confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(255,82,82,0.1)", borderWidth: 1, borderColor: "rgba(255,82,82,0.4)" },
-  confirmText: { color: "#fff", fontSize: 13, fontWeight: "700" },
-  confirmWarn: { color: "#FF8A80", fontSize: 12 },
+  pillGhostText: { color: "#F3EADB", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
+  pillDanger: { backgroundColor: "#CC5249" },
+  pillDangerText: { color: "#F3EADB", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
+  confirmBox: { gap: 8, padding: 12, borderRadius: 12, backgroundColor: "rgba(204, 82, 73,0.1)", borderWidth: 1, borderColor: "rgba(204, 82, 73,0.4)" },
+  confirmText: { color: "#F3EADB", fontSize: 13, fontWeight: "700" },
+  confirmWarn: { color: "#D58A7E", fontSize: 12 },
   infoBox: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
   infoText: { color: "#b0b0b0", fontSize: 12, flexShrink: 1 },
   aboutHero: { alignItems: "center", paddingVertical: 16, paddingHorizontal: 10, borderRadius: 18, backgroundColor: "rgba(34, 26, 18,0.9)", borderWidth: 1, borderColor: "rgba(255,255,255,0.09)", gap: 2 },
   aboutName: { color: GOLD, fontWeight: "900", fontSize: 38, letterSpacing: 6 },
-  aboutSub: { color: "#fff", fontWeight: "900", fontSize: 13, letterSpacing: 3.5, textAlign: "center" },
+  aboutSub: { color: "#F3EADB", fontWeight: "900", fontSize: 13, letterSpacing: 3.5, textAlign: "center" },
   aboutTag: { color: "#E8D8C6", fontSize: 14, lineHeight: 20, fontWeight: "700" },
   versionPill: { marginTop: 12, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)" },
   versionText: { color: "#EAE1D8", fontWeight: "800", fontSize: 12.5, letterSpacing: 0.6 },

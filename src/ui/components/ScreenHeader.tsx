@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   center: { alignItems: 'center' },
-  title: { color: '#fff', fontWeight: '900', letterSpacing: 4, textAlign: 'center' },
-  underline: { height: 3, width: 44, borderRadius: 2, backgroundColor: '#FFD54F', marginTop: 4 },
+  title: { color: '#F3EADB', fontWeight: '900', letterSpacing: 4, textAlign: 'center' },
+  underline: { height: 3, width: 44, borderRadius: 2, backgroundColor: '#D9B45A', marginTop: 4 },
   subtitle: { color: '#E1D4C8', fontSize: 12, fontWeight: '700', marginTop: 4, textAlign: 'center' },
   right: { position: 'absolute', zIndex: 2 },
 });

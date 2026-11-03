@@ -15,8 +15,8 @@ type Props = {
   calm: boolean;
 };
 
-const RED = "rgba(255,23,68,0.72)";
-const RED_CLEAR = "rgba(255,23,68,0)";
+const RED = "rgba(194, 58, 68,0.72)";
+const RED_CLEAR = "rgba(194, 58, 68,0)";
 
 /**
  * The full-screen flashes of the game screen. None of them takes a touch, and each one sits at its own depth so that the
@@ -42,7 +42,7 @@ const ScreenFlashes: React.FC<Props> = ({ combat, death, hit, vortex, calm }) =>
     </Animated.View>
 
     {/* A shield (or feather) soaked a deadly touch: a short red flash */}
-    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,23,68,1)", opacity: hit, zIndex: 996 }]} pointerEvents="none" />
+    <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(194, 58, 68,1)", opacity: hit, zIndex: 996 }]} pointerEvents="none" />
 
     {/* Purple flash on vortex teleport */}
     <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(156,39,176,0.55)", opacity: vortex, zIndex: 998 }]} pointerEvents="none" />

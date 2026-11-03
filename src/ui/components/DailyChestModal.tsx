@@ -13,7 +13,7 @@ import { CHEST_DAYS, CHEST_EMBERS, CHEST_FREEZE_DAY } from "../../core/stats/dai
 
 const CHEST_ART = require("../../assets/sprites/items/Icon_Chest.webp");
 const CHEST_SHUT_ART = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 
 type Props = {
   /** The calendar day today's chest is (1..7). */
@@ -91,14 +91,14 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
                   {t("chest.day", { n: d })}
                 </Text>
                 {done ? (
-                  <Ionicons name="checkmark-circle" size={slot * 0.36} color="#9EE37D" />
+                  <Ionicons name="checkmark-circle" size={slot * 0.36} color="#A3BF7C" />
                 ) : (
                   <View style={styles.slotPay}>
                     <EmberIcon size={11} />
                     <Text style={styles.slotEmbers} maxFontSizeMultiplier={1.1}>
                       {CHEST_EMBERS[i]}
                     </Text>
-                    {big ? <Ionicons name="snow" size={12} color="#80D8FF" /> : null}
+                    {big ? <Ionicons name="snow" size={12} color="#8DBDD3" /> : null}
                   </View>
                 )}
               </View>
@@ -134,7 +134,7 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
               </View>
               {opened.freeze ? (
                 <View style={styles.prizeRow}>
-                  <Ionicons name="snow" size={18} color="#80D8FF" />
+                  <Ionicons name="snow" size={18} color="#8DBDD3" />
                   <Text style={styles.freezeText} maxFontSizeMultiplier={1.1}>
                     {t("chest.freeze")}
                   </Text>
@@ -160,18 +160,18 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
 const styles = StyleSheet.create({
   days: { flexDirection: "row", gap: 6, alignItems: "flex-end" },
   slot: { alignItems: "center", justifyContent: "center", gap: 3, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.12)", backgroundColor: "rgba(0,0,0,0.35)" },
-  slotToday: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.14)" },
-  slotDone: { borderColor: "rgba(158,227,125,0.5)", backgroundColor: "rgba(158,227,125,0.08)" },
+  slotToday: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.14)" },
+  slotDone: { borderColor: "rgba(163, 191, 124,0.5)", backgroundColor: "rgba(163, 191, 124,0.08)" },
   slotBig: { borderStyle: "dashed" },
   slotDay: { color: "#C2A88F", fontSize: 10.5, fontWeight: "900", letterSpacing: 0.5 },
   slotPay: { flexDirection: "row", alignItems: "center", gap: 2 },
-  slotEmbers: { color: "#FFE7A8", fontSize: 12, fontWeight: "900" },
+  slotEmbers: { color: "#EAD8A8", fontSize: 12, fontWeight: "900" },
   stage: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18 },
   ray: { position: "absolute", backgroundColor: GOLD },
   prize: { gap: 4 },
   prizeRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  prizeText: { color: "#FFE7A8", fontSize: 30, fontWeight: "900" },
-  freezeText: { color: "#B3E5FC", fontSize: 14, fontWeight: "900" },
+  prizeText: { color: "#EAD8A8", fontSize: 30, fontWeight: "900" },
+  freezeText: { color: "#B9D1DC", fontSize: 14, fontWeight: "900" },
   line: { color: "#EADBC8", fontSize: 13, fontWeight: "700", textAlign: "center" },
   button: { alignSelf: "stretch" },
 });

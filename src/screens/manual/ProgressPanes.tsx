@@ -20,14 +20,14 @@ export const WorldsPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.worlds.title"))}
-      {fact("manual.worlds.intro", "#80cbc4", icon("planet", "#80cbc4"))}
+      {fact("manual.worlds.intro", "#8EB7B0", icon("planet", "#8EB7B0"))}
       {fact("manual.worlds.cave", "#a1887f", image(BIOME_ART.cave.tileRevealed, "#a1887f"))}
-      {fact("manual.worlds.crystal", "#4fc3f7", image(BIOME_ART.crystal.tileRevealed, "#4fc3f7"))}
-      {fact("manual.worlds.magma", "#ff7043", image(BIOME_ART.magma.tileRevealed, "#ff7043"))}
-      {fact("manual.worlds.lair", "#ba68c8", image(BIOME_ART.lair.tileRevealed, "#ba68c8"))}
-      {fact("manual.worlds.boss", "#ff5252", image(IMG.boss, "#ff5252"))}
-      {fact("manual.worlds.fury", "#ff7043", icon("flame", "#ff7043"))}
-      {fact("manual.worlds.calls", "#ba68c8", image(IMG.stalker, "#ba68c8"))}
+      {fact("manual.worlds.crystal", "#7FAFC6", image(BIOME_ART.crystal.tileRevealed, "#7FAFC6"))}
+      {fact("manual.worlds.magma", "#CC6E44", image(BIOME_ART.magma.tileRevealed, "#CC6E44"))}
+      {fact("manual.worlds.lair", "#9A72AC", image(BIOME_ART.lair.tileRevealed, "#9A72AC"))}
+      {fact("manual.worlds.boss", "#CC5249", image(IMG.boss, "#CC5249"))}
+      {fact("manual.worlds.fury", "#CC6E44", icon("flame", "#CC6E44"))}
+      {fact("manual.worlds.calls", "#9A72AC", image(IMG.stalker, "#9A72AC"))}
     </>
   );
 };
@@ -37,13 +37,13 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.modes.title"))}
-      {fact("manual.modes.expedition", "#7986cb", icon("map", "#7986cb"))}
-      {fact("manual.modes.daily", "#4fc3f7", icon("calendar", "#4fc3f7"))}
-      {fact("manual.modes.streak", "#ffab40", icon("flame", "#ffab40"))}
-      {fact("manual.modes.missions", "#4fc3f7", icon("flag", "#4fc3f7"))}
-      {fact("manual.modes.rank", "#FFD54F", icon("medal", "#FFD54F"))}
-      {fact("manual.modes.endless", "#ce93d8", icon("infinite", "#ce93d8"))}
-      {fact("manual.modes.depth", "#ef5350", icon("speedometer", "#ef5350"))}
+      {fact("manual.modes.expedition", "#7E87B0", icon("map", "#7E87B0"))}
+      {fact("manual.modes.daily", "#7FAFC6", icon("calendar", "#7FAFC6"))}
+      {fact("manual.modes.streak", "#D89A4C", icon("flame", "#D89A4C"))}
+      {fact("manual.modes.missions", "#7FAFC6", icon("flag", "#7FAFC6"))}
+      {fact("manual.modes.rank", "#D9B45A", icon("medal", "#D9B45A"))}
+      {fact("manual.modes.endless", "#B08DBE", icon("infinite", "#B08DBE"))}
+      {fact("manual.modes.depth", "#C4534A", icon("speedometer", "#C4534A"))}
       <View style={{ gap: 8 }}>
         {Array.from({ length: MAX_ASCENSION }, (_, k) => k + 1).map(n => (
           <View key={n} style={styles.depthRow}>
@@ -68,16 +68,16 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
 export const ForgePane = ({ kit }: { kit: Kit }) => {
   const { t, wide, heading, fact, icon, image } = kit;
   const upgradeGroups = [
-    { id: "power", label: t("forge.cat.power"), color: "#ff7043" },
-    { id: "economy", label: t("forge.cat.economy"), color: "#ffd54f" },
-    { id: "relics", label: t("forge.cat.relics"), color: "#ce93d8" },
+    { id: "power", label: t("forge.cat.power"), color: "#CC6E44" },
+    { id: "economy", label: t("forge.cat.economy"), color: "#D9B45A" },
+    { id: "relics", label: t("forge.cat.relics"), color: "#B08DBE" },
   ] as const;
   return (
     <>
       {heading(t("manual.forge.title"))}
-      {fact("manual.forge.embers", "#ffab40", icon("flame", "#ffab40"))}
-      {fact("manual.forge.upgrades", "#ffd54f", icon("hammer", "#ffd54f"))}
-      <SubHeading text={t("manual.forge.all")} color="#ffd54f" />
+      {fact("manual.forge.embers", "#D89A4C", icon("flame", "#D89A4C"))}
+      {fact("manual.forge.upgrades", "#D9B45A", icon("hammer", "#D9B45A"))}
+      <SubHeading text={t("manual.forge.all")} color="#D9B45A" />
       {upgradeGroups.map(group => (
         <View key={group.id} style={{ gap: 8 }}>
           <Text style={[styles.groupTitle, { color: group.color }]} maxFontSizeMultiplier={1.2}>
@@ -102,11 +102,11 @@ export const ForgePane = ({ kit }: { kit: Kit }) => {
           </View>
         </View>
       ))}
-      {fact("manual.forge.revive", "#ff8a80", icon("heart", "#ff8a80"))}
-      {fact("manual.forge.arrows", "#ffab40", image(IMG.arrows, "#ffab40"))}
-      {fact("manual.forge.daily", "#4fc3f7", icon("calendar", "#4fc3f7"))}
-      {fact("manual.forge.collection", "#f48fb1", icon("shirt", "#f48fb1"))}
-      {fact("manual.forge.achievements", "#81c784", icon("ribbon", "#81c784"))}
+      {fact("manual.forge.revive", "#D58A7E", icon("heart", "#D58A7E"))}
+      {fact("manual.forge.arrows", "#D89A4C", image(IMG.arrows, "#D89A4C"))}
+      {fact("manual.forge.daily", "#7FAFC6", icon("calendar", "#7FAFC6"))}
+      {fact("manual.forge.collection", "#C98FA3", icon("shirt", "#C98FA3"))}
+      {fact("manual.forge.achievements", "#8EAE7C", icon("ribbon", "#8EAE7C"))}
     </>
   );
 };
@@ -116,7 +116,7 @@ export const ScoringPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.scoring.title"))}
-      {fact("manual.scoring.points", "#81c784", icon("star", "#81c784"))}
+      {fact("manual.scoring.points", "#8EAE7C", icon("star", "#8EAE7C"))}
       <ScoreTable
         rows={[
           { label: t("manual.score.tile"), value: `+${S.newTile}`, good: true },
@@ -131,8 +131,8 @@ export const ScoringPane = ({ kit }: { kit: Kit }) => {
           { label: t("manual.score.trap"), value: `${S.trapPenalty}`, good: false },
         ]}
       />
-      {fact("manual.scoring.stars", "#ffd54f", icon("star", "#ffd54f"))}
-      {fact("manual.scoring.board", "#ffd54f", icon("podium", "#ffd54f"))}
+      {fact("manual.scoring.stars", "#D9B45A", icon("star", "#D9B45A"))}
+      {fact("manual.scoring.board", "#D9B45A", icon("podium", "#D9B45A"))}
       {fact("manual.scoring.pause", "#90a4ae", icon("pause-circle", "#90a4ae"))}
     </>
   );

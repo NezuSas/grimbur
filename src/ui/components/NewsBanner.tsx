@@ -53,7 +53,7 @@ const NewsBanner = () => {
   return (
     <View style={[styles.wrap, { left: Math.max(insets.left, 12), bottom: Math.max(insets.bottom, 10) }]} pointerEvents="box-none">
       <LinearGradient colors={["rgba(73, 56, 39,0.96)", "rgba(22, 14, 8,0.96)"]} style={styles.card} accessible accessibilityRole="alert" accessibilityLabel={text}>
-        <Ionicons name={update.kind === "none" ? "megaphone" : "cloud-download"} size={18} color={update.kind === "required" ? "#FF8A80" : "#FFD54F"} />
+        <Ionicons name={update.kind === "none" ? "megaphone" : "cloud-download"} size={18} color={update.kind === "required" ? "#D58A7E" : "#D9B45A"} />
         <Text style={styles.text} maxFontSizeMultiplier={1.2}>
           {text}
         </Text>
@@ -78,8 +78,8 @@ export default NewsBanner;
 
 const styles = StyleSheet.create({
   wrap: { position: "absolute", maxWidth: "46%", zIndex: 20 },
-  card: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", paddingHorizontal: 12, paddingVertical: 8 },
-  text: { color: "#fff", fontWeight: "700", fontSize: 12.5, flexShrink: 1 },
-  action: { backgroundColor: "#FFD54F", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
+  card: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.6)", paddingHorizontal: 12, paddingVertical: 8 },
+  text: { color: "#F3EADB", fontWeight: "700", fontSize: 12.5, flexShrink: 1 },
+  action: { backgroundColor: "#D9B45A", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 4 },
   actionText: { color: "#2A2016", fontWeight: "900", fontSize: 11, letterSpacing: 1 },
 });

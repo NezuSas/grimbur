@@ -8,13 +8,13 @@ import { useT } from '../../../i18n/useT';
 export type PopupType = 'coin' | 'kill' | 'trap' | 'shield' | 'ammo' | 'boss' | 'streak';
 
 const POPUP_STYLE: Record<PopupType, { color: string; glyph: GlyphName | null; label: (points: number, shieldText: string) => string }> = {
-  coin:   { color: '#FFD54F', glyph: 'gem',     label: p => `+${p}` },
-  kill:   { color: '#FF3B30', glyph: 'skull',   label: p => `+${p}` },
-  boss:   { color: '#FF1744', glyph: 'monster', label: p => `+${p}` },
-  trap:   { color: '#FF9800', glyph: 'trap',    label: p => `${p}` },
-  shield: { color: '#4FC3F7', glyph: 'shield',  label: (_p, shieldText) => shieldText },
-  ammo:   { color: '#FF9800', glyph: 'arrows',  label: p => `+${p}` },
-  streak: { color: '#FFD54F', glyph: null,      label: () => '' },
+  coin:   { color: '#D9B45A', glyph: 'gem',     label: p => `+${p}` },
+  kill:   { color: '#C2463D', glyph: 'skull',   label: p => `+${p}` },
+  boss:   { color: '#C23A44', glyph: 'monster', label: p => `+${p}` },
+  trap:   { color: '#CC8638', glyph: 'trap',    label: p => `${p}` },
+  shield: { color: '#7FAFC6', glyph: 'shield',  label: (_p, shieldText) => shieldText },
+  ammo:   { color: '#CC8638', glyph: 'arrows',  label: p => `+${p}` },
+  streak: { color: '#D9B45A', glyph: null,      label: () => '' },
 };
 
 /** Width of the box a popup centres itself in, around its anchor. */

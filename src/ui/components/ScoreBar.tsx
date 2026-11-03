@@ -275,12 +275,12 @@ const styles = StyleSheet.create({
   shieldBadge: {
     padding: 4,
     borderRadius: 14,
-    backgroundColor: "rgba(79, 195, 247, 0.18)",
+    backgroundColor: "rgba(127, 175, 198, 0.18)",
     borderWidth: 1,
-    borderColor: "#4FC3F7",
+    borderColor: "#7FAFC6",
   },
-  shieldBadgeBroken: { borderColor: "#FF1744", backgroundColor: "rgba(255,23,68,0.18)" },
-  shieldBlink: { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, borderRadius: 14, backgroundColor: "rgba(255,23,68,0.75)" },
+  shieldBadgeBroken: { borderColor: "#C23A44", backgroundColor: "rgba(194, 58, 68,0.18)" },
+  shieldBlink: { position: "absolute", left: 0, top: 0, right: 0, bottom: 0, borderRadius: 14, backgroundColor: "rgba(194, 58, 68,0.75)" },
   comboPip: {
     flexDirection: "row",
     alignItems: "center",
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#FFB300",
   },
-  comboPipMax: { backgroundColor: "#FFD54F", borderColor: "#FFF8E1" },
-  comboText: { color: "#FFD54F", fontWeight: "900", fontSize: 13, includeFontPadding: false },
+  comboPipMax: { backgroundColor: "#D9B45A", borderColor: "#FFF8E1" },
+  comboText: { color: "#D9B45A", fontWeight: "900", fontSize: 13, includeFontPadding: false },
   rightGroup: {
     flex: 2,
     flexDirection: "row",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   levelText: {
-    color: "#FFD54F",
+    color: "#D9B45A",
     fontWeight: "900",
   },
 });

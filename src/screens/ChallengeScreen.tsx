@@ -22,8 +22,8 @@ import { PlayerPortrait, PlayerTitle } from "../ui/components/PlayerPortrait";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ChallengeScreen">;
 
-const GOLD = "#FFD54F";
-const MEDAL = ["#FFD54F", "#CFD8DC", "#FFAB91"];
+const GOLD = "#D9B45A";
+const MEDAL = ["#D9B45A", "#CFD8DC", "#DBA48F"];
 
 /**
  * A friend challenge: the same cave for whoever has the code, played whenever each one wants. Without a code this screen creates one or
@@ -108,7 +108,7 @@ const ChallengeScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("challenge.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -177,11 +177,11 @@ const styles = StyleSheet.create({
   empty: { color: "#E1D4C8", fontSize: 14, fontWeight: "800", textAlign: "center" },
   emptySub: { color: "#C4AA91", fontSize: 12.5, textAlign: "center" },
   row: { flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.08)", backgroundColor: "rgba(36, 28, 19,0.8)", paddingVertical: 8, paddingHorizontal: 10 },
-  rowMine: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.1)" },
+  rowMine: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.1)" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   rankText: { color: "#EAE1D8", fontWeight: "900", fontSize: 15 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)" },
-  name: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  name: { color: "#F3EADB", fontWeight: "900", fontSize: 16 },
   sub: { color: "#C4AA91", fontSize: 12, marginTop: 1 },
-  score: { color: "#9ee37d", fontWeight: "900", fontSize: 20, minWidth: 84, textAlign: "right" },
+  score: { color: "#A3BF7C", fontWeight: "900", fontSize: 20, minWidth: 84, textAlign: "right" },
 });

@@ -73,8 +73,8 @@ export interface MasteryTier {
 export const MASTERY_TIERS: readonly MasteryTier[] = [
   { id: 'bronze', level: 10, color: '#D08A4E' },
   { id: 'silver', level: 20, color: '#CFD8DC' },
-  { id: 'gold', level: 30, color: '#FFD54F' },
-  { id: 'platinum', level: 40, color: '#80DEEA' },
+  { id: 'gold', level: 30, color: '#D9B45A' },
+  { id: 'platinum', level: 40, color: '#8FC0C5' },
   { id: 'legend', level: 50, color: '#E040FB' },
 ];
 

@@ -63,12 +63,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "AchievementsScreen">;
 type Filter = "all" | "todo" | "done";
 type Theme = AchievementTheme | "all";
 
-const GOLD = "#F2C14E";
+const GOLD = "#D9B052";
 const TIER_COLOR: Record<AchievementTier, string> = {
-  easy: "#A5D6A7",
-  medium: "#90CAF9",
-  hard: "#FFAB91",
-  legend: "#CE93D8",
+  easy: "#A5BC9E",
+  medium: "#94B3CC",
+  hard: "#DBA48F",
+  legend: "#B08DBE",
 };
 const TILE = 96;
 const TILE_GAP = 8;
@@ -308,7 +308,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
     <ImageBackground
       fadeDuration={0}
       resizeMethod="none"
-      source={require("../assets/sprites/backgrounds/Cover_Background.png")}
+      source={require("../assets/sprites/backgrounds/Cover_Background.jpg")}
       style={styles.root}
       resizeMode="cover"
     >
@@ -642,7 +642,7 @@ const Showcase = ({
 
       {earned ? (
         <View style={styles.dateRow}>
-          <Ionicons name="checkmark-circle" size={16} color="#9EE37D" />
+          <Ionicons name="checkmark-circle" size={16} color="#A3BF7C" />
           <Text style={styles.date} maxFontSizeMultiplier={1.1}>
             {t("ach.unlockedOn", { date: stats.achievements[a.id] })}
           </Text>
@@ -675,7 +675,7 @@ const Showcase = ({
         >
           <EmberIcon size={15} />
           <Text
-            style={[styles.rewardText, earned && { color: "#9EE37D" }]}
+            style={[styles.rewardText, earned && { color: "#A3BF7C" }]}
             maxFontSizeMultiplier={1.05}
           >
             {earned ? t("ach.rewardClaimed") : `+${ACHIEVEMENT_REWARD[a.tier]}`}
@@ -717,11 +717,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "rgba(255,171,64,0.14)",
+    backgroundColor: "rgba(216, 154, 76,0.14)",
     borderWidth: 1.5,
-    borderColor: "rgba(255,171,64,0.6)",
+    borderColor: "rgba(216, 154, 76,0.6)",
   },
-  headerChipText: { color: "#FFAB40", fontWeight: "900", fontSize: 15 },
+  headerChipText: { color: "#D89A4C", fontWeight: "900", fontSize: 15 },
 
   body: {
     flex: 1,
@@ -752,8 +752,8 @@ const styles = StyleSheet.create({
   show: { borderRadius: 18, borderWidth: 1.5, padding: 12, gap: 8 },
   showCompact: { padding: 10, gap: 6 },
   showEarned: {
-    backgroundColor: "rgba(242,193,78,0.1)",
-    borderColor: "rgba(242,193,78,0.6)",
+    backgroundColor: "rgba(217, 176, 82,0.1)",
+    borderColor: "rgba(217, 176, 82,0.6)",
   },
   showOpen: {
     backgroundColor: "rgba(36,28,19,0.88)",
@@ -792,7 +792,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   tierText: { fontSize: 11, fontWeight: "900", letterSpacing: 1 },
-  showName: { color: "#fff", fontWeight: "900", fontSize: 18 },
+  showName: { color: "#F3EADB", fontWeight: "900", fontSize: 18 },
   showDesc: { color: "#DCCEBF", fontSize: 13 },
   showProgress: { flexDirection: "row", alignItems: "center", gap: 8 },
   showTrack: {
@@ -802,7 +802,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.12)",
     overflow: "hidden",
   },
-  showFill: { height: "100%", borderRadius: 5, backgroundColor: "#90CAF9" },
+  showFill: { height: "100%", borderRadius: 5, backgroundColor: "#94B3CC" },
   showCount: { color: "#EAE1D8", fontWeight: "900", fontSize: 13 },
   hint: { color: "#BFAE9C", fontSize: 12, fontStyle: "italic" },
   dateRow: { flexDirection: "row", alignItems: "center", gap: 6 },
@@ -820,15 +820,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     minHeight: 30,
     borderRadius: 15,
-    backgroundColor: "rgba(255,171,64,0.16)",
+    backgroundColor: "rgba(216, 154, 76,0.16)",
     borderWidth: 1,
-    borderColor: "rgba(255,171,64,0.55)",
+    borderColor: "rgba(216, 154, 76,0.55)",
   },
   rewardDone: {
-    backgroundColor: "rgba(158,227,125,0.1)",
-    borderColor: "rgba(158,227,125,0.5)",
+    backgroundColor: "rgba(163, 191, 124,0.1)",
+    borderColor: "rgba(163, 191, 124,0.5)",
   },
-  rewardText: { color: "#FFAB40", fontWeight: "900", fontSize: 13 },
+  rewardText: { color: "#D89A4C", fontWeight: "900", fontSize: 13 },
   extra: {
     flexDirection: "row",
     alignItems: "center",
@@ -838,12 +838,12 @@ const styles = StyleSheet.create({
     minHeight: 30,
     maxWidth: 200,
     borderRadius: 15,
-    backgroundColor: "rgba(206,147,216,0.12)",
+    backgroundColor: "rgba(176, 141, 190,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(206,147,216,0.55)",
+    borderColor: "rgba(176, 141, 190,0.55)",
   },
   extraText: {
-    color: "#E1BEE7",
+    color: "#D3C2D8",
     fontWeight: "800",
     fontSize: 12,
     flexShrink: 1,
@@ -866,10 +866,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: "rgba(242,193,78,0.35)",
-    backgroundColor: "rgba(242,193,78,0.07)",
+    borderColor: "rgba(217, 176, 82,0.35)",
+    backgroundColor: "rgba(217, 176, 82,0.07)",
   },
-  almostItemOn: { borderColor: GOLD, backgroundColor: "rgba(242,193,78,0.18)" },
+  almostItemOn: { borderColor: GOLD, backgroundColor: "rgba(217, 176, 82,0.18)" },
   almostArt: { width: 30, height: 30 },
   almostPct: { color: "#EAE1D8", fontWeight: "900", fontSize: 12 },
 
@@ -894,7 +894,7 @@ const styles = StyleSheet.create({
   themeOn: { backgroundColor: "#E8B04A", borderColor: "#E8B04A" },
   themeComplete: {
     borderColor: GOLD,
-    backgroundColor: "rgba(242,193,78,0.12)",
+    backgroundColor: "rgba(217, 176, 82,0.12)",
   },
   themeArt: { width: 28, height: 28 },
   themeName: { color: "#EAE1D8", fontWeight: "900", fontSize: 12 },
@@ -931,8 +931,8 @@ const styles = StyleSheet.create({
     minHeight: 116,
   },
   tileEarned: {
-    backgroundColor: "rgba(242,193,78,0.09)",
-    borderColor: "rgba(242,193,78,0.45)",
+    backgroundColor: "rgba(217, 176, 82,0.09)",
+    borderColor: "rgba(217, 176, 82,0.45)",
   },
   tileOpen: {
     backgroundColor: "rgba(36,28,19,0.8)",
@@ -941,7 +941,7 @@ const styles = StyleSheet.create({
   tileSelected: {
     borderColor: "#FFE08A",
     borderWidth: 2.5,
-    backgroundColor: "rgba(242,193,78,0.2)",
+    backgroundColor: "rgba(217, 176, 82,0.2)",
   },
   tileArt: { width: 54, height: 54 },
   // Not earned yet: the emblem is there but dim, so the goal is visible without looking won.
@@ -961,12 +961,12 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: "#9EE37D",
+    backgroundColor: "#A3BF7C",
     alignItems: "center",
     justifyContent: "center",
   },
   tileName: {
-    color: "#fff",
+    color: "#F3EADB",
     fontWeight: "800",
     fontSize: 11,
     textAlign: "center",
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.12)",
     overflow: "hidden",
   },
-  tileFill: { height: "100%", borderRadius: 2, backgroundColor: "#90CAF9" },
+  tileFill: { height: "100%", borderRadius: 2, backgroundColor: "#94B3CC" },
 });
 
 export default AchievementsScreen;

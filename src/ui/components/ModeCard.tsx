@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   },
   iconWrap: { width: 46, height: 46, borderRadius: 23, borderWidth: 2, alignItems: "center", justifyContent: "center" },
   text: { flex: 1, gap: 1 },
-  title: { color: "#fff", fontWeight: "800", fontSize: 15, letterSpacing: 1.5 },
+  title: { color: "#F3EADB", fontWeight: "800", fontSize: 15, letterSpacing: 1.5 },
   titleFeatured: { fontSize: 19, letterSpacing: 2 },
   subtitle: { color: "#D8C8B7", fontSize: 12, lineHeight: 15 },
   badge: { alignItems: "center", justifyContent: "center" },

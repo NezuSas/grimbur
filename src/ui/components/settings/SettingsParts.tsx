@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Text from "../Text";
 import { useTouchScale } from "../../layout/scaledWindow";
 
-export const GOLD = "#FFD54F";
+export const GOLD = "#D9B45A";
 export const CARD_BG = "rgba(34, 26, 18,0.9)";
 export const CARD_BORDER = "rgba(255,255,255,0.09)";
 
@@ -198,7 +198,7 @@ export const RoundAction = ({ icon, onPress, label, tone = "gold", disabled }: {
     accessibilityLabel={label}
     style={[styles.action, tone === "danger" && styles.actionDanger, tone === "dangerOn" && styles.actionDangerOn, disabled && { opacity: 0.5 }]}
   >
-    <Ionicons name={icon} size={20} color={tone === "gold" ? "#1a1200" : tone === "dangerOn" ? "#fff" : "#FF8A80"} />
+    <Ionicons name={icon} size={20} color={tone === "gold" ? "#1a1200" : tone === "dangerOn" ? "#fff" : "#D58A7E"} />
   </TouchableOpacity>
 );
 
@@ -214,12 +214,12 @@ const styles = StyleSheet.create({
   rowHead: { flexDirection: "row", alignItems: "center", gap: 12 },
   chip: { width: 38, height: 38, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   rowText: { flex: 1, flexShrink: 1 },
-  rowLabel: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  rowLabel: { color: "#F3EADB", fontWeight: "800", fontSize: 16 },
   rowHint: { color: "#CBB49E", fontSize: 12.5, lineHeight: 17, marginTop: 2 },
   rowControl: { marginLeft: 8 },
   rowBody: { paddingLeft: 50 },
   track: { width: 52, height: 30, borderRadius: 15, backgroundColor: "#34324a", borderWidth: 1.5, borderColor: "rgba(255,255,255,0.14)", justifyContent: "center", paddingHorizontal: 2 },
-  trackOn: { backgroundColor: "rgba(255,213,79,0.28)", borderColor: GOLD },
+  trackOn: { backgroundColor: "rgba(217, 180, 90,0.28)", borderColor: GOLD },
   thumb: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#9a97b3" },
   thumbOn: { backgroundColor: GOLD },
   sliderRow: { flexDirection: "row", alignItems: "center", gap: 14 },
@@ -236,6 +236,6 @@ const styles = StyleSheet.create({
   segmentText: { color: "#D6C4B2", fontWeight: "900", fontSize: 12.5, letterSpacing: 0.8 },
   segmentTextActive: { color: "#1a1200" },
   action: { width: 44, height: 44, borderRadius: 22, backgroundColor: GOLD, alignItems: "center", justifyContent: "center" },
-  actionDanger: { backgroundColor: "rgba(255,82,82,0.14)", borderWidth: 1.5, borderColor: "rgba(255,138,128,0.7)" },
-  actionDangerOn: { backgroundColor: "#FF5252" },
+  actionDanger: { backgroundColor: "rgba(204, 82, 73,0.14)", borderWidth: 1.5, borderColor: "rgba(255,138,128,0.7)" },
+  actionDangerOn: { backgroundColor: "#CC5249" },
 });

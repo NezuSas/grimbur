@@ -16,17 +16,17 @@ import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, typ
 import type { BiomeId } from "../../../core/engine/biomes";
 import type { TranslationKey } from "../../../i18n/en";
 
-const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#FFB74D", shield: "#4FC3F7", detector: "#81C784", bomb: "#FF7043" };
+const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#DCA45A", shield: "#7FAFC6", detector: "#8EAE7C", bomb: "#CC6E44" };
 const GEM = require("../../../assets/sprites/items/Icon_Gem.webp");
 /** Each omen's door wears the art and colour of what it brings. */
 const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.webp");
 const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
-  bounty: { art: require("../../../assets/sprites/items/Icon_Gem.webp"), color: "#4FC3F7" },
-  calm: { art: require("../../../assets/sprites/relics/lantern.webp"), color: "#9EE37D" },
-  arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.webp"), color: "#FF8A65" },
-  dark: { art: require("../../../assets/sprites/items/Icon_Darkness.webp"), color: "#7986CB" },
+  bounty: { art: require("../../../assets/sprites/items/Icon_Gem.webp"), color: "#7FAFC6" },
+  calm: { art: require("../../../assets/sprites/relics/lantern.webp"), color: "#A3BF7C" },
+  arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.webp"), color: "#D28663" },
+  dark: { art: require("../../../assets/sprites/items/Icon_Darkness.webp"), color: "#7E87B0" },
   shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.webp"), color: "#A1887F" },
-  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#FF5252" },
+  elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#CC5249" },
 };
 
 type Props = {
@@ -95,7 +95,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
   return (
     <OverlayContainer>
       <PopupPanel
-        tint="#FFD54F"
+        tint="#D9B45A"
         width={cardW}
         style={styles.card}
         backdrop={
@@ -117,7 +117,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
               {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
           </View>
-          <Text style={[popupTitleStyle("#FFD54F"), styles.title]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
+          <Text style={[popupTitleStyle("#D9B45A"), styles.title]} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
             {t("shop.title").toLocaleUpperCase()}
           </Text>
           <View style={styles.purse} accessible accessibilityLabel={t("shop.purse", { count: gems })}>
@@ -176,7 +176,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             style={[styles.altar, styles.merchant, merchantUsed && { opacity: 0.55 }]}
           >
             <SpriteImage source={MERCHANT_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
-            <Text style={[styles.altarText, { color: "#FFCDD2" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+            <Text style={[styles.altarText, { color: "#E3C7C4" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {merchantUsed ? t("shop.merchant.done") : `${t("shop.merchant.name")}: ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
             </Text>
           </TouchableOpacity>
@@ -203,7 +203,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           <View style={styles.doors}>
             {portals.map((p, i) => {
               const on = !p.fork || chosen === i;
-              const look = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#FFD54F" };
+              const look = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#D9B45A" };
               const name = p.fork
                 ? p.door
                   ? omenText(t, p.door, "name").replace(/^[^:]*:\s*/, "")
@@ -263,22 +263,22 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", gap: 12 },
   journey: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
   journeyFrom: { color: "#B99A7C", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
-  journeyTo: { color: "#FFE7A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
+  journeyTo: { color: "#EAD8A8", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   title: { flexShrink: 1 },
   purse: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6 },
-  purseText: { color: "#fff", fontWeight: "900", fontSize: 20, textShadowColor: "rgba(79,195,247,0.6)", textShadowRadius: 8 },
+  purseText: { color: "#F3EADB", fontWeight: "900", fontSize: 20, textShadowColor: "rgba(127, 175, 198,0.6)", textShadowRadius: 8 },
   shop: { flexDirection: "row", gap: 8 },
   ware: { flex: 1, alignItems: "center", gap: 2, paddingVertical: 8, paddingHorizontal: 6, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.38)", overflow: "hidden" },
   wareGlow: { position: "absolute", top: -30, width: 120, height: 90, borderRadius: 60 },
   wareArt: { width: 42, height: 42 },
-  wareName: { color: "#fff", fontWeight: "900", fontSize: 13.5 },
+  wareName: { color: "#F3EADB", fontWeight: "900", fontSize: 13.5 },
   wareDesc: { color: "#CAB39C", fontSize: 11, fontWeight: "600", textAlign: "center", minHeight: 28 },
   wareBuy: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, paddingHorizontal: 14, paddingVertical: 4, borderRadius: 12 },
   wareBuyText: { color: "#1a1200", fontWeight: "900", fontSize: 14 },
   deals: { flexDirection: "row", gap: 8 },
-  merchant: { borderColor: "#E57373", backgroundColor: "rgba(229,115,115,0.12)" },
-  altar: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "#CE93D8", backgroundColor: "rgba(206,147,216,0.12)" },
-  altarText: { flex: 1, color: "#E1BEE7", fontWeight: "800", fontSize: 12 },
+  merchant: { borderColor: "#C47268", backgroundColor: "rgba(229,115,115,0.12)" },
+  altar: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "#B08DBE", backgroundColor: "rgba(176, 141, 190,0.12)" },
+  altarText: { flex: 1, color: "#D3C2D8", fontWeight: "800", fontSize: 12 },
   wayRow: { flexDirection: "row", alignItems: "stretch", gap: 10 },
   doors: { flex: 1, flexDirection: "row", gap: 8 },
   portal: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, padding: 8, borderRadius: 16, borderWidth: 2, backgroundColor: "rgba(0,0,0,0.32)" },
@@ -288,5 +288,5 @@ const styles = StyleSheet.create({
   portalRule: { color: "#D7C6B5", fontSize: 11.5, lineHeight: 15 },
   portalCheck: { position: "absolute", top: 6, right: 6, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   go: { width: 210, justifyContent: "center" },
-  biome: { color: "#80DEEA", fontWeight: "700", fontSize: 12, textAlign: "center" },
+  biome: { color: "#8FC0C5", fontWeight: "700", fontSize: 12, textAlign: "center" },
 });

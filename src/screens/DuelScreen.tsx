@@ -29,9 +29,9 @@ import Rise, { riseDelay } from "../ui/components/Rise";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DuelScreen">;
 
-const GOLD = "#FFD54F";
-const TINT = "#FF8A80";
-const STATE_COLOR = { ready: "#9EE37D", lobby: "#D6C4B2", away: "#FF8A80", inGame: "#4FC3F7", waiting: "#8D7B69" } as const;
+const GOLD = "#D9B45A";
+const TINT = "#D58A7E";
+const STATE_COLOR = { ready: "#A3BF7C", lobby: "#D6C4B2", away: "#D58A7E", inGame: "#7FAFC6", waiting: "#8D7B69" } as const;
 type Tone = keyof typeof STATE_COLOR;
 
 /**
@@ -276,7 +276,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
 
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("duel.title")} onBack={() => navigation.goBack()} />
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   seat: { width: 18, height: 6, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.15)" },
   slots: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   slot: { flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, minHeight: 74, borderRadius: 16, borderWidth: 1.5, padding: 10 },
-  slotMe: { borderColor: "rgba(255,213,79,0.7)", backgroundColor: "rgba(255,213,79,0.08)" },
+  slotMe: { borderColor: "rgba(217, 180, 90,0.7)", backgroundColor: "rgba(217, 180, 90,0.08)" },
   slotRival: { borderColor: "rgba(255,138,128,0.55)", backgroundColor: "rgba(36,28,19,0.9)" },
   slotEmpty: { borderColor: "rgba(255,255,255,0.16)", borderStyle: "dashed", backgroundColor: "rgba(36,28,19,0.5)" },
   statePill: { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, borderWidth: 1 },
@@ -370,13 +370,13 @@ const styles = StyleSheet.create({
   section: { color: GOLD, fontWeight: "900", fontSize: 13, letterSpacing: 2.2 },
   code: { color: GOLD, fontWeight: "900", fontSize: 36, letterSpacing: 5, textAlign: "center", alignSelf: "stretch" },
   hint: { color: "#DCCCBD", fontSize: 13.5, lineHeight: 19, textAlign: "center" },
-  input: { alignSelf: "stretch", minHeight: 52, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", color: "#fff", fontSize: 22, fontWeight: "900", letterSpacing: 3, textAlign: "center", paddingHorizontal: 12 },
-  error: { color: "#FF8A80", fontSize: 12.5, fontWeight: "700", textAlign: "center" },
-  count: { color: "#fff", fontWeight: "900", fontSize: 64, textAlign: "center" },
-  stakeBox: { alignSelf: "stretch", alignItems: "center", gap: 2, padding: 8, borderRadius: 12, backgroundColor: "rgba(255,171,64,0.12)", borderWidth: 1, borderColor: "rgba(255,171,64,0.5)" },
-  stakeText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },
+  input: { alignSelf: "stretch", minHeight: 52, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", color: "#F3EADB", fontSize: 22, fontWeight: "900", letterSpacing: 3, textAlign: "center", paddingHorizontal: 12 },
+  error: { color: "#D58A7E", fontSize: 12.5, fontWeight: "700", textAlign: "center" },
+  count: { color: "#F3EADB", fontWeight: "900", fontSize: 64, textAlign: "center" },
+  stakeBox: { alignSelf: "stretch", alignItems: "center", gap: 2, padding: 8, borderRadius: 12, backgroundColor: "rgba(216, 154, 76,0.12)", borderWidth: 1, borderColor: "rgba(216, 154, 76,0.5)" },
+  stakeText: { color: "#D89A4C", fontWeight: "900", fontSize: 14 },
   stakeSub: { color: "#E9E0D7", fontSize: 12, textAlign: "center" },
   avatarEmpty: { width: 54, height: 54, borderRadius: 27, borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" },
-  playerName: { color: "#fff", fontWeight: "900", fontSize: 17 },
+  playerName: { color: "#F3EADB", fontWeight: "900", fontSize: 17 },
   playerState: { fontWeight: "900", fontSize: 11 },
 });

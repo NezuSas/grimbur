@@ -13,7 +13,7 @@ export type ArtTheme = BiomeId | 'frost' | 'moss' | 'vault';
 
 export const BIOME_ART: Record<ArtTheme, BiomeArt> = {
   cave: {
-    background: require('../assets/sprites/backgrounds/Cover_Background.png'),
+    background: require('../assets/sprites/backgrounds/Cover_Background.jpg'),
     tileHidden: require('../assets/sprites/tiles/Tile_Hidden.webp'),
     tileRevealed: require('../assets/sprites/tiles/Tile_Revealed.webp'),
   },
@@ -39,7 +39,7 @@ export const BIOME_ART: Record<ArtTheme, BiomeArt> = {
     tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Frost.webp'),
   },
   moss: {
-    background: require('../assets/sprites/backgrounds/Cover_Background.png'),
+    background: require('../assets/sprites/backgrounds/Cover_Background.jpg'),
     tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Moss.webp'),
     tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Moss.webp'),
   },

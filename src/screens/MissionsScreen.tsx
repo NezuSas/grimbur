@@ -31,8 +31,8 @@ import { themeArt, type AchievementTheme } from "../ui/achievementArt";
 
 type Props = NativeStackScreenProps<RootStackParamList, "MissionsScreen">;
 
-const GOLD = "#FFD54F";
-const TIER_COLOR = { easy: "#81C784", medium: "#4FC3F7", hard: "#FF8A65" } as const;
+const GOLD = "#D9B45A";
+const TIER_COLOR = { easy: "#8EAE7C", medium: "#7FAFC6", hard: "#D28663" } as const;
 
 /** Each mission wears the painted emblem of what it counts. */
 const METRIC_ART: Record<MissionDef["metric"], AchievementTheme> = {
@@ -128,7 +128,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   const rewardButton = (claimed: boolean, ready: boolean, reward: number, onPress: () => void) =>
     claimed ? (
       <View style={styles.claimedChip} accessible accessibilityLabel={t("missions.claimed")}>
-        <Ionicons name="checkmark-circle" size={24} color="#9EE37D" />
+        <Ionicons name="checkmark-circle" size={24} color="#A3BF7C" />
       </View>
     ) : (
       <PressScale
@@ -166,7 +166,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
           <View style={styles.barRow}>
             <View style={styles.track}>
-              <View style={[styles.fill, { width: `${(shown / def.target) * 100}%`, backgroundColor: done ? "#9EE37D" : color }]} />
+              <View style={[styles.fill, { width: `${(shown / def.target) * 100}%`, backgroundColor: done ? "#A3BF7C" : color }]} />
             </View>
             <Text style={styles.count} maxFontSizeMultiplier={1.1}>
               {n(shown)}/{n(def.target)}
@@ -184,7 +184,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   const dailyDone = m.daily.filter(p => p.claimed).length;
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }} edges={["top", "left", "right"]}>
         <ScreenHeader title={t("missions.title")} onBack={() => navigation.goBack()} />
         <View style={[styles.body, narrow && styles.bodyNarrow, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -247,7 +247,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                           {t("missions.rankFrom", { n: from })}
                         </Text>
                       </View>
-                      {reached ? <Ionicons name={current ? "location" : "checkmark"} size={14} color={current ? GOLD : "#9EE37D"} /> : <View style={{ width: 14 }} />}
+                      {reached ? <Ionicons name={current ? "location" : "checkmark"} size={14} color={current ? GOLD : "#A3BF7C"} /> : <View style={{ width: 14 }} />}
                     </View>
                   );
                 })}
@@ -366,27 +366,27 @@ const styles = StyleSheet.create({
   sideContent: { gap: 8, paddingBottom: 8 },
   main: { flex: 1, gap: 8 },
 
-  rankCard: { backgroundColor: CARD, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", padding: 12, gap: 6 },
+  rankCard: { backgroundColor: CARD, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", padding: 12, gap: 6 },
   rankTop: { flexDirection: "row", alignItems: "center", gap: 10 },
   medal: { width: 72, height: 72, alignItems: "center", justifyContent: "center" },
   medalArt: { width: 72, height: 72 },
   medalNum: { position: "absolute", bottom: -2, right: -2, minWidth: 28, height: 28, borderRadius: 14, paddingHorizontal: 4, backgroundColor: "#2A2016", borderWidth: 2, borderColor: GOLD, alignItems: "center", justifyContent: "center" },
   rankNumber: { color: GOLD, fontWeight: "900", fontSize: 14 },
   rankLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
-  rankName: { color: "#fff", fontWeight: "900", fontSize: 20 },
+  rankName: { color: "#F3EADB", fontWeight: "900", fontSize: 20 },
   rankTrack: { height: 9, borderRadius: 5, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   rankNext: { color: "#E4D8CD", fontSize: 12.5, fontWeight: "800" },
   rankEarned: { color: "#B99A7C", fontSize: 11.5, fontWeight: "700" },
-  ladderButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 36, marginTop: 2, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.08)" },
+  ladderButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 36, marginTop: 2, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.5)", backgroundColor: "rgba(217, 180, 90,0.08)" },
   ladderButtonText: { color: GOLD, fontWeight: "900", fontSize: 11.5, letterSpacing: 1 },
   ladder: { backgroundColor: CARD, borderRadius: 16, borderWidth: 1, borderColor: BORDER, padding: 10, gap: 4 },
   ladderInfo: { color: "#DCCCBD", fontSize: 12, lineHeight: 17, marginBottom: 4 },
   ladderRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 10 },
-  ladderCurrent: { backgroundColor: "rgba(255,213,79,0.12)", borderWidth: 1, borderColor: "rgba(255,213,79,0.45)" },
+  ladderCurrent: { backgroundColor: "rgba(217, 180, 90,0.12)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.45)" },
   ladderBadge: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" },
-  ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.14)" },
+  ladderBadgeOn: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.14)" },
   ladderNumber: { color: "#B99A7C", fontWeight: "900", fontSize: 11 },
-  ladderName: { color: "#fff", fontWeight: "900", fontSize: 13 },
+  ladderName: { color: "#F3EADB", fontWeight: "900", fontSize: 13 },
   ladderFrom: { color: "#B99A7C", fontSize: 11, fontWeight: "700" },
 
   // On a narrow window the "new in…" note drops under the tabs instead of being squeezed to a few letters.
@@ -394,37 +394,37 @@ const styles = StyleSheet.create({
   tab: { flexDirection: "row", alignItems: "center", gap: 6, minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.2)" },
   tabOn: { backgroundColor: GOLD, borderColor: GOLD },
   tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
-  tabBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#FF5252", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
-  tabBadgeText: { color: "#fff", fontSize: 11, fontWeight: "900" },
+  tabBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: "#CC5249", alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  tabBadgeText: { color: "#F3EADB", fontSize: 11, fontWeight: "900" },
   refreshBox: { flex: 1, minWidth: 120, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 },
   refresh: { color: "#B99A7C", fontWeight: "700", fontSize: 11.5, flexShrink: 1 },
   list: { gap: 8, paddingBottom: 16 },
   weekly: { flexDirection: "row", alignItems: "center", gap: 12, padding: 10, borderRadius: 16, borderWidth: 1.5, borderColor: "rgba(255,138,101,0.7)", backgroundColor: "rgba(70,30,20,0.9)" },
   weeklyArt: { width: 48, height: 48 },
-  weeklyKicker: { color: "#FF8A65", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
+  weeklyKicker: { color: "#D28663", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
   weeklyText: { color: "#F1E4D6", fontWeight: "700", fontSize: 12.5 },
-  weeklyPlay: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 12, minHeight: 38, borderRadius: 19, backgroundColor: "#FF8A65" },
+  weeklyPlay: { flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 12, minHeight: 38, borderRadius: 19, backgroundColor: "#D28663" },
   weeklyPlayText: { color: "#1a1200", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   empty: { color: "#B99A7C", fontStyle: "italic", paddingHorizontal: 4 },
 
   mission: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: CARD, borderRadius: 16, borderWidth: 1.5, borderColor: BORDER, overflow: "hidden", paddingRight: 10, minHeight: 66 },
-  missionReady: { borderColor: "rgba(158,227,125,0.7)", backgroundColor: "rgba(158,227,125,0.08)" },
+  missionReady: { borderColor: "rgba(163, 191, 124,0.7)", backgroundColor: "rgba(163, 191, 124,0.08)" },
   missionClaimed: { opacity: 0.6 },
-  bonus: { borderColor: "rgba(255,213,79,0.45)" },
+  bonus: { borderColor: "rgba(217, 180, 90,0.45)" },
   tierBar: { width: 5, alignSelf: "stretch" },
   missionArt: { width: 44, height: 44 },
   missionBody: { flex: 1, paddingVertical: 10, gap: 7 },
-  missionText: { color: "#fff", fontWeight: "800", fontSize: 14 },
+  missionText: { color: "#F3EADB", fontWeight: "800", fontSize: 14 },
   bonusPips: { flexDirection: "row", gap: 4 },
-  bonusPip: { width: 14, height: 8, borderRadius: 4, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.5)" },
+  bonusPip: { width: 14, height: 8, borderRadius: 4, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.5)" },
   bonusHint: { color: "#CBB49E", fontSize: 11.5, flexShrink: 1 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   track: { flex: 1, height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.12)", overflow: "hidden" },
   fill: { height: "100%", borderRadius: 4 },
   count: { color: "#E4D8CD", fontWeight: "800", fontSize: 12, minWidth: 50, textAlign: "right" },
-  reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,171,64,0.5)", backgroundColor: "rgba(255,171,64,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
-  rewardReady: { backgroundColor: GOLD, borderColor: "#FFE082" },
-  rewardText: { color: "#FFAB40", fontWeight: "900", fontSize: 14 },
+  reward: { minWidth: 76, minHeight: MIN_TOUCH, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(216, 154, 76,0.5)", backgroundColor: "rgba(216, 154, 76,0.1)", alignItems: "center", justifyContent: "center", gap: 1 },
+  rewardReady: { backgroundColor: GOLD, borderColor: "#E6CC88" },
+  rewardText: { color: "#D89A4C", fontWeight: "900", fontSize: 14 },
   claimText: { color: "#1a1200", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
   claimedChip: { minWidth: 76, alignItems: "center", justifyContent: "center" },
 });

@@ -25,7 +25,7 @@ type Props = {
   onDecline: () => void;
 };
 
-const FIRE = "#FF9A3C";
+const FIRE = "#D38C46";
 const PHOENIX = require("../../../assets/sprites/relics/phoenix.webp");
 const GIFTS: { key: string; art: ImageSourcePropType; text: "revive.gift.back" | "revive.gift.shield" | "revive.gift.arrows" }[] = [
   { key: "back", art: require("../../../assets/sprites/tools/Tool_Undo.webp"), text: "revive.gift.back" },
@@ -67,7 +67,7 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
         style={[styles.card, stacked && { flexDirection: "column" }]}
         backdrop={
           <>
-            <ImageBackground source={require("../../../assets/sprites/backgrounds/Cover_Background.png")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.25 }} />
+            <ImageBackground source={require("../../../assets/sprites/backgrounds/Cover_Background.jpg")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.25 }} />
             <LinearGradient colors={["rgba(60,30,12,0.85)", "rgba(18,11,6,0.97)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
           </>
         }

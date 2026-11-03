@@ -23,7 +23,7 @@ export const HeroesPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.heroes.title"))}
-      {fact("manual.heroes.intro", "#f48fb1", icon("people", "#f48fb1"))}
+      {fact("manual.heroes.intro", "#C98FA3", icon("people", "#C98FA3"))}
       {HEROES.map((hero, i) => {
         const ability = hero.perks.ability;
         const lock = unlockText(t, i);
@@ -40,8 +40,8 @@ export const HeroesPane = ({ kit }: { kit: Kit }) => {
                 </Text>
               </View>
               <View style={[styles.lockChip, !lock && styles.lockFree]}>
-                <Ionicons name={lock ? "lock-closed" : "checkmark-circle"} size={14} color={lock ? "#ffcc80" : "#a5d6a7"} />
-                <Text style={[styles.lockText, !lock && { color: "#a5d6a7" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
+                <Ionicons name={lock ? "lock-closed" : "checkmark-circle"} size={14} color={lock ? "#E2BE8C" : "#A5BC9E"} />
+                <Text style={[styles.lockText, !lock && { color: "#A5BC9E" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                   {lock || t("skin.tier.free")}
                 </Text>
               </View>
@@ -88,7 +88,7 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
     const cursed = RELICS[id].cursed;
     return (
       <View key={id} style={[styles.relic, wide && styles.relicWide, cursed && styles.relicCursed]}>
-        <Art size={48} tint={cursed ? "#ef5350" : "#ce93d8"}>
+        <Art size={48} tint={cursed ? "#C4534A" : "#B08DBE"}>
           <RelicIcon id={id} size={38} />
         </Art>
         <View style={{ flex: 1 }}>
@@ -104,20 +104,20 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
     );
   };
   const omenIcons: Record<string, { icon: keyof typeof Ionicons.glyphMap; tint: string }> = {
-    bounty: { icon: "cash", tint: "#FFD54F" },
-    calm: { icon: "leaf", tint: "#81C784" },
-    arsenal: { icon: "flash", tint: "#FF7043" },
-    elite: { icon: "skull", tint: "#FF5252" },
-    dark: { icon: "moon", tint: "#7986CB" },
+    bounty: { icon: "cash", tint: "#D9B45A" },
+    calm: { icon: "leaf", tint: "#8EAE7C" },
+    arsenal: { icon: "flash", tint: "#CC6E44" },
+    elite: { icon: "skull", tint: "#CC5249" },
+    dark: { icon: "moon", tint: "#7E87B0" },
     shortcut: { icon: "arrow-down-circle", tint: "#A1887F" },
   };
   return (
     <>
       {heading(t("manual.relics.title"))}
-      {fact("manual.relics.intro", "#ce93d8", <Art tint="#ce93d8"><RelicIcon id="quiver" size={44} /></Art>)}
-      <SubHeading text={t("manual.relics.all")} color="#ce93d8" />
+      {fact("manual.relics.intro", "#B08DBE", <Art tint="#B08DBE"><RelicIcon id="quiver" size={44} /></Art>)}
+      <SubHeading text={t("manual.relics.all")} color="#B08DBE" />
       <View style={styles.relicGrid}>{NORMAL_RELICS.map(relicCard)}</View>
-      <SubHeading text={t("manual.relics.families")} color="#ffd54f" />
+      <SubHeading text={t("manual.relics.families")} color="#D9B45A" />
       {RELIC_FAMILIES.map(f => (
         <FactCard
           key={f}
@@ -127,10 +127,10 @@ export const RelicsPane = ({ kit }: { kit: Kit }) => {
           art={<Art tint={FAMILY_COLOR[f]}><RelicIcon id={ALL_RELICS.find(r => RELIC_FAMILY[r] === f)!} size={44} /></Art>}
         />
       ))}
-      {fact("manual.tools.cursed", "#ef5350", icon("skull", "#ef5350"))}
+      {fact("manual.tools.cursed", "#C4534A", icon("skull", "#C4534A"))}
       <View style={styles.relicGrid}>{CURSED_RELICS.map(relicCard)}</View>
-      <SubHeading text={t("manual.relics.omens.label")} color="#ffd54f" />
-      {fact("manual.relics.omens", "#ffd54f", icon("partly-sunny", "#ffd54f"))}
+      <SubHeading text={t("manual.relics.omens.label")} color="#D9B45A" />
+      {fact("manual.relics.omens", "#D9B45A", icon("partly-sunny", "#D9B45A"))}
       {(["bounty", "calm", "arsenal", "elite", "dark", "shortcut"] as const).map(id => (
         <FactCard key={id} label={omenText(t, id, "name")} detail={omenText(t, id, "rule")} color={omenIcons[id].tint} art={icon(omenIcons[id].icon, omenIcons[id].tint)} />
       ))}
@@ -144,11 +144,11 @@ export const ToolsPane = ({ kit }: { kit: Kit }) => {
   return (
     <>
       {heading(t("manual.tools.title"))}
-      {fact("manual.tools.shop", "#4fc3f7", icon("cart", "#4fc3f7"))}
+      {fact("manual.tools.shop", "#7FAFC6", icon("cart", "#7FAFC6"))}
       <View style={styles.relicGrid}>
         {shopItems.map(item => (
           <View key={item} style={[styles.relic, wide && styles.relicWide]}>
-            <Art size={48} tint="#4fc3f7" image={SHOP_ART[item]} />
+            <Art size={48} tint="#7FAFC6" image={SHOP_ART[item]} />
             <View style={{ flex: 1 }}>
               <Text style={styles.relicName} maxFontSizeMultiplier={1.3}>
                 {t(asKey(`shop.${item}.name`))}
@@ -160,11 +160,11 @@ export const ToolsPane = ({ kit }: { kit: Kit }) => {
           </View>
         ))}
       </View>
-      {fact("manual.tools.doors", "#ffd54f", icon("git-branch", "#ffd54f"))}
-      {fact("manual.tools.altar", "#ce93d8", image(ALTAR_ART, "#ce93d8"))}
-      {fact("manual.tools.ability", "#81c784", image(ABILITY_ART.volley, "#81c784"))}
-      {fact("manual.tools.items", "#ffb74d", image(TOOL_ART.detector, "#ffb74d"))}
-      {fact("manual.tools.undo", "#ba68c8", image(TOOL_ART.undo, "#ba68c8"))}
+      {fact("manual.tools.doors", "#D9B45A", icon("git-branch", "#D9B45A"))}
+      {fact("manual.tools.altar", "#B08DBE", image(ALTAR_ART, "#B08DBE"))}
+      {fact("manual.tools.ability", "#8EAE7C", image(ABILITY_ART.volley, "#8EAE7C"))}
+      {fact("manual.tools.items", "#DCA45A", image(TOOL_ART.detector, "#DCA45A"))}
+      {fact("manual.tools.undo", "#9A72AC", image(TOOL_ART.undo, "#9A72AC"))}
     </>
   );
 };

@@ -11,7 +11,7 @@ import { PUZZLE_TIERS } from "../../core/puzzles/puzzles";
 import { DAILY_PUZZLE_EMBERS, MAX_STARS } from "../../core/stats/puzzleProgress";
 import { TIER_TINTS } from "./ChapterMap";
 
-const TINT = "#4DD0E1";
+const TINT = "#6CB0B9";
 const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 const RIDDLE = require("../../assets/sprites/ui/Icon_Riddle.webp");
 const CALENDAR = require("../../assets/sprites/ui/Icon_Calendar.webp");
@@ -97,7 +97,7 @@ export default function DailyCard({ number, tier, stars, streak, bestStreak, wee
       <View style={styles.week} accessible accessibilityLabel={streak > 0 ? t("puzzle.streak", { n: streak }) : t("puzzle.streakStart")}>
         {days.map(d => (
           <View key={d.k} style={styles.day}>
-            <Text style={[styles.dayLetter, d.today && { color: "#fff" }]} maxFontSizeMultiplier={1}>
+            <Text style={[styles.dayLetter, d.today && { color: "#F3EADB" }]} maxFontSizeMultiplier={1}>
               {d.letter}
             </Text>
             <View style={[styles.dayDot, d.lit && styles.dayLit, d.today && !d.lit && styles.dayToday]}>
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
   size: { color: "#9fb9bd", fontWeight: "800", fontSize: 11 },
   starRow: { flexDirection: "row", gap: 2, marginTop: 2 },
   reward: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
-  rewardText: { flexShrink: 1, color: "#FFCC80", fontWeight: "800", fontSize: 12 },
+  rewardText: { flexShrink: 1, color: "#E2BE8C", fontWeight: "800", fontSize: 12 },
   week: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 2 },
   day: { alignItems: "center", gap: 3 },
   dayLetter: { color: "#7fa3a8", fontWeight: "900", fontSize: 10 },
   dayDot: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.08)", borderWidth: 1, borderColor: "rgba(255,255,255,0.12)" },
-  dayLit: { backgroundColor: "rgba(255,138,101,0.25)", borderColor: "#FF8A65" },
+  dayLit: { backgroundColor: "rgba(255,138,101,0.25)", borderColor: "#D28663" },
   dayToday: { borderColor: TINT, borderWidth: 2, borderStyle: "dashed" },
   streak: { color: "#FFCCBC", fontWeight: "800", fontSize: 11.5, textAlign: "center" },
   note: { color: "#cfe9ee", fontSize: 11.5, textAlign: "center" },

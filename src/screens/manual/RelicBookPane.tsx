@@ -10,8 +10,8 @@ import { RELIC_IMAGES } from "../../ui/relicImages";
 import { FAMILY_COLOR } from "../../ui/familyLook";
 import type { Kit } from "./kit";
 
-const CURSED = "#FF6E6E";
-const GOLD = "#FFCA28";
+const CURSED = "#CF6F68";
+const GOLD = "#D6AA48";
 
 /**
  * The relic book: every relic of the game. The ones never picked are a dark shape and "???"; the picked ones show their
@@ -68,7 +68,7 @@ export const RelicBookPane = ({ kit }: { kit: Kit }) => {
                   <Text style={styles.count} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {t("relicbook.picks", { n: picks })}
                   </Text>
-                  <Text style={[styles.count, { color: wins > 0 ? "#9EE37D" : "#A8927D" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                  <Text style={[styles.count, { color: wins > 0 ? "#A3BF7C" : "#A8927D" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {t("relicbook.wins", { n: wins })}
                   </Text>
                 </>

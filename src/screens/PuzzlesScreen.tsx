@@ -32,7 +32,7 @@ import EndlessPortal from "./puzzle/EndlessPortal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzlesScreen">;
 
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 const STAR = require("../assets/sprites/ui/Icon_Star.webp");
 const BOOK = require("../assets/sprites/ui/Icon_Book.webp");
 const CALENDAR = require("../assets/sprites/ui/Icon_Calendar.webp");
@@ -51,7 +51,7 @@ function fxBetween(prev: PuzzleProgress | undefined, cur: PuzzleProgress | undef
   const opened = Math.floor(to / PER_CHAPTER) > Math.floor(from / PER_CHAPTER) && puzzleStarsAt(cur, to) === 0 ? Math.floor(to / PER_CHAPTER) : null;
   return { gained, walkFrom: to !== from ? from : null, unlocked: opened };
 }
-const ENDLESS_TINT = "#CE93D8";
+const ENDLESS_TINT = "#B08DBE";
 const PAGER = 36;
 
 /**
@@ -190,7 +190,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
   );
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(10, 13, 16, 0.86)" }} edges={["top", "left", "right"]}>
         <ScreenHeader
           title={t("puzzle.title")}
@@ -229,7 +229,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.archive.link", { n: Object.keys(puzzles?.archive ?? {}).length })}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#FFD54F" />
+              <Ionicons name="chevron-forward" size={16} color="#D9B45A" />
             </PressScale>
             <PressScale
               onPress={() => navigation.navigate("InstructionsScreen", { topic: "techniques" })}
@@ -241,7 +241,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.techniques")}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#FFD54F" />
+              <Ionicons name="chevron-forward" size={16} color="#D9B45A" />
             </PressScale>
             <FriendsToday date={today} friends={stats.friends} onAddFriends={() => navigation.navigate("HighScoresScreen")} />
           </ScrollView>

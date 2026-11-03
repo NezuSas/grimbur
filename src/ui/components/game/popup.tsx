@@ -116,9 +116,9 @@ type ButtonProps = {
 };
 
 const BUTTON_COLORS = {
-  primary: { fill: ["#FFE082", "#FFB300"] as const, edge: "#B26A00", text: "#2B1A00" },
+  primary: { fill: ["#E6CC88", "#FFB300"] as const, edge: "#B26A00", text: "#2B1A00" },
   secondary: { fill: ["#5A4A3A", "#463626"] as const, edge: "#261D14", text: "#FFFFFF" },
-  danger: { fill: ["#FF8A80", "#E53935"] as const, edge: "#8E1B18", text: "#FFFFFF" },
+  danger: { fill: ["#D58A7E", "#B8423A"] as const, edge: "#8E1B18", text: "#FFFFFF" },
 };
 
 /** Mixes a #RRGGBB colour towards white (amount > 0) or black (amount < 0). */

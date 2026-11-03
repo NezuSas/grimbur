@@ -70,6 +70,6 @@ export default AttackPanel;
 
 const styles = StyleSheet.create({
   // Floats above the button so that it never moves when the offer comes and goes.
-  refill: { position: "absolute", top: -56, alignSelf: "center", minHeight: 50, minWidth: 84, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16, backgroundColor: "#FFAB40", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center", zIndex: 5 },
+  refill: { position: "absolute", top: -56, alignSelf: "center", minHeight: 50, minWidth: 84, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16, backgroundColor: "#D89A4C", borderWidth: 2, borderColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center", zIndex: 5 },
   refillText: { color: "#1a1200", fontWeight: "900", fontSize: 13, textAlign: "center", lineHeight: 17 },
 });

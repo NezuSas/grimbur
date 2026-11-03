@@ -10,7 +10,7 @@ import { useT } from "../../i18n/useT";
 import { formatSolveTime } from "./shareText";
 import KeyHint from "../../ui/components/KeyHint";
 
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 const GEM = require("../../assets/sprites/items/Icon_Gem.webp");
 
 type Props = {
@@ -75,16 +75,16 @@ export default function PuzzleIntro({ title, tier, tint, rows, cols, gems, best,
           ) : null}
           {strict ? (
             <View style={[styles.chip, styles.chipRed]}>
-              <Ionicons name="skull-outline" size={14} color="#FF8A80" />
-              <Text style={[styles.chipText, { color: "#FFCDD2" }]} maxFontSizeMultiplier={1.1}>
+              <Ionicons name="skull-outline" size={14} color="#D58A7E" />
+              <Text style={[styles.chipText, { color: "#E3C7C4" }]} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.intro.strict")}
               </Text>
             </View>
           ) : null}
           {noHints ? (
             <View style={[styles.chip, styles.chipRed]}>
-              <Ionicons name="bulb-outline" size={14} color="#FF8A80" />
-              <Text style={[styles.chipText, { color: "#FFCDD2" }]} maxFontSizeMultiplier={1.1}>
+              <Ionicons name="bulb-outline" size={14} color="#D58A7E" />
+              <Text style={[styles.chipText, { color: "#E3C7C4" }]} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.intro.noHints")}
               </Text>
             </View>
@@ -108,8 +108,8 @@ const styles = StyleSheet.create({
   goalText: { flex: 1, color: "#FFF3E0", fontWeight: "800", fontSize: 14 },
   chips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6 },
   chip: { flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(255,255,255,0.06)" },
-  chipGold: { borderColor: GOLD, backgroundColor: "rgba(255,213,79,0.12)" },
-  chipRed: { borderColor: "rgba(255,82,82,0.6)", backgroundColor: "rgba(255,82,82,0.1)" },
+  chipGold: { borderColor: GOLD, backgroundColor: "rgba(217, 180, 90,0.12)" },
+  chipRed: { borderColor: "rgba(204, 82, 73,0.6)", backgroundColor: "rgba(204, 82, 73,0.1)" },
   chipText: { color: "#E6D6C2", fontWeight: "800", fontSize: 12 },
   stars: { color: "#bfb3a6", fontSize: 11.5, textAlign: "center" },
 });

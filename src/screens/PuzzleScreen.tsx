@@ -58,7 +58,7 @@ import { techniqueOf } from "../core/puzzles/techniques";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PuzzleScreen">;
 
-const TINT = "#4DD0E1";
+const TINT = "#6CB0B9";
 const HAZARDS = new Set(["enemy", "pit"]);
 /** The pause after the last gem, while the board shows where the hazards were, before the result card. */
 const REVEAL_MS = 1500;
@@ -414,9 +414,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   // A ray from the clue that proves the hint's tile (gold), or from the clue that warned of the hazard just stepped on (red).
   const beam =
     fail && failWhy
-      ? { from: failWhy.from, to: fail.tile, color: "#FF5252" }
+      ? { from: failWhy.from, to: fail.tile, color: "#CC5249" }
       : hintTile !== null && hintWhy && (hintWhy.kind === "empty" || hintWhy.kind === "full")
-        ? { from: besideOf(hintTile, hintWhy.side, state.cols), to: hintTile, color: "#FFD54F" }
+        ? { from: besideOf(hintTile, hintWhy.side, state.cols), to: hintTile, color: "#D9B45A" }
         : null;
   const possible = puzzleStars(mistakes, hints);
   const tierTint = TIER_TINTS[puzzle.tier] ?? TINT;
@@ -516,7 +516,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   }, []);
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.container} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.container} resizeMode="cover">
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.62)" }]} />
       <StatusBar hidden />
       <View style={[styles.banner, { paddingTop: insets.top + (hudHeight < 70 ? 4 : 8), minHeight: bannerHeight, paddingLeft: insets.left + 10, paddingRight: insets.right + 10 }]} accessibilityLiveRegion="polite">
@@ -534,14 +534,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         {legend > 0 ? <LegendClock startedAt={startedAt} legend={legend} stopped={!introDone || solved || failedOut} /> : null}
         {!isTechnique && !isWeekly ? <LiveStars possible={possible} calm={calm} /> : null}
         <View style={[styles.counter, !isTechnique && !isWeekly && { display: "none" }]} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
-          <Ionicons name="close-circle" size={15} color={mistakes > 0 ? "#FF8A80" : "#8d8178"} />
-          <Text style={[styles.counterText, mistakes > 0 && { color: "#FF8A80" }]} maxFontSizeMultiplier={1.2}>
+          <Ionicons name="close-circle" size={15} color={mistakes > 0 ? "#D58A7E" : "#8d8178"} />
+          <Text style={[styles.counterText, mistakes > 0 && { color: "#D58A7E" }]} maxFontSizeMultiplier={1.2}>
             {mistakes}
           </Text>
         </View>
         {isWeekly ? null : (
           <TouchableOpacity style={[styles.iconButton, styles.hintButton, hintTile !== null && styles.hintOn]} onPress={showHint} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.hint")} accessibilityHint={t("puzzle.hintCost")}>
-            <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#FFD54F"} />
+            <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#D9B45A"} />
             <KeyHint action="hint" style={{ top: -2, left: -2 }} />
           </TouchableOpacity>
         )}
@@ -581,11 +581,11 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             </Text>
             <View style={styles.hereRow}>
               <SpriteImage source={CLUE_ART.roar} style={[styles.clueIcon, here.enemyCount === 0 && styles.clueNone]} resizeMode="contain" />
-              <Text style={[styles.hereCount, here.enemyCount > 0 && { color: "#FFB74D" }]} maxFontSizeMultiplier={1.15}>
+              <Text style={[styles.hereCount, here.enemyCount > 0 && { color: "#DCA45A" }]} maxFontSizeMultiplier={1.15}>
                 {here.enemyCount}
               </Text>
               <SpriteImage source={CLUE_ART.vortex} style={[styles.clueIcon, here.pitCount === 0 && styles.clueNone]} resizeMode="contain" />
-              <Text style={[styles.hereCount, here.pitCount > 0 && { color: "#CE93D8" }]} maxFontSizeMultiplier={1.15}>
+              <Text style={[styles.hereCount, here.pitCount > 0 && { color: "#B08DBE" }]} maxFontSizeMultiplier={1.15}>
                 {here.pitCount}
               </Text>
             </View>
@@ -608,7 +608,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         <PuzzleIntro
           title={title}
           tier={tierName}
-          tint={isWeekly ? "#FF5252" : tierTint}
+          tint={isWeekly ? "#CC5249" : tierTint}
           rows={puzzle.rows}
           cols={puzzle.cols}
           gems={gems}
@@ -622,8 +622,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       ) : null}
       {failedOut ? (
         <OverlayContainer>
-          <PopupPanel tint="#FF5252" width={Math.min(winWidth * 0.9, 420)}>
-            <Text style={popupTitleStyle("#FF5252")} maxFontSizeMultiplier={1.15}>
+          <PopupPanel tint="#CC5249" width={Math.min(winWidth * 0.9, 420)}>
+            <Text style={popupTitleStyle("#CC5249")} maxFontSizeMultiplier={1.15}>
               {t("puzzle.strict.failed").toLocaleUpperCase()}
             </Text>
             <Text style={styles.resultLine} maxFontSizeMultiplier={1.2}>
@@ -632,7 +632,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             <PopButton
               label={isWeekly ? t("puzzle.weekly.practice") : t("puzzle.strict.again")}
               icon="refresh"
-              tint="#FF8A80"
+              tint="#D58A7E"
               onPress={() => navigation.replace("PuzzleScreen", isWeekly ? { target: "weekly", practice: true } : { target, date: route.params.date })}
             />
             <View style={styles.resultLinks}>
@@ -674,7 +674,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {isTechnique ? null : (
                 <>
                   <View style={styles.timeRow}>
-                    <Ionicons name="timer-outline" size={16} color="#FFE0B2" />
+                    <Ionicons name="timer-outline" size={16} color="#E8D2B2" />
                     <CountUp value={Math.round(result.seconds)} delay={numbersAt(result.stars)} format={formatSolveTime} style={styles.resultTime} calm={calm} />
                   </View>
                   <DropIn delay={numbersAt(result.stars) + 500} calm={calm}>
@@ -689,8 +689,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                   {legend > 0 ? (
                     <DropIn delay={numbersAt(result.stars) + 800} calm={calm} sound={result.crown ? "RELIC_PICKED" : undefined}>
                       <View style={[styles.crownLine, result.crown && styles.crownWon]}>
-                        <MaterialCommunityIcons name="crown" size={result.crown ? 20 : 17} color={result.crown ? "#FFD54F" : "#8d8178"} />
-                        <Text style={[styles.crownText, result.crown && { color: "#FFD54F" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                        <MaterialCommunityIcons name="crown" size={result.crown ? 20 : 17} color={result.crown ? "#D9B45A" : "#8d8178"} />
+                        <Text style={[styles.crownText, result.crown && { color: "#D9B45A" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                           {result.crown ? t("puzzle.crown.won") : t("puzzle.crown.goal", { time: formatSolveTime(legend) })}
                         </Text>
                       </View>
@@ -762,7 +762,7 @@ function LegendClock({ startedAt, legend, stopped }: { startedAt: React.MutableR
   const within = seconds <= legend;
   return (
     <View style={[styles.clock, !within && styles.clockLate]} accessible accessibilityLabel={t("puzzle.crown.clock", { time: formatSolveTime(seconds), legend: formatSolveTime(legend) })}>
-      <MaterialCommunityIcons name="crown" size={14} color={within ? "#FFD54F" : "#8d8178"} />
+      <MaterialCommunityIcons name="crown" size={14} color={within ? "#D9B45A" : "#8d8178"} />
       <Text style={[styles.clockText, !within && { color: "#a89c92" }]} maxFontSizeMultiplier={1.1}>
         {`${formatSolveTime(seconds)} / ${formatSolveTime(legend)}`}
       </Text>
@@ -771,11 +771,11 @@ function LegendClock({ startedAt, legend, stopped }: { startedAt: React.MutableR
 }
 
 const styles = StyleSheet.create({
-  clock: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,213,79,0.5)", backgroundColor: "rgba(255,213,79,0.1)" },
+  clock: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: "rgba(217, 180, 90,0.5)", backgroundColor: "rgba(217, 180, 90,0.1)" },
   clockLate: { borderColor: "rgba(255,255,255,0.15)", backgroundColor: "rgba(255,255,255,0.05)" },
-  clockText: { color: "#FFE082", fontWeight: "900", fontSize: 12, fontVariant: ["tabular-nums"] },
+  clockText: { color: "#E6CC88", fontWeight: "900", fontSize: 12, fontVariant: ["tabular-nums"] },
   crownLine: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.05)" },
-  crownWon: { backgroundColor: "rgba(255,213,79,0.15)", borderWidth: 1, borderColor: "#FFD54F" },
+  crownWon: { backgroundColor: "rgba(217, 180, 90,0.15)", borderWidth: 1, borderColor: "#D9B45A" },
   crownText: { color: "#bfb3a6", fontWeight: "800", fontSize: 13 },
   resultCard: { flexDirection: "row", alignItems: "center", gap: 18 },
   resultCardShort: { paddingVertical: 10, gap: 12 },
@@ -784,8 +784,8 @@ const styles = StyleSheet.create({
   resultButton: { alignSelf: "stretch" },
   prizes: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "center", columnGap: 12 },
   timeRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
-  record: { color: "#FFD54F", fontWeight: "900" },
-  weeklyWon: { color: "#FF8A80", fontWeight: "900", fontSize: 14, textAlign: "center" },
+  record: { color: "#D9B45A", fontWeight: "900" },
+  weeklyWon: { color: "#D58A7E", fontWeight: "900", fontSize: 14, textAlign: "center" },
   container: { flex: 1, backgroundColor: "#000" },
   banner: {
     flexDirection: "row",
@@ -800,12 +800,12 @@ const styles = StyleSheet.create({
   },
   bannerText: { flex: 1, gap: 1 },
   label: { color: TINT, fontWeight: "900", letterSpacing: 2 },
-  goal: { color: "#fff", fontWeight: "700" },
-  goalFail: { color: "#FF8A80" },
-  goalWhy: { color: "#FFE082" },
+  goal: { color: "#F3EADB", fontWeight: "700" },
+  goalFail: { color: "#D58A7E" },
+  goalWhy: { color: "#E6CC88" },
   iconButton: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, alignItems: "center", justifyContent: "center" },
-  hintButton: { borderWidth: 1.5, borderColor: "#FFD54F88", backgroundColor: "rgba(255,213,79,0.12)" },
-  hintOn: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  hintButton: { borderWidth: 1.5, borderColor: "#FFD54F88", backgroundColor: "rgba(217, 180, 90,0.12)" },
+  hintOn: { backgroundColor: "#D9B45A", borderColor: "#D9B45A" },
   counter: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6 },
   counterText: { color: "#bdb2a7", fontWeight: "900", fontSize: 14 },
   gameContent: { flex: 1, alignItems: "center", justifyContent: "space-around" },
@@ -819,10 +819,10 @@ const styles = StyleSheet.create({
   gemsLeft: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: "#4FC3F766" },
   gemsText: { color: "#E1F5FE", fontWeight: "900", fontSize: 15 },
   resultLine: { color: "#E6D6C2", fontSize: 13, textAlign: "center" },
-  resultTime: { color: "#FFE0B2", fontSize: 14, fontWeight: "800", textAlign: "center" },
+  resultTime: { color: "#E8D2B2", fontSize: 14, fontWeight: "800", textAlign: "center" },
   embers: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 4 },
-  achievements: { color: "#FFD54F", fontSize: 12, fontWeight: "800", textAlign: "center", marginBottom: 4 },
-  embersText: { color: "#FFB74D", fontWeight: "900", fontSize: 16 },
+  achievements: { color: "#D9B45A", fontSize: 12, fontWeight: "800", textAlign: "center", marginBottom: 4 },
+  embersText: { color: "#DCA45A", fontWeight: "900", fontSize: 16 },
   resultLinks: { flexDirection: "row", justifyContent: "center", gap: 18, alignSelf: "stretch" },
   tierUp: { color: TINT, fontSize: 12, fontWeight: "800", textAlign: "center" },
 });

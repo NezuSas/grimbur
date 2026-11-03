@@ -10,8 +10,8 @@ import { FRAME_ART, PET_ADULT_ART } from "../cosmeticArt";
 import { YULE_FLOORS, YULE_PUZZLES, yuleProgress, type EventProgress } from "../../core/events/yule";
 import { useEscapeKey } from "../hotkeys";
 
-const PINE = "#81C784";
-const GOLD = "#FFD54F";
+const PINE = "#8EAE7C";
+const GOLD = "#D9B45A";
 
 type Props = { events: EventProgress | undefined; today: string; onClose: () => void; onPuzzles: () => void };
 

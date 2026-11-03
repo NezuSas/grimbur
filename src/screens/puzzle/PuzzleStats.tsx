@@ -12,8 +12,8 @@ import { MAX_STARS, puzzlesSolved, totalPuzzleStars, type PuzzleProgress } from 
 import { formatSolveTime } from "./shareText";
 import { useEscapeKey } from "../../ui/hotkeys";
 
-const TINT = "#4DD0E1";
-const GOLD = "#FFD54F";
+const TINT = "#6CB0B9";
+const GOLD = "#D9B45A";
 const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 type Props = { puzzles: PuzzleProgress | undefined; onClose: () => void };
@@ -64,8 +64,8 @@ export default function PuzzleStats({ puzzles, onClose }: Props) {
               {tile(`${totalPuzzleStars(p)}/${PUZZLE_COUNT * MAX_STARS}`, t("puzzle.stats.stars"), <SpriteImage source={STAR} style={{ width: 15, height: 15 }} resizeMode="contain" />)}
               {tile(`${p?.crowns?.length ?? 0}/${PUZZLE_COUNT}`, t("puzzle.stats.crowns"), <MaterialCommunityIcons name="crown" size={15} color={GOLD} />)}
               {tile(`${p?.chests?.length ?? 0}/${PUZZLE_TIERS.length}`, t("puzzle.stats.chests"))}
-              {tile(average ? formatSolveTime(average) : "—", t("puzzle.stats.average"), <Ionicons name="timer-outline" size={14} color="#FFE0B2" />)}
-              {tile(`${p?.endless?.solved ?? 0}`, t("puzzle.stats.endless"), <Ionicons name="infinite" size={15} color="#CE93D8" />)}
+              {tile(average ? formatSolveTime(average) : "—", t("puzzle.stats.average"), <Ionicons name="timer-outline" size={14} color="#E8D2B2" />)}
+              {tile(`${p?.endless?.solved ?? 0}`, t("puzzle.stats.endless"), <Ionicons name="infinite" size={15} color="#B08DBE" />)}
             </View>
           </View>
           <View style={styles.column}>
@@ -76,7 +76,7 @@ export default function PuzzleStats({ puzzles, onClose }: Props) {
               {tile(`${p?.dailySolved ?? 0}`, t("puzzle.stats.days"))}
               {tile(`${p?.streak ?? 0}`, t("puzzle.stats.streak"), <Text style={styles.flame}>🔥</Text>)}
               {tile(`${p?.bestStreak ?? 0}`, t("puzzle.stats.bestStreak"))}
-              {tile(`${p?.weeklyWins ?? 0}`, t("puzzle.stats.weekly"), <Ionicons name="skull" size={14} color="#FF8A80" />)}
+              {tile(`${p?.weeklyWins ?? 0}`, t("puzzle.stats.weekly"), <Ionicons name="skull" size={14} color="#D58A7E" />)}
             </View>
             <Text style={styles.section} maxFontSizeMultiplier={1.1}>
               {t("puzzle.stats.spread").toLocaleUpperCase()}

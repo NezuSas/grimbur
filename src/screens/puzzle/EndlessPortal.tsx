@@ -8,7 +8,7 @@ import { useT } from "../../i18n/useT";
 import { ENDLESS_AFTER } from "../../core/puzzles/puzzles";
 import { ENDLESS_EMBERS_PER_STAR } from "../../core/stats/puzzleProgress";
 
-const TINT = "#CE93D8";
+const TINT = "#B08DBE";
 const VORTEX = require("../../assets/sprites/tiles/Danger_Vortex.png");
 const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.webp");
 

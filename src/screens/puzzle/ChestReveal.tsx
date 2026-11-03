@@ -15,7 +15,7 @@ import { LEGEND_TIER } from "../../core/puzzles/puzzles";
 import { FRAME_ART } from "../../ui/cosmeticArt";
 import { useEscapeKey } from "../../ui/hotkeys";
 
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 const SHUT = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
 const OPEN = require("../../assets/sprites/items/Icon_Chest.webp");
 

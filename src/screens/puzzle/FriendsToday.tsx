@@ -10,7 +10,7 @@ import { loadFriendsPuzzle, type PuzzleRow } from "../../services/puzzleScores";
 import { formatSolveTime } from "./shareText";
 
 const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
-const TINT = "#4DD0E1";
+const TINT = "#6CB0B9";
 const SHOWN = 6;
 
 /**
@@ -78,7 +78,7 @@ export default function FriendsToday({ date, friends, onAddFriends }: { date: st
               <Text style={styles.rank} maxFontSizeMultiplier={1.1}>
                 {i + 1}
               </Text>
-              <Text style={[styles.name, mine && { color: "#fff" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+              <Text style={[styles.name, mine && { color: "#F3EADB" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                 {mine ? t("puzzle.friends.you") : r.name}
               </Text>
               <View style={styles.stars}>
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   rank: { color: "#8d8178", fontWeight: "900", fontSize: 12, width: 14, textAlign: "center" },
   name: { flex: 1, color: "#E6D6C2", fontWeight: "800", fontSize: 12 },
   stars: { flexDirection: "row", gap: 1 },
-  time: { color: "#FFE0B2", fontWeight: "800", fontSize: 12, minWidth: 34, textAlign: "right" },
+  time: { color: "#E8D2B2", fontWeight: "800", fontSize: 12, minWidth: 34, textAlign: "right" },
   invite: { alignSelf: "stretch", flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: TINT + "44", backgroundColor: "rgba(0,0,0,0.3)" },
   inviteText: { flex: 1, color: "#cfe9ee", fontSize: 12, fontWeight: "700" },
 });

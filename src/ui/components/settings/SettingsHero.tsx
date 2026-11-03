@@ -133,7 +133,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
               i === 3 && { right: 0, top: padSize / 3 },
             ]}
           >
-            <Ionicons name={icon} size={padSize / 5} color="#FFE7A8" />
+            <Ionicons name={icon} size={padSize / 5} color="#EAD8A8" />
           </View>
         ))}
         <View style={[styles.crossMid, { width: padSize / 3, height: padSize / 3, left: padSize / 3, top: padSize / 3 }]}>
@@ -197,21 +197,21 @@ const styles = StyleSheet.create({
   heroTitle: { fontWeight: "900", fontSize: 20, letterSpacing: 2.5 },
   heroTitleCompact: { fontSize: 15, letterSpacing: 1.2 },
   heroHint: { color: "#D4C2B0", fontSize: 12.5, lineHeight: 17, fontWeight: "600" },
-  preview: { borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", overflow: "hidden", justifyContent: "center" },
+  preview: { borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", overflow: "hidden", justifyContent: "center" },
   previewRow: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   previewSide: { alignItems: "center", justifyContent: "flex-end", alignSelf: "stretch", paddingBottom: 8 },
   previewBoard: { borderRadius: 6, overflow: "hidden", borderWidth: 1, borderColor: "rgba(255,255,255,0.18)" },
   stickBase: { alignItems: "center", justifyContent: "center", borderWidth: 2 },
-  stickBaseConsole: { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(255,213,79,0.7)" },
+  stickBaseConsole: { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "rgba(217, 180, 90,0.7)" },
   stickBaseArcade: { backgroundColor: "rgba(20,20,20,0.6)", borderColor: "rgba(255,255,255,0.5)" },
   stickKnob: { borderWidth: 2 },
-  stickKnobConsole: { backgroundColor: "#4A4436", borderColor: "#FFD54F" },
-  stickKnobArcade: { backgroundColor: "#E53935", borderColor: "#FF8A80" },
+  stickKnobConsole: { backgroundColor: "#4A4436", borderColor: "#D9B45A" },
+  stickKnobArcade: { backgroundColor: "#B8423A", borderColor: "#D58A7E" },
   centerAttack: { position: "absolute" },
   cross: {},
-  crossKey: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(60,45,28,0.92)", borderWidth: 1, borderColor: "rgba(255,213,79,0.55)", borderRadius: 5 },
+  crossKey: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(60,45,28,0.92)", borderWidth: 1, borderColor: "rgba(217, 180, 90,0.55)", borderRadius: 5 },
   crossMid: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(60,45,28,0.92)" },
   captionRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#9EE37D" },
+  liveDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: "#A3BF7C" },
   caption: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.4 },
 });

@@ -48,7 +48,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "HighScoresScreen">;
 type Status = "loading" | "ready" | "error";
 type Board = "global" | "today" | "week" | "season" | "endless";
 
-const MEDALS = ["#FFD54F", "#CFD8DC", "#FFAB91"] as const; // gold, silver, bronze
+const MEDALS = ["#D9B45A", "#CFD8DC", "#DBA48F"] as const; // gold, silver, bronze
 /** The frame a podium place stands in when the player wears none: its medal's own. */
 const PODIUM_FRAMES: readonly CosmeticId[] = ["frame_gold", "frame_silver", "frame_bronze"];
 
@@ -127,7 +127,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         const on = board === o.value;
         return (
           <PressScale key={o.value} onPress={() => setBoard(o.value)} style={[styles.tab, on && styles.tabOn]} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={o.label}>
-            {roomyTabs ? <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#FFD54F"} /> : null}
+            {roomyTabs ? <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#D9B45A"} /> : null}
             <Text style={[styles.tabText, !roomyTabs && styles.tabTextTight, on && { color: "#2A2016" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
               {o.label.toLocaleUpperCase()}
             </Text>
@@ -202,7 +202,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       </TouchableOpacity>
       {tenth > 0 && (
         <View style={styles.threshold}>
-          <Ionicons name="flag" size={14} color="#80DEEA" />
+          <Ionicons name="flag" size={14} color="#8FC0C5" />
           <Text style={styles.thresholdText} maxFontSizeMultiplier={1.2}>
             {t("scores.threshold", { score: tenth })}
           </Text>
@@ -214,7 +214,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const age = offlineAt !== null ? describeAge(offlineAt) : null;
   const offlineNotice = age ? (
     <View style={styles.offlineNotice} accessibilityLiveRegion="polite">
-      <Ionicons name="cloud-offline-outline" size={18} color="#FFCC80" />
+      <Ionicons name="cloud-offline-outline" size={18} color="#E2BE8C" />
       <Text style={styles.offlineText} maxFontSizeMultiplier={1.2}>
         {t(((age.unit === "minutes" && age.n === 0 ? "scores.offline.now" : age.n === 1 && age.unit === "hours" ? "scores.offline.hours1" : age.n === 1 && age.unit === "days" ? "scores.offline.days1" : `scores.offline.${age.unit}`) as TranslationKey), { n: age.n })}
       </Text>
@@ -380,15 +380,15 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const placeholder =
     status === "loading" ? (
       <View style={styles.centerBox}>
-        <ActivityIndicator color="#FFD54F" size="large" />
+        <ActivityIndicator color="#D9B45A" size="large" />
         <Text style={styles.statusText} maxFontSizeMultiplier={1.3}>
           {t("scores.loading")}
         </Text>
       </View>
     ) : status === "error" ? (
       <View style={styles.centerBox} accessibilityLiveRegion="polite">
-        <Ionicons name="cloud-offline-outline" size={36} color="#FF8A80" />
-        <Text style={[styles.statusText, { color: "#FF8A80" }]} maxFontSizeMultiplier={1.3}>
+        <Ionicons name="cloud-offline-outline" size={36} color="#D58A7E" />
+        <Text style={[styles.statusText, { color: "#D58A7E" }]} maxFontSizeMultiplier={1.3}>
           {t("scores.error")}
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
@@ -441,7 +441,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }} edges={["top", "left", "right"]}>
         <ScreenHeader title={t("scores.title")} onBack={() => navigation.goBack()} />
         <View style={[styles.layout, { width: cardWidth }, twoPanes ? styles.layoutRow : null]}>
@@ -463,12 +463,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#000" },
   tabs: { flexDirection: "row", gap: 6 },
-  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 36, paddingHorizontal: 4, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.35)", backgroundColor: "rgba(255,255,255,0.04)" },
-  tabOn: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  tab: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 36, paddingHorizontal: 4, borderRadius: 18, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.35)", backgroundColor: "rgba(255,255,255,0.04)" },
+  tabOn: { backgroundColor: "#D9B45A", borderColor: "#D9B45A" },
   tabTextTight: { letterSpacing: 0.2, fontSize: 11 },
   tabText: { color: "#EAE1D8", fontWeight: "900", fontSize: 11.5, letterSpacing: 0.8 },
   meRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 4 },
-  meName: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  meName: { color: "#F3EADB", fontWeight: "900", fontSize: 16 },
   bestRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   podium: { flexDirection: "row", alignItems: "flex-end", gap: 8, paddingTop: 6, paddingBottom: 4 },
   podiumCol: { flex: 1 },
@@ -477,38 +477,38 @@ const styles = StyleSheet.create({
   podiumBadge: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", borderWidth: 2.5, borderColor: "#1A120B", zIndex: 3 },
   podiumBadgeText: { color: "#1A0F04", fontWeight: "900", fontSize: 15 },
   podiumPlate: { alignSelf: "stretch", alignItems: "center", gap: 1, marginTop: 4, paddingVertical: 6, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.1)", backgroundColor: "rgba(20,14,9,0.85)" },
-  podiumName: { color: "#fff", fontWeight: "900", fontSize: 13.5 },
+  podiumName: { color: "#F3EADB", fontWeight: "900", fontSize: 13.5 },
   podiumScore: { fontWeight: "900", fontSize: 18, marginTop: 1 },
   podiumMeta: { color: "#C4AA91", fontSize: 11, fontWeight: "700" },
   boardNote: { color: "#C4AA91", fontSize: 12, textAlign: "center" },
-  rowMine: { borderColor: "#FFD54F", backgroundColor: "rgba(255,213,79,0.1)" },
+  rowMine: { borderColor: "#D9B45A", backgroundColor: "rgba(217, 180, 90,0.1)" },
   layout: { flex: 1, alignSelf: "center", padding: 8, gap: 10 },
   layoutRow: { flexDirection: "row" },
   record: {
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: "rgba(255,213,79,0.5)",
-    backgroundColor: "rgba(255,213,79,0.08)",
+    borderColor: "rgba(217, 180, 90,0.5)",
+    backgroundColor: "rgba(217, 180, 90,0.08)",
     padding: 14,
     gap: 4,
   },
   recordPane: { width: "34%", flexGrow: 0 },
-  recordTitle: { color: "#FFD54F", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
-  recordScore: { color: "#fff", fontWeight: "900", fontSize: 34 },
+  recordTitle: { color: "#D9B45A", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
+  recordScore: { color: "#F3EADB", fontWeight: "900", fontSize: 34 },
   recordCaption: { flex: 1, color: "#C1A68C", fontWeight: "800", fontSize: 11, letterSpacing: 1.2 },
   recordGrid: { flexDirection: "row", gap: 6, marginTop: 8 },
   recordCell: { flex: 1, backgroundColor: "rgba(255,255,255,0.07)", borderRadius: 12, paddingVertical: 8, alignItems: "center" },
-  recordCellValue: { color: "#fff", fontWeight: "900", fontSize: 20 },
+  recordCellValue: { color: "#F3EADB", fontWeight: "900", fontSize: 20 },
   recordCellLabel: { color: "#C1A68C", fontSize: 11, fontWeight: "800", textAlign: "center" },
   recordEmpty: { color: "#E1D4C8", fontSize: 13, marginTop: 6 },
-  progressLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: MIN_TOUCH, borderRadius: 14, backgroundColor: "#F2C14E", marginTop: 8, paddingHorizontal: 12 },
+  progressLink: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: MIN_TOUCH, borderRadius: 14, backgroundColor: "#D9B052", marginTop: 8, paddingHorizontal: 12 },
   progressLinkText: { color: "#2A2016", fontWeight: "900", letterSpacing: 1, fontSize: 13 },
   threshold: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 },
-  thresholdText: { color: "#80DEEA", fontWeight: "800", fontSize: 12, flex: 1 },
+  thresholdText: { color: "#8FC0C5", fontWeight: "800", fontSize: 12, flex: 1 },
   listPane: { flex: 1 },
-  offlineNotice: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,204,128,0.4)", backgroundColor: "rgba(255,204,128,0.1)", paddingVertical: 6, paddingLeft: 12, paddingRight: 6 },
-  offlineText: { color: "#FFCC80", fontWeight: "700", fontSize: 12, flex: 1 },
-  offlineRetry: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#FFD54F", alignItems: "center", justifyContent: "center" },
+  offlineNotice: { flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 14, borderWidth: 1, borderColor: "rgba(226, 190, 140,0.4)", backgroundColor: "rgba(226, 190, 140,0.1)", paddingVertical: 6, paddingLeft: 12, paddingRight: 6 },
+  offlineText: { color: "#E2BE8C", fontWeight: "700", fontSize: 12, flex: 1 },
+  offlineRetry: { width: MIN_TOUCH, height: MIN_TOUCH, borderRadius: MIN_TOUCH / 2, backgroundColor: "#D9B45A", alignItems: "center", justifyContent: "center" },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -526,18 +526,18 @@ const styles = StyleSheet.create({
   reportHint: { color: "#E1D4C8", fontSize: 12 },
   reportButtons: { flexDirection: "row", gap: 8 },
   reportButton: { flex: 1, minHeight: MIN_TOUCH, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
-  reportButtonText: { color: "#fff", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
+  reportButtonText: { color: "#F3EADB", fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   hiddenNote: { minHeight: MIN_TOUCH, alignItems: "center", justifyContent: "center" },
   hiddenText: { color: "#C4AA91", fontSize: 12, textDecorationLine: "underline" },
   rank: { width: 32, height: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" },
   rankText: { color: "#EAE1D8", fontWeight: "900", fontSize: 15 },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.08)" },
-  name: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  name: { color: "#F3EADB", fontWeight: "900", fontSize: 16 },
   sub: { color: "#C4AA91", fontSize: 12, marginTop: 1 },
-  score: { color: "#9ee37d", fontWeight: "900", fontSize: 20, minWidth: 84, textAlign: "right" },
+  score: { color: "#A3BF7C", fontWeight: "900", fontSize: 20, minWidth: 84, textAlign: "right" },
   centerBox: { alignItems: "center", justifyContent: "center", gap: 10, paddingTop: 40 },
   statusText: { color: "#E1D4C8", fontSize: 14, textAlign: "center" },
-  retryButton: { minHeight: MIN_TOUCH, paddingHorizontal: 24, borderRadius: 14, backgroundColor: "#FFD54F", alignItems: "center", justifyContent: "center" },
+  retryButton: { minHeight: MIN_TOUCH, paddingHorizontal: 24, borderRadius: 14, backgroundColor: "#D9B45A", alignItems: "center", justifyContent: "center" },
   retryText: { color: "#000", fontWeight: "900", letterSpacing: 1 },
 });
 

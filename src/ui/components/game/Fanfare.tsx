@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
   art: { width: 40, height: 40 },
   texts: { flexShrink: 1, gap: 1 },
   kicker: { fontWeight: "900", fontSize: 11.5, letterSpacing: 2 },
-  title: { color: "#fff", fontWeight: "900", fontSize: 18, letterSpacing: 1.5, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
+  title: { color: "#F3EADB", fontWeight: "900", fontSize: 18, letterSpacing: 1.5, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
   line: { color: "#E6D6C4", fontSize: 12.5, fontWeight: "700" },
 });

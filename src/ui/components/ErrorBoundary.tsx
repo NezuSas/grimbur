@@ -58,11 +58,11 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 12,
   },
-  title: { color: '#FF3B30', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
+  title: { color: '#C2463D', fontSize: 22, fontWeight: '900', letterSpacing: 1 },
   body: { color: '#aaa', fontSize: 14, textAlign: 'center' },
   button: {
     marginTop: 8,
-    backgroundColor: '#FFD54F',
+    backgroundColor: '#D9B45A',
     borderRadius: 14,
     paddingVertical: 12,
     paddingHorizontal: 28,

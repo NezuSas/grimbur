@@ -35,8 +35,8 @@ type Props = {
   summary?: PauseSummary;
 };
 
-const TINT = '#4FC3F7';
-const WARN = '#FF8A80';
+const TINT = '#7FAFC6';
+const WARN = '#D58A7E';
 
 const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, onMainMenu, summary }: Props) => {
   useEscapeKey(onResume, visible);

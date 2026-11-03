@@ -73,9 +73,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: SPLASH_BACKGROUND },
   logo: { position: 'absolute', left: '50%', top: '50%' },
   below: { position: 'absolute', left: 0, right: 0, alignItems: 'center', gap: 10 },
-  title: { color: '#FFD54F', fontWeight: '900', letterSpacing: 3, textAlign: 'center' },
+  title: { color: '#D9B45A', fontWeight: '900', letterSpacing: 3, textAlign: 'center' },
   progressBox: { alignItems: 'center', gap: 8 },
   track: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.14)', overflow: 'hidden' },
-  fill: { height: '100%', borderRadius: 3, backgroundColor: '#FFD54F' },
+  fill: { height: '100%', borderRadius: 3, backgroundColor: '#D9B45A' },
   label: { color: '#D8C8B7', fontSize: 12, letterSpacing: 1 },
 });

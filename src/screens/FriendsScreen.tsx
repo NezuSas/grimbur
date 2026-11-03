@@ -35,10 +35,10 @@ import { useSettingsStore } from "../state/settings/store";
 type Props = NativeStackScreenProps<RootStackParamList, "FriendsScreen">;
 type Tab = "people" | "duels" | "challenges";
 
-const GOLD = "#FFD54F";
-const DUEL = "#FF8A80";
-const CHALLENGE = "#4FC3F7";
-const OUTCOME_COLOR = { won: "#9EE37D", lost: "#FF8A80", tie: "#FFD54F" } as const;
+const GOLD = "#D9B45A";
+const DUEL = "#D58A7E";
+const CHALLENGE = "#7FAFC6";
+const OUTCOME_COLOR = { won: "#A3BF7C", lost: "#D58A7E", tie: "#D9B45A" } as const;
 
 const SWORDS = require("../assets/sprites/ui/Icon_Swords.webp");
 const PUZZLE = require("../assets/sprites/ui/Icon_Puzzle.webp");
@@ -154,7 +154,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
         <Text style={styles.netLabel} maxFontSizeMultiplier={1.1}>
           {t("friends.net")}
         </Text>
-        <Text style={[styles.netValue, { color: s.net < 0 ? "#FF8A80" : s.net > 0 ? "#9EE37D" : "#D6C4B2" }]} maxFontSizeMultiplier={1.1}>
+        <Text style={[styles.netValue, { color: s.net < 0 ? "#D58A7E" : s.net > 0 ? "#A3BF7C" : "#D6C4B2" }]} maxFontSizeMultiplier={1.1}>
           {played > 0 ? `${s.net > 0 ? "+" : ""}${n(s.net)}` : "—"}
         </Text>
       </View>
@@ -194,7 +194,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
               {new Date(r.at).toLocaleDateString()}
             </Text>
           </View>
-          <Text style={[styles.rowValue, { color: r.net < 0 ? "#FF8A80" : r.net > 0 ? "#9EE37D" : "#D6C4B2" }]} maxFontSizeMultiplier={1.15}>
+          <Text style={[styles.rowValue, { color: r.net < 0 ? "#D58A7E" : r.net > 0 ? "#A3BF7C" : "#D6C4B2" }]} maxFontSizeMultiplier={1.15}>
             {r.stake > 0 ? (
               <>
                 <EmberIcon size={12} /> {`${r.net > 0 ? "+" : ""}${n(r.net)}`}
@@ -228,7 +228,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.code} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {formatChallengeCode(c.code)}
               </Text>
-              <Text style={[styles.rowSub, { color: "#FF9A5C" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
+              <Text style={[styles.rowSub, { color: "#D58F62" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                 {depth}
               </Text>
             </View>
@@ -248,7 +248,7 @@ const FriendsScreen: React.FC<Props> = ({ navigation }) => {
   );
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }} edges={["top", "left", "right"]}>
         <ScreenHeader title={t("friends.title")} subtitle={t("friends.subtitle")} onBack={() => navigation.goBack()} />
         <ScrollView
@@ -315,10 +315,10 @@ const styles = StyleSheet.create({
   bodyNarrow: { flexDirection: "column", alignItems: "stretch" },
   section: { color: GOLD, fontWeight: "900", fontSize: 11, letterSpacing: 2 },
 
-  player: { width: "32%", maxWidth: 340, gap: 10, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.45)", backgroundColor: "rgba(48,36,22,0.88)" },
+  player: { width: "32%", maxWidth: 340, gap: 10, padding: 14, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.45)", backgroundColor: "rgba(48,36,22,0.88)" },
   playerNarrow: { width: "100%", maxWidth: undefined },
   playerTop: { flexDirection: "row", alignItems: "center", gap: 12 },
-  playerName: { color: "#fff", fontWeight: "900", fontSize: 18 },
+  playerName: { color: "#F3EADB", fontWeight: "900", fontSize: 18 },
   playerNoName: { color: "#B99A7C", fontStyle: "italic", fontSize: 15 },
   record: { flexDirection: "row", gap: 6 },
   recordCell: { flex: 1, alignItems: "center", paddingVertical: 6, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.28)" },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   netRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4 },
   netLabel: { color: "#D6C4B2", fontWeight: "800", fontSize: 13, flex: 1 },
   netValue: { fontWeight: "900", fontSize: 16 },
-  customize: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
+  customize: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, borderRadius: 20, borderWidth: 1.5, borderColor: "rgba(217, 180, 90,0.6)", backgroundColor: "rgba(217, 180, 90,0.1)" },
   customizeText: { color: GOLD, fontWeight: "900", fontSize: 12, letterSpacing: 1 },
 
   main: { flex: 1, gap: 10 },
@@ -352,9 +352,9 @@ const styles = StyleSheet.create({
   rowArt: { width: 34, height: 34 },
   outcome: { minWidth: 76, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 10, borderWidth: 1.5, alignItems: "center" },
   outcomeText: { fontWeight: "900", fontSize: 11, letterSpacing: 1 },
-  code: { color: "#fff", fontWeight: "900", fontSize: 17, letterSpacing: 3 },
+  code: { color: "#F3EADB", fontWeight: "900", fontSize: 17, letterSpacing: 3 },
   rowSub: { color: "#C4AA91", fontWeight: "800", fontSize: 12 },
-  rowValue: { color: "#9EE37D", fontWeight: "900", fontSize: 17 },
+  rowValue: { color: "#A3BF7C", fontWeight: "900", fontSize: 17 },
   bestLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 11, letterSpacing: 1.2 },
 
   empty: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1.5, borderStyle: "dashed", borderColor: "rgba(255,255,255,0.18)", backgroundColor: "rgba(36,28,19,0.6)", flexWrap: "wrap" },

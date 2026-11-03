@@ -78,7 +78,7 @@ const ScoreCounter: React.FC<Props> = memo(({ icon, iconNode, value, suffix, lab
       </View>
       <View style={[styles.content, { marginLeft: compact ? 4 : spacing(10) }]}>
         <Animated.Text
-          style={[styles.value, { fontFamily: "Fredoka_700Bold", fontWeight: undefined, transform: [{ scale: scaleAnim }] }]}
+          style={[styles.value, { fontFamily: "AlegreyaSans_900Black", fontWeight: undefined, transform: [{ scale: scaleAnim }] }]}
           maxFontSizeMultiplier={1.15}
           numberOfLines={1}
         >
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   content: {},
   value: {
-    color: "#fff",
+    color: "#F3EADB",
     fontSize: 16,
     fontWeight: "600",
     includeFontPadding: false,

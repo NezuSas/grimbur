@@ -35,14 +35,14 @@ export function duelResultView(
   switch (standing.state) {
     case "won":
       // A prize equal to the stake is just the stake coming back: nobody else ever started, so there was nothing to win.
-      return { headline: t("duel.result.win"), line: rivalLine, prize: stake > 0 ? (prize === stake ? t("duel.result.refund", { n: stake }) : t("duel.result.prize", { n: prize > 0 ? prize : "…" })) : "", color: "#9EE37D" };
+      return { headline: t("duel.result.win"), line: rivalLine, prize: stake > 0 ? (prize === stake ? t("duel.result.refund", { n: stake }) : t("duel.result.prize", { n: prize > 0 ? prize : "…" })) : "", color: "#A3BF7C" };
     case "lost":
-      return { headline: t("duel.result.lose"), line: place + rivalLine, prize: stake > 0 ? t("duel.result.lostStake", { n: stake }) : "", color: "#FF8A80" };
+      return { headline: t("duel.result.lose"), line: place + rivalLine, prize: stake > 0 ? t("duel.result.lostStake", { n: stake }) : "", color: "#D58A7E" };
     case "tie":
-      return { headline: t("duel.result.tie"), line: rivalLine, prize: stake > 0 ? (prize > 0 && prize !== stake ? t("duel.result.prize", { n: prize }) : t("duel.result.refund", { n: stake })) : "", color: "#FFD54F" };
+      return { headline: t("duel.result.tie"), line: rivalLine, prize: stake > 0 ? (prize > 0 && prize !== stake ? t("duel.result.prize", { n: prize }) : t("duel.result.refund", { n: stake })) : "", color: "#D9B45A" };
     case "leading":
-      return { headline: t("duel.result.leading"), line: rivalLine, prize: "", color: "#9EE37D" };
+      return { headline: t("duel.result.leading"), line: rivalLine, prize: "", color: "#A3BF7C" };
     default:
-      return { headline: t("duel.result.trailing"), line: place + rivalLine, prize: "", color: "#FFAB91" };
+      return { headline: t("duel.result.trailing"), line: place + rivalLine, prize: "", color: "#DBA48F" };
   }
 }

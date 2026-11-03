@@ -16,20 +16,20 @@ const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 const PADLOCK = require("../../assets/sprites/ui/Icon_Padlock.webp");
 const MEDAL = require("../../assets/sprites/ui/Icon_Medal.webp");
 const CHEST = require("../../assets/sprites/items/Icon_Chest_Closed.webp");
-const GOLD = "#FFD54F";
+const GOLD = "#D9B45A";
 
-export const TIER_TINTS = ["#9EE37D", "#4FC3F7", "#B39DDB", "#FF9A3C", "#FF5252", "#E1F5FE"];
+export const TIER_TINTS = ["#A3BF7C", "#7FAFC6", "#A397BF", "#D38C46", "#CC5249", "#E1F5FE"];
 
 /** Each chapter is a part of the cave: its floor tiles and its backdrop, from the game's own biomes. */
 const CHAPTER_ART: { open: ImageSourcePropType; shut: ImageSourcePropType; bg: ImageSourcePropType }[] = [
   // Apprentice: the mossy upper cave.
-  { open: require("../../assets/sprites/tiles/Tile_Revealed_Moss.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Moss.webp"), bg: require("../../assets/sprites/backgrounds/Cover_Background.png") },
+  { open: require("../../assets/sprites/tiles/Tile_Revealed_Moss.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Moss.webp"), bg: require("../../assets/sprites/backgrounds/Cover_Background.jpg") },
   // Tracker: the crystal halls.
   { open: require("../../assets/sprites/tiles/Tile_Revealed_Crystal.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Crystal.webp"), bg: require("../../assets/sprites/backgrounds/Bg_Crystal.jpg") },
   // Explorer: the violet deep.
   { open: require("../../assets/sprites/tiles/Tile_Revealed_Lair.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Lair.webp"), bg: require("../../assets/sprites/backgrounds/Bg_Lair.jpg") },
   // Expert: the old vault, gold underfoot.
-  { open: require("../../assets/sprites/tiles/Tile_Revealed_Vault.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Vault.webp"), bg: require("../../assets/sprites/backgrounds/Cover_Background.png") },
+  { open: require("../../assets/sprites/tiles/Tile_Revealed_Vault.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Vault.webp"), bg: require("../../assets/sprites/backgrounds/Cover_Background.jpg") },
   // Master: the magma at the bottom.
   { open: require("../../assets/sprites/tiles/Tile_Revealed_Magma.webp"), shut: require("../../assets/sprites/tiles/Tile_Hidden_Magma.webp"), bg: require("../../assets/sprites/backgrounds/Bg_Magma.jpg") },
   // Legend: the frozen deep under the lair, where one mistake ends the try.
@@ -510,15 +510,15 @@ const styles = StyleSheet.create({
   scoreText: { color: GOLD, fontWeight: "900", fontSize: 15 },
   bar: { width: 110, height: 5, borderRadius: 3, backgroundColor: "rgba(255,255,255,0.14)", overflow: "hidden" },
   fill: { height: 5, borderRadius: 3 },
-  mastered: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9, borderWidth: 1, backgroundColor: "rgba(255,213,79,0.14)" },
+  mastered: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 7, paddingVertical: 1, borderRadius: 9, borderWidth: 1, backgroundColor: "rgba(217, 180, 90,0.14)" },
   masteredText: { color: GOLD, fontWeight: "900", fontSize: 10, letterSpacing: 1.2 },
-  chest: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 6, paddingRight: 10, paddingVertical: 3, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(255,213,79,0.16)", shadowOpacity: 0.8, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
+  chest: { flexDirection: "row", alignItems: "center", gap: 6, paddingLeft: 6, paddingRight: 10, paddingVertical: 3, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(217, 180, 90,0.16)", shadowOpacity: 0.8, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
   chestText: { fontWeight: "900", fontSize: 12, letterSpacing: 1 },
   dot: { position: "absolute", width: 6, height: 6, borderRadius: 3, shadowOpacity: 0.9, shadowRadius: 4, shadowOffset: { width: 0, height: 0 } },
   halo: { position: "absolute", borderWidth: 2 },
   burst: { position: "absolute", borderWidth: 4 },
   stop: { position: "absolute", borderWidth: 2.5, alignItems: "center", justifyContent: "center", backgroundColor: "#1a1410" },
-  number: { color: "#fff", fontWeight: "900", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
+  number: { color: "#F3EADB", fontWeight: "900", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   under: { position: "absolute", alignItems: "center" },
   crown: { position: "absolute", alignItems: "center", justifyContent: "center", backgroundColor: "#1a1410", borderWidth: 1.5, borderColor: GOLD },
   crownCount: { flexDirection: "row", alignItems: "center", gap: 3, marginRight: 6 },

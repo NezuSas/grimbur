@@ -9,14 +9,14 @@ export interface TrailLook {
 }
 
 export const TRAIL_LOOKS: Partial<Record<CosmeticId, TrailLook>> = {
-  trail_fire: { arrow: require('../assets/sprites/cosmetics/Arrow_Fire.png'), colors: ['#FF7A1A', '#FFD54F'] },
+  trail_fire: { arrow: require('../assets/sprites/cosmetics/Arrow_Fire.png'), colors: ['#FF7A1A', '#D9B45A'] },
   trail_frost: { arrow: require('../assets/sprites/cosmetics/Arrow_Frost.png'), colors: ['#7FDBFF', '#E6F7FF'] },
-  trail_storm: { arrow: require('../assets/sprites/cosmetics/Arrow_Storm.png'), colors: ['#FFF59D', '#B3E5FC'] },
+  trail_storm: { arrow: require('../assets/sprites/cosmetics/Arrow_Storm.png'), colors: ['#FFF59D', '#B9D1DC'] },
   trail_shadow: { arrow: require('../assets/sprites/cosmetics/Arrow_Shadow.png'), colors: ['#7E57C2', '#2A1A40'] },
-  trail_stars: { arrow: require('../assets/sprites/cosmetics/Arrow_Stars.png'), colors: ['#FFD54F', '#FFFFFF'] },
+  trail_stars: { arrow: require('../assets/sprites/cosmetics/Arrow_Stars.png'), colors: ['#D9B45A', '#FFFFFF'] },
   trail_venom: { arrow: require('../assets/sprites/cosmetics/Arrow_Venom.png'), colors: ['#7CFF4F', '#2E7D32'] },
-  trail_void: { arrow: require('../assets/sprites/cosmetics/Arrow_Void.png'), colors: ['#4DD0E1', '#311B92'] },
-  trail_royal: { arrow: require('../assets/sprites/cosmetics/Arrow_Royal.png'), colors: ['#FFD54F', '#BA68C8'] },
+  trail_void: { arrow: require('../assets/sprites/cosmetics/Arrow_Void.png'), colors: ['#6CB0B9', '#311B92'] },
+  trail_royal: { arrow: require('../assets/sprites/cosmetics/Arrow_Royal.png'), colors: ['#D9B45A', '#9A72AC'] },
 };
 
 /** The two frames of each companion (cut from one sheet: scripts/sliceIconGrid.py). */
@@ -43,13 +43,13 @@ export const PET_ADULT_ART: Partial<Record<CosmeticId, readonly [ImageSourceProp
 
 /** The colour of each companion's aura once it is young. */
 export const PET_TINT: Partial<Record<CosmeticId, string>> = {
-  pet_firefly: '#FFE082',
-  pet_bat: '#CE93D8',
-  pet_golem: '#80DEEA',
-  pet_fox: '#81D4FA',
-  pet_dragon: '#FF8A65',
-  pet_owl: '#FFD54F',
-  pet_reindeer: '#FFB74D',
+  pet_firefly: '#E6CC88',
+  pet_bat: '#B08DBE',
+  pet_golem: '#8FC0C5',
+  pet_fox: '#8FBCD2',
+  pet_dragon: '#D28663',
+  pet_owl: '#D9B45A',
+  pet_reindeer: '#DCA45A',
 };
 
 /** The two frames a companion shows at a stage (adult art from stage 2). */

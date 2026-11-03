@@ -336,7 +336,7 @@ const CoverCard: React.FC<Props> = ({
           ui={ui}
           compactCard={short}
           icon="play"
-          tint="#F2C14E"
+          tint="#D9B052"
           title={savedRun.endless ? t("cover.resume.endless") : t("cover.resume")}
           subtitle={t("cover.resume.floor", { floor: savedRun.floor })}
           onPress={onPressResume}
@@ -358,7 +358,7 @@ const CoverCard: React.FC<Props> = ({
           ui={ui}
           compactCard={short}
           icon="calendar"
-          tint="#FF9A3C"
+          tint="#D38C46"
           title={t("cover.mode.daily")}
           subtitle={dailySubtitle}
           onPress={onPressDaily}
@@ -368,7 +368,7 @@ const CoverCard: React.FC<Props> = ({
           ui={ui}
           compactCard={short}
           icon="infinity"
-          tint="#B39DDB"
+          tint="#A397BF"
           title={t("cover.mode.endless")}
           subtitle={
             endlessPaywalled
@@ -451,7 +451,7 @@ const CoverCard: React.FC<Props> = ({
           <Text style={styles.feedbackBeta} maxFontSizeMultiplier={1}>
             {t("feedback.beta").toLocaleUpperCase()}
           </Text>
-          <Ionicons name="chatbubble-ellipses" size={15} color="#4FC3F7" />
+          <Ionicons name="chatbubble-ellipses" size={15} color="#7FAFC6" />
           <Text style={styles.feedbackText} maxFontSizeMultiplier={1.1}>
             {t("feedback.open")}
           </Text>
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
   contentWide: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 24 },
   titleBlock: { alignItems: "center", justifyContent: "center" },
   titleSub: {
-    color: "#ffffff",
+    color: "#F3EADB",
     fontWeight: "800",
     letterSpacing: 10,
     textAlign: "center",
@@ -496,8 +496,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(16, 10, 5, 0.62)",
     borderWidth: 3,
-    borderColor: "rgba(242, 193, 78, 0.7)",
-    shadowColor: "#FF9A3C",
+    borderColor: "rgba(217, 176, 82, 0.7)",
+    shadowColor: "#D38C46",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.7,
     shadowRadius: 22,
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: "rgba(16, 10, 5, 0.82)",
     borderWidth: 1,
-    borderColor: "rgba(242,193,78,0.25)",
+    borderColor: "rgba(217, 176, 82,0.25)",
   },
   dockSolo: { flexDirection: "row", justifyContent: "center", marginTop: 2 },
   dockItem: { flex: 1, alignItems: "center", gap: 4, minHeight: MIN_TOUCH + 18 },
@@ -529,15 +529,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(40,26,12,0.9)",
     borderWidth: 1.5,
-    borderColor: "rgba(242,193,78,0.6)",
+    borderColor: "rgba(217, 176, 82,0.6)",
   },
   chips: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
   eventChip: { borderColor: "#81C784AA", backgroundColor: "rgba(27, 60, 32, 0.85)" },
   eventChipText: { color: "#C8E6C9" },
   eventChipIcon: { color: "#E3F2FD", fontSize: 15, fontWeight: "900" },
   puzzleChip: { borderColor: "rgba(77,208,225,0.7)", paddingHorizontal: 10 },
-  puzzleChipText: { color: "#80DEEA", fontSize: 13, letterSpacing: 1 },
-  puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#FF5252", borderWidth: 2, borderColor: "#1a120a" },
+  puzzleChipText: { color: "#8FC0C5", fontSize: 13, letterSpacing: 1 },
+  puzzleDot: { position: "absolute", top: -3, right: -3, width: 12, height: 12, borderRadius: 6, backgroundColor: "#CC5249", borderWidth: 2, borderColor: "#1a120a" },
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -547,9 +547,9 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     backgroundColor: "rgba(16, 10, 5,0.72)",
     borderWidth: 1.5,
-    borderColor: "rgba(255,171,64,0.6)",
+    borderColor: "rgba(216, 154, 76,0.6)",
   },
-  chipText: { color: "#FFAB40", fontWeight: "800", fontSize: 15 },
+  chipText: { color: "#D89A4C", fontWeight: "800", fontSize: 15 },
   dot: {
     position: "absolute",
     top: 0,
@@ -573,9 +573,9 @@ const styles = StyleSheet.create({
     borderRadius: 17,
     backgroundColor: "rgba(10,14,24,0.72)",
     borderWidth: 1,
-    borderColor: "rgba(79,195,247,0.55)",
+    borderColor: "rgba(127, 175, 198,0.55)",
   },
-  feedbackBeta: { color: "#0b1a24", backgroundColor: "#4FC3F7", fontWeight: "900", fontSize: 9.5, letterSpacing: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 9, overflow: "hidden" },
+  feedbackBeta: { color: "#0b1a24", backgroundColor: "#7FAFC6", fontWeight: "900", fontSize: 9.5, letterSpacing: 1, paddingHorizontal: 6, paddingVertical: 3, borderRadius: 9, overflow: "hidden" },
   feedbackText: { color: "#E1F5FE", fontWeight: "800", fontSize: 13 },
   settings: {
     position: "absolute",

@@ -79,8 +79,8 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
   const star = Math.max(36, Math.min(54, cardH * 0.15));
 
   const stats = [
-    { key: "score" as const, label: t("complete.score"), value: n(score), color: "#FFE7A8" },
-    { key: "gems" as const, label: t("complete.gems"), value: String(totalCoins || coins), color: "#7FE3FF" },
+    { key: "score" as const, label: t("complete.score"), value: n(score), color: "#EAD8A8" },
+    { key: "gems" as const, label: t("complete.gems"), value: String(totalCoins || coins), color: "#8CC4D6" },
     { key: "kills" as const, label: t("complete.kills"), value: `${kills}/${totalEnemies}`, color: "#FF9A7A" },
     { key: "time" as const, label: t("complete.time"), value: formatTime(time), color: "#C8B6FF" },
   ];
@@ -98,7 +98,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
           { opacity: card, transform: [{ scale: card.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }] },
         ]}
       >
-        <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.35 }} />
+        <ImageBackground source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={StyleSheet.absoluteFill} resizeMode="cover" imageStyle={{ opacity: 0.35 }} />
         <LinearGradient colors={["rgba(40,28,16,0.75)", "rgba(20,14,9,0.95)"]} style={StyleSheet.absoluteFill} pointerEvents="none" />
         <PanelTrim tint={accent} />
 
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   left: { flex: 1, alignItems: "center", gap: 2 },
   right: { flex: 1.15, gap: 10 },
   kicker: { fontWeight: "900", fontSize: 13, letterSpacing: 3 },
-  title: { color: "#fff", fontWeight: "900", fontSize: 26, letterSpacing: 2, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
+  title: { color: "#F3EADB", fontWeight: "900", fontSize: 26, letterSpacing: 2, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 10 },
   glow: { position: "absolute", top: 0, opacity: 0.16 },
   stars: { flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 8 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   track: { flexDirection: "row", alignItems: "center", paddingHorizontal: 4 },
   trackLine: { flex: 1, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.14)" },
   trackDot: { width: 13, height: 13, borderRadius: 7, borderWidth: 2, borderColor: "rgba(255,255,255,0.35)", backgroundColor: "rgba(0,0,0,0.4)" },
-  trackNext: { borderColor: "#FFE7A8", width: 16, height: 16, borderRadius: 8 },
+  trackNext: { borderColor: "#EAD8A8", width: 16, height: 16, borderRadius: 8 },
   trackLair: { width: 24, height: 24 },
   trackText: { color: "#CAB39C", fontSize: 11.5, fontWeight: "800", textAlign: "center", marginTop: -4 },
 });

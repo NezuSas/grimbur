@@ -402,7 +402,7 @@ const GridCell = memo(({
       {rippled.current && (
         <Animated.View
           pointerEvents="none"
-          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,213,79,0.55)", borderRadius: 8, opacity: glow }]}
+          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(217, 180, 90,0.55)", borderRadius: 8, opacity: glow }]}
         />
       )}
 
@@ -419,7 +419,7 @@ const GridCell = memo(({
         />
       )}
 
-      {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#FFB74D" : vortex ? "#B39DDB" : "#D7CCC8"} /> : null}
+      {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#DCA45A" : vortex ? "#A397BF" : "#D7CCC8"} /> : null}
 
       {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }]}>
@@ -517,7 +517,7 @@ const GridCell = memo(({
       {/* The draft of a secret room: a glint in the corner, kept out of the clue tokens' way. */}
       {draft && !hideClue ? (
         <View pointerEvents="none" style={[styles.draft, { width: tileSize * 0.3, height: tileSize * 0.3, borderRadius: tileSize * 0.15 }]}>
-          <Ionicons name="sparkles" size={tileSize * 0.2} color="#FFE082" />
+          <Ionicons name="sparkles" size={tileSize * 0.2} color="#E6CC88" />
         </View>
       ) : null}
 
@@ -579,7 +579,7 @@ const GridCell = memo(({
       {aimed && (
         <View style={[styles.aim, aimLast && styles.aimLast]} pointerEvents="none">
           {/* A chevron along the line of fire, fading with distance; a ring marks where the arrow stops */}
-          <Ionicons name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#FF8A80" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
+          <Ionicons name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#D58A7E" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
           {aimLast && <View style={[styles.aimRing, { width: tileSize * 0.62, height: tileSize * 0.62, borderRadius: tileSize * 0.31 }]} />}
         </View>
       )}
@@ -608,36 +608,36 @@ const GridCell = memo(({
 const styles = StyleSheet.create({
   deduced: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderWidth: 2, alignItems: 'flex-end', justifyContent: 'flex-start', padding: 2 },
   deducedSafe: { borderColor: 'rgba(105,240,174,0.7)', backgroundColor: 'rgba(105,240,174,0.10)' },
-  deducedDanger: { borderColor: 'rgba(255,82,82,0.75)', backgroundColor: 'rgba(255,82,82,0.12)' },
+  deducedDanger: { borderColor: 'rgba(204, 82, 73,0.75)', backgroundColor: 'rgba(204, 82, 73,0.12)' },
   deducedBadge: { alignItems: 'center', justifyContent: 'center' },
   draft: { position: 'absolute', left: 2, top: 2, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(40,28,8,0.8)', borderWidth: 1, borderColor: 'rgba(255,224,130,0.7)', zIndex: 5 },
   verdictBadge: { position: 'absolute', right: 1, bottom: 1, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fff' },
   deducedBadgeSafe: { backgroundColor: '#2E9E5B' },
   deducedBadgeDanger: { backgroundColor: '#D32F2F' },
-  loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#7FE3FF' },
-  lootText: { color: '#fff', fontWeight: '900' },
+  loot: { position: 'absolute', top: 1, right: 1, paddingHorizontal: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E5E78', borderWidth: 1.5, borderColor: '#8CC4D6' },
+  lootText: { color: '#F3EADB', fontWeight: '900' },
   cell: { alignItems: "center", justifyContent: "center" },
   creatureShadow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(0,0,0,0.55)" },
   creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(255,72,40,0.16)" },
-  bossAura: { position: "absolute", backgroundColor: "rgba(255, 23, 68, 0.28)", borderRadius: 8 },
+  bossAura: { position: "absolute", backgroundColor: "rgba(194, 58, 68, 0.28)", borderRadius: 8 },
   tileTone: { position: 'absolute', borderRadius: 6 },
   // The painted tiles already tell explored from unexplored; these only push the two a little further apart.
   toneLit: { backgroundColor: 'rgba(255,236,200,0.07)' },
   toneDark: { backgroundColor: 'rgba(4,0,18,0.28)' },
-  sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B3E5FC', fontWeight: '900' },
+  sleepMark: { position: 'absolute', top: 1, right: 3, color: '#B9D1DC', fontWeight: '900' },
   stalkerAura: { position: "absolute", backgroundColor: "rgba(171, 71, 188, 0.3)", borderRadius: 8 },
-  stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#FFEB3B" },
-  bossCharged: { backgroundColor: "rgba(255, 23, 68, 0.62)", borderWidth: 2, borderColor: "#FFEB3B" },
-  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(255,82,82,0.6)", backgroundColor: "rgba(255,82,82,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
-  aimLast: { borderWidth: 2, borderColor: "rgba(255,82,82,0.95)", backgroundColor: "rgba(255,82,82,0.24)" },
+  stalkerCharged: { backgroundColor: "rgba(171, 71, 188, 0.65)", borderWidth: 2, borderColor: "#DCC25C" },
+  bossCharged: { backgroundColor: "rgba(194, 58, 68, 0.62)", borderWidth: 2, borderColor: "#DCC25C" },
+  aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(204, 82, 73,0.6)", backgroundColor: "rgba(204, 82, 73,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
+  aimLast: { borderWidth: 2, borderColor: "rgba(204, 82, 73,0.95)", backgroundColor: "rgba(204, 82, 73,0.24)" },
   aimRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,255,255,0.85)" },
-  highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#FFD54F", borderRadius: 6, zIndex: 6 },
+  highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#D9B45A", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },
-  bossHpText: { color: "#FF1744", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+  bossHpText: { color: "#C23A44", fontWeight: "900", textShadowColor: "#000", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
   pickup: { position: "absolute", zIndex: 2, alignItems: "center", justifyContent: "center" },
   flagVerdict: { position: "absolute", borderWidth: 3 },
-  flagRight: { borderColor: "#9EE37D", backgroundColor: "rgba(158,227,125,0.18)" },
-  flagWrong: { borderColor: "#FF6E6E", backgroundColor: "rgba(255,82,82,0.16)" },
+  flagRight: { borderColor: "#A3BF7C", backgroundColor: "rgba(163, 191, 124,0.18)" },
+  flagWrong: { borderColor: "#CF6F68", backgroundColor: "rgba(204, 82, 73,0.16)" },
   playerHighlight: {
     position: "absolute",
     backgroundColor: "rgba(255,255,255,0.08)",
@@ -663,12 +663,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  hintCountVortex: { borderColor: "#e1bee7" },
-  hintCountText: { color: "#fff", fontWeight: "900", includeFontPadding: false },
-  chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#FFEB3B", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
+  hintCountVortex: { borderColor: "#D3C2D8" },
+  hintCountText: { color: "#F3EADB", fontWeight: "900", includeFontPadding: false },
+  chargeMark: { position: "absolute", top: 1, right: 1, zIndex: 8, borderRadius: 99, backgroundColor: "#DCC25C", borderWidth: 1.5, borderColor: "#B71C1C", alignItems: "center", justifyContent: "center" },
   chargeMarkText: { color: "#B71C1C", fontWeight: "900", includeFontPadding: false },
-  flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(255,23,68,0.55)", borderRadius: 8 },
-  killer: { position: "absolute", left: 1, top: 1, right: 1, bottom: 1, borderRadius: 8, borderWidth: 4, borderColor: "#FF1744", backgroundColor: "rgba(255,23,68,0.18)", zIndex: 9 },
+  flagBlink: { position: "absolute", left: -6, top: -6, right: -6, bottom: -6, backgroundColor: "rgba(194, 58, 68,0.55)", borderRadius: 8 },
+  killer: { position: "absolute", left: 1, top: 1, right: 1, bottom: 1, borderRadius: 8, borderWidth: 4, borderColor: "#C23A44", backgroundColor: "rgba(194, 58, 68,0.18)", zIndex: 9 },
 });
 
 export default GridCell;

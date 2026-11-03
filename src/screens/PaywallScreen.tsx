@@ -21,7 +21,7 @@ import { useT } from "../i18n/useT";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PaywallScreen">;
 
-const GOLD = "#F2C14E";
+const GOLD = "#D9B052";
 
 type Busy = "buying" | "restoring" | null;
 type Notice = { tone: "info" | "error" | "ok"; text: string } | null;
@@ -124,9 +124,9 @@ export default function PaywallScreen({ navigation, route }: Props) {
       : null;
 
   const features: { icon: keyof typeof Ionicons.glyphMap; tint: string; text: string }[] = [
-    { icon: "layers", tint: "#4FC3F7", text: t("paywall.feat.floors", { from: cfg.freeFloors + 1, to: GAME_CONFIG.expedition.floors }) },
-    { icon: "skull", tint: "#FF7043", text: t("paywall.feat.grimbur") },
-    { icon: "infinite", tint: "#B39DDB", text: t("paywall.feat.endless") },
+    { icon: "layers", tint: "#7FAFC6", text: t("paywall.feat.floors", { from: cfg.freeFloors + 1, to: GAME_CONFIG.expedition.floors }) },
+    { icon: "skull", tint: "#CC6E44", text: t("paywall.feat.grimbur") },
+    { icon: "infinite", tint: "#A397BF", text: t("paywall.feat.endless") },
     { icon: "heart", tint: "#F06292", text: t("paywall.feat.support") },
   ];
 
@@ -168,8 +168,8 @@ export default function PaywallScreen({ navigation, route }: Props) {
   );
 
   const success = (
-    <View style={[styles.card, styles.buy, wide && { flex: 1 }, { borderColor: "#76FF03", alignItems: "center" }]} accessibilityLiveRegion="polite">
-      <Ionicons name="checkmark-circle" size={short ? 40 : 56} color="#76FF03" />
+    <View style={[styles.card, styles.buy, wide && { flex: 1 }, { borderColor: "#93C450", alignItems: "center" }]} accessibilityLiveRegion="polite">
+      <Ionicons name="checkmark-circle" size={short ? 40 : 56} color="#93C450" />
       <Text style={styles.successTitle} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {t("paywall.success.title").toLocaleUpperCase()}
       </Text>
@@ -177,7 +177,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         {t("paywall.success.body")}
       </Text>
       <Pressable style={[styles.cta, { alignSelf: "stretch" }]} onPress={leave} accessibilityRole="button" accessibilityLabel={t("paywall.success.continue")}>
-        <LinearGradient colors={["#F7D774", "#E8A93A"]} style={styles.ctaFill}>
+        <LinearGradient colors={["#E0C47A", "#E8A93A"]} style={styles.ctaFill}>
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {t("paywall.success.continue").toLocaleUpperCase()}
           </Text>
@@ -186,7 +186,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
     </View>
   );
 
-  const noticeColor = notice?.tone === "error" ? "#FF8A80" : notice?.tone === "ok" ? "#9ee37d" : "#EAE2D9";
+  const noticeColor = notice?.tone === "error" ? "#D58A7E" : notice?.tone === "ok" ? "#A3BF7C" : "#EAE2D9";
 
   const buy = (
     <View style={[styles.card, styles.buy, wide && { flex: 1 }, short && { padding: 12, gap: 8 }]}>
@@ -207,7 +207,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         accessibilityState={{ disabled: unavailable || !!busy, busy: busy === "buying" }}
         accessibilityLabel={t("paywall.buy", { price })}
       >
-        <LinearGradient colors={["#F7D774", "#E8A93A"]} style={styles.ctaFill}>
+        <LinearGradient colors={["#E0C47A", "#E8A93A"]} style={styles.ctaFill}>
           {busy === "buying" ? <ActivityIndicator color="#2A2016" /> : <Ionicons name="lock-open" size={22} color="#2A2016" />}
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {(busy === "buying" ? t("paywall.buying") : t("paywall.buyShort")).toLocaleUpperCase()}
@@ -216,7 +216,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
       </Pressable>
 
       {unavailable && !notice ? (
-        <Text style={[styles.notice, { color: "#FFCC80" }]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.notice, { color: "#E2BE8C" }]} accessibilityLiveRegion="polite" maxFontSizeMultiplier={1.2}>
           {t("paywall.unavailable")}
         </Text>
       ) : null}
@@ -254,7 +254,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
   );
 
   return (
-    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.root} resizeMode="cover">
+    <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.jpg")} style={styles.root} resizeMode="cover">
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.9)" }}>
         <ScreenHeader title={t("paywall.title")} onBack={decline} />
         <ScrollView
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(24, 17, 11,0.92)",
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: "rgba(242,193,78,0.5)",
+    borderColor: "rgba(217, 176, 82,0.5)",
     padding: 16,
     gap: 12,
   },
@@ -314,18 +314,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "rgba(255,170,60,0.16)",
     borderWidth: 2,
-    borderColor: "rgba(242,193,78,0.7)",
+    borderColor: "rgba(217, 176, 82,0.7)",
   },
   headline: { color: GOLD, fontWeight: "900", letterSpacing: 2 },
   tagline: { color: "#F3EEE8", fontWeight: "700" },
   feature: { flexDirection: "row", alignItems: "center", gap: 10 },
   featureIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: 1.5, alignItems: "center", justifyContent: "center" },
-  featureText: { flex: 1, color: "#fff", fontWeight: "700" },
+  featureText: { flex: 1, color: "#F3EADB", fontWeight: "700" },
   free: { color: "#9fd8a8", fontWeight: "700" },
   buy: { justifyContent: "center", alignItems: "stretch" },
   priceBlock: { alignItems: "center" },
   oneTime: { color: "#C0A58A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },
-  price: { color: "#FFD54F", fontWeight: "900" },
+  price: { color: "#D9B45A", fontWeight: "900" },
   cta: { borderRadius: 18, overflow: "hidden", borderBottomWidth: 4, borderBottomColor: "#B07A1C" },
   ctaFill: { minHeight: MIN_TOUCH + 8, flexDirection: "row", gap: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },
   ctaText: { color: "#2A2016", fontWeight: "900", fontSize: 18, letterSpacing: 2, flexShrink: 1 },
@@ -342,11 +342,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 12,
   },
-  secondaryText: { color: "#fff", fontWeight: "900", fontSize: 13, letterSpacing: 1, flexShrink: 1 },
+  secondaryText: { color: "#F3EADB", fontWeight: "900", fontSize: 13, letterSpacing: 1, flexShrink: 1 },
   decline: { minHeight: MIN_TOUCH, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
   declineText: { color: "#E1D4C8", fontWeight: "700", fontSize: 14, textDecorationLine: "underline", textAlign: "center" },
   promise: { color: "#B99C7E", fontSize: 12, fontWeight: "600", textAlign: "center" },
-  successTitle: { color: "#76FF03", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center" },
+  successTitle: { color: "#93C450", fontWeight: "900", fontSize: 22, letterSpacing: 2, textAlign: "center" },
   successBody: { color: "#F3EEE8", fontWeight: "600", textAlign: "center" },
   links: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 },
   link: { minHeight: MIN_TOUCH - 8, paddingHorizontal: 10, justifyContent: "center" },

@@ -85,7 +85,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {ability && (
         <ToolButton
           art={ABILITY_ART[ability]}
-          color="#FFD54F"
+          color="#D9B45A"
           size={size}
           label={`${abilityName}. ${abilityCd > 0 ? t("tool.cooldown", { name: abilityName, n: abilityCd }) : t("tool.ready", { name: abilityName })}. ${t(`ability.${ability}.desc`)}`}
           onPress={onAbility}
@@ -98,7 +98,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {detector > 0 && (
         <ToolButton
           art={TOOL_ART.detector}
-          color="#4FC3F7"
+          color="#7FAFC6"
           size={size}
           label={`${t("tool.count", { name: t("tool.detector.name"), count: detector })}. ${t("tool.detector.desc")}`}
           onPress={onDetector}
@@ -108,7 +108,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {bomb > 0 && (
         <ToolButton
           art={TOOL_ART.bomb}
-          color="#FF7043"
+          color="#CC6E44"
           size={size}
           label={`${t("tool.count", { name: t("tool.bomb.name"), count: bomb })}. ${t("tool.bomb.desc")}`}
           onPress={onBomb}
@@ -118,7 +118,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
       {canUndo && (
         <ToolButton
           art={TOOL_ART.undo}
-          color="#CE93D8"
+          color="#B08DBE"
           size={size}
           label={`${t("tool.undo.name")}. ${t("tool.undo.desc")}`}
           onPress={onUndo}

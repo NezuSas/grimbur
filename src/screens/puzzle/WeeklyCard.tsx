@@ -13,7 +13,7 @@ import { WEEKLY_EMBERS, weeklyNumber } from "../../core/puzzles/weekly";
 import { loadFriendsWeekly, type WeeklyRow } from "../../services/weeklyScores";
 import { formatSolveTime } from "./shareText";
 
-const RED = "#FF5252";
+const RED = "#CC5249";
 const GRIMBUR = require("../../assets/sprites/enemies/Grimbur_Boss.webp");
 const SHOWN = 4;
 
@@ -84,7 +84,7 @@ export default function WeeklyCard({ week, state, left, friends, onPlay }: Props
           </View>
         </>
       ) : (
-        <Text style={[styles.status, state.solved && { color: "#9EE37D" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
+        <Text style={[styles.status, state.solved && { color: "#A3BF7C" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
           {state.solved ? t("puzzle.weekly.solvedIn", { time: formatSolveTime(state.time) }) : t("puzzle.weekly.spent")}
         </Text>
       )}
@@ -109,7 +109,7 @@ export default function WeeklyCard({ week, state, left, friends, onPlay }: Props
         </View>
       ) : null}
       <View style={[styles.button, !fresh && styles.buttonPractice]}>
-        <Text style={[styles.buttonText, !fresh && { color: "#FFCDD2" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+        <Text style={[styles.buttonText, !fresh && { color: "#E3C7C4" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
           {(fresh ? t("puzzle.weekly.accept") : t("puzzle.weekly.practice")).toLocaleUpperCase()}
         </Text>
       </View>
@@ -126,15 +126,15 @@ const styles = StyleSheet.create({
   left: { color: "#d7b3b3", fontWeight: "800", fontSize: 11 },
   rules: { color: "#F3D9D9", fontSize: 11.5, textAlign: "center" },
   reward: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 },
-  rewardText: { color: "#FFCC80", fontWeight: "800", fontSize: 12 },
-  status: { color: "#FFCDD2", fontWeight: "800", fontSize: 12.5, textAlign: "center" },
+  rewardText: { color: "#E2BE8C", fontWeight: "800", fontSize: 12 },
+  status: { color: "#E3C7C4", fontWeight: "800", fontSize: 12.5, textAlign: "center" },
   board: { gap: 2, padding: 6, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.35)" },
   row: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4, paddingVertical: 2, borderRadius: 6 },
   rowMine: { backgroundColor: RED + "22" },
   rank: { color: "#a88", fontWeight: "900", fontSize: 11, width: 12, textAlign: "center" },
   name: { flex: 1, color: "#F3D9D9", fontWeight: "800", fontSize: 11.5 },
-  time: { color: "#FFE0B2", fontWeight: "900", fontSize: 11.5 },
+  time: { color: "#E8D2B2", fontWeight: "900", fontSize: 11.5 },
   button: { minHeight: 42, borderRadius: 14, backgroundColor: RED, alignItems: "center", justifyContent: "center", paddingHorizontal: 10, borderBottomWidth: 3, borderBottomColor: "#B71C1C" },
-  buttonPractice: { backgroundColor: "rgba(255,82,82,0.15)", borderWidth: 1.5, borderColor: RED, borderBottomWidth: 1.5 },
+  buttonPractice: { backgroundColor: "rgba(204, 82, 73,0.15)", borderWidth: 1.5, borderColor: RED, borderBottomWidth: 1.5 },
   buttonText: { color: "#1a0505", fontWeight: "900", letterSpacing: 1, fontSize: 14 },
 });

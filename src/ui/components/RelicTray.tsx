@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: 'rgba(22, 15, 9, 0.78)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 213, 79, 0.35)',
+    borderColor: 'rgba(217, 180, 90, 0.35)',
   },
   count: {
     position: 'absolute',
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#1B150F',
     borderWidth: 1,
-    borderColor: '#FFD54F',
+    borderColor: '#D9B45A',
   },
-  countText: { color: '#FFD54F', fontSize: 11, fontWeight: '900' },
+  countText: { color: '#D9B45A', fontSize: 11, fontWeight: '900' },
 });
 
 export default RelicTray;

@@ -13,7 +13,7 @@ import { MAX_STARS, PUZZLE_EPOCH, archiveStars, type PuzzleProgress } from "../.
 import { TIER_TINTS } from "./ChapterMap";
 import { useEscapeKey } from "../../ui/hotkeys";
 
-const TINT = "#4DD0E1";
+const TINT = "#6CB0B9";
 const STAR = require("../../assets/sprites/ui/Icon_Star.webp");
 
 type Props = {
@@ -109,7 +109,7 @@ export default function ArchiveModal({ today, puzzles, onPlay, onClose }: Props)
                       !playable && { opacity: 0.25 },
                     ]}
                   >
-                    <Text style={[styles.dayNumber, { fontSize: cell * 0.3 }, isToday && { color: "#fff" }]} maxFontSizeMultiplier={1}>
+                    <Text style={[styles.dayNumber, { fontSize: cell * 0.3 }, isToday && { color: "#F3EADB" }]} maxFontSizeMultiplier={1}>
                       {k + 1}
                     </Text>
                     {stars ? (
@@ -138,12 +138,12 @@ const styles = StyleSheet.create({
   note: { color: "#cfe9ee", fontSize: 12, textAlign: "center" },
   monthRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   arrow: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.1)" },
-  month: { color: "#fff", fontWeight: "900", fontSize: 16, minWidth: 150, textAlign: "center" },
+  month: { color: "#F3EADB", fontWeight: "900", fontSize: 16, minWidth: 150, textAlign: "center" },
   week: { flexDirection: "row" },
   weekday: { color: "#7fa3a8", fontWeight: "900", fontSize: 11, textAlign: "center" },
   grid: { flexDirection: "row", flexWrap: "wrap" },
   day: { flex: 1, borderRadius: 10, borderWidth: 1, borderColor: "transparent", alignItems: "center", justifyContent: "center" },
   dayNumber: { color: "#E6D6C2", fontWeight: "900" },
   dayStars: { flexDirection: "row" },
-  count: { color: "#FFE0B2", fontWeight: "800", fontSize: 12 },
+  count: { color: "#E8D2B2", fontWeight: "800", fontSize: 12 },
 });

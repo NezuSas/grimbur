@@ -36,14 +36,14 @@ export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
   smith: require("../../../assets/sprites/encounters/Encounter_Smith.webp"),
 };
 export const ENCOUNTER_TINT: Record<EncounterId, string> = {
-  scout: "#9EE37D",
-  spring: "#4FC3F7",
-  gambler: "#FFD54F",
-  shrine: "#CE93D8",
-  miner: "#FFB74D",
+  scout: "#A3BF7C",
+  spring: "#7FAFC6",
+  gambler: "#D9B45A",
+  shrine: "#B08DBE",
+  miner: "#DCA45A",
   map: "#E8C07D",
-  echo: "#80DEEA",
-  smith: "#FF8A65",
+  echo: "#8FC0C5",
+  smith: "#D28663",
 };
 
 export const ENCOUNTER_PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   texts: { alignItems: "center", gap: 6, alignSelf: "stretch" },
   kicker: { fontSize: 11, fontWeight: "900", letterSpacing: 2 },
   line: { color: "#EADBC8", fontSize: 13.5, fontWeight: "700", textAlign: "center", lineHeight: 19 },
-  cant: { color: "#FF8A80", fontSize: 11.5, fontWeight: "800" },
+  cant: { color: "#D58A7E", fontSize: 11.5, fontWeight: "800" },
   button: { alignSelf: "stretch", marginTop: 4 },
 });
 
