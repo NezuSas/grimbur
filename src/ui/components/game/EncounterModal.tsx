@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useWindowDimensions } from "../../layout/scaledWindow";
 import type { ImageSourcePropType } from "react-native";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import OverlayContainer from "./OverlayContainer";
+import GamblerDie from "./GamblerDie";
 import { PopButton, PopLink, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import type { TranslationKey } from "../../../i18n/en";
 import {
   GAMBLER_PAYOUT,
   GAMBLER_STAKE,
+  GAMBLER_WIN_FROM,
   SCOUT_ARROWS,
   SCOUT_TILES,
   SHRINE_ARROWS,
@@ -46,7 +48,7 @@ export const ENCOUNTER_TINT: Record<EncounterId, string> = {
   smith: "#D28663",
 };
 
-export const ENCOUNTER_PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
+export const ENCOUNTER_PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, winFrom: GAMBLER_WIN_FROM, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
 
 type Props = {
   encounter: Encounter;
@@ -70,7 +72,18 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
   const wide = width > height;
 
   const relicName = encounter.relic ? t(`relic.${encounter.relic}.name` as TranslationKey) : "";
-  const resultText = outcome === "skip" ? t("encounter.skipped") : outcome ? t(k(outcome), { ...ENCOUNTER_PARAMS, relic: relicName }) : null;
+  // The gambler's throw is shown: the die tumbles on the card, and the result is told once it has landed.
+  const rolled = id === "gambler" && (outcome === "win" || outcome === "lose") && encounter.die != null;
+  const [landed, setLanded] = useState(false);
+  const rolling = rolled && !landed;
+  const resultText =
+    outcome === "skip"
+      ? t("encounter.skipped")
+      : rolling
+        ? t("encounter.gambler.rolling")
+        : outcome
+          ? t(k(outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0 })
+          : null;
 
   return (
     <OverlayContainer>
@@ -85,11 +98,16 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
           <Text style={[popupTitleStyle(tint), wide && { textAlign: "left" }]} maxFontSizeMultiplier={1.15}>
             {t(k("title")).toLocaleUpperCase()}
           </Text>
-          <Text style={[styles.line, wide && { textAlign: "left" }]} maxFontSizeMultiplier={1.15}>
+          {rolled ? (
+            <View style={[styles.dieRow, wide && { alignSelf: "flex-start" }]}>
+              <GamblerDie face={encounter.die!} size={Math.min(56, artSize * 0.42)} rim={tint} won={outcome === "win"} onLanded={() => setLanded(true)} />
+            </View>
+          ) : null}
+          <Text style={[styles.line, wide && { textAlign: "left" }, rolled && landed && { color: outcome === "win" ? "#A3BF7C" : "#D58A7E" }]} maxFontSizeMultiplier={1.15}>
             {resultText ?? t(k("body"), ENCOUNTER_PARAMS)}
           </Text>
           {outcome ? (
-            <PopButton label={t("encounter.go")} onPress={onClose} style={styles.button} />
+            <PopButton label={t("encounter.go")} onPress={onClose} disabled={rolling} style={[styles.button, rolling && { opacity: 0 }]} />
           ) : (
             <>
               <PopButton label={t(k("take"), ENCOUNTER_PARAMS)} onPress={() => onChoose(true)} disabled={!affordable} tint={tint} style={styles.button} />
@@ -115,6 +133,7 @@ const styles = StyleSheet.create({
   line: { color: "#EADBC8", fontSize: 13.5, fontWeight: "700", textAlign: "center", lineHeight: 19 },
   cant: { color: "#D58A7E", fontSize: 11.5, fontWeight: "800" },
   button: { alignSelf: "stretch", marginTop: 4 },
+  dieRow: { alignSelf: "center", marginVertical: -4 },
 });
 
 export default EncounterModal;

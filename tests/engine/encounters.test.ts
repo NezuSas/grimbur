@@ -1,4 +1,4 @@
-import { MAP_GEMS, SMITH_ARROWS, ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, resolveEncounter } from '../../src/core/engine/encounters';
+import { MAP_GEMS, SMITH_ARROWS, ENCOUNTER_CHANCE, ENCOUNTER_FROM, GAMBLER_PAYOUT, GAMBLER_STAKE, GAMBLER_WIN_FROM, SCOUT_ARROWS, SCOUT_TILES, canTake, encounterFor, resolveEncounter } from '../../src/core/engine/encounters';
 import { gameReducer } from '../../src/core/engine/reducer';
 import { coin, createState } from '../helpers/state';
 import type { GameState } from '../../src/core/engine/types';
@@ -53,6 +53,18 @@ describe('encounters', () => {
       expect(after.gems).toBe(after.encounter?.outcome === 'win' ? 10 - GAMBLER_STAKE + GAMBLER_PAYOUT : 10 - GAMBLER_STAKE);
     }
     expect(outcomes).toEqual(new Set(['win', 'lose']));
+  });
+
+  it('shows the gambler die on a face that matches the outcome, and every face comes up', () => {
+    const faces = new Set<number>();
+    for (let seed = 1; seed <= 200; seed++) {
+      const enc = resolveEncounter(withEncounter('gambler', { gems: 10, runSeed: seed }), true).encounter!;
+      expect(enc.die).toBeGreaterThanOrEqual(1);
+      expect(enc.die).toBeLessThanOrEqual(6);
+      expect(enc.die! >= GAMBLER_WIN_FROM).toBe(enc.outcome === 'win');
+      faces.add(enc.die!);
+    }
+    expect(faces.size).toBe(6);
   });
 
   it('the shrine turns an arrow into a detector charge', () => {

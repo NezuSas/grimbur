@@ -23,6 +23,8 @@ export interface Encounter {
   outcome?: 'win' | 'lose' | 'done' | 'skip';
   /** The relic the trapped miner gave (shown on the outcome). */
   relic?: RelicId;
+  /** The gambler's die, 1 to 6: 4 or more wins (shown rolling, then landing on it). */
+  die?: number;
 }
 
 export const ENCOUNTER_FROM = 2;
@@ -35,10 +37,11 @@ export const SCOUT_TILES = 3;
 /** The spring: a shield (or an arrow when one is held) most of the time, otherwise gems are lost. */
 export const SPRING_LUCK = 0.6;
 export const SPRING_LOSS = 2;
-/** The gambler: a stake of shop gems, paid back with a profit half of the time. */
+/** The gambler: a stake of shop gems, paid back with a profit half of the time (a die showing GAMBLER_WIN_FROM or more). */
 export const GAMBLER_STAKE = 3;
 export const GAMBLER_PAYOUT = 7;
 export const GAMBLER_LUCK = 0.5;
+export const GAMBLER_WIN_FROM = 4;
 /** The shrine: an arrow for a detector charge (a bomb when the bag holds the most detectors). */
 export const SHRINE_ARROWS = 1;
 /** The trapped miner: a bomb clears the rubble, and the miner gives a relic (never a cursed one). */
@@ -134,7 +137,10 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
     }
     case 'gambler': {
       const won = roll() < GAMBLER_LUCK;
-      return { ...state, gems: state.gems - GAMBLER_STAKE + (won ? GAMBLER_PAYOUT : 0), encounter: { ...enc, outcome: won ? 'win' : 'lose' } };
+      // The face the die shows: one of the winning faces or one of the losing ones (the luck above decides which).
+      const faces = won ? 7 - GAMBLER_WIN_FROM : GAMBLER_WIN_FROM - 1;
+      const die = (won ? GAMBLER_WIN_FROM : 1) + Math.min(faces - 1, Math.floor(roll() * faces));
+      return { ...state, gems: state.gems - GAMBLER_STAKE + (won ? GAMBLER_PAYOUT : 0), encounter: { ...enc, outcome: won ? 'win' : 'lose', die } };
     }
     case 'shrine': {
       const items = state.items.detector < MAX_ITEMS ? { ...state.items, detector: state.items.detector + 1 } : { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) };
