@@ -334,14 +334,17 @@ export const startWeeklyTry = (week: string): Promise<LocalStats> =>
   });
 
 /** The weekly challenge's counted try ends; a solve pays its embers (they count for the rank, like any puzzle's). */
-export const finishWeeklyTry = (week: string, solved: boolean, seconds: number): Promise<{ stats: LocalStats; embers: number }> =>
+export const finishWeeklyTry = (week: string, solved: boolean, seconds: number): Promise<{ stats: LocalStats; embers: number; achievements: AchievementId[] }> =>
   serialized(async () => {
     const before = await getLocalStats();
     const { progress, embers } = withWeeklyResult(before.puzzles, week, solved, seconds, WEEKLY_EMBERS);
-    if (progress === before.puzzles) return { stats: before, embers: 0 };
-    const stats = { ...before, puzzles: progress, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
+    if (progress === before.puzzles) return { stats: before, embers: 0, achievements: [] };
+    const ended: LocalStats = { ...before, puzzles: progress, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
+    // Beating the challenge can complete a puzzle achievement (the Grimbur's Bane).
+    const achievements = newAchievements(ended, { score: 0, level: 1 });
+    const stats = withAchievements(ended, achievements, dailyKey());
     await save(stats);
-    return { stats, embers };
+    return { stats, embers: embers + rewardFor(achievements), achievements };
   });
 
 /** Opens a mastered chapter's chest (its title is owned from the moment the chapter is mastered; this is the moment it is shown). */

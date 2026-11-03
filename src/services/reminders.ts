@@ -7,7 +7,8 @@ import { translateNow } from '../i18n/useT';
 import { useSettingsStore } from '../state/settings/store';
 import { currentStreak } from '../core/stats/runStats';
 import type { LocalStats } from '../core/stats/runStats';
-import { dailyPuzzleStars, dailyPuzzleStreak } from '../core/stats/puzzleProgress';
+import { dailyPuzzleStars, dailyPuzzleStreak, weeklyState } from '../core/stats/puzzleProgress';
+import { weekOf } from '../core/puzzles/weekly';
 
 /**
  * The optional daily-challenge reminder (Settings > Accessibility... "Daily reminder"). It is a local notification scheduled
@@ -73,6 +74,9 @@ export async function cancelReminders(): Promise<void> {
   }
 }
 
+/** Sunday: the weekly challenge's last day. */
+const isLastDayOfWeek = (day: string): boolean => new Date(`${day}T12:00:00Z`).getUTCDay() === 0;
+
 /** Every reminder change runs one at a time: two overlapping syncs (the cover and the Settings switch) once scheduled it twice. */
 let queue: Promise<unknown> = Promise.resolve();
 
@@ -104,12 +108,16 @@ async function syncNow(stats: LocalStats, now: Date): Promise<void> {
     const day = dailyKey(probe.at);
     const puzzleStreak = dailyPuzzleStreak(stats.puzzles, day);
     const puzzleAtStake = plan.kind === 'daily' && puzzleStreak > 0 && dailyPuzzleStars(stats.puzzles, day) === 0;
+    // Sunday, the last day of the Grimbur's weekly challenge, with its try still untaken: the reminder says so.
+    const weeklyAtStake = plan.kind === 'daily' && !puzzleAtStake && isLastDayOfWeek(day) && weeklyState(stats.puzzles, weekOf(day)).kind === 'fresh';
     await N.scheduleNotificationAsync({
       content:
         plan.kind === 'streak'
           ? { title: translateNow('reminder.streak.title', { count: plan.streak }), body: translateNow('reminder.streak.body') }
           : puzzleAtStake
           ? { title: translateNow('reminder.puzzle.title', { count: puzzleStreak }), body: translateNow('reminder.puzzle.body') }
+          : weeklyAtStake
+          ? { title: translateNow('reminder.weekly.title'), body: translateNow('reminder.weekly.body') }
           : { title: translateNow('reminder.daily.title'), body: translateNow('reminder.daily.body') },
       trigger: { type: N.SchedulableTriggerInputTypes.DATE, date: plan.at, channelId: CHANNEL },
     });

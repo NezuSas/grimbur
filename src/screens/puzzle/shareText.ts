@@ -27,3 +27,15 @@ export function puzzleShareText(
   lines.push("", t("puzzle.shareDare"), GAME_CONFIG.store.url);
   return lines.join("\n");
 }
+
+/** The weekly challenge's counted try, to paste in a chat: beaten (and how fast) or not, and the dare. */
+export function weeklyShareText(t: T, r: { number: number; solved: boolean; seconds: number }): string {
+  const lines = [t("puzzle.shareWeeklyTitle", { n: r.number }), r.solved ? `💀 ✅  ⏱ ${formatSolveTime(r.seconds)}` : "💀 ❌", "", t("puzzle.shareWeeklyDare"), GAME_CONFIG.store.url];
+  return lines.join("\n");
+}
+
+/** A crowned puzzle of the path, to paste in a chat: its number and level, the crown and the time, and the dare. */
+export function crownShareText(t: T, r: { number: number; tier: string; seconds: number }): string {
+  const lines = [t("puzzle.shareCrownTitle", { n: r.number, tier: r.tier }), `⭐⭐⭐ 👑  ⏱ ${formatSolveTime(r.seconds)}`, "", t("puzzle.shareDare"), GAME_CONFIG.store.url];
+  return lines.join("\n");
+}

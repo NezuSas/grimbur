@@ -4,8 +4,8 @@ import { UPGRADES } from './forge';
 import { BEASTS, type BeastId } from './bestiary';
 import { masteryOf } from './mastery';
 import { ENCOUNTERS } from '../engine/encounters';
-import { PUZZLE_COUNT } from '../puzzles/puzzles';
-import { MAX_STARS, puzzlesSolved, totalPuzzleStars } from './puzzleProgress';
+import { LEGEND_TIER, PUZZLE_COUNT, PUZZLE_TIERS, PUZZLES_PER_TIER } from '../puzzles/puzzles';
+import { MAX_STARS, puzzlesSolved, totalPuzzleStars, chapterCrowns } from './puzzleProgress';
 
 /**
  * Achievements are evaluated from the persisted stats plus the run that just ended. They are
@@ -131,12 +131,17 @@ export type AchievementId =
   | 'puzzle_streak_7'
   | 'puzzle_streak_30'
   | 'puzzle_endless_25'
+  | 'puzzle_crowns_10'
+  | 'puzzle_crown_chapter'
+  | 'puzzle_legend'
+  | 'puzzle_weekly_3'
+  | 'puzzle_archive_10'
   // The quick descent
   | 'quick_1'
   | 'quick_10';
 
 /** Translation key of the shared description template, when one applies (`{n}` is the target). */
-export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters' | 'puzzles' | 'puzzleStars' | 'puzzleDaily' | 'puzzleStreak' | 'puzzleEndless' | 'quickWins';
+export type DescKind = 'dailyRuns' | 'dailyWins' | 'achCount' | 'heroWin' | 'winTime' | 'floor' | 'gems' | 'games' | 'score' | 'relics' | 'streak' | 'wins' | 'forge' | 'embers' | 'endless' | 'depthWin' | 'slain' | 'bestiary' | 'beast' | 'mastery' | 'secrets' | 'encounters' | 'puzzles' | 'puzzleStars' | 'puzzleDaily' | 'puzzleStreak' | 'puzzleEndless' | 'quickWins' | 'puzzleCrowns' | 'puzzleCrownChapter' | 'puzzleLegend' | 'puzzleWeekly' | 'puzzleArchive';
 
 export interface AchievementInfo {
   id: AchievementId;
@@ -382,6 +387,11 @@ export const ACHIEVEMENTS: readonly AchievementInfo[] = [
   counted('puzzle_streak_7', '🪔', 'medium', 'puzzleStreak', 7, s => s.puzzles?.bestStreak ?? 0),
   counted('puzzle_streak_30', '🔭', 'legend', 'puzzleStreak', 30, s => s.puzzles?.bestStreak ?? 0),
   counted('puzzle_endless_25', '🪐', 'hard', 'puzzleEndless', 25, s => s.puzzles?.endless?.solved ?? 0),
+  counted('puzzle_crowns_10', '🪄', 'hard', 'puzzleCrowns', 10, s => s.puzzles?.crowns?.length ?? 0),
+  counted('puzzle_crown_chapter', '⚜️', 'hard', 'puzzleCrownChapter', PUZZLES_PER_TIER, s => Math.max(0, ...PUZZLE_TIERS.map((_, t) => chapterCrowns(s.puzzles, t)))),
+  counted('puzzle_legend', '🧊', 'legend', 'puzzleLegend', PUZZLES_PER_TIER, s => (s.puzzles?.stars ?? []).slice(LEGEND_TIER * PUZZLES_PER_TIER).filter(v => v > 0).length),
+  counted('puzzle_weekly_3', '⌛', 'hard', 'puzzleWeekly', 3, s => s.puzzles?.weeklyWins ?? 0),
+  counted('puzzle_archive_10', '🗒️', 'medium', 'puzzleArchive', 10, s => s.puzzles?.archiveSolved ?? 0),
   // ── The quick descent ───────────────────────────────────────────────────
   counted('quick_1', '🏃', 'easy', 'quickWins', 1, s => s.quickWins ?? 0),
   counted('quick_10', '⏱️', 'medium', 'quickWins', 10, s => s.quickWins ?? 0),

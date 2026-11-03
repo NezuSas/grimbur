@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Snowfall from "../ui/components/Snowfall";
 import { isYuleDay } from "../core/events/yule";
-import { ImageBackground, Share, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ImageBackground, Platform, Share, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,10 +40,13 @@ import { analytics } from "../services/analytics";
 import { achievementText } from "../i18n/keys";
 import type { AchievementId } from "../core/stats/achievements";
 import { dailyPuzzleNumber, dailyPuzzleStreak, weeklyState } from "../core/stats/puzzleProgress";
-import { formatSolveTime, puzzleShareText } from "./puzzle/shareText";
+import { crownShareText, formatSolveTime, puzzleShareText, weeklyShareText } from "./puzzle/shareText";
 import { besideOf, failWarning, hintReason, type HintReason } from "../core/puzzles/hintReason";
 import PuzzleIntro from "./puzzle/PuzzleIntro";
 import LiveStars from "./puzzle/LiveStars";
+import ToolBar, { type PuzzleTool } from "./puzzle/ToolBar";
+import PuzzleGuide from "./puzzle/PuzzleGuide";
+import type { TileNote } from "../ui/components/BoardView";
 import { CountUp, DropIn, FlyingStars, numbersAt } from "./puzzle/resultParts";
 import GemShower from "../ui/components/game/GemShower";
 import { TIER_TINTS } from "./puzzle/ChapterMap";
@@ -92,6 +95,9 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const calm = useSettingsStore(s => s.reduceFlash);
   const hero = useSettingsStore(s => s.lastHero);
+  // The first puzzle of the path explains itself once.
+  const guideSeen = useSettingsStore(s => s.hintsSeen.includes("puzzle-guide"));
+  const markHintSeen = useSettingsStore(s => s.markHintSeen);
 
   const target = route.params.target;
   const today = useMemo(() => dailyKey(), []);
@@ -138,7 +144,12 @@ export default function PuzzleScreen({ navigation, route }: Props) {
   // A strict puzzle (the Legend): one mistake ends the try, and it is started again only by choice.
   const [failedOut, setFailedOut] = useState(false);
   const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set(technique?.flags ?? []));
+  // What a tap on the board does, and the player's pencil marks on hidden tiles.
+  const [tool, setTool] = useState<PuzzleTool>("walk");
+  const [notes, setNotes] = useState<ReadonlyMap<number, TileNote>>(() => new Map());
   const [result, setResult] = useState<{ stars: number; embers: number; achievements: AchievementId[]; seconds: number; streak: number; run: number; record?: boolean; best?: number; crown?: boolean; weeklyWon?: boolean } | null>(null);
+  // The result card's main way on (Enter on a keyboard presses it).
+  const resultPrimary = useRef<null | (() => void)>(null);
   // The whole time spent on it, restarts included: what a shared result tells.
   const startedAt = useRef(0);
   useEffect(() => {
@@ -183,15 +194,23 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     walking.current = null;
   };
 
-  const restart = useCallback(() => {
-    stopWalking();
-    dispatch({ type: "PUZZLE_SET", state: openingState(puzzle, hero) });
-    setFail(null);
-    setFailWhy(null);
-    setHintTile(null);
-    setBoardLevel(l => l + 1);
-    setFlags(new Set(technique?.flags ?? []));
-  }, [puzzle, hero, technique]);
+  // Back to the opening board. After a mistake the player's flags and notes stay (the board is the same, and so is what they
+  // worked out); the restart button clears them too.
+  const restart = useCallback(
+    (keepMarks: boolean) => {
+      stopWalking();
+      dispatch({ type: "PUZZLE_SET", state: openingState(puzzle, hero) });
+      setFail(null);
+      setFailWhy(null);
+      setHintTile(null);
+      setBoardLevel(l => l + 1);
+      if (!keepMarks) {
+        setFlags(new Set(technique?.flags ?? []));
+        setNotes(new Map());
+      }
+    },
+    [puzzle, hero, technique],
+  );
 
   // Same sounds as a run for the few things a puzzle does.
   const lastState = useRef(state);
@@ -228,7 +247,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       weeklyOpen.current = false;
       void submitWeeklyScore({ week, solved: true, seconds, characterIndex: hero });
       finishWeeklyTry(week, true, seconds)
-        .then(r => setTimeout(() => setResult({ stars, embers: r.embers, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), REVEAL_MS))
+        .then(r => setTimeout(() => setResult({ stars, embers: r.embers, achievements: r.achievements, seconds, streak: 0, run: 0, weeklyWon: true }), REVEAL_MS))
         .catch(() => setTimeout(() => setResult({ stars, embers: 0, achievements: [], seconds, streak: 0, run: 0, weeklyWon: true }), REVEAL_MS));
       return;
     }
@@ -271,7 +290,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           }
           failTimer.current = setTimeout(() => setFailedOut(true), 1300);
         }
-        else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(restart, 3600);
+        else if (!(__DEV__ && route.params.devHold)) failTimer.current = setTimeout(() => restart(true), 3600);
         return false;
       }
       dispatch({ type: "MOVE", direction });
@@ -285,10 +304,35 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     stepTo(direction);
   }, [stepTo]);
 
-  // Tapping a tile: next to the hero it is one step (into the fog too); farther, the hero walks there over explored tiles.
+  // A note on a hidden tile goes round: safe, not a guardian, not a vortex, none.
+  const cycleNote = useCallback((tile: number) => {
+    if (stateRef.current.visited.includes(tile)) return;
+    haptic.impact();
+    setNotes(prev => {
+      const next = new Map(prev);
+      const now = prev.get(tile);
+      const after: TileNote | undefined = now === undefined ? "safe" : now === "safe" ? "noGuardian" : now === "noGuardian" ? "noVortex" : undefined;
+      if (after) next.set(tile, after);
+      else next.delete(tile);
+      return next;
+    });
+  }, []);
+
+  // Tapping a tile: with the flag or note tool it marks it; walking, next to the hero it is one step (into the fog too) and
+  // farther, the hero walks there over explored tiles.
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
   const tapTile = useCallback(
     (tile: number) => {
       const s = stateRef.current;
+      if (toolRef.current === "flag") {
+        toggleFlagRef.current(tile);
+        return;
+      }
+      if (toolRef.current === "note") {
+        cycleNote(tile);
+        return;
+      }
       stopWalking();
       const r = Math.floor(s.playerIndex / s.cols);
       const c = s.playerIndex % s.cols;
@@ -306,9 +350,10 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       };
       walk(0);
     },
-    [stepTo],
+    [stepTo, cycleNote],
   );
 
+  const toggleFlagRef = useRef<(tile: number) => void>(() => {});
   const toggleFlag = useCallback((tile: number) => {
     if (stateRef.current.visited.includes(tile)) return;
     haptic.impact();
@@ -318,6 +363,8 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       return next;
     });
   }, []);
+
+  toggleFlagRef.current = toggleFlag;
 
   // The hint: one tile next to the explored ground that the clues already prove safe (never a gem, which is in plain sight),
   // the one proven by the simplest reading, so the hint teaches the easiest move left.
@@ -346,6 +393,13 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     }).catch(() => {});
   };
   const tierName = t(`puzzle.tier.${puzzle.tier}` as TranslationKey);
+  // A beaten weekly challenge or a crown is worth a message to friends too.
+  const shareBrag = () => {
+    if (!result) return;
+    analytics.track("puzzle_shared", { stars: result.stars });
+    const message = result.weeklyWon ? weeklyShareText(t, { number: weeklyNumber(week), solved: true, seconds: result.seconds }) : crownShareText(t, { number: index + 1, tier: tierName, seconds: result.seconds });
+    Share.share({ message }).catch(() => {});
+  };
   const title = technique ? t("tech.label") : isWeekly ? `${t("puzzle.weekly.title")} #${weeklyNumber(week)}${practice ? ` · ${t("puzzle.weekly.practiceTag")}` : ""}` : isDaily ? t("puzzle.daily") : archiveDate ? `${t("puzzle.daily")} #${dailyPuzzleNumber(archiveDate)}` : isEndless ? t("puzzle.endless.number", { n: endlessN + 1 }) : t("puzzle.number", { n: index + 1 });
   const goal = technique ? t(`tech.${technique.id}.tip` as TranslationKey) : gems === 1 ? t("puzzle.goal1") : t("puzzle.goal", { n: gems });
   const failWhat = (g: number, v: number) =>
@@ -415,6 +469,47 @@ export default function PuzzleScreen({ navigation, route }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  resultPrimary.current = !result
+    ? null
+    : isTechnique
+      ? () => navigation.goBack()
+      : isDaily
+        ? share
+        : isEndless
+          ? () => navigation.replace("PuzzleScreen", { target: "endless", n: endlessN + 1 })
+          : index >= 0
+            ? () => navigation.popTo("PuzzlesScreen", hasNext ? { continueTo: index + 1 } : {})
+            : () => navigation.goBack();
+  // The keyboard on a computer: arrows or WASD walk, F flag, N notes, H hint, R restart, Enter plays on (start, continue).
+  const keys = useRef({ move, startPuzzle, showHint, restart, primary: null as null | (() => void), introDone, result: !!result, failedOut, isWeekly });
+  keys.current = { move, startPuzzle, showHint, restart, primary: resultPrimary.current, introDone, result: !!result, failedOut, isWeekly };
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = keys.current;
+      const key = e.key.toLowerCase();
+      if (key === "enter" || key === " ") {
+        if (!k.introDone) k.startPuzzle();
+        else if (k.result && k.primary) k.primary();
+        else return;
+        e.preventDefault();
+        return;
+      }
+      if (!k.introDone || k.result || k.failedOut) return;
+      const dir: Direction | null = key === "arrowup" || key === "w" ? "UP" : key === "arrowdown" || key === "s" ? "DOWN" : key === "arrowleft" || key === "a" ? "LEFT" : key === "arrowright" || key === "d" ? "RIGHT" : null;
+      if (dir) {
+        e.preventDefault();
+        k.move(dir);
+      } else if (key === "f") setTool(t => (t === "flag" ? "walk" : "flag"));
+      else if (key === "n") setTool(t => (t === "note" ? "walk" : "note"));
+      else if (key === "h" && !k.isWeekly) k.showHint();
+      else if (key === "r") k.restart(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <ImageBackground fadeDuration={0} resizeMethod="none" source={require("../assets/sprites/backgrounds/Cover_Background.png")} style={styles.container} resizeMode="cover">
       <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(0,0,0,0.62)" }]} />
@@ -444,7 +539,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
             <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#FFD54F"} />
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.iconButton} onPress={restart} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.restart")}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => restart(false)} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.restart")}>
           <Ionicons name="refresh" size={21} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -466,11 +561,13 @@ export default function PuzzleScreen({ navigation, route }: Props) {
           calm={calm}
           highlight={hintTile !== null ? [hintTile] : undefined}
           flags={flags}
+          notes={notes}
           biome={puzzle.biome}
           onTilePress={tapTile}
           onTileLongPress={toggleFlag}
         />
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
+          <ToolBar tool={tool} onChange={next => setTool(prev => (prev === next && next !== "walk" ? "walk" : next))} />
           <View style={styles.here} accessible accessibilityLabel={t("puzzle.here", { guardians: here.enemyCount, vortexes: here.pitCount })}>
             <Text style={styles.hereLabel} maxFontSizeMultiplier={1.15}>
               {t("puzzle.hereLabel").toLocaleUpperCase()}
@@ -499,6 +596,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       {isYuleDay(today) ? <Snowfall count={18} calm={calm} /> : null}
       <DangerVignette roar={here.enemy && danger} vortex={here.pit && danger} intensity={Math.max(here.enemyCount, here.pitCount)} calm={calm} beat={heartbeat} />
       {solved && !calm ? <GemShower count={22} /> : null}
+      {introDone && index === 0 && !guideSeen && !solved && !fail ? <PuzzleGuide onDone={() => markHintSeen("puzzle-guide")} /> : null}
       {!introDone ? (
         <PuzzleIntro
           title={title}
@@ -634,6 +732,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                   />
                 ) : null}
                 {index >= 0 || isDaily || isEndless ? <PopLink label={t("puzzle.backToMap")} onPress={() => navigation.goBack()} /> : null}
+                {result.weeklyWon || result.crown ? <PopLink label={t("puzzle.share")} onPress={shareBrag} /> : null}
               </View>
             </View>
           </PopupPanel>

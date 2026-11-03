@@ -16,11 +16,33 @@ import Companion, { type CompanionLook } from "./game/Companion";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
 import Text from "./Text";
-import GridCell, { ASSETS, NO_HINTS } from "./GridCell";
+import GridCell, { ASSETS, CLUE_ART, NO_HINTS } from "./GridCell";
 import { ANCIENT_FRAMES } from "./BossSprite";
 
 /** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
 export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
+
+/** A pencil mark the player put on a hidden tile while reasoning (puzzles). */
+export type TileNote = "safe" | "noGuardian" | "noVortex";
+
+/** A pencil mark on a hidden tile: a green tick (proven safe) or a clue icon struck through (not a guardian, not a vortex). */
+const NoteMark = memo(({ tile, note, cols, tileSize }: { tile: number; note: TileNote; cols: number; tileSize: number }) => {
+  const s = tileSize * 0.42;
+  return (
+    <View pointerEvents="none" style={[styles.note, { left: (tile % cols) * tileSize, top: Math.floor(tile / cols) * tileSize, width: tileSize, height: tileSize }]}>
+      <View style={[styles.noteBadge, { width: s, height: s, borderRadius: s / 2 }, note === "safe" ? styles.noteSafe : styles.noteNot]}>
+        {note === "safe" ? (
+          <Ionicons name="checkmark" size={s * 0.8} color="#0b2a10" />
+        ) : (
+          <>
+            <SpriteImage source={note === "noGuardian" ? CLUE_ART.roar : CLUE_ART.vortex} style={{ width: s * 0.8, height: s * 0.8 }} resizeMode="contain" />
+            <View style={[styles.noteSlash, { width: s * 1.05, height: Math.max(2, s * 0.1) }]} />
+          </>
+        )}
+      </View>
+    </View>
+  );
+});
 
 /**
  * A ray of light between two neighbouring tiles: both are ringed and a glowing bar joins their centres, pulsing, so the eye goes
@@ -185,6 +207,8 @@ type Props = {
   unveil?: boolean;
   /** A ray of light between two neighbouring tiles (puzzles: from the clue that proves or warns, to the tile it speaks of). */
   beam?: { from: number; to: number; color: string } | null;
+  /** The player's pencil marks on hidden tiles (puzzles): proven safe, not a guardian, not a vortex. */
+  notes?: ReadonlyMap<number, TileNote> | null;
   /** Practice help: hidden tiles the clues prove safe or dangerous. */
   deduced?: ReadonlyMap<number, "safe" | "danger"> | null;
   /** Friends who fell on this same floor of the daily: a ghost of their hero where their run ended. */
@@ -196,7 +220,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -567,6 +591,11 @@ const BoardView: React.FC<Props> = memo(
             <DustPuff key={d.id} x={d.x} y={d.y} tileSize={tileSize} onDone={() => removeDust(d.id)} />
           ))}
 
+          {notes
+            ? [...notes].map(([tile, note]) =>
+                visitedSet.has(tile) || (flags && flags.has(tile)) || unveil ? null : <NoteMark key={`note-${tile}`} tile={tile} note={note} cols={cols} tileSize={tileSize} />,
+              )
+            : null}
           {beam ? <Beam key={`${beam.from}-${beam.to}`} beam={beam} cols={cols} tileSize={tileSize} calm={!!calm} /> : null}
 
           {pastSteps?.map(tile =>
@@ -769,6 +798,11 @@ const BoardView: React.FC<Props> = memo(
 );
 
 const styles = StyleSheet.create({
+  note: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 3 },
+  noteBadge: { alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
+  noteSafe: { backgroundColor: "rgba(158,227,125,0.92)", borderColor: "#e8ffd8" },
+  noteNot: { backgroundColor: "rgba(20,14,10,0.82)", borderColor: "rgba(255,255,255,0.55)" },
+  noteSlash: { position: "absolute", backgroundColor: "#FF5252", transform: [{ rotate: "-45deg" }], borderRadius: 2 },
   step: { position: "absolute", alignItems: "center", justifyContent: "flex-end", paddingBottom: 3, zIndex: 4 },
   ghost: { position: "absolute", alignItems: "center", justifyContent: "center", zIndex: 6 },
   ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },

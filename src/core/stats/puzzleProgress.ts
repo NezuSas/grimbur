@@ -25,9 +25,13 @@ export interface PuzzleProgress {
   crowns: number[];
   /** The Grimbur's weekly challenge of the latest week tried: its one counted try (`done` once it ended, solved or not). */
   weekly: { week: string; done: boolean; solved: boolean; time: number } | null;
+  /** Weekly challenges beaten on their counted try, over all weeks. */
+  weeklyWins: number;
+  /** Past puzzles of the day solved from the archive (each day once). */
+  archiveSolved: number;
 }
 
-export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [], crowns: [], weekly: null };
+export const EMPTY_PUZZLES: PuzzleProgress = { stars: [], daily: null, dailySolved: 0, streak: 0, bestStreak: 0, endless: { solved: 0, run: 0, bestRun: 0 }, times: [], archive: {}, chests: [], crowns: [], weekly: null, weeklyWins: 0, archiveSolved: 0 };
 /** How many days of the archive are kept (the oldest go first). */
 export const ARCHIVE_KEEP = 400;
 /** Embers an endless puzzle pays per star (less than the path: it never ends). */
@@ -68,7 +72,7 @@ export function parsePuzzles(raw: unknown): PuzzleProgress {
   const crowns = Array.isArray(r.crowns) ? [...new Set(r.crowns.filter((v): v is number => Number.isInteger(v) && v >= 0 && v < PUZZLE_COUNT))].sort((a, b) => a - b) : [];
   const w = r.weekly && typeof r.weekly === 'object' ? (r.weekly as Record<string, unknown>) : null;
   const weekly = w && typeof w.week === 'string' && DATE.test(w.week) ? { week: w.week, done: w.done === true, solved: w.solved === true, time: count(w.time) } : null;
-  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless, times, archive: trimArchive(archive), chests, crowns, weekly };
+  return { stars, daily, dailySolved: n, streak, bestStreak: Math.max(streak, count(r.bestStreak)), endless, times, archive: trimArchive(archive), chests, crowns, weekly, weeklyWins: count(r.weeklyWins), archiveSolved: count(r.archiveSolved) };
 }
 
 /** The archive without its oldest days beyond what is kept. */
@@ -112,7 +116,7 @@ export function withWeeklyResult(p: PuzzleProgress | undefined, week: string, so
   const base = p ?? EMPTY_PUZZLES;
   if (base.weekly?.week !== week || base.weekly.done) return { progress: base, embers: 0 };
   const time = solved ? Math.max(1, Math.round(seconds)) : 0;
-  return { progress: { ...base, weekly: { week, done: true, solved, time } }, embers: solved ? embers : 0 };
+  return { progress: { ...base, weekly: { week, done: true, solved, time }, weeklyWins: base.weeklyWins + (solved ? 1 : 0) }, embers: solved ? embers : 0 };
 }
 
 export function withChestOpened(p: PuzzleProgress | undefined, tier: number): PuzzleProgress {
@@ -188,7 +192,8 @@ export function withPuzzleResult(
   const archived = archiveStars(base, target.date);
   const archive = got > archived ? trimArchive({ ...base.archive, [target.date]: got }) : base.archive;
   // A past day from the archive: its stars are kept, nothing is paid and the streak is not touched.
-  if (target.kind === 'archive') return got > archived ? { progress: { ...base, archive }, embers: 0, record: false, best: 0, crown: false } : none;
+  if (target.kind === 'archive')
+    return got > archived ? { progress: { ...base, archive, archiveSolved: base.archiveSolved + (archived === 0 ? 1 : 0) }, embers: 0, record: false, best: 0, crown: false } : none;
   const before = dailyPuzzleStars(base, target.date);
   const first = base.daily?.date !== target.date;
   if (!first && got <= before) return none;

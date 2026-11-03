@@ -24,6 +24,7 @@ import FriendsToday from "./puzzle/FriendsToday";
 import ChapterMap, { TIER_TINTS, type MapFx } from "./puzzle/ChapterMap";
 import ArchiveModal from "./puzzle/ArchiveModal";
 import ChestReveal from "./puzzle/ChestReveal";
+import PuzzleStats from "./puzzle/PuzzleStats";
 import DailyCard from "./puzzle/DailyCard";
 import WeeklyCard from "./puzzle/WeeklyCard";
 import { msUntilWeekEnd, weekOf } from "../core/puzzles/weekly";
@@ -70,6 +71,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
   const [fx, setFx] = useState<MapFx | null>(null);
   const [chestTier, setChestTier] = useState<number | null>(null);
   const [archive, setArchive] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   // Continue (from a solved puzzle): once the map has played what changed (the stars, the walk, a chapter opening), the next
   // puzzle opens by itself on its card.
   const continueTo = useRef<number | undefined>(undefined);
@@ -195,12 +197,13 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
           subtitle={t("puzzle.pathNote", { n: EMBERS_PER_STAR })}
           onBack={() => navigation.goBack()}
           right={
-            <View style={styles.total} accessible accessibilityLabel={t("puzzle.totalStars", { n: stars, total: PUZZLE_COUNT * MAX_STARS })}>
+            <PressScale onPress={() => setStatsOpen(true)} style={styles.total} accessibilityRole="button" accessibilityLabel={`${t("puzzle.stats.title")}. ${t("puzzle.totalStars", { n: stars, total: PUZZLE_COUNT * MAX_STARS })}`}>
+              <Ionicons name="stats-chart" size={15} color={GOLD} />
               <SpriteImage source={STAR} style={{ width: 18, height: 18 }} resizeMode="contain" />
               <Text style={styles.totalText} maxFontSizeMultiplier={1.15}>
                 {`${stars}/${PUZZLE_COUNT * MAX_STARS}`}
               </Text>
-            </View>
+            </PressScale>
           }
         />
         <View style={styles.body}>
@@ -316,6 +319,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
           </View>
         </View>
       </SafeAreaView>
+      {statsOpen ? <PuzzleStats puzzles={puzzles} onClose={() => setStatsOpen(false)} /> : null}
       {archive ? (
         <ArchiveModal
           today={today}

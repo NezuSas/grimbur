@@ -83,6 +83,8 @@ const PRESETS: Record<string, Partial<LocalStats>> = {
       // Crowns on the first chapter: three stars under the legend time.
       crowns: [0, 1, 3],
       weekly: null,
+      weeklyWins: 1,
+      archiveSolved: 1,
     },
     dailyRuns: 9,
     dailyWins: 4,

@@ -1,7 +1,7 @@
 import { LEGEND_TIER } from '../../src/core/puzzles/puzzles';
 import { WEEKLY_EMBERS, msUntilWeekEnd, weekOf, weeklyNumber, weeklyPuzzle } from '../../src/core/puzzles/weekly';
 import { rateDeduction } from '../../src/core/puzzles/deduction';
-import { EMPTY_PUZZLES, parsePuzzles, weeklyState, withWeeklyResult, withWeeklyStarted } from '../../src/core/stats/puzzleProgress';
+import { EMPTY_PUZZLES, parsePuzzles, weeklyState, withPuzzleResult, withWeeklyResult, withWeeklyStarted } from '../../src/core/stats/puzzleProgress';
 import { rankWeeklyRows, type WeeklyRow } from '../../src/services/weeklyScores';
 
 describe("the Grimbur's weekly challenge", () => {
@@ -49,5 +49,20 @@ describe("the Grimbur's weekly challenge", () => {
   it('ranks friends: who solved it first, fastest first, failed tries last', () => {
     const row = (pid: string, solved: boolean, time: number): WeeklyRow => ({ pid, name: pid, week: '2026-11-02', solved, time, characterIndex: 0 });
     expect(rankWeeklyRows([row('a', false, 0), row('b', true, 300), row('c', true, 120)]).map(r => r.pid)).toEqual(['c', 'b', 'a']);
+  });
+});
+
+describe('the puzzle counters behind the new achievements', () => {
+  it('counts weekly challenges beaten and past days solved from the archive (each once)', () => {
+    const week = '2026-11-02';
+    const won = withWeeklyResult(withWeeklyStarted(EMPTY_PUZZLES, week), week, true, 100, WEEKLY_EMBERS).progress;
+    expect(won.weeklyWins).toBe(1);
+    const lost = withWeeklyResult(withWeeklyStarted(EMPTY_PUZZLES, week), week, false, 100, WEEKLY_EMBERS).progress;
+    expect(lost.weeklyWins).toBe(0);
+    let p = withPuzzleResult(EMPTY_PUZZLES, { kind: 'archive', date: '2026-11-01' }, 1).progress;
+    p = withPuzzleResult(p, { kind: 'archive', date: '2026-11-01' }, 3).progress;
+    expect(p.archiveSolved).toBe(1);
+    p = withPuzzleResult(p, { kind: 'archive', date: '2026-11-03' }, 2).progress;
+    expect(p.archiveSolved).toBe(2);
   });
 });
