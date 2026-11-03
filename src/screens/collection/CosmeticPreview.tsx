@@ -87,6 +87,8 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
     const lines = cosmeticText(t, id).length * plateFont * 0.72 > size * 0.85 ? 2 : 1;
     const words = small ? 0 : (playerName ? nameFont * 1.3 + gap : 0) + plateFont * 1.35 * lines + 10 + gap;
     const face = small ? size * 0.5 : Math.max(36, Math.min(size * 0.72, size - words));
+    // A small plate only holds a short title: below this the words would be cut.
+    const tiny = small && cosmeticText(t, id).length * plateFont * 0.62 > size * 0.95;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center", gap }}>
         {!small && frame ? (
@@ -102,9 +104,18 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
           </Text>
         ) : null}
         <View style={[styles.titlePlate, { paddingHorizontal: size * 0.05 }]}>
-          <Text style={[styles.titleText, { fontSize: plateFont, textAlign: "center" }]} numberOfLines={small ? 1 : 2} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
-            {cosmeticText(t, id).toLocaleUpperCase()}
-          </Text>
+          {tiny ? (
+            // Too small a plate for the words (the title is written beside it): an ornament stands for them.
+            <View style={[styles.titleOrnament, { width: size * 0.5, height: Math.max(6, size * 0.1) }]}>
+              <View style={styles.ornamentLine} />
+              <View style={[styles.ornamentGem, { width: size * 0.07, height: size * 0.07 }]} />
+              <View style={styles.ornamentLine} />
+            </View>
+          ) : (
+            <Text style={[styles.titleText, { fontSize: plateFont, textAlign: "center" }]} numberOfLines={small ? 1 : 2} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.1}>
+              {cosmeticText(t, id).toLocaleUpperCase()}
+            </Text>
+          )}
         </View>
       </View>
     );
@@ -185,4 +196,7 @@ const styles = StyleSheet.create({
   titleName: { color: "#F3EADB", fontWeight: "900" },
   titlePlate: { borderRadius: 8, paddingVertical: 3, backgroundColor: "rgba(40,26,10,0.9)", borderWidth: 1.5, borderColor: "#CFA052", maxWidth: "100%" },
   titleText: { color: "#C9A55A", fontWeight: "900", letterSpacing: 1 },
+  titleOrnament: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3 },
+  ornamentLine: { flex: 1, height: 1.5, borderRadius: 1, backgroundColor: "#C9A55A" },
+  ornamentGem: { transform: [{ rotate: "45deg" }], backgroundColor: "#C9A55A" },
 });
