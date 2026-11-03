@@ -45,6 +45,8 @@ export type Popup = {
   art?: ImageSourcePropType;
   /** A painted picture after the second line ("-1" then the arrows it cost). */
   subArt?: ImageSourcePropType;
+  /** A message to read (a relic's name, a secret room): shown centred over the board, not on its tile. */
+  centered?: boolean;
 };
 
 /** What the game-over card shows about the run that just ended (built from what the stats service returns). */

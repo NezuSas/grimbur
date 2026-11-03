@@ -1147,7 +1147,7 @@ export default function GameScreen({ navigation, route }: Props) {
       {/* Development: one of each label, held still (for screenshots). */}
       {__DEV__ && route.params?.devPopups ? (
         <>
-          <ScorePopup points={0} type="streak" sub="Linterna del minero" subColor="#C9A55A" popScale={1.1} art={RELIC_IMAGES.lantern} x={180} y={140} hold onComplete={() => {}} />
+          <ScorePopup points={0} type="streak" sub="Linterna del minero" subColor="#C9A55A" popScale={1.1} art={RELIC_IMAGES.lantern} hold onComplete={() => {}} />
           <ScorePopup points={120} type="coin" x={420} y={140} hold onComplete={() => {}} />
           <ScorePopup points={300} type="kill" sub="x3 COMBO" subColor="#C8763A" x={600} y={140} hold onComplete={() => {}} />
           <ScorePopup points={250} type="streak" sub={t("secret.found", { gems: 3, arrows: 1 })} subColor="#DCC48E" popScale={1.1} art={GLYPHS.sparkles} x={200} y={260} hold onComplete={() => {}} />

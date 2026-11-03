@@ -72,7 +72,7 @@ const ScorePopup = ({ points, type = 'kill', x, y, slot = 0, sub, subColor, popS
   const anchored = x !== undefined && y !== undefined;
   const place = anchored
     ? { left: x - BOX_WIDTH / 2, top: y - 18 - slot * 26 }
-    : { alignSelf: 'center' as const, top: `${45 - slot * 6}%` as `${number}%` };
+    : { left: 0, right: 0, top: `${34 - slot * 9}%` as `${number}%` };
 
   return (
     <Animated.View
@@ -136,13 +136,13 @@ const styles = StyleSheet.create({
   },
   /** A faint wash of the label's colour along the top, like light on a polished plate. */
   sheen: { position: 'absolute', left: 0, right: 0, top: 0, height: '45%', opacity: 0.12 },
-  lead: { width: 30, height: 30 },
-  leadSmall: { width: 26, height: 26 },
+  lead: { width: 24, height: 24 },
+  leadSmall: { width: 22, height: 22 },
   texts: { flexShrink: 1, alignItems: 'flex-start' },
   text: {
     fontWeight: '900',
-    fontSize: 22,
-    lineHeight: 25,
+    fontSize: 18,
+    lineHeight: 21,
     letterSpacing: 0.5,
     textShadowColor: '#000',
     textShadowOffset: { width: 0, height: 1 },
@@ -152,14 +152,14 @@ const styles = StyleSheet.create({
   sub: {
     flexShrink: 1,
     fontWeight: '900',
-    fontSize: 12.5,
-    lineHeight: 15,
+    fontSize: 11.5,
+    lineHeight: 14,
     letterSpacing: 0.6,
     textShadowColor: '#000',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
   /** A line on its own (a relic's name, a streak) reads a little larger. */
-  subAlone: { fontSize: 15, lineHeight: 18 },
-  subArt: { width: 22, height: 22 },
+  subAlone: { fontSize: 13, lineHeight: 16 },
+  subArt: { width: 18, height: 18 },
 });
