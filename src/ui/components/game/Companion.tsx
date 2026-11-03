@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useRef, useState } from "react";
-import { Animated, Easing } from "react-native";
+import { Animated, Easing, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import SpriteImage from "../SpriteImage";
 
@@ -12,7 +12,10 @@ const FLAP_MS = 320;
  * A companion floating by the hero: it bobs gently and swaps its two frames. Purely a look: it never reacts to the board, so it
  * can never give a danger away. Calm (reduced motion): it hovers still on its first frame.
  */
+const OUTLINE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
 const Companion = ({ look, size, calm = false, mirror = false, aura = null }: { look: CompanionLook; size: number; calm?: boolean; mirror?: boolean; aura?: string | null }) => {
+  const line = Math.max(1, size * 0.03);
   const bob = useRef(new Animated.Value(0)).current;
   const [second, setSecond] = useState(false);
 
@@ -62,8 +65,15 @@ const Companion = ({ look, size, calm = false, mirror = false, aura = null }: { 
         />
       ) : null}
       {/* Both frames stay mounted and swap by opacity: changing the image source would flash. */}
-      <SpriteImage source={look[0]} style={{ position: "absolute", width: size, height: size, opacity: second ? 0 : 1 }} resizeMode="contain" />
-      <SpriteImage source={look[1]} style={{ position: "absolute", width: size, height: size, opacity: second ? 1 : 0 }} resizeMode="contain" />
+      {/* Each frame with a thin dark outline (its silhouette a hair to every side), so it reads on any board. */}
+      {[look[0], look[1]].map((frame, f) => (
+        <View key={f} pointerEvents="none" style={{ position: "absolute", width: size, height: size, opacity: (f === 1) === second ? 1 : 0 }}>
+          {OUTLINE.map(([dx, dy], k) => (
+            <SpriteImage key={k} source={frame} style={{ position: "absolute", left: dx * line, top: dy * line, width: size, height: size, tintColor: "#140a05", opacity: 0.85 }} resizeMode="contain" />
+          ))}
+          <SpriteImage source={frame} style={{ position: "absolute", width: size, height: size }} resizeMode="contain" />
+        </View>
+      ))}
     </Animated.View>
   );
 };

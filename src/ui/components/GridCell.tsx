@@ -33,6 +33,8 @@ export const ASSETS: Record<"enemy" | "stalker" | "sleeper" | "mimic" | "thief" 
 
 /** The second frame of each guardian: generated as one sheet per character, so the pair always matches. */
 /** The painted clue tokens: their shapes match what the manual and the tutorial describe. */
+const ENEMY_OUTLINE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
 export const CLUE_ART = {
   roar: require("../../assets/sprites/ui/Clue_Guardian.png"),
   vortex: require("../../assets/sprites/ui/Clue_Vortex.png"),
@@ -79,6 +81,15 @@ const EnemySprite = memo(({ type, size, calm }: { type: Creature; size: number; 
       {/* A dark pool under the creature and a faint ember of danger: painted stone on painted stone needs the separation. */}
       <View pointerEvents="none" style={[styles.creatureGlow, { width: size * 0.86, height: size * 0.5, borderRadius: size, bottom: size * 0.02 }]} />
       <View pointerEvents="none" style={[styles.creatureShadow, { width: size * 0.7, height: size * 0.2, borderRadius: size, bottom: size * 0.04 }]} />
+      {/* A thin dark outline (the silhouette a hair to every side): a brown golem on the gold vault or the moss still reads. */}
+      {ENEMY_OUTLINE.map(([dx, dy], k) => (
+        <SpriteImage
+          key={k}
+          style={{ width: size, height: size, position: "absolute", transform: [{ translateX: dx * Math.max(1, size * 0.018) }, { translateY: dy * Math.max(1, size * 0.018) }], tintColor: "#120804", opacity: 0.85 }}
+          source={inhale ? BREATHE[type] : ASSETS[type]}
+          resizeMode="contain"
+        />
+      ))}
       <SpriteImage
         style={{ width: size, height: size, position: "absolute" }}
         source={inhale ? BREATHE[type] : ASSETS[type]}
