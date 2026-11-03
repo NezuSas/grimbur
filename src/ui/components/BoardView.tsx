@@ -207,6 +207,8 @@ type Props = {
   unveil?: boolean;
   /** A ray of light between two neighbouring tiles (puzzles: from the clue that proves or warns, to the tile it speaks of). */
   beam?: { from: number; to: number; color: string } | null;
+  /** A mouse (web): Shift + click on a tile (a run shoots toward it). */
+  onTileShiftClick?: (index: number) => void;
   /** The player's pencil marks on hidden tiles (puzzles): proven safe, not a guardian, not a vortex. */
   notes?: ReadonlyMap<number, TileNote> | null;
   /** Practice help: hidden tiles the clues prove safe or dangerous. */
@@ -220,7 +222,7 @@ type Props = {
 };
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
     const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
 
     const rowIndex = Math.floor(playerIndex / cols);
@@ -638,6 +640,7 @@ const BoardView: React.FC<Props> = memo(
               heroIndex={playerIndex}
               onAimDrag={onAimDrag}
               onAimFire={onAimFire}
+              onTileShiftClick={onTileShiftClick}
             />
           )}
 

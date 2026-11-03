@@ -148,9 +148,9 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
           {opened ? t(shownDay === CHEST_DAYS ? "chest.weekDone" : "chest.comeBack") : t("chest.hint")}
         </Text>
         {opened ? (
-          <PopButton label={t("parade.continue")} onPress={onClose} style={styles.button} />
+          <PopButton label={t("parade.continue")} onPress={onClose} style={styles.button} enterKey />
         ) : (
-          <PopButton label={t("chest.open")} icon="gift" onPress={onOpen} busy={busy} style={styles.button} tint={GOLD} />
+          <PopButton label={t("chest.open")} icon="gift" onPress={onOpen} busy={busy} style={styles.button} tint={GOLD} enterKey />
         )}
       </PopupPanel>
     </OverlayContainer>

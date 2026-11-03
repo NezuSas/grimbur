@@ -20,6 +20,7 @@ import { heroText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
 import { ENCOUNTERS, type EncounterId } from "../../core/engine/encounters";
 import { ENCOUNTER_ART, ENCOUNTER_TINT } from "../../ui/components/game/EncounterModal";
+import { useEscapeKey } from "../../ui/hotkeys";
 
 const GEM = require("../../assets/sprites/items/Icon_Gem.png");
 const WIN = "#F2C14E";
@@ -67,6 +68,7 @@ type Props = { run: RunRecord | null; onClose: () => void };
 /** One run of the history in full: the last floor, the score, what ended it and the relics it gathered. */
 const RunDetail = ({ run, onClose }: Props) => {
   const { t, n } = useT();
+  useEscapeKey(onClose, !!run);
   const { width, height } = useWindowDimensions();
   if (!run) return null;
   const tint = run.victory ? WIN : LOSS;
@@ -196,7 +198,7 @@ const RunDetail = ({ run, onClose }: Props) => {
             </Text>
           ) : null}
           </ScrollView>
-          <PopButton label={t("common.close")} variant="secondary" onPress={onClose} />
+          <PopButton label={t("common.close")} variant="secondary" onPress={onClose} enterKey />
         </View>
       </PopupPanel>
     </OverlayContainer>

@@ -1,6 +1,8 @@
 import React, { memo } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "./Text";
+import KeyHint from "./KeyHint";
+import type { KeyAction } from "../../core/input/keyBindings";
 import { haptic } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
 import { MIN_TOUCH } from "../layout/useGameLayout";
@@ -35,12 +37,14 @@ type ButtonProps = {
   badge?: string;
   /** Fill the ring to show a recharge in progress (0..1). */
   dim?: boolean;
+  /** Its key on a computer. */
+  hotkey?: KeyAction;
 };
 
 /** Extra touch area so a small button still reaches the minimum touch size. */
 const HIT_PAD = (size: number) => Math.max(0, (MIN_TOUCH - size) / 2);
 
-const ToolButton = ({ art, color, size, label, onPress, disabled, badge, dim }: ButtonProps) => (
+const ToolButton = ({ art, color, size, label, onPress, disabled, badge, dim, hotkey }: ButtonProps) => (
   <TouchableOpacity
     onPress={() => {
       haptic.impact();
@@ -67,6 +71,7 @@ const ToolButton = ({ art, color, size, label, onPress, disabled, badge, dim }: 
         </Text>
       </View>
     ) : null}
+    {hotkey ? <KeyHint action={hotkey} /> : null}
   </TouchableOpacity>
 );
 
@@ -84,6 +89,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
           size={size}
           label={`${abilityName}. ${abilityCd > 0 ? t("tool.cooldown", { name: abilityName, n: abilityCd }) : t("tool.ready", { name: abilityName })}. ${t(`ability.${ability}.desc`)}`}
           onPress={onAbility}
+          hotkey="ability"
           disabled={abilityCd > 0}
           dim={abilityCd > 0}
           badge={abilityCd > 0 ? String(abilityCd) : undefined}
@@ -116,6 +122,7 @@ const ToolBar: React.FC<Props> = memo(({ ability, abilityCd, detector, bomb, can
           size={size}
           label={`${t("tool.undo.name")}. ${t("tool.undo.desc")}`}
           onPress={onUndo}
+          hotkey="undo"
         />
       )}
     </View>

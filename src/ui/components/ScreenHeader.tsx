@@ -1,3 +1,4 @@
+import { useEscapeKey } from "../hotkeys";
 import React, { useState } from 'react';
 import { StyleSheet, View } from "react-native";
 import PressScale from "./PressScale";
@@ -17,6 +18,8 @@ type Props = {
 
 /** The header every menu screen shares: back button, centred title with a gold underline, optional right slot. */
 const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
+  // On a computer Esc goes back, unless a card open over the screen takes it first.
+  useEscapeKey(onBack);
   const { t } = useT();
   const { fontSize } = useGameLayout();
   // The screens wrap this header in a SafeAreaView, which already pads the notch: only a small margin is left.

@@ -13,6 +13,7 @@ import type { CosmeticId } from "../../core/cosmetics/cosmetics";
 import { TIER_TINTS } from "./ChapterMap";
 import { LEGEND_TIER } from "../../core/puzzles/puzzles";
 import { FRAME_ART } from "../../ui/cosmeticArt";
+import { useEscapeKey } from "../../ui/hotkeys";
 
 const GOLD = "#FFD54F";
 const SHUT = require("../../assets/sprites/items/Icon_Chest_Closed.png");
@@ -30,6 +31,7 @@ export const chapterTitle = (tier: number): CosmeticId => `title_puzzle${tier}` 
 
 /** A mastered chapter's chest: it shakes, bursts open and gives the chapter's title, which can be worn at once. */
 export default function ChestReveal({ tier, calm, onEquip, onClose }: Props) {
+  useEscapeKey(onClose);
   const { t } = useT();
   const { width } = useWindowDimensions();
   const tint = TIER_TINTS[tier];
@@ -96,7 +98,7 @@ export default function ChestReveal({ tier, calm, onEquip, onClose }: Props) {
           ) : null}
         </Animated.View>
         <View style={styles.actions}>
-          <PopButton label={t("puzzle.chest.ok")} variant="secondary" onPress={onClose} disabled={!opened} style={{ flex: 1 }} />
+          <PopButton label={t("puzzle.chest.ok")} variant="secondary" onPress={onClose} disabled={!opened} style={{ flex: 1 }} enterKey />
           <PopButton label={t("puzzle.chest.equip")} tint={GOLD} onPress={() => onEquip(frame ? [id, frame] : [id])} disabled={!opened} style={{ flex: 1 }} />
         </View>
       </PopupPanel>

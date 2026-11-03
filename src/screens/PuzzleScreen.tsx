@@ -45,7 +45,9 @@ import { besideOf, failWarning, hintReason, type HintReason } from "../core/puzz
 import PuzzleIntro from "./puzzle/PuzzleIntro";
 import LiveStars from "./puzzle/LiveStars";
 import ToolBar, { type PuzzleTool } from "./puzzle/ToolBar";
+import { actionOf } from "../core/input/keyBindings";
 import PuzzleGuide from "./puzzle/PuzzleGuide";
+import KeyHint from "../ui/components/KeyHint";
 import type { TileNote } from "../ui/components/BoardView";
 import { CountUp, DropIn, FlyingStars, numbersAt } from "./puzzle/resultParts";
 import GemShower from "../ui/components/game/GemShower";
@@ -497,14 +499,17 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         return;
       }
       if (!k.introDone || k.result || k.failedOut) return;
-      const dir: Direction | null = key === "arrowup" || key === "w" ? "UP" : key === "arrowdown" || key === "s" ? "DOWN" : key === "arrowleft" || key === "a" ? "LEFT" : key === "arrowright" || key === "d" ? "RIGHT" : null;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+      const action = actionOf(useSettingsStore.getState().keyBindings, e.key);
+      const dir: Direction | null = action === "up" ? "UP" : action === "down" ? "DOWN" : action === "left" ? "LEFT" : action === "right" ? "RIGHT" : null;
       if (dir) {
         e.preventDefault();
         k.move(dir);
-      } else if (key === "f") setTool(t => (t === "flag" ? "walk" : "flag"));
-      else if (key === "n") setTool(t => (t === "note" ? "walk" : "note"));
-      else if (key === "h" && !k.isWeekly) k.showHint();
-      else if (key === "r") k.restart(false);
+      } else if (action === "flag") setTool(t => (t === "flag" ? "walk" : "flag"));
+      else if (action === "note") setTool(t => (t === "note" ? "walk" : "note"));
+      else if (action === "hint" && !k.isWeekly) k.showHint();
+      else if (action === "restart") k.restart(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -537,10 +542,12 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         {isWeekly ? null : (
           <TouchableOpacity style={[styles.iconButton, styles.hintButton, hintTile !== null && styles.hintOn]} onPress={showHint} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.hint")} accessibilityHint={t("puzzle.hintCost")}>
             <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#FFD54F"} />
+            <KeyHint action="hint" style={{ top: -2, left: -2 }} />
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.iconButton} onPress={() => restart(false)} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.restart")}>
           <Ionicons name="refresh" size={21} color="#fff" />
+          <KeyHint action="restart" style={{ top: -2, left: -2 }} />
         </TouchableOpacity>
       </View>
 

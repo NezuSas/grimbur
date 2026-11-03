@@ -45,6 +45,7 @@ import { MASTERY_TIERS, type MasteryTierId } from '../../../core/stats/mastery';
 import { ACHIEVEMENTS, ACHIEVEMENT_REWARD } from '../../../core/stats/achievements';
 import { achievementArt } from '../../achievementArt';
 import { skinArt } from '../../../data/skinArt';
+import { useEnterKey } from '../../hotkeys';
 
 const MEDAL_ART = require('../../../assets/sprites/ui/Icon_Medal.png');
 const FLAG_ART = require('../../../assets/sprites/ui/Icon_Flag.png');
@@ -245,6 +246,8 @@ const GameOverOverlay = ({
     (unlockedHeroes ?? unlocks?.heroes ?? []).length + (unlocks?.depth ? 1 : 0) + (unlocks?.endless ? 1 : 0) + (unlocks?.skins?.length ?? 0) +
     (rankUp ? 1 : 0) + (masteryUp ? 1 : 0) + (chronicleUp ? 1 : 0) + (questsDone?.done.length ?? 0) + (questsDone?.all ? 1 : 0) + (petUp ? 1 : 0) + (achievements?.length ?? 0) + (missionsDone?.length ?? 0);
   const [parade, setParade] = useState<'off' | 'cards' | 'grid'>('off');
+  // On a computer Enter retries (the card's main button), once the card is up and no parade of rewards covers it.
+  useEnterKey(onRetry, visible && parade === 'off');
   const paradeShown = useRef(false);
   useEffect(() => {
     if (rewardCount === 0) {

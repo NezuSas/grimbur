@@ -47,6 +47,8 @@ export interface SettingsState {
   reviewAskedAt: number;
   /** The hero chosen last, so the hero screen opens on it. */
   lastHero: number;
+  /** The keys of a computer the player changed (Settings > Controls); the rest keep their defaults. */
+  keyBindings: import('../../core/input/keyBindings').KeyBindings;
   /** The expedition is played as the 4-floor quick descent (the hero screen's length switch). */
   quickDescent: boolean;
   setSoundEnabled: (enabled: boolean) => void;
@@ -69,6 +71,7 @@ export interface SettingsState {
   setAchievementsSeen: (count: number) => void;
   setCollectionRewardsSeen: (count: number) => void;
   markHintSeen: (id: string) => void;
+  setKeyBindings: (bindings: import('../../core/input/keyBindings').KeyBindings) => void;
   markReviewAsked: (at: number) => void;
   setLastHero: (heroIndex: number) => void;
   setQuickDescent: (quick: boolean) => void;

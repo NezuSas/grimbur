@@ -10,6 +10,7 @@ import { useT } from "../../i18n/useT";
 import { PUZZLE_COUNT, PUZZLE_TIERS } from "../../core/puzzles/puzzles";
 import { MAX_STARS, puzzlesSolved, totalPuzzleStars, type PuzzleProgress } from "../../core/stats/puzzleProgress";
 import { formatSolveTime } from "./shareText";
+import { useEscapeKey } from "../../ui/hotkeys";
 
 const TINT = "#4DD0E1";
 const GOLD = "#FFD54F";
@@ -22,6 +23,7 @@ type Props = { puzzles: PuzzleProgress | undefined; onClose: () => void };
  * (days solved, streaks, days from the archive, and how the days' stars spread), the weekly challenge and the endless puzzles.
  */
 export default function PuzzleStats({ puzzles, onClose }: Props) {
+  useEscapeKey(onClose);
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const p = puzzles;
@@ -99,7 +101,7 @@ export default function PuzzleStats({ puzzles, onClose }: Props) {
             </View>
           </View>
         </View>
-        <PopButton label={t("common.close")} variant="secondary" onPress={onClose} style={{ alignSelf: "stretch" }} />
+        <PopButton label={t("common.close")} variant="secondary" onPress={onClose} style={{ alignSelf: "stretch" }} enterKey />
       </PopupPanel>
     </OverlayContainer>
   );

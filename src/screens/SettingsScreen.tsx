@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
 import { useSettingsStore } from "../state/settings/store";
+import { canBind, keyCap, keyOf, rebind, type KeyAction } from "../core/input/keyBindings";
 import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../state/settings/types";
 import { JoystickPreview } from "../ui/components/JoystickBase";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -67,6 +68,26 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const devCategory = __DEV__ && typeof location !== "undefined" ? (new URLSearchParams(location.search).get("cat") as CategoryId | null) : null;
   // The joystick try-out must not scroll the page while it is being used.
   const [tryingStick, setTryingStick] = React.useState(false);
+  const keyBindings = useSettingsStore(st => st.keyBindings);
+  const setKeyBindings = useSettingsStore(st => st.setKeyBindings);
+  // The action waiting for its new key (Settings > Controls > Keyboard), if any.
+  const [rebinding, setRebinding] = React.useState<KeyAction | null>(null);
+  React.useEffect(() => {
+    if (rebinding === null || Platform.OS !== "web" || typeof window === "undefined") return;
+    const onKey = (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.key === "Escape") {
+        setRebinding(null);
+        return;
+      }
+      if (!canBind(e.key)) return;
+      setKeyBindings(rebind(useSettingsStore.getState().keyBindings, rebinding, e.key));
+      setRebinding(null);
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [rebinding, setKeyBindings]);
   const [category, setCategory] = React.useState<CategoryId>(devCategory && CATEGORIES.some(c => c.id === devCategory) ? devCategory : "sound");
 
   const soundEnabled = useSettingsStore(s => s.soundEnabled);
@@ -347,38 +368,95 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     </>
   );
 
-  // On a computer the keyboard plays: the keys, listed once here (runs, lessons and puzzles).
-  const keyRows: { label: string; keys: string[] }[] = [
-    { label: t("settings.keys.move"), keys: ["↑ ↓ ← →", "W A S D"] },
-    { label: t("settings.keys.shoot"), keys: [t("settings.keys.space")] },
-    { label: t("settings.keys.aim"), keys: [`${t("settings.keys.shift")} + ↑ ↓ ← →`] },
-    { label: t("settings.keys.ability"), keys: ["Q"] },
-    { label: t("settings.keys.undo"), keys: ["Z"] },
-    { label: t("settings.keys.pause"), keys: ["P", "Esc"] },
-    { label: t("settings.keys.puzzles"), keys: [`F ${t("settings.keys.flag")}`, `N ${t("settings.keys.note")}`, `H ${t("settings.keys.hint")}`, `R ${t("settings.keys.restart")}`, `Enter ${t("settings.keys.go")}`] },
+  // On a computer the keyboard plays (runs, lessons and puzzles). Every action has a key the player can change: tap its keycap,
+  // then press the new key (Esc cancels); a key taken by another action is swapped with it. Arrows, Esc and Enter stay fixed.
+  const keyGroups: { title: string; rows: { action?: KeyAction; label: string; fixed?: string[] }[] }[] = [
+    {
+      title: t("settings.keys.groupMove"),
+      rows: [
+        { action: "up", label: t("settings.keys.up"), fixed: ["↑"] },
+        { action: "left", label: t("settings.keys.left"), fixed: ["←"] },
+        { action: "down", label: t("settings.keys.down"), fixed: ["↓"] },
+        { action: "right", label: t("settings.keys.right"), fixed: ["→"] },
+      ],
+    },
+    {
+      title: t("settings.keys.groupPlay"),
+      rows: [
+        { action: "shoot", label: t("settings.keys.shoot") },
+        { label: t("settings.keys.aim"), fixed: [`${t("settings.keys.shift")} + ${t("settings.keys.direction")}`] },
+        { action: "ability", label: t("settings.keys.ability") },
+        { action: "undo", label: t("settings.keys.undo") },
+        { action: "pause", label: t("settings.keys.pause"), fixed: ["Esc"] },
+      ],
+    },
+    {
+      title: t("settings.keys.puzzles"),
+      rows: [
+        { action: "flag", label: t("settings.keys.flagLong") },
+        { action: "note", label: t("settings.keys.noteLong") },
+        { action: "hint", label: t("settings.keys.hintLong") },
+        { action: "restart", label: t("settings.keys.restartLong") },
+        { label: t("settings.keys.goLong"), fixed: ["Enter"] },
+      ],
+    },
   ];
   const keyboardCard =
     Platform.OS === "web" ? (
       <SettingCard title={t("settings.group.keyboard")} full>
-        {keyRows.map((row, i) => (
-          <React.Fragment key={row.label}>
-            {i > 0 ? <RowDivider /> : null}
-            <View style={styles.kbRow} accessible accessibilityLabel={`${row.label}: ${row.keys.join(", ")}`}>
-              <Text style={styles.kbLabel} maxFontSizeMultiplier={1.2}>
-                {row.label}
+        <Text style={styles.kbIntro} maxFontSizeMultiplier={1.2}>
+          {t("settings.keys.intro")}
+        </Text>
+        <View style={styles.kbGroups}>
+          {keyGroups.map(group => (
+            <View key={group.title} style={styles.kbGroup}>
+              <Text style={styles.kbGroupTitle} maxFontSizeMultiplier={1.1}>
+                {group.title.toLocaleUpperCase()}
               </Text>
-              <View style={styles.kbCaps}>
-                {row.keys.map(k => (
-                  <View key={k} style={styles.kbCap}>
-                    <Text style={styles.kbCapText} maxFontSizeMultiplier={1.1}>
-                      {k}
+              {group.rows.map(row => {
+                const listening = row.action !== undefined && rebinding === row.action;
+                return (
+                  <View key={row.label} style={styles.kbRow}>
+                    <Text style={styles.kbLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                      {row.label}
                     </Text>
+                    <View style={styles.kbCaps}>
+                      {row.action !== undefined ? (
+                        <TouchableOpacity
+                          onPress={() => setRebinding(listening ? null : row.action!)}
+                          style={[styles.kbCap, styles.kbCapEdit, listening && styles.kbCapListening]}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${row.label}: ${keyCap(keyOf(keyBindings, row.action), t("settings.keys.space"))}. ${t("settings.keys.change")}`}
+                        >
+                          <Text style={[styles.kbCapText, listening && { color: "#1a1200" }]} maxFontSizeMultiplier={1.1}>
+                            {listening ? t("settings.keys.press") : keyCap(keyOf(keyBindings, row.action), t("settings.keys.space"))}
+                          </Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      {(row.fixed ?? []).map(k => (
+                        <View key={k} style={[styles.kbCap, styles.kbCapFixed]}>
+                          <Text style={[styles.kbCapText, { color: "#bfb3a6" }]} maxFontSizeMultiplier={1.1}>
+                            {k}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
                   </View>
-                ))}
-              </View>
+                );
+              })}
             </View>
-          </React.Fragment>
-        ))}
+          ))}
+        </View>
+        <View style={styles.kbFooter}>
+          <Text style={styles.kbMouse} maxFontSizeMultiplier={1.2}>
+            {t("settings.keys.mouse")}
+          </Text>
+          <TouchableOpacity onPress={() => setKeyBindings({})} accessibilityRole="button" accessibilityLabel={t("settings.keys.reset")} hitSlop={6}>
+            <Text style={styles.kbReset} maxFontSizeMultiplier={1.1}>
+              {t("settings.keys.reset")}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SettingCard>
     ) : null;
 
@@ -862,11 +940,21 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  kbRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6, paddingHorizontal: 4 },
-  kbLabel: { width: 150, color: "#E6D6C2", fontWeight: "800", fontSize: 13 },
-  kbCaps: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  kbCap: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, borderWidth: 1, borderBottomWidth: 3, borderColor: "rgba(255,255,255,0.28)", backgroundColor: "rgba(255,255,255,0.07)" },
+  kbIntro: { color: "#CDBBA5", fontSize: 12.5, marginBottom: 8 },
+  kbGroups: { flexDirection: "row", flexWrap: "wrap", gap: 14 },
+  kbGroup: { flexGrow: 1, flexBasis: 220, gap: 4 },
+  kbGroupTitle: { color: "#FFAB40", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.6, marginBottom: 2 },
+  kbRow: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 32 },
+  kbLabel: { flex: 1, color: "#E6D6C2", fontWeight: "800", fontSize: 12.5 },
+  kbCaps: { flexDirection: "row", gap: 5 },
+  kbCap: { minWidth: 30, alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 7, borderWidth: 1, borderBottomWidth: 3 },
+  kbCapEdit: { borderColor: "rgba(255,213,79,0.6)", backgroundColor: "rgba(255,213,79,0.1)" },
+  kbCapListening: { backgroundColor: "#FFD54F", borderColor: "#FFD54F" },
+  kbCapFixed: { borderColor: "rgba(255,255,255,0.2)", backgroundColor: "rgba(255,255,255,0.04)" },
   kbCapText: { color: "#FFF3E0", fontWeight: "900", fontSize: 12 },
+  kbFooter: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 10 },
+  kbMouse: { flex: 1, color: "#CDBBA5", fontSize: 12 },
+  kbReset: { color: "#FFAB40", fontWeight: "900", fontSize: 12, textDecorationLine: "underline" },
   root: { flex: 1, backgroundColor: "#000" },
   body: { flex: 1, flexDirection: "row" },
   paneContent: { paddingHorizontal: 14, paddingTop: 8, paddingBottom: 20, alignItems: "center" },

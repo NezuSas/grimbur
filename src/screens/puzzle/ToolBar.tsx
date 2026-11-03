@@ -3,13 +3,15 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Text from "../../ui/components/Text";
 import { useT } from "../../i18n/useT";
+import KeyHint from "../../ui/components/KeyHint";
+import type { KeyAction } from "../../core/input/keyBindings";
 
 export type PuzzleTool = "walk" | "flag" | "note";
 
-const TOOLS: { id: PuzzleTool; icon: React.ComponentProps<typeof Ionicons>["name"]; key: string }[] = [
+const TOOLS: { id: PuzzleTool; icon: React.ComponentProps<typeof Ionicons>["name"]; key: string; hotkey?: KeyAction }[] = [
   { id: "walk", icon: "footsteps", key: "puzzle.tool.walk" },
-  { id: "flag", icon: "flag", key: "puzzle.tool.flag" },
-  { id: "note", icon: "pencil", key: "puzzle.tool.note" },
+  { id: "flag", icon: "flag", key: "puzzle.tool.flag", hotkey: "flag" },
+  { id: "note", icon: "pencil", key: "puzzle.tool.note", hotkey: "note" },
 ];
 
 /**
@@ -36,6 +38,7 @@ export default function ToolBar({ tool, onChange }: { tool: PuzzleTool; onChange
             <Text style={[styles.label, on && { color: "#14101F" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1}>
               {t(x.key as never)}
             </Text>
+            {x.hotkey ? <KeyHint action={x.hotkey} style={{ top: -7, left: -4 }} /> : null}
           </TouchableOpacity>
         );
       })}

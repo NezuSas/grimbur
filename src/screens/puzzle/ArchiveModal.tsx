@@ -11,6 +11,7 @@ import type { TranslationKey } from "../../i18n/en";
 import { dailyPuzzleTier } from "../../core/puzzles/puzzles";
 import { MAX_STARS, PUZZLE_EPOCH, archiveStars, type PuzzleProgress } from "../../core/stats/puzzleProgress";
 import { TIER_TINTS } from "./ChapterMap";
+import { useEscapeKey } from "../../ui/hotkeys";
 
 const TINT = "#4DD0E1";
 const STAR = require("../../assets/sprites/ui/Icon_Star.png");
@@ -32,6 +33,7 @@ const monthOf = (key: string) => ({ y: Number(key.slice(0, 4)), m: Number(key.sl
  * be played), today ringed. A past day is played for its stars alone: no embers, no streak.
  */
 export default function ArchiveModal({ today, puzzles, onPlay, onClose }: Props) {
+  useEscapeKey(onClose);
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const first = monthOf(PUZZLE_EPOCH);
@@ -126,7 +128,7 @@ export default function ArchiveModal({ today, puzzles, onPlay, onClose }: Props)
         <Text style={styles.count} maxFontSizeMultiplier={1.15}>
           {t("puzzle.archive.link", { n: solvedAll })}
         </Text>
-        <PopButton label={t("common.close")} variant="secondary" onPress={onClose} style={{ alignSelf: "stretch" }} />
+        <PopButton label={t("common.close")} variant="secondary" onPress={onClose} style={{ alignSelf: "stretch" }} enterKey />
       </PopupPanel>
     </OverlayContainer>
   );

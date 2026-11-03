@@ -11,6 +11,7 @@ import { activeFamilies, type RelicId } from '../../../core/engine/relics';
 import { FAMILY_COLOR } from '../../familyLook';
 import type { TranslationKey } from '../../../i18n/en';
 import type { ImageSourcePropType } from 'react-native';
+import { useEscapeKey } from '../../hotkeys';
 
 /** Where the run stands, shown under the title so a paused player knows what they come back to. */
 export type PauseSummary = { floor: number; floors: number; score: number; gems: number; arrows: number; relics: readonly RelicId[] };
@@ -38,6 +39,7 @@ const TINT = '#4FC3F7';
 const WARN = '#FF8A80';
 
 const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, onMainMenu, summary }: Props) => {
+  useEscapeKey(onResume, visible);
   const { t, n } = useT();
   const { width, height } = useWindowDimensions();
   // A short window lays the run's state beside the buttons instead of above them.
@@ -102,7 +104,7 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
         ) : null}
         </View>
         <View style={side ? styles.sideCol : styles.stack}>
-        <PopButton label={t('pause.resume')} icon="play" onPress={onResume} />
+        <PopButton label={t('pause.resume')} icon="play" onPress={onResume} enterKey />
         <View style={styles.row}>
           {canRestart && <PopButton variant="secondary" label={t('pause.restart')} icon="refresh" onPress={() => setConfirm('restart')} style={styles.half} />}
           <PopButton

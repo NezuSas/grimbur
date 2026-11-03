@@ -832,6 +832,19 @@ export default function GameScreen({ navigation, route }: Props) {
   const handleDetector = useCallback(() => handleItem("detector"), [handleItem]);
   const handleBomb = useCallback(() => handleItem("bomb"), [handleItem]);
   const handleUndo = useCallback(() => { cancelTravel(); emitSound("MOVE"); undo(); }, [cancelTravel, undo]);
+  // A mouse: Shift + click on a tile in the hero's row or column shoots that way.
+  const shootToward = useCallback(
+    (tile: number) => {
+      const s = state;
+      const hr = Math.floor(s.playerIndex / s.cols);
+      const hc = s.playerIndex % s.cols;
+      const r = Math.floor(tile / s.cols);
+      const c = tile % s.cols;
+      if (tile === s.playerIndex || (r !== hr && c !== hc)) return;
+      manualAttack(r < hr ? "UP" : r > hr ? "DOWN" : c < hc ? "LEFT" : "RIGHT");
+    },
+    [state, manualAttack],
+  );
   // A computer's keyboard plays the run too (arrows/WASD, Space or Shift+direction to shoot, Q ability, Z undo, P pause),
   // only while the board is live: no card, pause or end of run in front.
   useKeyboardControls(
@@ -1028,6 +1041,7 @@ export default function GameScreen({ navigation, route }: Props) {
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <Profiler id="board" onRender={onRenderProfile}>
           <BoardView
+            onTileShiftClick={shootToward}
             deduced={deduced}
             friendGhosts={boardGhosts}
             secretTile={state.secret ?? null}

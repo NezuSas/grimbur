@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Easing, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import { useEnterKey } from "../../hotkeys";
+import KeyHint from "../KeyHint";
 import Text from "../Text";
 import GlyphIcon from "../GlyphIcon";
 import type { GlyphName } from "../../glyphArt";
@@ -109,6 +111,8 @@ type ButtonProps = {
   style?: StyleProp<ViewStyle>;
   /** Paints a primary button in this colour (a hero's colour) instead of gold. */
   tint?: string;
+  /** On a computer, Enter presses it (the card's main way on); a small Enter keycap shows on it. */
+  enterKey?: boolean;
 };
 
 const BUTTON_COLORS = {
@@ -128,8 +132,15 @@ export const shade = (hex: string, amount: number): string => {
   return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
 };
 
-export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, icon, art, accessibilityLabel, style, tint }: ButtonProps) => {
+export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, icon, art, accessibilityLabel, style, tint, enterKey }: ButtonProps) => {
   const press = useRef(new Animated.Value(0)).current;
+  useEnterKey(
+    () => {
+      emitSound("UI_TAP");
+      onPress();
+    },
+    !!enterKey && !disabled && !busy,
+  );
   const c = tint ? { fill: [shade(tint, 0.35), tint] as const, edge: shade(tint, -0.5), text: "#14101F" } : BUTTON_COLORS[variant];
   const to = (v: number) => Animated.timing(press, { toValue: v, duration: 90, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
   return (
@@ -160,6 +171,7 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
             </Text>
           )}
         </LinearGradient>
+        {enterKey ? <KeyHint text="Enter" style={{ top: -7, left: 8 }} /> : null}
       </Animated.View>
     </Pressable>
   );

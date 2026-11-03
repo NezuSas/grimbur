@@ -8,6 +8,7 @@ import { PopButton, PopupPanel, popupTitleStyle } from "./game/popup";
 import { useT } from "../../i18n/useT";
 import { FRAME_ART, PET_ADULT_ART } from "../cosmeticArt";
 import { YULE_FLOORS, YULE_PUZZLES, yuleProgress, type EventProgress } from "../../core/events/yule";
+import { useEscapeKey } from "../hotkeys";
 
 const PINE = "#81C784";
 const GOLD = "#FFD54F";
@@ -16,6 +17,7 @@ type Props = { events: EventProgress | undefined; today: string; onClose: () => 
 
 /** Christmas in the cave: what can be earned this December and how far the player is. */
 export default function YuleModal({ events, today, onClose, onPuzzles }: Props) {
+  useEscapeKey(onClose);
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const p = yuleProgress(events, today);
@@ -71,7 +73,7 @@ export default function YuleModal({ events, today, onClose, onPuzzles }: Props) 
         )}
         <View style={styles.actions}>
           <PopButton label={t("yule.puzzle")} variant="secondary" onPress={onPuzzles} style={{ flex: 1 }} />
-          <PopButton label={t("yule.go")} tint={PINE} onPress={onClose} style={{ flex: 1 }} />
+          <PopButton label={t("yule.go")} tint={PINE} onPress={onClose} style={{ flex: 1 }} enterKey />
         </View>
       </PopupPanel>
     </OverlayContainer>

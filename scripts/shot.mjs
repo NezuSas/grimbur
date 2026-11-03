@@ -82,12 +82,17 @@ while (Date.now() - started < maxWait) {
 }
 await sleep(2500); // entrance animations
 // SHOT_CLICKS="x,y;x,y": mouse clicks (page pixels) before the shot, 700 ms apart, to check what a tap does.
+// A click may be prefixed: "r:x,y" is a right click, "s:x,y" a click with Shift held.
 for (const c of (process.env.SHOT_CLICKS ?? '').split(';').filter(Boolean)) {
-  const [x, y] = c.split(',').map(Number);
-  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
-  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
+  const right = c.startsWith('r:');
+  const shift = c.startsWith('s:');
+  const [x, y] = c.replace(/^[rs]:/, '').split(',').map(Number);
+  const button = right ? 'right' : 'left';
+  const modifiers = shift ? 8 : 0;
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, modifiers });
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button, buttons: right ? 2 : 1, clickCount: 1, modifiers });
   await sleep(80);
-  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', buttons: 0, clickCount: 1 });
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button, buttons: 0, clickCount: 1, modifiers });
   await sleep(700);
 }
 const probe = await send('Runtime.evaluate', { expression: `JSON.stringify({ ready: document.readyState, root: document.getElementById('root')?.innerHTML.length ?? -1, scripts: [...document.scripts].map(s => s.src.slice(0, 60)) })`, returnByValue: true });

@@ -9,6 +9,7 @@ import { dpadDirection } from "../../core/input/dpad";
 import { aimFromDrag } from "../../core/input/swipe";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
+import KeyHint from "./KeyHint";
 import { ATTACK_ART as ATTACK_SKINS } from "../cosmeticArt";
 import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../../services/localStats";
@@ -130,6 +131,7 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
         style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, !empty && styles.attackReady]}
       >
         <SpriteImage source={empty ? ATTACK_ART.empty : readyArt} style={{ width: size, height: size }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <KeyHint action="shoot" style={{ top: 0, left: 0 }} />
         {aim ? (
           <View style={[StyleSheet.absoluteFill, styles.aimLayer, { borderRadius: size / 2 }]}>
             <SpriteImage source={ATTACK_ART.arrow} style={{ width: size * 0.92, height: size * 0.92, transform: [{ rotate: AIM_TURN[aim] }] }} resizeMode="contain" accessibilityIgnoresInvertColors />

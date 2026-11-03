@@ -12,6 +12,7 @@ import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 import { useSettingsStore } from "../../state/settings/store";
 import { emitSound } from "../../audio/audioEventBus";
+import { useEscapeKey } from "../hotkeys";
 
 /** Bump when a new set of news ships: a returning player sees the card once per version. */
 export const WHATS_NEW_ID = "whatsnew-2";
@@ -90,6 +91,7 @@ const Reveal = ({ active, calm, children }: { active: boolean; calm: boolean; ch
 
 /** What is new in the cave, shown once to a player who already knew it (a newcomer meets it all by playing). */
 const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
+  useEscapeKey(onClose);
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const { width, height } = useWindowDimensions();
@@ -178,7 +180,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
             onPress={() => (last ? onClose() : goTo(page + 1))}
             tint={item.tint}
             style={styles.next}
-          />
+           enterKey />
         </View>
 
         <Animated.View pointerEvents="none" style={[styles.rim, { borderColor: rimColor }]} />

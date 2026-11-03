@@ -8,6 +8,7 @@ import { PopButton, PopupPanel, popupTitleStyle } from "../../ui/components/game
 import { useWindowDimensions } from "../../ui/layout/scaledWindow";
 import { useT } from "../../i18n/useT";
 import { formatSolveTime } from "./shareText";
+import KeyHint from "../../ui/components/KeyHint";
 
 const GOLD = "#FFD54F";
 const GEM = require("../../assets/sprites/items/Icon_Gem.png");
@@ -92,7 +93,10 @@ export default function PuzzleIntro({ title, tier, tint, rows, cols, gems, best,
         <Text style={styles.stars} maxFontSizeMultiplier={1.1}>
           {t("puzzle.intro.stars")}
         </Text>
-        <PopButton label={t("puzzle.intro.play")} icon="play" tint={tint} onPress={onStart} style={{ alignSelf: "stretch" }} />
+        <View style={{ alignSelf: "stretch" }}>
+          <PopButton label={t("puzzle.intro.play")} icon="play" tint={tint} onPress={onStart} style={{ alignSelf: "stretch" }} />
+          <KeyHint text="Enter" style={{ top: -6, left: 6 }} />
+        </View>
       </PopupPanel>
     </OverlayContainer>
   );

@@ -2,6 +2,7 @@ import React, { memo, useEffect, useRef, useState } from "react";
 import GlyphIcon from "./GlyphIcon";
 import { StyleSheet, View, TouchableOpacity, Animated } from "react-native";
 import Text from "./Text";
+import KeyHint from "./KeyHint";
 import { Ionicons } from "@expo/vector-icons";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
@@ -146,6 +147,7 @@ const ScoreBar: React.FC<Props> = memo(
               accessibilityLabel={t("a11y.pause")}
             >
               <Ionicons name="pause" size={20} color="#fff" />
+              <KeyHint action="pause" />
             </TouchableOpacity>
           )}
         </View>

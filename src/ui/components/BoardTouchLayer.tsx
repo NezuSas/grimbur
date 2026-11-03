@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { PanResponder, StyleSheet, View } from 'react-native';
+import { PanResponder, Platform, StyleSheet, View } from 'react-native';
 import type { Direction } from '../../core/engine/types';
 import { SWIPE_MIN_DISTANCE, TAP_MAX_DISTANCE, classifyGesture, heroAimFromDrag } from '../../core/input/swipe';
 import { haptic } from '../../shared/haptics';
@@ -21,6 +21,8 @@ type Props = {
   onAimDrag?: (direction: Direction | null) => void;
   /** The finger was lifted with a side aimed: shoot that way. */
   onAimFire?: (direction: Direction) => void;
+  /** A mouse (web): Shift + click on a tile. The plain tap that would follow is dropped. */
+  onTileShiftClick?: (index: number) => void;
 };
 
 /**
@@ -30,13 +32,16 @@ type Props = {
  * Drag from the hero (when `onAimFire` is given): press the hero, drag toward a side and the board shows the line of fire;
  * let go to shoot, or drag back onto the hero to cancel. A plain tap on the hero stays a tap.
  */
-const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire }) => {
+const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick }) => {
   // On a scaled screen (a big window) drags are measured on the real screen and, on the web, touch points too: both are
   // brought back to the board's own units, so a tile and a swipe are the same size to the finger as they look.
   const ui = useUiScale();
   const touch = useTouchScale();
-  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, ui, touch });
-  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, ui, touch };
+  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch });
+  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch };
+  // A Shift + click (web) already did its job: the tap the responder reports next is dropped.
+  const dropTap = useRef(false);
+  const layer = useRef<React.ComponentRef<typeof View>>(null);
   const start = useRef({ x: 0, y: 0 });
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longFired = useRef(false);
@@ -104,6 +109,11 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
         onPanResponderRelease: (_e, raw) => {
           const g = { dx: raw.dx / latest.current.ui, dy: raw.dy / latest.current.ui };
           clearTimer();
+          if (dropTap.current) {
+            dropTap.current = false;
+            endAim();
+            return;
+          }
           if (aiming.current) {
             const direction = aimed.current;
             endAim();
@@ -132,8 +142,43 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
     [],
   );
 
+  // A mouse on the web: right-click flags the tile (as a long press does), Shift + click is handed to the screen (a run shoots
+  // that way). The tile is read from where the pointer is on the layer as drawn, whatever the screen's scale.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const el = layer.current as unknown as HTMLElement | null;
+    if (!el || !el.addEventListener) return;
+    const tileOf = (e: MouseEvent): number | null => {
+      const box = el.getBoundingClientRect();
+      if (!box.width || !box.height) return null;
+      const x = ((e.clientX - box.left) * el.offsetWidth) / box.width;
+      const y = ((e.clientY - box.top) * el.offsetHeight) / box.height;
+      return tileAt(x, y);
+    };
+    const onContext = (e: MouseEvent) => {
+      e.preventDefault();
+      const tile = tileOf(e);
+      if (tile !== null) latest.current.onTileLongPress?.(tile);
+    };
+    const onDown = (e: MouseEvent) => {
+      if (!e.shiftKey || e.button !== 0 || !latest.current.onTileShiftClick) return;
+      const tile = tileOf(e);
+      if (tile === null) return;
+      dropTap.current = true;
+      latest.current.onTileShiftClick(tile);
+    };
+    el.addEventListener('contextmenu', onContext);
+    el.addEventListener('mousedown', onDown);
+    return () => {
+      el.removeEventListener('contextmenu', onContext);
+      el.removeEventListener('mousedown', onDown);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <View
+      ref={layer}
       style={[StyleSheet.absoluteFill, { zIndex: 30 }]}
       {...responder.panHandlers}
       accessible={false}

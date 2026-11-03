@@ -243,7 +243,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             })}
           </View>
           <View style={[styles.go, narrow && { width: "100%" }]}>
-            <PopButton label={goLabel} icon="arrow-forward" onPress={onGo} disabled={!armed} />
+            <PopButton label={goLabel} icon="arrow-forward" onPress={onGo} disabled={!armed} enterKey />
           </View>
         </View>
         {doors && biomeLine ? (

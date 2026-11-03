@@ -29,6 +29,7 @@ export const useSettingsStore = create<SettingsState>()(
       hintsSeen: [],
       reviewAskedAt: 0,
       lastHero: 0,
+      keyBindings: {},
       quickDescent: false,
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setMusicVolume: (level) => set({ musicVolume: clampVolume(level) }),
@@ -52,6 +53,7 @@ export const useSettingsStore = create<SettingsState>()(
       markReviewAsked: (at) => set({ reviewAskedAt: at }),
       setLastHero: (heroIndex) => set({ lastHero: heroIndex }),
       setQuickDescent: (quick) => set({ quickDescent: quick }),
+      setKeyBindings: (bindings) => set({ keyBindings: bindings }),
       markHintSeen: (id) => set(s => (s.hintsSeen.includes(id) ? s : { hintsSeen: [...s.hintsSeen, id] })),
     }),
     {

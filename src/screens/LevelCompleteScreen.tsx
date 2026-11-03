@@ -176,7 +176,7 @@ const LevelCompleteScreen: React.FC<Props> = ({ route, navigation }) => {
               </Text>
             ) : null}
 
-            <PopButton label={t("complete.next")} icon="arrow-forward" tint={accent} onPress={leave} accessibilityLabel={t("complete.next")} />
+            <PopButton label={t("complete.next")} icon="arrow-forward" tint={accent} onPress={leave} accessibilityLabel={t("complete.next")} enterKey />
           </View>
         </View>
       </Animated.View>
