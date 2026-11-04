@@ -604,9 +604,14 @@ const BoardView: React.FC<Props> = memo(
       <>
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
         {pet && !dying ? (
-          <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.08, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.16, zIndex: 3 }}>
-            <Companion look={pet} size={tileSize * 0.46} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
-          </Animated.View>
+          <>
+            {/* Its shadow on the floor under it: it flies beside the hero, not on top of it. */}
+            <View pointerEvents="none" style={[styles.petShadow, { width: tileSize * 0.34, height: tileSize * 0.1, borderRadius: tileSize * 0.05, top: tileSize * 0.74, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.2 }]} />
+            {/* Beside the hero at its chest, out where the taller hero no longer hides it, and big enough to read. */}
+            <Animated.View pointerEvents="none" style={{ position: "absolute", top: tileSize * 0.02, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.34, zIndex: 3 }}>
+              <Companion look={pet} size={tileSize * 0.64} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
+            </Animated.View>
+          </>
         ) : null}
         {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
         {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
@@ -929,6 +934,7 @@ const styles = StyleSheet.create({
     borderColor: "#444",
     position: "relative",
   },
+  petShadow: { position: "absolute", backgroundColor: "rgba(0,0,0,0.38)" },
   heroGlow: { position: "absolute", backgroundColor: "rgba(255,226,160,0.16)" },
   heroRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,214,130,0.85)", backgroundColor: "rgba(255,214,130,0.22)" },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
