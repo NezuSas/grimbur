@@ -221,6 +221,9 @@ type Props = {
   secretTile?: number | null;
 };
 
+/** The hero's height against its tile, and where its feet sit inside its picture (from the top). */
+const HERO_SCALE = 1.12;
+const HERO_FEET = 0.935;
 const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];
 
 /**
@@ -357,7 +360,12 @@ const BoardView: React.FC<Props> = memo(
     const heroBreath = useRef(new Animated.Value(1)).current;
     // Breath and step together, kept on the hero's feet: the body narrows a touch as it swells (volume holds), and
     // the scale around the middle is shifted back down so only the chest rises and the feet stay planted.
-    const heroBody = tileSize * 0.8;
+    // The hero is drawn taller than its tile, as board games do: the feet stand on the tile and the head rises into the one
+    // above (the art has empty room around the figure, so at the tile's own size the hero looked smaller than a gem).
+    const heroBody = tileSize * HERO_SCALE;
+    // Where the feet land: low on the tile (on the gold ring). On the top row the board's edge would cut the head, so the
+    // hero stands a little lower there.
+    const heroLift = (rowIndex === 0 ? 0.97 : 0.88) * tileSize - ((tileSize - heroBody) / 2 + HERO_FEET * heroBody);
     const outline = Math.max(1.2, tileSize * 0.02);
     const bodyX = useMemo(() => Animated.multiply(stretchX, heroBreath.interpolate({ inputRange: [1, 1.04], outputRange: [1, 0.985] })), [stretchX, heroBreath]);
     const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
@@ -691,14 +699,14 @@ const BoardView: React.FC<Props> = memo(
             <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * 0.04 }]} />
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
             {pet && !dying ? (
-              <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, [lastSide.current === "left" ? "right" : "left"]: 0, zIndex: 3 }}>
-                <Companion look={pet} size={tileSize * 0.52} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
+              <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.08, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.16, zIndex: 3 }}>
+                <Companion look={pet} size={tileSize * 0.46} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
               </Animated.View>
             ) : null}
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
             {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
             {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
-            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
+            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
             <Animated.View
               style={{
                 width: heroBody,
