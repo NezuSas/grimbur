@@ -32,8 +32,8 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
 
   const attackPlacement = useSettingsStore(s => s.attackButton);
   const controlSize = useSettingsStore(s => s.controlSize);
-  // The board leans back (2.5D) unless the player asked for the flat view.
-  const boardTilted = !useSettingsStore(s => s.flatBoard);
+  // Trial: the board leans back (2.5D) when the player turned it on.
+  const boardTilted = useSettingsStore(s => s.tiltBoard);
   // The extra column needs a wide landscape window (portrait or tall split-screen windows keep the pad as is).
   const splitAttack =
     attackPlacement === 'side' && screenWidth >= MIN_WIDTH_FOR_SPLIT_ATTACK && screenWidth > screenHeight;
