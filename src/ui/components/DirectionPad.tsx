@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, memo } from "react";
-import { View, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent } from "react-native";
+import { View, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, GestureResponderEvent, type ImageSourcePropType } from "react-native";
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import { Ionicons } from "@expo/vector-icons";
@@ -53,6 +53,12 @@ const ATTACK_ART = {
   empty: require("../../assets/sprites/ui/Attack_Empty.webp"),
   arrow: require("../../assets/sprites/ui/Attack_Arrow.webp"),
 } as const;
+/** The medallion of each weapon (a skin worn in the Collection still wins). */
+const WEAPON_READY: Record<WeaponId, ImageSourcePropType> = {
+  bow: ATTACK_ART.ready,
+  orb: require("../../assets/sprites/ui/Attack_Ready_Orb.webp"),
+  bomb: require("../../assets/sprites/ui/Attack_Ready_Bomb.webp"),
+};
 
 /** The painted arrow is drawn pointing right: the turn that points it the way the player aims. */
 const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT: "180deg", UP: "-90deg" };
@@ -67,7 +73,7 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim, weapon
   const [readyArt] = useState(() => {
     const saved = peekLocalStats();
     const id = saved ? equippedCosmetic(saved, "attack") : null;
-    return (id && ATTACK_SKINS[id]) || ATTACK_ART.ready;
+    return (id && ATTACK_SKINS[id]) || WEAPON_READY[weapon];
   });
   const { t } = useT();
   const scale = useRef(new Animated.Value(1)).current;
