@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH, useGameLayout } from "../ui/layout/useGameLayout";
 import characters from "../data/characters";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/types";
 import { formatTime } from "../shared/utils/formatTime";
@@ -127,7 +128,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         const on = board === o.value;
         return (
           <PressScale key={o.value} onPress={() => setBoard(o.value)} style={[styles.tab, on && styles.tabOn]} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={o.label}>
-            {roomyTabs ? <Ionicons name={o.icon} size={15} color={on ? "#2A2016" : "#C9A55A"} /> : null}
+            {roomyTabs ? <GameIcon name={o.icon} size={15} color={on ? "#2A2016" : "#C9A55A"} /> : null}
             <Text style={[styles.tabText, !roomyTabs && styles.tabTextTight, on && { color: "#2A2016" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
               {o.label.toLocaleUpperCase()}
             </Text>
@@ -195,14 +196,14 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         accessibilityRole="button"
         accessibilityLabel={t("progress.open")}
       >
-        <Ionicons name="trending-up" size={18} color="#2A2016" />
+        <GameIcon name="trending-up" size={18} color="#2A2016" />
         <Text style={styles.progressLinkText} maxFontSizeMultiplier={1.2}>
           {t("progress.open").toLocaleUpperCase()}
         </Text>
       </TouchableOpacity>
       {tenth > 0 && (
         <View style={styles.threshold}>
-          <Ionicons name="flag" size={14} color="#8FC0C5" />
+          <GameIcon name="flag" size={14} color="#8FC0C5" />
           <Text style={styles.thresholdText} maxFontSizeMultiplier={1.2}>
             {t("scores.threshold", { score: tenth })}
           </Text>
@@ -214,12 +215,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const age = offlineAt !== null ? describeAge(offlineAt) : null;
   const offlineNotice = age ? (
     <View style={styles.offlineNotice} accessibilityLiveRegion="polite">
-      <Ionicons name="cloud-offline-outline" size={18} color="#E2BE8C" />
+      <GameIcon name="cloud-offline-outline" size={18} color="#E2BE8C" />
       <Text style={styles.offlineText} maxFontSizeMultiplier={1.2}>
         {t(((age.unit === "minutes" && age.n === 0 ? "scores.offline.now" : age.n === 1 && age.unit === "hours" ? "scores.offline.hours1" : age.n === 1 && age.unit === "days" ? "scores.offline.days1" : `scores.offline.${age.unit}`) as TranslationKey), { n: age.n })}
       </Text>
       <TouchableOpacity style={styles.offlineRetry} onPress={loadData} accessibilityRole="button" accessibilityLabel={t("common.retry")}>
-        <Ionicons name="refresh" size={18} color="#2A2016" />
+        <GameIcon name="refresh" size={18} color="#2A2016" />
       </TouchableOpacity>
     </View>
   ) : null;
@@ -313,7 +314,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           accessibilityLabel={t("scores.report.open")}
           accessibilityState={{ expanded: menuFor === item.id }}
         >
-          <Ionicons name="flag-outline" size={16} color="#C4AA91" />
+          <GameIcon name="flag-outline" size={16} color="#C4AA91" />
         </TouchableOpacity>
       </View>
       {menuFor === item.id && reportMenu(item)}
@@ -387,7 +388,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       </View>
     ) : status === "error" ? (
       <View style={styles.centerBox} accessibilityLiveRegion="polite">
-        <Ionicons name="cloud-offline-outline" size={36} color="#D58A7E" />
+        <GameIcon name="cloud-offline-outline" size={36} color="#D58A7E" />
         <Text style={[styles.statusText, { color: "#D58A7E" }]} maxFontSizeMultiplier={1.3}>
           {t("scores.error")}
         </Text>

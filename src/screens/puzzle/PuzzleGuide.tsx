@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
@@ -26,7 +27,7 @@ export default function PuzzleGuide({ onDone }: { onDone: () => void }) {
     <View style={styles.wrap} pointerEvents="box-none">
       <View style={styles.card} accessibilityLiveRegion="polite">
         <View style={styles.icon}>
-          <Ionicons name={s.icon} size={20} color="#14101F" />
+          <GameIcon name={s.icon} size={20} color="#14101F" />
         </View>
         <Text style={styles.text} numberOfLines={4} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
           {t(s.key)}

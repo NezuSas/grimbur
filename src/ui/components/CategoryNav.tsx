@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import SpriteImage from "./SpriteImage";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import Text from "./Text";
 import { MIN_TOUCH } from "../layout/useGameLayout";
 
@@ -42,7 +43,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
               {c.art ? (
                 <SpriteImage source={c.art} style={[styles.slimArt, !on && { opacity: 0.7 }]} resizeMode="contain" accessibilityIgnoresInvertColors />
               ) : (
-                <Ionicons name={c.icon} size={24} color={c.tint} />
+                <GameIcon name={c.icon} size={24} color={c.tint} />
               )}
               <Text style={[styles.slimLabel, on && { color: c.tint }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
                 {c.label}
@@ -71,7 +72,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
                 <SpriteImage source={c.art} style={[styles.railArt, !on && { opacity: 0.8 }]} resizeMode="contain" accessibilityIgnoresInvertColors />
               ) : (
                 <View style={[styles.railChip, { backgroundColor: c.tint + (on ? "40" : "22") }]}>
-                  <Ionicons name={c.icon} size={20} color={c.tint} />
+                  <GameIcon name={c.icon} size={20} color={c.tint} />
                 </View>
               )}
               <Text style={[styles.railLabel, on && { color: "#F3EADB" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
@@ -98,7 +99,7 @@ export function CategoryNav<Id extends string>({ items, value, onChange, wide, r
               accessibilityState={{ selected: on }}
               style={[styles.topChip, on && { backgroundColor: c.tint + "26", borderColor: c.tint }]}
             >
-              {c.art ? <SpriteImage source={c.art} style={styles.chipArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : <Ionicons name={c.icon} size={18} color={c.tint} />}
+              {c.art ? <SpriteImage source={c.art} style={styles.chipArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : <GameIcon name={c.icon} size={18} color={c.tint} />}
               <Text style={[styles.topChipText, on && { color: "#F3EADB" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
                 {c.label}
               </Text>

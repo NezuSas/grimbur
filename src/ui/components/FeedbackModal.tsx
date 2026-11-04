@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Dimensions, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import Text from "./Text";
 import OverlayContainer from "./game/OverlayContainer";
 import { PopButton, PopupPanel, popupTitleStyle } from "./game/popup";
@@ -51,7 +52,7 @@ export default function FeedbackModal({ where, onClose }: Props) {
         {state === "sent" ? (
           <>
             <View style={styles.thanks}>
-              <Ionicons name="checkmark-circle" size={34} color="#8EAE7C" />
+              <GameIcon name="checkmark-circle" size={34} color="#8EAE7C" />
               <Text style={styles.thanksText} maxFontSizeMultiplier={1.15}>
                 {t("feedback.thanks")}
               </Text>
@@ -77,7 +78,7 @@ export default function FeedbackModal({ where, onClose }: Props) {
                     accessibilityState={{ selected: on }}
                     style={[styles.kind, on && { borderColor: KIND_COLOR[k], backgroundColor: "rgba(255,255,255,0.1)" }]}
                   >
-                    <Ionicons name={KIND_ICON[k]} size={15} color={on ? KIND_COLOR[k] : "#9e9488"} />
+                    <GameIcon name={KIND_ICON[k]} size={15} color={on ? KIND_COLOR[k] : "#9e9488"} />
                     <Text style={[styles.kindText, on && { color: "#FFF3E0" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                       {t(`feedback.kind.${k}`)}
                     </Text>

@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import OverlayContainer from "../../ui/components/game/OverlayContainer";
@@ -67,7 +68,7 @@ export default function PuzzleIntro({ title, tier, tint, rows, cols, gems, best,
           ) : null}
           {best > 0 ? (
             <View style={styles.chip}>
-              <Ionicons name="timer-outline" size={14} color="#d8c7a8" />
+              <GameIcon name="timer-outline" size={14} color="#d8c7a8" />
               <Text style={styles.chipText} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.record.best", { best: formatSolveTime(best) })}
               </Text>
@@ -75,7 +76,7 @@ export default function PuzzleIntro({ title, tier, tint, rows, cols, gems, best,
           ) : null}
           {strict ? (
             <View style={[styles.chip, styles.chipRed]}>
-              <Ionicons name="skull-outline" size={14} color="#D58A7E" />
+              <GameIcon name="skull-outline" size={14} color="#D58A7E" />
               <Text style={[styles.chipText, { color: "#E3C7C4" }]} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.intro.strict")}
               </Text>
@@ -83,7 +84,7 @@ export default function PuzzleIntro({ title, tier, tint, rows, cols, gems, best,
           ) : null}
           {noHints ? (
             <View style={[styles.chip, styles.chipRed]}>
-              <Ionicons name="bulb-outline" size={14} color="#D58A7E" />
+              <GameIcon name="bulb-outline" size={14} color="#D58A7E" />
               <Text style={[styles.chipText, { color: "#E3C7C4" }]} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.intro.noHints")}
               </Text>

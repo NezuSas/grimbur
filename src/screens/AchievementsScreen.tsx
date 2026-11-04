@@ -18,7 +18,7 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import { LinearGradient } from "expo-linear-gradient";
 
 import { RootStackParamList } from "../navigation/types";
@@ -129,7 +129,7 @@ const Tile = memo(
           />
           {earned ? (
             <View style={styles.tileCheck}>
-              <Ionicons name="checkmark" size={12} color="#1a0f00" />
+              <GameIcon name="checkmark" size={12} color="#1a0f00" />
             </View>
           ) : null}
           <Text
@@ -440,7 +440,7 @@ const AchievementsScreen: React.FC<Props> = ({ navigation }) => {
                       accessibilityLabel={`${label}. ${count.done}/${count.total}`}
                     >
                       {k === "all" ? (
-                        <Ionicons
+                        <GameIcon
                           name="trophy"
                           size={18}
                           color={on ? "#1a0f00" : GOLD}
@@ -601,7 +601,7 @@ const Showcase = ({
           />
           {!earned ? (
             <View style={styles.showLock}>
-              <Ionicons name="lock-closed" size={14} color="#EAE1D8" />
+              <GameIcon name="lock-closed" size={14} color="#EAE1D8" />
             </View>
           ) : null}
         </View>
@@ -642,7 +642,7 @@ const Showcase = ({
 
       {earned ? (
         <View style={styles.dateRow}>
-          <Ionicons name="checkmark-circle" size={16} color="#A3BF7C" />
+          <GameIcon name="checkmark-circle" size={16} color="#A3BF7C" />
           <Text style={styles.date} maxFontSizeMultiplier={1.1}>
             {t("ach.unlockedOn", { date: stats.achievements[a.id] })}
           </Text>

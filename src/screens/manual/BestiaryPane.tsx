@@ -4,7 +4,7 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import type { TranslationKey } from "../../i18n/en";
 import { BEASTS, EMPTY_BESTIARY, SLAYABLE, huntStars, type Bestiary } from "../../core/stats/bestiary";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import { getLocalStats, peekLocalStats } from "../../services/localStats";
 import type { Kit } from "./kit";
 import { BEAST_ART, BEAST_TINT } from "../../ui/beastArt";
@@ -60,7 +60,7 @@ export const BestiaryPane = ({ kit }: { kit: Kit }) => {
                       <View style={styles.hunt} accessible accessibilityLabel={`${t("bestiary.hunter")} ${stars}/3`}>
                         <View style={styles.stars}>
                           {[0, 1, 2].map(i => (
-                            <Ionicons key={i} name={i < stars ? "star" : "star-outline"} size={14} color={i < stars ? "#C9A55A" : "#6d5a48"} />
+                            <GameIcon key={i} name={i < stars ? "star" : "star-outline"} size={14} color={i < stars ? "#C9A55A" : "#6d5a48"} />
                           ))}
                         </View>
                         <Text style={styles.next} maxFontSizeMultiplier={1.1}>

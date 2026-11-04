@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import { useWindowDimensions } from "../layout/scaledWindow";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import EmberIcon from "./EmberIcon";
@@ -91,14 +91,14 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
                   {t("chest.day", { n: d })}
                 </Text>
                 {done ? (
-                  <Ionicons name="checkmark-circle" size={slot * 0.36} color="#A3BF7C" />
+                  <GameIcon name="checkmark-circle" size={slot * 0.36} color="#A3BF7C" />
                 ) : (
                   <View style={styles.slotPay}>
                     <EmberIcon size={11} />
                     <Text style={styles.slotEmbers} maxFontSizeMultiplier={1.1}>
                       {CHEST_EMBERS[i]}
                     </Text>
-                    {big ? <Ionicons name="snow" size={12} color="#8DBDD3" /> : null}
+                    {big ? <GameIcon name="snow" size={12} color="#8DBDD3" /> : null}
                   </View>
                 )}
               </View>
@@ -134,7 +134,7 @@ const DailyChestModal = ({ day, opened, busy, onOpen, onClose, calm = false }: P
               </View>
               {opened.freeze ? (
                 <View style={styles.prizeRow}>
-                  <Ionicons name="snow" size={18} color="#8DBDD3" />
+                  <GameIcon name="snow" size={18} color="#8DBDD3" />
                   <Text style={styles.freezeText} maxFontSizeMultiplier={1.1}>
                     {t("chest.freeze")}
                   </Text>

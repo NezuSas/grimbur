@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, View, type ImageSourcePropType, type LayoutChangeEvent } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import { useWindowDimensions } from "../../ui/layout/scaledWindow";
 import SpriteImage from "../../ui/components/SpriteImage";
@@ -76,7 +76,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
         </Text>
         <View style={styles.reachedRow}>
           {COLLECTION_MILESTONES.map(m => (
-            <Ionicons key={m} name={progress.pct >= m ? "star" : "star-outline"} size={16} color={progress.pct >= m ? GOLD : "rgba(255,255,255,0.28)"} />
+            <GameIcon key={m} name={progress.pct >= m ? "star" : "star-outline"} size={16} color={progress.pct >= m ? GOLD : "rgba(255,255,255,0.28)"} />
           ))}
           <Text style={styles.reachedText} maxFontSizeMultiplier={1.1}>{`${reached}/${cols}`}</Text>
         </View>
@@ -122,7 +122,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
                               </View>
                               {!done ? (
                                 <View style={styles.lock}>
-                                  <Ionicons name="lock-closed" size={11} color="#E4D8CD" />
+                                  <GameIcon name="lock-closed" size={11} color="#E4D8CD" />
                                 </View>
                               ) : null}
                             </View>
@@ -136,7 +136,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
                         ))}
                       </View>
                       <View style={[styles.state, done ? styles.stateDone : isNext ? styles.stateNext : null]}>
-                        {done ? <Ionicons name="checkmark" size={12} color="#1a0f00" /> : <Ionicons name="lock-closed" size={11} color={isNext ? GOLD : "#B99A7C"} />}
+                        {done ? <GameIcon name="checkmark" size={12} color="#1a0f00" /> : <GameIcon name="lock-closed" size={11} color={isNext ? GOLD : "#B99A7C"} />}
                         <Text style={[styles.stateText, done && { color: "#1a0f00" }, isNext && { color: GOLD }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                           {done ? t("cosmetic.earned").toLocaleUpperCase() : t("collection.rewards.left", { n: need(m) })}
                         </Text>
@@ -166,7 +166,7 @@ const CollectionRewards = ({ stats, portrait, playerName, onOpen }: Props) => {
                       ]}
                     >
                       {done ? (
-                        <Ionicons name="checkmark" size={medal * 0.5} color="#1a0f00" />
+                        <GameIcon name="checkmark" size={medal * 0.5} color="#1a0f00" />
                       ) : (
                         <Text style={[styles.nodeText, { fontSize: medal * 0.3, color: isNext ? GOLD : "#CDBBA5" }]} maxFontSizeMultiplier={1}>{`${m}%`}</Text>
                       )}

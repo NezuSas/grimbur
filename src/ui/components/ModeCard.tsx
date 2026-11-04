@@ -3,7 +3,7 @@ import GlyphIcon from "./GlyphIcon";
 import type { GlyphName } from "../glyphArt";
 import { Animated, Pressable, StyleSheet, View } from "react-native";
 import Text from "./Text";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { haptic } from "../../shared/haptics";
 import { emitSound } from "../../audio/audioEventBus";
 import { MIN_TOUCH } from "../layout/useGameLayout";
@@ -53,7 +53,7 @@ const ModeCard: React.FC<Props> = memo(({ title, subtitle, icon, tint, onPress, 
       >
         {leading ?? (
           <View style={[styles.iconWrap, { width: (compactCard ? 38 : 46) * ui, height: (compactCard ? 38 : 46) * ui, borderRadius: (compactCard ? 19 : 23) * ui, backgroundColor: tint + (locked ? "14" : "26"), borderColor: tint + (locked ? "40" : "88") }]}>
-            {locked ? <Ionicons name="lock-closed" size={(featured ? 26 : 22) * ui} color="#b8b3d0" /> : <GlyphIcon name={icon} size={(featured ? 30 : 28) * ui} />}
+            {locked ? <GameIcon name="lock-closed" size={(featured ? 26 : 22) * ui} color="#b8b3d0" /> : <GlyphIcon name={icon} size={(featured ? 30 : 28) * ui} />}
           </View>
         )}
         <View style={styles.text}>

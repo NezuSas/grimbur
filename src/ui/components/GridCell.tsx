@@ -2,6 +2,7 @@ import React, { memo, useRef, useEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, Easing, ImageSourcePropType } from "react-native";
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { BIOME_ART } from "../biomeArt";
 import type { ArtTheme } from "../biomeArt";
 import type { Direction, GameEntity } from "../../core/engine/types";
@@ -517,7 +518,7 @@ const GridCell = memo(({
       {/* The draft of a secret room: a glint in the corner, kept out of the clue tokens' way. */}
       {draft && !hideClue ? (
         <View pointerEvents="none" style={[styles.draft, { width: tileSize * 0.3, height: tileSize * 0.3, borderRadius: tileSize * 0.15 }]}>
-          <Ionicons name="sparkles" size={tileSize * 0.2} color="#DCC48E" />
+          <GameIcon name="sparkles" size={tileSize * 0.2} color="#DCC48E" />
         </View>
       ) : null}
 
@@ -570,7 +571,7 @@ const GridCell = memo(({
           {/* Right or wrong is told by a shape as well as the colour, for colour-blind eyes. */}
           {unveiled ? (
             <View style={[styles.verdictBadge, hazard ? styles.deducedBadgeSafe : styles.deducedBadgeDanger, { width: tileSize * 0.32, height: tileSize * 0.32, borderRadius: tileSize * 0.16 }]}>
-              <Ionicons name={hazard ? 'checkmark' : 'close'} size={tileSize * 0.24} color="#fff" />
+              <GameIcon name={hazard ? 'checkmark' : 'close'} size={tileSize * 0.24} color="#fff" />
             </View>
           ) : null}
         </Animated.View>
@@ -579,7 +580,7 @@ const GridCell = memo(({
       {aimed && (
         <View style={[styles.aim, aimLast && styles.aimLast]} pointerEvents="none">
           {/* A chevron along the line of fire, fading with distance; a ring marks where the arrow stops */}
-          <Ionicons name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#D58A7E" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
+          <GameIcon name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#D58A7E" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
           {aimLast && <View style={[styles.aimRing, { width: tileSize * 0.62, height: tileSize * 0.62, borderRadius: tileSize * 0.31 }]} />}
         </View>
       )}
@@ -587,7 +588,7 @@ const GridCell = memo(({
       {deduced && !flagged && (
         <View style={[styles.deduced, deduced === 'safe' ? styles.deducedSafe : styles.deducedDanger, { borderRadius: tileSize * 0.16 }]} pointerEvents="none">
           <View style={[styles.deducedBadge, { width: tileSize * 0.34, height: tileSize * 0.34, borderRadius: tileSize * 0.17 }, deduced === 'safe' ? styles.deducedBadgeSafe : styles.deducedBadgeDanger]}>
-            <Ionicons name={deduced === 'safe' ? 'checkmark' : 'alert'} size={tileSize * 0.24} color="#fff" />
+            <GameIcon name={deduced === 'safe' ? 'checkmark' : 'alert'} size={tileSize * 0.24} color="#fff" />
           </View>
         </View>
       )}

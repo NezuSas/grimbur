@@ -13,6 +13,7 @@ import { RootStackParamList } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import { useT } from "../i18n/useT";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
@@ -107,7 +108,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation, route }) => {
         <View style={styles.pager}>
           {prev ? (
             <TouchableOpacity style={styles.pagerButton} onPress={() => setTopic(prev.id)} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={`${t("manual.prev")}: ${prev.label}`}>
-              <Ionicons name="chevron-back" size={18} color={prev.tint} />
+              <GameIcon name="chevron-back" size={18} color={prev.tint} />
               {prev.art ? <SpriteImage source={prev.art} style={styles.pagerArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : null}
               <View style={{ flex: 1 }}>
                 <Text style={styles.pagerHint} maxFontSizeMultiplier={1.2}>
@@ -132,7 +133,7 @@ const InstructionsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
               {next.art ? <SpriteImage source={next.art} style={styles.pagerArt} resizeMode="contain" accessibilityIgnoresInvertColors /> : null}
-              <Ionicons name="chevron-forward" size={18} color={next.tint} />
+              <GameIcon name="chevron-forward" size={18} color={next.tint} />
             </TouchableOpacity>
           ) : (
             <View style={{ flex: 1 }} />

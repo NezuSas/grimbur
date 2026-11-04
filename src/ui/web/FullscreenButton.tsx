@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../components/GameIcon";
 import Text from "../components/Text";
 import OverlayContainer from "../components/game/OverlayContainer";
 import { PopButton, PopupPanel, popupTitleStyle } from "../components/game/popup";
@@ -37,7 +37,7 @@ export default function FullscreenButton() {
   return (
     <>
       <Pressable onPress={press} hitSlop={6} style={styles.button} accessibilityRole="button" accessibilityLabel={t(screen.fullscreen ? "web.fullscreen.leave" : "web.fullscreen.go")}>
-        <Ionicons name={screen.fullscreen ? "contract" : "expand"} size={20} color="#fff" />
+        <GameIcon name={screen.fullscreen ? "contract" : "expand"} size={20} color="#fff" />
       </Pressable>
       {/* In a modal of its own: drawn inside the cover's little top row, the card was cut down to that row and unseen. */}
       <Modal visible={howTo} transparent animationType="fade" onRequestClose={() => setHowTo(false)} supportedOrientations={["landscape", "portrait"]}>
@@ -55,7 +55,7 @@ export default function FullscreenButton() {
                   <View style={styles.stepNumber}>
                     <Text style={styles.stepNumberText} maxFontSizeMultiplier={1.1}>{`${i + 1}`}</Text>
                   </View>
-                  <Ionicons name={s.icon} size={20} color="#C9A55A" />
+                  <GameIcon name={s.icon} size={20} color="#C9A55A" />
                   <Text style={styles.step} maxFontSizeMultiplier={1.15}>
                     {t(s.key)}
                   </Text>

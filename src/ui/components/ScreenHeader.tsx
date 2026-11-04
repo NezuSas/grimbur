@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from "react-native";
 import PressScale from "./PressScale";
 import Text from "./Text";
-import { Ionicons } from '@expo/vector-icons';
+import GameIcon from './GameIcon';
 import { MIN_TOUCH, useGameLayout } from '../layout/useGameLayout';
 import { useT } from '../../i18n/useT';
 
@@ -37,7 +37,7 @@ const ScreenHeader: React.FC<Props> = ({ title, subtitle, right, onBack }) => {
         accessibilityRole="button"
         accessibilityLabel={t('a11y.back')}
       >
-        <Ionicons name="arrow-back" size={24} color="#fff" />
+        <GameIcon name="arrow-back" size={24} color="#fff" />
       </PressScale>
 
       <View style={[styles.center, { paddingHorizontal: sidePad }]}>

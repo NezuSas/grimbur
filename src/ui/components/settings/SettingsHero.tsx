@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Image, StyleSheet, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../../../state/settings/types";
@@ -133,7 +133,7 @@ export const ControlsPreview = ({ width, position, attack, size, pad, skin, hero
               i === 3 && { right: 0, top: padSize / 3 },
             ]}
           >
-            <Ionicons name={icon} size={padSize / 5} color="#EAD8A8" />
+            <GameIcon name={icon} size={padSize / 5} color="#EAD8A8" />
           </View>
         ))}
         <View style={[styles.crossMid, { width: padSize / 3, height: padSize / 3, left: padSize / 3, top: padSize / 3 }]}>

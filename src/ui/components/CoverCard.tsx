@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, ScrollView, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
 import { useWindowDimensions } from "../layout/scaledWindow";
 import Text from "./Text";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import ModeCard from "./ModeCard";
 import GlyphIcon from "./GlyphIcon";
@@ -436,7 +436,7 @@ const CoverCard: React.FC<Props> = ({
         accessibilityRole="button"
         accessibilityLabel={t("a11y.settings")}
       >
-        <Ionicons name="settings-outline" size={22} color="#fff" />
+        <GameIcon name="settings-outline" size={22} color="#fff" />
       </TouchableOpacity>
       <View style={[styles.topRow, { top: Math.max(insets.top, 10), right: Math.max(insets.right, 12) + MIN_TOUCH + 8 }]} pointerEvents="box-none">
         <FullscreenButton />
@@ -451,7 +451,7 @@ const CoverCard: React.FC<Props> = ({
           <Text style={styles.feedbackBeta} maxFontSizeMultiplier={1}>
             {t("feedback.beta").toLocaleUpperCase()}
           </Text>
-          <Ionicons name="chatbubble-ellipses" size={15} color="#7FAFC6" />
+          <GameIcon name="chatbubble-ellipses" size={15} color="#7FAFC6" />
           <Text style={styles.feedbackText} maxFontSizeMultiplier={1.1}>
             {t("feedback.open")}
           </Text>

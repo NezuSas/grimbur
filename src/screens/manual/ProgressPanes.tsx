@@ -7,6 +7,8 @@ import { coinValue, levelClearBonus } from "../../core/engine/scoring";
 import { UPGRADES } from "../../core/stats/forge";
 import { forgeText } from "../../i18n/keys";
 import RelicIcon from "../../ui/components/RelicIcon";
+import SpriteImage from "../../ui/components/SpriteImage";
+import { FORGE_ICONS } from "../../ui/forgeArt";
 import { BIOME_ART } from "../../ui/biomeArt";
 import { Art, ScoreTable, SubHeading } from "../../ui/components/manual/ManualParts";
 import { asKey, IMG, S } from "./kit";
@@ -87,7 +89,7 @@ export const ForgePane = ({ kit }: { kit: Kit }) => {
             {UPGRADES.filter(u => u.category === group.id).map(u => (
               <View key={u.id} style={[styles.relic, wide && styles.relicWide]}>
                 <Art size={44} tint={group.color}>
-                  {u.relic ? <RelicIcon id={u.relic} size={34} /> : <Text style={styles.upgradeEmoji}>{u.icon}</Text>}
+                  {u.relic ? <RelicIcon id={u.relic} size={34} /> : FORGE_ICONS[u.id] ? <SpriteImage source={FORGE_ICONS[u.id]!} style={{ width: 34, height: 34 }} resizeMode="contain" /> : <Text style={styles.upgradeEmoji}>{u.icon}</Text>}
                 </Art>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.relicName} maxFontSizeMultiplier={1.3}>

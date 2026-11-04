@@ -9,6 +9,7 @@ import { RootStackParamList } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import { useSettingsStore } from "../state/settings/store";
 import { canBind, keyCap, keyOf, rebind, type KeyAction } from "../core/input/keyBindings";
 import type { AttackButtonPlacement, ControlPosition, ControlSize, JoystickSkin, MovePadStyle } from "../state/settings/types";
@@ -336,7 +337,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       accessibilityState={{ checked: soundEnabled }}
       accessibilityLabel={t("settings.sound")}
     >
-      <Ionicons name={soundEnabled ? "volume-high" : "volume-mute"} size={22} color={soundEnabled ? "#1a1200" : "#D58A7E"} />
+      <GameIcon name={soundEnabled ? "volume-high" : "volume-mute"} size={22} color={soundEnabled ? "#1a1200" : "#D58A7E"} />
       <Text style={[styles.masterText, !soundEnabled && { color: "#D58A7E" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
         {(soundEnabled ? t("settings.soundOn") : t("settings.soundOff")).toLocaleUpperCase()}
       </Text>
@@ -551,7 +552,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
           >
             <View style={[styles.langBadge, on && styles.langBadgeOn]}>
               {option.value === "auto" ? (
-                <Ionicons name="phone-portrait-outline" size={20} color={on ? "#1a1200" : "#B08DBE"} />
+                <GameIcon name="phone-portrait-outline" size={20} color={on ? "#1a1200" : "#B08DBE"} />
               ) : (
                 <Text style={[styles.langBadgeText, on && { color: "#1a1200" }]} maxFontSizeMultiplier={1.1}>
                   {LANGUAGE_BADGE[option.value]}
@@ -568,7 +569,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
               ) : null}
             </View>
-            {on ? <Ionicons name="checkmark-circle" size={26} color={GOLD} /> : <View style={styles.langEmpty} />}
+            {on ? <GameIcon name="checkmark-circle" size={26} color={GOLD} /> : <View style={styles.langEmpty} />}
           </PressScale>
         );
       })}
@@ -596,7 +597,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
         </Text>
       </PressScale>
       <View style={styles.infoBox}>
-        <Ionicons name="checkmark-done" size={16} color="#A3BF7C" />
+        <GameIcon name="checkmark-done" size={16} color="#A3BF7C" />
         <Text style={styles.infoText} maxFontSizeMultiplier={1.3}>
           {t("settings.autosave")}
         </Text>

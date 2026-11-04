@@ -3,7 +3,7 @@ import { ImageBackground, ScrollView, StyleSheet, View, type LayoutChangeEvent, 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -198,7 +198,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
           onBack={() => navigation.goBack()}
           right={
             <PressScale onPress={() => setStatsOpen(true)} style={styles.total} accessibilityRole="button" accessibilityLabel={`${t("puzzle.stats.title")}. ${t("puzzle.totalStars", { n: stars, total: PUZZLE_COUNT * MAX_STARS })}`}>
-              <Ionicons name="stats-chart" size={15} color={GOLD} />
+              <GameIcon name="stats-chart" size={15} color={GOLD} />
               <SpriteImage source={STAR} style={{ width: 18, height: 18 }} resizeMode="contain" />
               <Text style={styles.totalText} maxFontSizeMultiplier={1.15}>
                 {`${stars}/${PUZZLE_COUNT * MAX_STARS}`}
@@ -229,7 +229,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.archive.link", { n: Object.keys(puzzles?.archive ?? {}).length })}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#C9A55A" />
+              <GameIcon name="chevron-forward" size={16} color="#C9A55A" />
             </PressScale>
             <PressScale
               onPress={() => navigation.navigate("InstructionsScreen", { topic: "techniques" })}
@@ -241,7 +241,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
               <Text style={styles.techniquesText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.1}>
                 {t("puzzle.techniques")}
               </Text>
-              <Ionicons name="chevron-forward" size={16} color="#C9A55A" />
+              <GameIcon name="chevron-forward" size={16} color="#C9A55A" />
             </PressScale>
             <FriendsToday date={today} friends={stats.friends} onAddFriends={() => navigation.navigate("HighScoresScreen")} />
           </ScrollView>
@@ -290,7 +290,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
                 </ScrollView>
                 <View style={styles.pager}>
                   <PressScale onPress={() => goTo(page - 1)} disabled={page === 0} style={[styles.arrow, page === 0 && { opacity: 0.3 }]} accessibilityRole="button" accessibilityLabel={t("puzzle.chapterPrev")}>
-                    <Ionicons name="chevron-back" size={18} color="#fff" />
+                    <GameIcon name="chevron-back" size={18} color="#fff" />
                   </PressScale>
                   <View style={styles.dots}>
                     {Array.from({ length: pages }, (_, p) => {
@@ -311,7 +311,7 @@ export default function PuzzlesScreen({ navigation, route }: Props) {
                     })}
                   </View>
                   <PressScale onPress={() => goTo(page + 1)} disabled={page === pages - 1} style={[styles.arrow, page === pages - 1 && { opacity: 0.3 }]} accessibilityRole="button" accessibilityLabel={t("puzzle.chapterNext")}>
-                    <Ionicons name="chevron-forward" size={18} color="#fff" />
+                    <GameIcon name="chevron-forward" size={18} color="#fff" />
                   </PressScale>
                 </View>
               </>

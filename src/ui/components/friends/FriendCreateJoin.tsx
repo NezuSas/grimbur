@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import EmberIcon from "../EmberIcon";
 import SpriteImage from "../SpriteImage";
@@ -76,7 +76,7 @@ const FriendCreateJoin = ({ mode, embers, onCreate, onJoin }: Props) => {
             accessibilityState={{ selected: on }}
             accessibilityLabel={label}
           >
-            <Ionicons name={icon} size={18} color={on ? "#1a0f00" : tint} />
+            <GameIcon name={icon} size={18} color={on ? "#1a0f00" : tint} />
             <Text style={[styles.switchText, on && { color: "#1a0f00" }]} maxFontSizeMultiplier={1.1}>
               {label.toLocaleUpperCase()}
             </Text>

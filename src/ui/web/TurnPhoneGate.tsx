@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import GameIcon from "../components/GameIcon";
 import Text from "../components/Text";
 import { useT } from "../../i18n/useT";
 import { enterFullscreen, useWebScreen } from "./webScreen";
@@ -47,7 +48,7 @@ export default function TurnPhoneGate() {
       </Text>
       {screen.canFullscreen && !screen.fullscreen ? (
         <Pressable onPress={() => void enterFullscreen()} style={styles.button} accessibilityRole="button">
-          <Ionicons name="expand" size={20} color="#1a1206" />
+          <GameIcon name="expand" size={20} color="#1a1206" />
           <Text style={styles.buttonText} maxFontSizeMultiplier={1.2}>
             {t("web.fullscreen.go")}
           </Text>

@@ -34,7 +34,7 @@ import { HEROES } from "../core/engine/heroes";
 import { abilityCooldown } from "../core/engine/shop";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { ABILITY_ART } from "../ui/toolArt";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import { useT } from "../i18n/useT";
 import { heroText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
@@ -347,7 +347,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                   )}
                   {locked && (
                     <View style={styles.silhouetteLock}>
-                      <Ionicons name="lock-closed" size={Math.round(40 * ui)} color="#fff" />
+                      <GameIcon name="lock-closed" size={Math.round(40 * ui)} color="#fff" />
                     </View>
                   )}
                 </Animated.View>
@@ -363,10 +363,10 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
                 {/* Chevrons: previous / next hero */}
                 <TouchableOpacity style={[styles.chevron, { left: 4 }]} onPress={() => step(-1)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("heroes.prev")}>
-                  <Ionicons name="chevron-back" size={26} color="#fff" />
+                  <GameIcon name="chevron-back" size={26} color="#fff" />
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.chevron, { right: 4 }]} onPress={() => step(1)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("heroes.next")}>
-                  <Ionicons name="chevron-forward" size={26} color="#fff" />
+                  <GameIcon name="chevron-forward" size={26} color="#fff" />
                 </TouchableOpacity>
 
                 {/* Roster */}
@@ -395,7 +395,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityRole="button"
                       accessibilityLabel={t("a11y.depthLower")}
                     >
-                      <Ionicons name="remove" size={18} color="#fff" />
+                      <GameIcon name="remove" size={18} color="#fff" />
                     </TouchableOpacity>
                     <View style={styles.depthLabel} accessible accessibilityLabel={`${t("heroes.depth")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
                       <Text style={styles.depthText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
@@ -409,7 +409,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityRole="button"
                       accessibilityLabel={nextLocked ? t("heroes.depthLocked", { current: t(`ascension.label.${depth}` as TranslationKey), next: t(`ascension.label.${depth + 1}` as TranslationKey) }) : t("a11y.depthRaise")}
                     >
-                      <Ionicons name={nextLocked ? "lock-closed" : "add"} size={nextLocked ? 14 : 18} color="#fff" />
+                      <GameIcon name={nextLocked ? "lock-closed" : "add"} size={nextLocked ? 14 : 18} color="#fff" />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -427,7 +427,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                         accessibilityRole="radio"
                         accessibilityState={{ checked: on }}
                       >
-                        <Ionicons name={q ? "flash" : "flag"} size={13} color={on ? tint : "#9c8f82"} />
+                        <GameIcon name={q ? "flash" : "flag"} size={13} color={on ? tint : "#9c8f82"} />
                         <Text style={[styles.lengthText, on && { color: tint }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {q ? t("heroes.length.quick", { n: QUICK_FLOORS }) : t("heroes.length.full")}
                         </Text>
@@ -448,7 +448,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
 
               {event ? (
                 <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${t(`event.${event}.rule` as TranslationKey)}`}>
-                  <Ionicons name="flash" size={13} color="#C9A55A" />
+                  <GameIcon name="flash" size={13} color="#C9A55A" />
                   <Text style={styles.eventText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     <Text style={styles.eventName}>{`${t(`event.${event}.name` as TranslationKey).toLocaleUpperCase()}  `}</Text>
                     {t(`event.${event}.rule` as TranslationKey)}
@@ -534,7 +534,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     const done = questDone(stats.heroQuests?.[selected], k);
                     return (
                       <View key={k} style={styles.questRow}>
-                        <Ionicons name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#A3BF7C" : "#8a7663"} />
+                        <GameIcon name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#A3BF7C" : "#8a7663"} />
                         <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                           {t(`quest.${selected}.${k}` as TranslationKey, { n: q.n })}
                         </Text>
@@ -547,7 +547,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {/* A locked hero says, first of all, how to open it */}
               {locked && progress ? (
               <View style={styles.lockInfo} accessible>
-                <Ionicons name="lock-closed" size={16} color="#fff" />
+                <GameIcon name="lock-closed" size={16} color="#fff" />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.lockTitle} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {unlockText(t, selected)}
@@ -590,7 +590,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                           {t("heroes.active").toLocaleUpperCase()}
                         </Text>
                         <View style={styles.cooldownChip}>
-                          <Ionicons name="refresh" size={11} color="#E4D8CD" />
+                          <GameIcon name="refresh" size={11} color="#E4D8CD" />
                           <Text style={styles.cooldownText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>{t("heroes.cooldown", { n: abilityCooldown(ability) })}</Text>
                         </View>
                       </View>
@@ -608,7 +608,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               {/* The hero's record */}
               {!locked ? (
                 <View style={styles.recordRow}>
-                  <Ionicons name={wins > 0 ? "trophy" : played ? "checkmark-circle" : "sparkles"} size={15} color={accent} />
+                  <GameIcon name={wins > 0 ? "trophy" : played ? "checkmark-circle" : "sparkles"} size={15} color={accent} />
                   <Text style={[styles.recordText, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                     {wins > 0 ? plural("heroes.wins", wins) : played ? t("heroes.played") : t("heroes.newHero")}
                   </Text>
@@ -629,7 +629,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               <Text style={[styles.ctaText, ctaDisabled && { color: "#EAE1D8" }, { fontSize: Math.round(16 * Math.min(ui, 1.3)) }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
                 {(locked ? unlockText(t, selected) || t("heroes.locked") : t("heroes.pick", { name })).toLocaleUpperCase()}
               </Text>
-              {!ctaDisabled && <Ionicons name="chevron-forward" size={22} color="#111" />}
+              {!ctaDisabled && <GameIcon name="chevron-forward" size={22} color="#111" />}
             </TouchableOpacity>
           </View>
         </View>
@@ -641,7 +641,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
           accessibilityRole="button"
           accessibilityLabel={t("a11y.back")}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <GameIcon name="arrow-back" size={24} color="#fff" />
         </PressScale>
       </SafeAreaView>
     </ImageBackground>

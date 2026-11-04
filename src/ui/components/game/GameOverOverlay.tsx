@@ -6,6 +6,7 @@ import Text from "../Text";
 import EmberIcon from "../EmberIcon";
 import GlyphIcon from "../GlyphIcon";
 import { Ionicons } from '@expo/vector-icons';
+import GameIcon from '../GameIcon';
 
 import type { Character } from '../../../data/characters';
 import type { DeathCause } from '../../../core/engine/types';
@@ -473,7 +474,7 @@ const GameOverOverlay = ({
           </Text>
           {onPeek && review.kind === 'avoidable' ? (
             <TouchableOpacity onPress={onPeek} hitSlop={6} accessibilityRole="button" accessibilityLabel={t('review.peek')} style={styles.peek}>
-              <Ionicons name="eye-outline" size={13} color={REVIEW_LOOK.avoidable} />
+              <GameIcon name="eye-outline" size={13} color={REVIEW_LOOK.avoidable} />
               <Text style={[styles.peekText, { color: REVIEW_LOOK.avoidable }]} maxFontSizeMultiplier={1.1}>{t('review.peek').toLocaleUpperCase()}</Text>
             </TouchableOpacity>
           ) : null}
@@ -481,7 +482,7 @@ const GameOverOverlay = ({
       ) : null}
       {friendGhosts > 0 && onPeek ? (
         <TouchableOpacity onPress={onPeek} accessibilityRole="button" accessibilityLabel={t('ghosts.line', { n: friendGhosts })} style={styles.ghosts}>
-          <Ionicons name="people" size={14} color="#94B3CC" />
+          <GameIcon name="people" size={14} color="#94B3CC" />
           <Text style={styles.ghostsText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
             {t('ghosts.line', { n: friendGhosts })}
           </Text>
@@ -544,7 +545,7 @@ const GameOverOverlay = ({
         )}
         <Text style={styles.tile2Label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>{label.toLocaleUpperCase()}</Text>
       </View>
-      {onPress ? <Ionicons name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#C48B4E" /> : null}
+      {onPress ? <GameIcon name={showBreakdown ? 'chevron-up' : 'chevron-down'} size={14} color="#C48B4E" /> : null}
     </TouchableOpacity>
   );
   const essentials = (
@@ -630,7 +631,7 @@ const GameOverOverlay = ({
           {notes.map((n, i) => (
             <Reveal key={n.key} delay={450 + i * 260} calm={calm}>
               <View style={styles.noteRow}>
-                <Ionicons name={n.icon} size={16} color={n.color} style={styles.noteIcon} />
+                <GameIcon name={n.icon} size={16} color={n.color} style={styles.noteIcon} />
                 <Text style={[styles.noteText, { color: n.color }]} maxFontSizeMultiplier={1.2}>{n.text}</Text>
               </View>
             </Reveal>
@@ -657,7 +658,7 @@ const GameOverOverlay = ({
           accessibilityLabel={t('over.demo.cta')}
         >
           <ButtonGloss />
-          <Ionicons name="lock-open" size={22} color="#000" />
+          <GameIcon name="lock-open" size={22} color="#000" />
           <Text style={[styles.retryText, { color: '#000' }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
             {t('over.demo.cta').toLocaleUpperCase()}
           </Text>
@@ -671,7 +672,7 @@ const GameOverOverlay = ({
         accessibilityLabel={retryText}
       >
         <ButtonGloss />
-        <Ionicons name="refresh" size={22} color={victory ? '#000' : '#fff'} />
+        <GameIcon name="refresh" size={22} color={victory ? '#000' : '#fff'} />
         <Text style={[styles.retryText, victory && { color: '#000' }, snug && styles.retryTextSnug, short && { fontSize: 14, letterSpacing: 0.5 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {retryText.toLocaleUpperCase()}
         </Text>
@@ -681,13 +682,13 @@ const GameOverOverlay = ({
       <View style={[styles.secondary, short && { flexShrink: 0 }]}>
         {demo && onUnlock ? (
           <TouchableOpacity style={styles.sideButton} onPress={onRetry} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.retry')}>
-            <Ionicons name="refresh" size={18} color="#fff" />
+            <GameIcon name="refresh" size={18} color="#fff" />
             {!short && <Text style={styles.sideText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('over.retry').toLocaleUpperCase()}</Text>}
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, short && styles.iconButton, short && styles.iconShort]} onPress={onMainMenu} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.menu')}>
           <ButtonGloss />
-          <Ionicons name="home" size={18} color="#fff" />
+          <GameIcon name="home" size={18} color="#fff" />
           {!short && <Text style={styles.sideText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>{t('over.menu').toLocaleUpperCase()}</Text>}
         </TouchableOpacity>
         {onForge && embers && embers > 0 ? (
@@ -700,13 +701,13 @@ const GameOverOverlay = ({
         {onShare ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={onShare} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t('over.share')}>
             <ButtonGloss />
-            <Ionicons name="share-social" size={20} color="#7FAFC6" />
+            <GameIcon name="share-social" size={20} color="#7FAFC6" />
           </TouchableOpacity>
         ) : null}
         {onCopyText ? (
           <TouchableOpacity style={[styles.sideButton, snug && styles.sideSnug, styles.iconButton]} onPress={copyText} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t(copied ? 'over.copied' : 'over.copyText')}>
             <ButtonGloss />
-            <Ionicons name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#7DBE98' : '#7FAFC6'} />
+            <GameIcon name={copied ? 'checkmark' : 'copy-outline'} size={20} color={copied ? '#7DBE98' : '#7FAFC6'} />
           </TouchableOpacity>
         ) : null}
       </View>

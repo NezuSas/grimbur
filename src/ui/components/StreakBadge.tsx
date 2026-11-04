@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import GlyphIcon from "./GlyphIcon";
 import { Animated, Easing, StyleSheet, View } from "react-native";
 import Text from "./Text";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 
 type Props = {
   days: number;
@@ -40,7 +40,7 @@ const StreakBadge: React.FC<Props> = ({ days, doneToday }) => {
       ) : null}
       {doneToday && lit ? (
         <View style={styles.check}>
-          <Ionicons name="checkmark" size={11} color="#10260a" />
+          <GameIcon name="checkmark" size={11} color="#10260a" />
         </View>
       ) : null}
     </Animated.View>

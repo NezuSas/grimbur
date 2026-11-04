@@ -2,6 +2,7 @@ import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import type { ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import OverlayContainer from "../../ui/components/game/OverlayContainer";
@@ -121,7 +122,7 @@ const RunDetail = ({ run, onClose }: Props) => {
           <View style={styles.facts}>
             {facts.map(f => (
               <View key={f.icon} style={styles.fact}>
-                <Ionicons name={f.icon} size={15} color={f.color} />
+                <GameIcon name={f.icon} size={15} color={f.color} />
                 <Text style={styles.factText} maxFontSizeMultiplier={1.1}>
                   {f.text}
                 </Text>
@@ -167,7 +168,7 @@ const RunDetail = ({ run, onClose }: Props) => {
                 })}
                 {run.secrets ? (
                   <View style={styles.storyRow}>
-                    <Ionicons name="sparkles" size={18} color="#DCC48E" style={styles.storyIcon} />
+                    <GameIcon name="sparkles" size={18} color="#DCC48E" style={styles.storyIcon} />
                     <Text style={styles.storyText} maxFontSizeMultiplier={1.1}>
                       {run.secrets === 1 ? t("history.secret.one") : t("history.secret.other", { n: run.secrets })}
                     </Text>

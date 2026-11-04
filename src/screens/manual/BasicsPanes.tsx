@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import GlyphIcon from "../../ui/components/GlyphIcon";
 import Text from "../../ui/components/Text";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import characters from "../../data/characters";
 import SpriteImage from "../../ui/components/SpriteImage";
 import RelicIcon from "../../ui/components/RelicIcon";
@@ -67,7 +67,7 @@ export const ExplorePane = ({ kit }: { kit: Kit }) => {
             <SpriteImage source={IMG.hidden} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
             <Text style={styles.visualText}>{t("manual.explore.hidden").toLocaleUpperCase()}</Text>
           </View>
-          <Ionicons name="arrow-forward" size={26} color="#888" style={{ marginHorizontal: 22 }} />
+          <GameIcon name="arrow-forward" size={26} color="#888" style={{ marginHorizontal: 22 }} />
           <View style={styles.visualItem}>
             <SpriteImage source={IMG.revealed} style={styles.visualImage} resizeMode="contain" accessibilityIgnoresInvertColors />
             <Text style={styles.visualText}>{t("manual.explore.revealed").toLocaleUpperCase()}</Text>

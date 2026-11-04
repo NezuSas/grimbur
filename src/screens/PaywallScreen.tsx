@@ -5,6 +5,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
@@ -152,7 +153,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         {features.map(f => (
           <View key={f.icon} style={styles.feature} accessible accessibilityLabel={f.text}>
             <View style={[styles.featureIcon, { borderColor: f.tint + "99", backgroundColor: f.tint + "22" }]}>
-              <Ionicons name={f.icon} size={18} color={f.tint} />
+              <GameIcon name={f.icon} size={18} color={f.tint} />
             </View>
             <Text style={[styles.featureText, { fontSize: body }]} maxFontSizeMultiplier={1.2}>
               {f.text}
@@ -169,7 +170,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
 
   const success = (
     <View style={[styles.card, styles.buy, wide && { flex: 1 }, { borderColor: "#93C450", alignItems: "center" }]} accessibilityLiveRegion="polite">
-      <Ionicons name="checkmark-circle" size={short ? 40 : 56} color="#93C450" />
+      <GameIcon name="checkmark-circle" size={short ? 40 : 56} color="#93C450" />
       <Text style={styles.successTitle} accessibilityRole="header" numberOfLines={2} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
         {t("paywall.success.title").toLocaleUpperCase()}
       </Text>
@@ -208,7 +209,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         accessibilityLabel={t("paywall.buy", { price })}
       >
         <LinearGradient colors={["#E0C47A", "#CC9846"]} style={styles.ctaFill}>
-          {busy === "buying" ? <ActivityIndicator color="#2A2016" /> : <Ionicons name="lock-open" size={22} color="#2A2016" />}
+          {busy === "buying" ? <ActivityIndicator color="#2A2016" /> : <GameIcon name="lock-open" size={22} color="#2A2016" />}
           <Text style={styles.ctaText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
             {(busy === "buying" ? t("paywall.buying") : t("paywall.buyShort")).toLocaleUpperCase()}
           </Text>
@@ -235,7 +236,7 @@ export default function PaywallScreen({ navigation, route }: Props) {
         accessibilityState={{ busy: busy === "restoring" }}
         accessibilityLabel={t("paywall.restore")}
       >
-        {busy === "restoring" ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="refresh" size={18} color="#fff" />}
+        {busy === "restoring" ? <ActivityIndicator color="#fff" size="small" /> : <GameIcon name="refresh" size={18} color="#fff" />}
         <Text style={styles.secondaryText} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.15}>
           {(busy === "restoring" ? t("paywall.restoring") : t("paywall.restore")).toLocaleUpperCase()}
         </Text>

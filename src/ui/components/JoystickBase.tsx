@@ -2,6 +2,7 @@ import React, { memo, useMemo, useRef, useState } from "react";
 import { PanResponder, StyleSheet, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import type { Direction } from "../../core/engine/types";
 import { floatingDirection } from "../../core/input/floatingPad";
 import type { JoystickSkin } from "../../state/settings/types";
@@ -47,7 +48,7 @@ const Marks = ({ radius, active, color, offset }: { radius: number; active: Dire
             pointerEvents="none"
             style={{ position: "absolute", left: radius + s.dx * radius * offset - size, top: radius + s.dy * radius * offset - size, width: size * 2, height: size * 2, alignItems: "center", justifyContent: "center" }}
           >
-            <Ionicons name={s.icon} size={size * (on ? 1.25 : 0.95)} color={on ? color : "rgba(255,255,255,0.42)"} />
+            <GameIcon name={s.icon} size={size * (on ? 1.25 : 0.95)} color={on ? color : "rgba(255,255,255,0.42)"} />
           </View>
         );
       })}

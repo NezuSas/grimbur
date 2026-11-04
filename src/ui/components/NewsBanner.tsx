@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Text from "./Text";
@@ -53,7 +53,7 @@ const NewsBanner = () => {
   return (
     <View style={[styles.wrap, { left: Math.max(insets.left, 12), bottom: Math.max(insets.bottom, 10) }]} pointerEvents="box-none">
       <LinearGradient colors={["rgba(73, 56, 39,0.96)", "rgba(22, 14, 8,0.96)"]} style={styles.card} accessible accessibilityRole="alert" accessibilityLabel={text}>
-        <Ionicons name={update.kind === "none" ? "megaphone" : "cloud-download"} size={18} color={update.kind === "required" ? "#D58A7E" : "#C9A55A"} />
+        <GameIcon name={update.kind === "none" ? "megaphone" : "cloud-download"} size={18} color={update.kind === "required" ? "#D58A7E" : "#C9A55A"} />
         <Text style={styles.text} maxFontSizeMultiplier={1.2}>
           {text}
         </Text>
@@ -66,7 +66,7 @@ const NewsBanner = () => {
         ) : null}
         {update.kind !== "required" ? (
           <Pressable onPress={() => void close()} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("common.close")}>
-            <Ionicons name="close" size={18} color="#D6C4B2" />
+            <GameIcon name="close" size={18} color="#D6C4B2" />
           </Pressable>
         ) : null}
       </LinearGradient>

@@ -3,6 +3,7 @@ import { MIMIC_FROM, THIEF_FROM, MID_BOSS_FLOOR, MID_BOSS_HP, CHEST_FROM, SECRET
 import { MERCHANT_ARROWS, MERCHANT_GEMS } from "../../core/engine/shop";
 import { ImageSourcePropType, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
@@ -136,7 +137,7 @@ export function buildKit({ t, wide, navigation, current, index, total }: Frame):
         </View>
       ) : (
         <View style={[frame.headingChip, { backgroundColor: current.color + "26", borderColor: current.color + "77" }]}>
-          <Ionicons name={current.icon} size={30} color={current.color} />
+          <GameIcon name={current.icon} size={30} color={current.color} />
         </View>
       )}
       <View style={{ flex: 1 }}>
@@ -156,7 +157,7 @@ export function buildKit({ t, wide, navigation, current, index, total }: Frame):
       <SpriteImage source={source} style={{ width: 44, height: 44 }} resizeMode="stretch" accessibilityIgnoresInvertColors />
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <View style={styles.overlayGlyph}>
-          <Ionicons name={glyph} size={24} color={tint} />
+          <GameIcon name={glyph} size={24} color={tint} />
         </View>
       </View>
     </Art>

@@ -2,7 +2,7 @@ import { MIN_TOUCH } from "../../ui/layout/useGameLayout";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "../../ui/components/Text";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import { UpgradeId, UpgradeInfo, canAfford, levelOf, maxLevel, nextCost } from "../../core/stats/forge";
 import { RELIC_IMAGES } from "../../ui/relicImages";
 import { FORGE_ICONS } from "../../ui/forgeArt";
@@ -150,7 +150,7 @@ export const BuyButton: React.FC<BuyProps> = ({ info, stats, busy, onBuy, big })
   if (cost === null) {
     return (
       <View style={[styles.cta, styles.ctaMaxed, big && styles.ctaBig]} accessible accessibilityLabel={t("forge.maxed")}>
-        <Ionicons name="checkmark-circle" size={18} color={GOLD} />
+        <GameIcon name="checkmark-circle" size={18} color={GOLD} />
         <Text style={styles.ctaMaxedText} maxFontSizeMultiplier={1.2}>
           {t("forge.maxed").toLocaleUpperCase()}
         </Text>

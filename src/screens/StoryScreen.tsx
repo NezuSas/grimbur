@@ -3,7 +3,7 @@ import { Animated, ImageBackground, ImageSourcePropType, StyleSheet, TouchableOp
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import SpriteImage from "../ui/components/SpriteImage";
 import characters from "../data/characters";
@@ -95,7 +95,7 @@ const StoryScreen: React.FC<Props> = ({ navigation, route }) => {
             <Text style={styles.ctaText} maxFontSizeMultiplier={1.2}>
               {(last ? t("story.begin") : t("story.next")).toLocaleUpperCase()}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color="#1a1200" />
+            <GameIcon name="chevron-forward" size={20} color="#1a1200" />
           </TouchableOpacity>
         </View>
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { ImageSourcePropType, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import { CLUE_ART } from "../GridCell";
@@ -18,7 +19,7 @@ export const Art = ({ image, icon, tint = "#C9A55A", size = 56, children }: { im
     ) : image ? (
       <SpriteImage source={image} style={{ width: size * 0.78, height: size * 0.78 }} resizeMode="contain" accessibilityIgnoresInvertColors />
     ) : icon ? (
-      <Ionicons name={icon} size={size * 0.52} color={tint} />
+      <GameIcon name={icon} size={size * 0.52} color={tint} />
     ) : null}
   </View>
 );

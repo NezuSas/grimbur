@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import characters from "../../data/characters";
 import { abilityCooldown } from "../../core/engine/shop";
 import type { ShopItem } from "../../core/engine/shop";
@@ -40,7 +41,7 @@ export const HeroesPane = ({ kit }: { kit: Kit }) => {
                 </Text>
               </View>
               <View style={[styles.lockChip, !lock && styles.lockFree]}>
-                <Ionicons name={lock ? "lock-closed" : "checkmark-circle"} size={14} color={lock ? "#E2BE8C" : "#A5BC9E"} />
+                <GameIcon name={lock ? "lock-closed" : "checkmark-circle"} size={14} color={lock ? "#E2BE8C" : "#A5BC9E"} />
                 <Text style={[styles.lockText, !lock && { color: "#A5BC9E" }]} numberOfLines={2} maxFontSizeMultiplier={1.2}>
                   {lock || t("skin.tier.free")}
                 </Text>

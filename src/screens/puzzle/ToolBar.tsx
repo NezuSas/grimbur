@@ -1,6 +1,7 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import { useT } from "../../i18n/useT";
 import KeyHint from "../../ui/components/KeyHint";
@@ -34,7 +35,7 @@ export default function ToolBar({ tool, onChange }: { tool: PuzzleTool; onChange
             accessibilityLabel={t(x.key as never)}
             hitSlop={4}
           >
-            <Ionicons name={x.icon} size={17} color={on ? "#14101F" : "#E6D6C2"} />
+            <GameIcon name={x.icon} size={17} color={on ? "#14101F" : "#E6D6C2"} />
             <Text style={[styles.label, on && { color: "#14101F" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1}>
               {t(x.key as never)}
             </Text>

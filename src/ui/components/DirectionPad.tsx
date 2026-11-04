@@ -3,6 +3,7 @@ import { View, Pressable, PanResponder, StyleSheet, Animated, Easing, Platform, 
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { useGameLayout } from "../layout/useGameLayout";
 import { Direction } from "../../core/engine/types";
 import { dpadDirection } from "../../core/input/dpad";
@@ -251,7 +252,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, n
               justifyContent: "center",
             }}
           >
-            <Ionicons name={a.icon} size={size * (on ? 1.25 : 1.1)} color={on ? GOLD : "rgba(255,255,255,0.92)"} />
+            <GameIcon name={a.icon} size={size * (on ? 1.25 : 1.1)} color={on ? GOLD : "rgba(255,255,255,0.92)"} />
           </View>
         );
       })}

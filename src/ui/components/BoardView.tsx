@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useRef, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { StyleSheet, View, Animated, Easing } from "react-native";
 import type { ImageSourcePropType } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import { characterWithSkin } from "../../data/characterSkins";
 import type { SkinId } from "../../data/skinArt";
 import type { ArtTheme } from "../biomeArt";
@@ -32,7 +32,7 @@ const NoteMark = memo(({ tile, note, cols, tileSize }: { tile: number; note: Til
     <View pointerEvents="none" style={[styles.note, { left: (tile % cols) * tileSize, top: Math.floor(tile / cols) * tileSize, width: tileSize, height: tileSize }]}>
       <View style={[styles.noteBadge, { width: s, height: s, borderRadius: s / 2 }, note === "safe" ? styles.noteSafe : styles.noteNot]}>
         {note === "safe" ? (
-          <Ionicons name="checkmark" size={s * 0.8} color="#0b2a10" />
+          <GameIcon name="checkmark" size={s * 0.8} color="#0b2a10" />
         ) : (
           <>
             <SpriteImage source={note === "noGuardian" ? CLUE_ART.roar : CLUE_ART.vortex} style={{ width: s * 0.8, height: s * 0.8 }} resizeMode="contain" />
@@ -627,7 +627,7 @@ const BoardView: React.FC<Props> = memo(
                 pointerEvents="none"
                 style={[styles.step, { left: (tile % cols) * tileSize, top: Math.floor(tile / cols) * tileSize, width: tileSize, height: tileSize }]}
               >
-                <Ionicons name="footsteps" size={tileSize * 0.34} color="rgba(255,236,200,0.55)" />
+                <GameIcon name="footsteps" size={tileSize * 0.34} color="rgba(255,236,200,0.55)" />
               </View>
             ),
           )}

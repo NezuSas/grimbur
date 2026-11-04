@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef } from "react";
 import { Animated, Easing, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import { useT } from "../../i18n/useT";
 import { heroText, skinText } from "../../i18n/keys";
 import SpriteImage from "../../ui/components/SpriteImage";
@@ -87,7 +87,7 @@ export const Thumb = memo(({ heroIndex, skin, selected, locked, size, onPress, t
       />
       {locked && (
         <View style={styles.thumbLock}>
-          <Ionicons name="lock-closed" size={Math.max(10, size * 0.3)} color="#fff" />
+          <GameIcon name="lock-closed" size={Math.max(10, size * 0.3)} color="#fff" />
         </View>
       )}
     </TouchableOpacity>
@@ -118,8 +118,8 @@ export const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPr
       style={[styles.swatchRing, { width: box, height: box, borderRadius: box / 2, borderColor: previewing ? "#fff" : "transparent" }]}
     >
       <View style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55") }]}>
-        {!owned && <Ionicons name="lock-closed" size={13} color="#fff" />}
-        {equipped && <Ionicons name="checkmark" size={18} color="#111" />}
+        {!owned && <GameIcon name="lock-closed" size={13} color="#fff" />}
+        {equipped && <GameIcon name="checkmark" size={18} color="#111" />}
       </View>
     </TouchableOpacity>
   );

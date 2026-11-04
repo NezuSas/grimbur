@@ -3,6 +3,7 @@ import GlyphIcon from "../../ui/components/GlyphIcon";
 import { ImageSourcePropType, View, TouchableOpacity } from "react-native";
 import Text from "../../ui/components/Text";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import characters from "../../data/characters";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { asKey } from "./kit";
@@ -32,7 +33,7 @@ export const StartPane = ({ kit }: { kit: Kit }) => {
                 <SpriteImage source={step.image} style={{ width: 58, height: 58 }} resizeMode="contain" accessibilityIgnoresInvertColors />
               ) : (
                 <View style={[styles.stepIcon, { backgroundColor: step.tint }]}>
-                  <Ionicons name={step.icon!} size={24} color="#9C4020" />
+                  <GameIcon name={step.icon!} size={24} color="#9C4020" />
                 </View>
               )}
             </View>

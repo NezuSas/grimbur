@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { YULE_FLOORS, YULE_PUZZLES } from "../../core/events/yule";
 import GlyphIcon from "../../ui/components/GlyphIcon";
 import { Animated, ScrollView, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import EmberIcon from "../../ui/components/EmberIcon";
@@ -170,7 +170,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           </Text>
           {worn ? (
             <View style={styles.tag2Worn}>
-              <Ionicons name="checkmark" size={12} color="#111" />
+              <GameIcon name="checkmark" size={12} color="#111" />
             </View>
           ) : has ? null : c.price > 0 ? (
             <View style={styles.tag2Price}>
@@ -249,11 +249,11 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           ) : null}
           {eEquipped ? (
             <View style={styles.cardCheck}>
-              <Ionicons name="checkmark" size={14} color="#111" />
+              <GameIcon name="checkmark" size={14} color="#111" />
             </View>
           ) : !eOwned ? (
             <View style={styles.cardLock}>
-              <Ionicons name="lock-closed" size={12} color="#fff" />
+              <GameIcon name="lock-closed" size={12} color="#fff" />
             </View>
           ) : null}
         </PressScale>
@@ -300,7 +300,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           ) : null}
           {owned ? (
             <View style={[styles.tag, { borderColor: "#A3BF7C", backgroundColor: equipped ? "rgba(163, 191, 124,0.14)" : undefined }]}>
-              {equipped ? <Ionicons name="checkmark" size={11} color="#A3BF7C" /> : null}
+              {equipped ? <GameIcon name="checkmark" size={11} color="#A3BF7C" /> : null}
               <Text style={[styles.tagText, { color: "#A3BF7C" }]} maxFontSizeMultiplier={1.2}>
                 {(equipped ? t("skin.equipped") : deal ? t("collection.deals.bought") : info && info.price <= 0 ? t("cosmetic.earned") : t("skin.owned")).toLocaleUpperCase()}
               </Text>
@@ -365,7 +365,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           </View>
         ) : owned && info ? (
           <PressScale onPress={() => void toggle()} accessibilityRole="button" style={[styles.cta, equipped ? styles.ctaQuiet : { backgroundColor: tierColor }]}>
-            <Ionicons name={equipped ? "close-circle" : "checkmark-circle"} size={18} color={equipped ? "#EAE1D8" : "#111"} />
+            <GameIcon name={equipped ? "close-circle" : "checkmark-circle"} size={18} color={equipped ? "#EAE1D8" : "#111"} />
             <Text style={[styles.ctaText, equipped && { color: "#EAE1D8" }]} maxFontSizeMultiplier={1.2}>
               {(equipped ? t("cosmetic.remove") : t("skin.equip")).toLocaleUpperCase()}
             </Text>

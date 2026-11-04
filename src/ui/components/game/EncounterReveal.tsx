@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, View, type LayoutChangeEvent } from "react-native";
 import type { ImageSourcePropType } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import GameIcon from "../GameIcon";
 import { Glow, RayBurst, RuneCircle, Shockwave, SparkBurst } from "./encounterFx";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
@@ -228,7 +228,7 @@ const EncounterReveal = ({ encounter, tint, size, onLanded }: Props) => {
               </Animated.View>
             ) : null}
           </View>
-          <Ionicons name="arrow-forward" size={size * 0.42} color={tint} style={{ marginBottom: size * 0.32 }} />
+          <GameIcon name="arrow-forward" size={size * 0.42} color={tint} style={{ marginBottom: size * 0.32 }} />
         </>
       ) : null}
       <View onLayout={measured("stage")} style={{ width: stage, height: stage, alignItems: "center", justifyContent: "center" }}>

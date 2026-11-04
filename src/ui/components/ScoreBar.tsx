@@ -3,7 +3,7 @@ import GlyphIcon from "./GlyphIcon";
 import { StyleSheet, View, TouchableOpacity, Animated } from "react-native";
 import Text from "./Text";
 import KeyHint from "./KeyHint";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import ScoreCounter from "./ScoreCounter";
 import { Character } from "../../data/characters";
 import { useGameLayout, MIN_TOUCH } from "../layout/useGameLayout";
@@ -146,7 +146,7 @@ const ScoreBar: React.FC<Props> = memo(
               accessibilityRole="button"
               accessibilityLabel={t("a11y.pause")}
             >
-              <Ionicons name="pause" size={20} color="#fff" />
+              <GameIcon name="pause" size={20} color="#fff" />
               <KeyHint action="pause" />
             </TouchableOpacity>
           )}

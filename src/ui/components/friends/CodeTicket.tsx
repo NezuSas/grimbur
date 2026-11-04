@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import PressScale from "../PressScale";
@@ -84,13 +84,13 @@ const CodeTicket = ({ mode, code, depth, children }: Props) => {
       </View>
       <View style={styles.tools}>
         <PressScale onPress={() => void copy()} style={[styles.tool, copied && { backgroundColor: "#A3BF7C", borderColor: "#A3BF7C" }]} accessibilityRole="button" accessibilityLabel={copied ? t("challenge.copied") : t("challenge.copy")}>
-          <Ionicons name={copied ? "checkmark" : "copy"} size={16} color={copied ? "#1a0f00" : "#EAE1D8"} />
+          <GameIcon name={copied ? "checkmark" : "copy"} size={16} color={copied ? "#1a0f00" : "#EAE1D8"} />
           <Text style={[styles.toolText, copied && { color: "#1a0f00" }]} maxFontSizeMultiplier={1.1}>
             {(copied ? t("challenge.copied") : t("challenge.copy")).toLocaleUpperCase()}
           </Text>
         </PressScale>
         <PressScale onPress={() => void share()} style={[styles.tool, { backgroundColor: tint, borderColor: tint }]} accessibilityRole="button" accessibilityLabel={t("challenge.share")}>
-          <Ionicons name="share-social" size={16} color="#1a0f00" />
+          <GameIcon name="share-social" size={16} color="#1a0f00" />
           <Text style={[styles.toolText, { color: "#1a0f00" }]} maxFontSizeMultiplier={1.1}>
             {t("challenge.share").toLocaleUpperCase()}
           </Text>

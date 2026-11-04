@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, Share, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import PressScale from "../../ui/components/PressScale";
 import GlyphIcon from "../../ui/components/GlyphIcon";
@@ -106,10 +106,10 @@ const FriendsPane = ({ bottomInset = 0, embedded = false, onCount }: { bottomIns
           </Text>
         </View>
         <TouchableOpacity style={styles.iconButton} onPress={copy} accessibilityRole="button" accessibilityLabel={t("friends.copy")}>
-          <Ionicons name={copied ? "checkmark" : "copy-outline"} size={18} color="#2A2016" />
+          <GameIcon name={copied ? "checkmark" : "copy-outline"} size={18} color="#2A2016" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={share} accessibilityRole="button" accessibilityLabel={t("friends.share")}>
-          <Ionicons name="share-social-outline" size={18} color="#2A2016" />
+          <GameIcon name="share-social-outline" size={18} color="#2A2016" />
         </TouchableOpacity>
       </View>
 
@@ -129,7 +129,7 @@ const FriendsPane = ({ bottomInset = 0, embedded = false, onCount }: { bottomIns
           accessibilityLabel={t("friends.placeholder")}
         />
         <PressScale onPress={add} disabled={!typed.trim()} style={[styles.addButton, !typed.trim() && { opacity: 0.5 }]} accessibilityRole="button" accessibilityLabel={t("friends.add")}>
-          <Ionicons name="person-add" size={16} color="#2A2016" />
+          <GameIcon name="person-add" size={16} color="#2A2016" />
           <Text style={styles.addText} maxFontSizeMultiplier={1.1}>{t("friends.add").toLocaleUpperCase()}</Text>
         </PressScale>
       </View>
@@ -166,7 +166,7 @@ const FriendsPane = ({ bottomInset = 0, embedded = false, onCount }: { bottomIns
                 <Text style={styles.score} numberOfLines={1} maxFontSizeMultiplier={1.2}>{n(c.best)}</Text>
               </View>
               <TouchableOpacity onPress={() => remove(c.pid)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("friends.remove")}>
-                <Ionicons name="close" size={16} color="#C4AA91" />
+                <GameIcon name="close" size={16} color="#C4AA91" />
               </TouchableOpacity>
             </View>
           );

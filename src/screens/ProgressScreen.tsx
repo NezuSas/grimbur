@@ -8,6 +8,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import SpriteImage from "../ui/components/SpriteImage";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -61,7 +62,7 @@ const Card = ({
   <Rise delay={riseDelay(order, 60)} style={[styles.card, { flexBasis: basis as `${number}%` }]} accessible accessibilityLabel={`${title}${value ? `: ${value}` : ""}${caption ? `. ${caption}` : ""}`}>
     <View style={styles.cardHead}>
       <View style={[styles.cardIcon, { backgroundColor: tint + "26", borderColor: tint + "99" }]}>
-        <Ionicons name={icon} size={18} color={tint} />
+        <GameIcon name={icon} size={18} color={tint} />
       </View>
       <Text style={styles.cardTitle} numberOfLines={1} maxFontSizeMultiplier={1.15}>
         {title.toLocaleUpperCase()}
@@ -286,12 +287,12 @@ const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                       accessibilityLabel={`${r.day}. ${r.victory ? t("progress.legend.win") : t("progress.legend.run")}. ${t("scores.floorShort", { n: r.level })}. ${r.score}`}
                     >
                       <View style={[styles.result, r.victory ? styles.resultWin : styles.resultLoss]}>
-                        <Ionicons name={r.victory ? "trophy" : "close"} size={16} color={r.victory ? "#2A2016" : "#EAE1D8"} />
+                        <GameIcon name={r.victory ? "trophy" : "close"} size={16} color={r.victory ? "#2A2016" : "#EAE1D8"} />
                       </View>
                       {r.hero !== undefined && characters[r.hero] ? (
                         <SpriteImage source={characters[r.hero].scoreImage} style={styles.runHero} resizeMode="cover" />
                       ) : null}
-                      <Ionicons name={modeIcon} size={16} color="#CAB39C" />
+                      <GameIcon name={modeIcon} size={16} color="#CAB39C" />
                       <Text style={styles.runFloor} maxFontSizeMultiplier={1.2}>
                         {t("scores.floorShort", { n: r.level })}
                       </Text>
@@ -303,7 +304,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                       <Text style={[styles.runScore, r.best && { color: GOLD }]} maxFontSizeMultiplier={1.2}>
                         {r.mode === "endless" ? "∞" : n(r.score)}
                       </Text>
-                      <Ionicons name="chevron-forward" size={16} color="#8C7560" />
+                      <GameIcon name="chevron-forward" size={16} color="#8C7560" />
                     </Pressable>
                   );
                 })}
@@ -336,7 +337,7 @@ const ProgressScreen: React.FC<Props> = ({ navigation, route }) => {
               </>
             ) : (
               <View style={styles.soon}>
-                <Ionicons name="bar-chart" size={18} color="#B8997A" />
+                <GameIcon name="bar-chart" size={18} color="#B8997A" />
                 <Text style={styles.soonText} maxFontSizeMultiplier={1.2}>
                   {t("progress.chartSoon", { count: Math.max(1, CHART_MIN_RUNS - runs.length) })}
                 </Text>

@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import EmberIcon from "../ui/components/EmberIcon";
 import ScreenHeader from "../ui/components/ScreenHeader";
@@ -59,7 +59,7 @@ const ModeCard = ({ art, tint, title, hint, onPress, delay }: { art: ImageSource
           </Text>
         </View>
         <View style={[styles.go, { backgroundColor: tint }]}>
-          <Ionicons name="chevron-forward" size={18} color="#1a0f00" />
+          <GameIcon name="chevron-forward" size={18} color="#1a0f00" />
         </View>
       </LinearGradient>
     </PressScale>

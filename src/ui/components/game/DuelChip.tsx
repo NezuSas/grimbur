@@ -1,7 +1,7 @@
 import React from "react";
 import GlyphIcon from '../GlyphIcon';
 import { StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import { useT } from "../../../i18n/useT";
 import type { DuelView } from "../../../screens/game/useDuel";
@@ -22,7 +22,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
     return (
       <View pointerEvents="none" style={[styles.wrap, { top }]} accessible accessibilityLabel={t("duel.chip.offline")} accessibilityLiveRegion="polite">
         <View style={[styles.chip, { borderColor: "#FF8A80AA" }]}>
-          <Ionicons name="cloud-offline" size={14} color="#D58A7E" />
+          <GameIcon name="cloud-offline" size={14} color="#D58A7E" />
           <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("duel.chip.offline")}</Text>
         </View>
       </View>
@@ -49,7 +49,7 @@ const DuelChip = ({ duel, level, score, top }: Props) => {
           const color = r.status === "away" ? "#D6C4B2" : r.status === "done" ? "#8FC0C5" : ahead ? "#A3BF7C" : "#D58A7E";
           return (
             <View key={r.pid} style={styles.row}>
-              <Ionicons name={r.status === "done" ? "flag" : "flash"} size={13} color={color} />
+              <GameIcon name={r.status === "done" ? "flag" : "flash"} size={13} color={color} />
               <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                 {r.status === "away" ? t("duel.chip.away", { name: r.name }) : t("duel.chip.line", { name: r.name, floor: r.level, score: r.score })}
               </Text>

@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { TECHNIQUES, type TechniqueId } from "../../core/puzzles/techniques";
@@ -45,7 +45,7 @@ export const TechniquesPane = ({ kit }: { kit: Kit }) => {
               accessibilityRole="button"
               accessibilityLabel={`${t("tech.practice")}: ${t(asKey(`tech.${x.id}.name`))}`}
             >
-              <Ionicons name="play" size={16} color="#06262B" />
+              <GameIcon name="play" size={16} color="#06262B" />
               <Text style={styles.buttonText} maxFontSizeMultiplier={1.2}>
                 {t("tech.practice").toLocaleUpperCase()}
               </Text>

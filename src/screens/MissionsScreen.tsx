@@ -4,7 +4,7 @@ import Rise, { riseDelay } from "../ui/components/Rise";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import ScreenHeader from "../ui/components/ScreenHeader";
 import SpriteImage from "../ui/components/SpriteImage";
@@ -128,7 +128,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
   const rewardButton = (claimed: boolean, ready: boolean, reward: number, onPress: () => void) =>
     claimed ? (
       <View style={styles.claimedChip} accessible accessibilityLabel={t("missions.claimed")}>
-        <Ionicons name="checkmark-circle" size={24} color="#A3BF7C" />
+        <GameIcon name="checkmark-circle" size={24} color="#A3BF7C" />
       </View>
     ) : (
       <PressScale
@@ -221,7 +221,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                 <Text style={styles.ladderButtonText} maxFontSizeMultiplier={1.1}>
                   {(ladder ? t("missions.rankLadderHide") : t("missions.rankLadder")).toLocaleUpperCase()}
                 </Text>
-                <Ionicons name={ladder ? "chevron-up" : "chevron-down"} size={16} color={GOLD} />
+                <GameIcon name={ladder ? "chevron-up" : "chevron-down"} size={16} color={GOLD} />
               </PressScale>
             </Rise>
             {ladder ? (
@@ -247,7 +247,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                           {t("missions.rankFrom", { n: from })}
                         </Text>
                       </View>
-                      {reached ? <Ionicons name={current ? "location" : "checkmark"} size={14} color={current ? GOLD : "#A3BF7C"} /> : <View style={{ width: 14 }} />}
+                      {reached ? <GameIcon name={current ? "location" : "checkmark"} size={14} color={current ? GOLD : "#A3BF7C"} /> : <View style={{ width: 14 }} />}
                     </View>
                   );
                 })}
@@ -281,7 +281,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                 );
               })}
               <View style={styles.refreshBox}>
-                <Ionicons name="time-outline" size={14} color="#B99A7C" />
+                <GameIcon name="time-outline" size={14} color="#B99A7C" />
                 <Text style={styles.refresh} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                   {tab === "daily"
                     ? t("missions.refreshDay", { time: formatCountdown(msUntilNextDay(now)) })
@@ -339,7 +339,7 @@ const MissionsScreen: React.FC<Props> = ({ navigation }) => {
                       </View>
                       <View style={styles.weeklyPlay}>
                         <Text style={styles.weeklyPlayText} maxFontSizeMultiplier={1.1}>{t("weekly.play").toLocaleUpperCase()}</Text>
-                        <Ionicons name="chevron-forward" size={14} color="#1a1200" />
+                        <GameIcon name="chevron-forward" size={14} color="#1a1200" />
                       </View>
                     </PressScale>
                   </Rise>

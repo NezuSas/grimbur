@@ -1,6 +1,7 @@
 import React, { createContext, memo, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, PanResponder, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import Text from "../Text";
 import { useTouchScale } from "../../layout/scaledWindow";
 
@@ -48,7 +49,7 @@ export const SettingRow = ({ label, hint, icon, tint = GOLD, children, stacked, 
   <View style={[styles.row, stacked && styles.rowStacked, dimmed && { opacity: 0.45 }]}>
     <View style={styles.rowHead}>
       <View style={[styles.chip, { backgroundColor: tint + "26", borderColor: tint + "66" }]}>
-        <Ionicons name={icon} size={20} color={tint} />
+        <GameIcon name={icon} size={20} color={tint} />
       </View>
       <View style={styles.rowText}>
         <Text style={styles.rowLabel} maxFontSizeMultiplier={1.3}>
@@ -198,7 +199,7 @@ export const RoundAction = ({ icon, onPress, label, tone = "gold", disabled }: {
     accessibilityLabel={label}
     style={[styles.action, tone === "danger" && styles.actionDanger, tone === "dangerOn" && styles.actionDangerOn, disabled && { opacity: 0.5 }]}
   >
-    <Ionicons name={icon} size={20} color={tone === "gold" ? "#1a1200" : tone === "dangerOn" ? "#fff" : "#D58A7E"} />
+    <GameIcon name={icon} size={20} color={tone === "gold" ? "#1a1200" : tone === "dangerOn" ? "#fff" : "#D58A7E"} />
   </TouchableOpacity>
 );
 

@@ -5,7 +5,7 @@ import { ImageBackground, Platform, Share, StatusBar, StyleSheet, TouchableOpaci
 import { useWindowDimensions } from "../ui/layout/scaledWindow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
@@ -521,7 +521,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
       <StatusBar hidden />
       <View style={[styles.banner, { paddingTop: insets.top + (hudHeight < 70 ? 4 : 8), minHeight: bannerHeight, paddingLeft: insets.left + 10, paddingRight: insets.right + 10 }]} accessibilityLiveRegion="polite">
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("a11y.back")}>
-          <Ionicons name="arrow-back" size={22} color="#fff" />
+          <GameIcon name="arrow-back" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={styles.bannerText}>
           <Text style={[styles.label, { fontSize: 11 * ui }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.2}>
@@ -534,19 +534,19 @@ export default function PuzzleScreen({ navigation, route }: Props) {
         {legend > 0 ? <LegendClock startedAt={startedAt} legend={legend} stopped={!introDone || solved || failedOut} /> : null}
         {!isTechnique && !isWeekly ? <LiveStars possible={possible} calm={calm} /> : null}
         <View style={[styles.counter, !isTechnique && !isWeekly && { display: "none" }]} accessible accessibilityLabel={t("puzzle.mistakes", { n: mistakes })}>
-          <Ionicons name="close-circle" size={15} color={mistakes > 0 ? "#D58A7E" : "#8d8178"} />
+          <GameIcon name="close-circle" size={15} color={mistakes > 0 ? "#D58A7E" : "#8d8178"} />
           <Text style={[styles.counterText, mistakes > 0 && { color: "#D58A7E" }]} maxFontSizeMultiplier={1.2}>
             {mistakes}
           </Text>
         </View>
         {isWeekly ? null : (
           <TouchableOpacity style={[styles.iconButton, styles.hintButton, hintTile !== null && styles.hintOn]} onPress={showHint} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.hint")} accessibilityHint={t("puzzle.hintCost")}>
-            <Ionicons name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#C9A55A"} />
+            <GameIcon name="bulb" size={20} color={hintTile !== null ? "#14101F" : "#C9A55A"} />
             <KeyHint action="hint" style={{ top: -2, left: -2 }} />
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.iconButton} onPress={() => restart(false)} hitSlop={6} accessibilityRole="button" accessibilityLabel={t("puzzle.restart")}>
-          <Ionicons name="refresh" size={21} color="#fff" />
+          <GameIcon name="refresh" size={21} color="#fff" />
           <KeyHint action="restart" style={{ top: -2, left: -2 }} />
         </TouchableOpacity>
       </View>
@@ -674,16 +674,14 @@ export default function PuzzleScreen({ navigation, route }: Props) {
               {isTechnique ? null : (
                 <>
                   <View style={styles.timeRow}>
-                    <Ionicons name="timer-outline" size={16} color="#E8D2B2" />
+                    <GameIcon name="timer-outline" size={16} color="#E8D2B2" />
                     <CountUp value={Math.round(result.seconds)} delay={numbersAt(result.stars)} format={formatSolveTime} style={styles.resultTime} calm={calm} />
                   </View>
                   <DropIn delay={numbersAt(result.stars) + 500} calm={calm}>
                     <Text style={[styles.resultLine, result.record && styles.record]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={1.2}>
-                      {[
-                        !isDaily && !isEndless && !isArchive && result.best ? (result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })) : "",
-                        isDaily && result.streak > 0 ? `🔥 ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}` : "",
-                        isEndless && result.run > 1 ? `⚡ ${t("puzzle.endless.run", { n: result.run })}` : "",
-                      ].filter(Boolean).join("   ·   ")}
+                      {!isDaily && !isEndless && !isArchive && result.best ? (result.record ? t("puzzle.record.new", { best: formatSolveTime(result.best) }) : t("puzzle.record.best", { best: formatSolveTime(result.best) })) : null}
+                      {isDaily && result.streak > 0 ? <><GameIcon name="flame" size={15} />{` ${result.streak === 1 ? t("puzzle.streak1") : t("puzzle.streak", { n: result.streak })}`}</> : null}
+                      {isEndless && result.run > 1 ? <><GameIcon name="flash" size={15} />{` ${t("puzzle.endless.run", { n: result.run })}`}</> : null}
                     </Text>
                   </DropIn>
                   {legend > 0 ? (
@@ -710,7 +708,7 @@ export default function PuzzleScreen({ navigation, route }: Props) {
                   ) : null}
                   {result.achievements.length > 0 ? (
                     <Text style={styles.achievements} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.15}>
-                      {`🏆 ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
+                      <GameIcon name="trophy" size={14} />{` ${result.achievements.slice(0, 2).map(id => achievementText(t, id, "name")).join(" · ")}${result.achievements.length > 2 ? ` +${result.achievements.length - 2}` : ""}`}
                     </Text>
                   ) : null}
                 </View>

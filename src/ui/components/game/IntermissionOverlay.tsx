@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { ImageBackground, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useWindowDimensions } from "../../layout/scaledWindow";
 import type { ImageSourcePropType } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import SpriteImage from "../SpriteImage";
 import { ALTAR_ART, SHOP_ART } from "../../toolArt";
@@ -112,7 +112,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             <Text style={styles.journeyFrom} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {t("floor.banner", { n: nextFloor - 1 }).toLocaleUpperCase()}
             </Text>
-            <Ionicons name="chevron-forward" size={16} color="#B99A7C" />
+            <GameIcon name="chevron-forward" size={16} color="#B99A7C" />
             <Text style={styles.journeyTo} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
               {(nextIsLair ? t("floor.banner.lair") : t("floor.banner", { n: landing })).toLocaleUpperCase()}
             </Text>
@@ -235,7 +235,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
                   </View>
                   {p.fork && on ? (
                     <View style={[styles.portalCheck, { backgroundColor: look.color }]}>
-                      <Ionicons name="checkmark" size={13} color="#1A0F04" />
+                      <GameIcon name="checkmark" size={13} color="#1A0F04" />
                     </View>
                   ) : null}
                 </Pressable>

@@ -8,7 +8,7 @@ import Text from "../ui/components/Text";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 
 import { RootStackParamList } from "../navigation/types";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
@@ -99,11 +99,11 @@ const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, price, o
       {info.premium ? <GlyphIcon name="star" size={17} style={styles.cardStar} /> : null}
       {equipped ? (
         <View style={styles.cardCheck}>
-          <Ionicons name="checkmark" size={14} color="#111" />
+          <GameIcon name="checkmark" size={14} color="#111" />
         </View>
       ) : !owned ? (
         <View style={styles.cardLock}>
-          <Ionicons name="lock-closed" size={12} color="#fff" />
+          <GameIcon name="lock-closed" size={12} color="#fff" />
         </View>
       ) : null}
     </PressScale>
@@ -282,12 +282,12 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
             accessibilityRole="button"
             style={styles.rewardBanner}
           >
-            <Ionicons name="trophy" size={18} color="#1a0f00" />
+            <GameIcon name="trophy" size={18} color="#1a0f00" />
             <Text style={styles.rewardBannerText} numberOfLines={1} maxFontSizeMultiplier={1.15}>
               {t("collection.rewards.banner")}
             </Text>
             <Text style={styles.rewardBannerCta} maxFontSizeMultiplier={1.1}>{t("collection.rewards.see").toLocaleUpperCase()}</Text>
-            <Ionicons name="chevron-forward" size={16} color="#1a0f00" />
+            <GameIcon name="chevron-forward" size={16} color="#1a0f00" />
           </PressScale>
         ) : null}
 
@@ -320,7 +320,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : null}
               {!owned ? (
                 <View style={styles.stageLock}>
-                  <Ionicons name="lock-closed" size={14} color="#fff" />
+                  <GameIcon name="lock-closed" size={14} color="#fff" />
                 </View>
               ) : null}
             </View>
@@ -344,7 +344,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : null}
               {owned ? (
                 <View style={[styles.tag, { borderColor: "#A3BF7C", backgroundColor: equipped ? "rgba(163, 191, 124,0.14)" : undefined }]}>
-                  {equipped ? <Ionicons name="checkmark" size={11} color="#A3BF7C" /> : null}
+                  {equipped ? <GameIcon name="checkmark" size={11} color="#A3BF7C" /> : null}
                   <Text style={[styles.tagText, { color: "#A3BF7C" }]} maxFontSizeMultiplier={1.2}>
                     {(equipped ? t("skin.equipped") : t("skin.owned")).toLocaleUpperCase()}
                   </Text>

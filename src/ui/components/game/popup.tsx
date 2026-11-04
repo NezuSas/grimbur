@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { ActivityIndicator, Animated, Easing, Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../GameIcon";
 import { useEnterKey } from "../../hotkeys";
 import KeyHint from "../KeyHint";
 import Text from "../Text";
@@ -79,7 +80,7 @@ export const PopupTitle = ({ tint, title, icon, glyph, subtitle }: TitleProps) =
   <View style={styles.titleBox}>
     {icon || glyph ? (
       <View style={[styles.medallion, { borderColor: tint, backgroundColor: tint + "26", shadowColor: tint }]}>
-        {icon ? <Ionicons name={icon} size={26} color={tint} /> : <Text style={styles.glyph}>{glyph}</Text>}
+        {icon ? <GameIcon name={icon} size={26} color={tint} /> : <Text style={styles.glyph}>{glyph}</Text>}
       </View>
     ) : null}
     <Text style={[styles.title, { color: tint, textShadowColor: tint + "88" }]} accessibilityRole="header" maxFontSizeMultiplier={1.3}>
@@ -164,7 +165,7 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
             <ActivityIndicator color={c.text} />
           ) : (
             <Text style={[styles.buttonText, { color: c.text }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.3}>
-              {icon ? <Ionicons name={icon} size={15} color={c.text} /> : art ? <GlyphIcon name={art} size={16} /> : null}
+              {icon ? <GameIcon name={icon} size={15} color={c.text} /> : art ? <GlyphIcon name={art} size={16} /> : null}
               {icon || art ? "  " : ""}
               {glyph ? `${glyph}  ` : ""}
               {typeof label === "string" ? label.toLocaleUpperCase() : label}

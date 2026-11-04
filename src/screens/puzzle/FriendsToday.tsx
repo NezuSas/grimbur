@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { useT } from "../../i18n/useT";
@@ -39,11 +39,11 @@ export default function FriendsToday({ date, friends, onAddFriends }: { date: st
   if (friends.length === 0) {
     return (
       <TouchableOpacity onPress={onAddFriends} style={styles.invite} accessibilityRole="button" accessibilityLabel={t("puzzle.friends.invite")}>
-        <Ionicons name="people" size={16} color={TINT} />
+        <GameIcon name="people" size={16} color={TINT} />
         <Text style={styles.inviteText} maxFontSizeMultiplier={1.15}>
           {t("puzzle.friends.invite")}
         </Text>
-        <Ionicons name="chevron-forward" size={14} color={TINT} />
+        <GameIcon name="chevron-forward" size={14} color={TINT} />
       </TouchableOpacity>
     );
   }
@@ -52,7 +52,7 @@ export default function FriendsToday({ date, friends, onAddFriends }: { date: st
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Ionicons name="people" size={14} color={TINT} />
+        <GameIcon name="people" size={14} color={TINT} />
         <Text style={styles.kicker} maxFontSizeMultiplier={1.1}>
           {t("puzzle.friends.title").toLocaleUpperCase()}
         </Text>

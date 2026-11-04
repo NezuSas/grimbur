@@ -6,7 +6,7 @@ import { loadDailyGhosts, type DailyGhost } from "../services/dailyScores";
 import { weekKey } from "../core/leaderboard/daily";
 import { reviewDeath } from "../core/engine/deathReview";
 import { featuresFor } from "../core/engine/newcomer";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import React, { useState, useEffect, useRef, useCallback, useMemo, Profiler } from "react";
 import {
@@ -1212,7 +1212,7 @@ export default function GameScreen({ navigation, route }: Props) {
           accessibilityLabel={t("review.back")}
           style={{ position: "absolute", bottom: insets.bottom + 16, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 10, paddingHorizontal: 18, borderRadius: 22, backgroundColor: "#C99A5C", zIndex: 50 }}
         >
-          <Ionicons name="arrow-back" size={16} color="#2A1A08" />
+          <GameIcon name="arrow-back" size={16} color="#2A1A08" />
           <Text style={{ color: "#2A1A08", fontWeight: "900", fontSize: 13 }} maxFontSizeMultiplier={1.1}>{t("review.back").toLocaleUpperCase()}</Text>
         </Pressable>
       ) : null}

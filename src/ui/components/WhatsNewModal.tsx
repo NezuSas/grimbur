@@ -3,7 +3,7 @@ import { Animated, Easing, Pressable, ScrollView, StyleSheet, View } from "react
 import { useWindowDimensions } from "../layout/scaledWindow";
 import type { ImageSourcePropType, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "./GameIcon";
 import Text from "./Text";
 import SpriteImage from "./SpriteImage";
 import OverlayContainer from "./game/OverlayContainer";
@@ -151,7 +151,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
                     <Text style={[styles.actionText, { color: it.tint }]} maxFontSizeMultiplier={1.15}>
                       {t(ACTION_LABEL[it.action])}
                     </Text>
-                    <Ionicons name="arrow-forward" size={15} color={it.tint} />
+                    <GameIcon name="arrow-forward" size={15} color={it.tint} />
                   </Pressable>
                 ) : null}
                 </Reveal>
@@ -172,7 +172,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
           <View style={{ flex: 1 }} />
           {page > 0 ? (
             <Pressable onPress={() => goTo(page - 1)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t("whatsnew.prev")} style={({ pressed }) => [styles.back, pressed && { opacity: 0.6 }]}>
-              <Ionicons name="chevron-back" size={20} color="#CDBBA5" />
+              <GameIcon name="chevron-back" size={20} color="#CDBBA5" />
             </Pressable>
           ) : null}
           <PopButton
@@ -185,7 +185,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
 
         <Animated.View pointerEvents="none" style={[styles.rim, { borderColor: rimColor }]} />
         <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel={t("whatsnew.close")} style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}>
-          <Ionicons name="close" size={20} color="#CDBBA5" />
+          <GameIcon name="close" size={20} color="#CDBBA5" />
         </Pressable>
       </PopupPanel>
     </OverlayContainer>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../../ui/components/GameIcon";
 import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import OverlayContainer from "../../ui/components/game/OverlayContainer";
@@ -64,13 +64,13 @@ export default function ArchiveModal({ today, puzzles, onPlay, onClose }: Props)
         ) : null}
         <View style={styles.monthRow}>
           <TouchableOpacity onPress={() => step(-1)} disabled={!canBack} style={[styles.arrow, !canBack && { opacity: 0.25 }]} accessibilityRole="button" accessibilityLabel={t("puzzle.archive.prev")}>
-            <Ionicons name="chevron-back" size={18} color="#fff" />
+            <GameIcon name="chevron-back" size={18} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.month} maxFontSizeMultiplier={1.15}>
             {`${month.charAt(0).toLocaleUpperCase()}${month.slice(1)} ${shown.y}`}
           </Text>
           <TouchableOpacity onPress={() => step(1)} disabled={!canNext} style={[styles.arrow, !canNext && { opacity: 0.25 }]} accessibilityRole="button" accessibilityLabel={t("puzzle.archive.next")}>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
+            <GameIcon name="chevron-forward" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
         <View style={{ width: cell * 7 }}>

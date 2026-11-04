@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ImageBackground, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 import Text from "../ui/components/Text";
 import EmberIcon from "../ui/components/EmberIcon";
 import GlyphIcon from "../ui/components/GlyphIcon";
@@ -253,7 +253,7 @@ const DuelScreen: React.FC<Props> = ({ navigation, route }) => {
           <PlayerPortrait source={hero.scoreImage} size={54} frame={who?.frame} />
         ) : (
           <View style={styles.avatarEmpty}>
-            <Ionicons name="person-add" size={20} color="#8D7B69" />
+            <GameIcon name="person-add" size={20} color="#8D7B69" />
           </View>
         )}
         <View style={{ flex: 1, gap: 2 }}>

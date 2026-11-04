@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import GameIcon from "../ui/components/GameIcon";
 
 import { RootStackParamList } from "../navigation/types";
 import { useGameLayout } from "../ui/layout/useGameLayout";
@@ -77,7 +78,7 @@ const Tile = memo(({ info, stats, selected, burst, index, onPress }: TileProps) 
         </View>
         <View style={[styles.cost, affordable && styles.costReady, maxed && styles.costMaxed]}>
           {maxed ? (
-            <Ionicons name="checkmark" size={13} color={GOLD} />
+            <GameIcon name="checkmark" size={13} color={GOLD} />
           ) : (
             <>
               <EmberIcon size={12} />
@@ -188,7 +189,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
   if (effects.exploreBonus) gear.push({ icon: "compass", text: t("forge.eq.explore", { percent: Math.round(effects.exploreBonus * 100) }) });
   if (effects.draftBonus) gear.push({ icon: "albums", text: t("forge.eq.draft", { n: effects.draftBonus }) });
   if (effects.reach) gear.push({ icon: "locate", text: t("forge.eq.reach", { n: effects.reach }) });
-  if (effects.shield) gear.push({ icon: "shield-checkmark", text: t("forge.eq.shield") });
+  if (effects.shield) gear.push({ icon: "shield", text: t("forge.eq.shield") });
   if (effects.startRelics.length) gear.push({ icon: "sparkles", text: t("forge.eq.relics", { n: effects.startRelics.length }) });
   const embersLevel = levelOf(stats, "fortune");
   if (embersLevel) gear.push({ icon: "flame", text: t("forge.eq.embers", { percent: embersLevel * 15 }) });
@@ -296,7 +297,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                 <View style={styles.gearGrid}>
                   {gear.map(g => (
                     <View key={g.text} style={styles.gearChip}>
-                      <Ionicons name={g.icon} size={14} color={EMBER} />
+                      <GameIcon name={g.icon} size={14} color={EMBER} />
                       <Text style={styles.gearText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
                         {g.text}
                       </Text>
@@ -308,11 +309,11 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
             <PressScale onPress={() => setHowOpen(o => !o)} style={styles.how} accessibilityRole="button" accessibilityState={{ expanded: howOpen }} accessibilityLabel={t("forge.how.title")}>
               <View style={styles.howHead}>
-                <Ionicons name="information-circle" size={16} color={EMBER} />
+                <GameIcon name="information-circle" size={16} color={EMBER} />
                 <Text style={styles.howTitle} maxFontSizeMultiplier={1.1} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
                   {howOpen ? t("forge.how.title") : t("forge.how.short")}
                 </Text>
-                <Ionicons name={howOpen ? "chevron-up" : "chevron-down"} size={16} color={EMBER} />
+                <GameIcon name={howOpen ? "chevron-up" : "chevron-down"} size={16} color={EMBER} />
               </View>
               {howOpen
                 ? ([
@@ -321,7 +322,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
                     ["flag", "forge.how.apply"],
                   ] as const).map(([icon, key]) => (
                     <View key={key} style={styles.howItem}>
-                      <Ionicons name={icon} size={15} color={EMBER} />
+                      <GameIcon name={icon} size={15} color={EMBER} />
                       <Text style={styles.howText} maxFontSizeMultiplier={1.15}>
                         {t(key)}
                       </Text>
@@ -392,7 +393,7 @@ const ForgeScreen: React.FC<Props> = ({ navigation }) => {
 
         {toast && (
           <Animated.View style={[styles.toast, { opacity: toastFade, bottom: 16 + insets.bottom }]} pointerEvents="none" accessibilityLiveRegion="polite">
-            <Ionicons name="checkmark-circle" size={20} color="#1a0f00" />
+            <GameIcon name="checkmark-circle" size={20} color="#1a0f00" />
             <Text style={styles.toastText} maxFontSizeMultiplier={1.2}>
               {toast}
             </Text>
