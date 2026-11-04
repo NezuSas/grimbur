@@ -4,7 +4,7 @@ import { ensureSignedIn } from "../lib/auth";
 import { checkName, validateSubmission } from "../core/leaderboard/validation";
 import { saveTop10Cache, loadTop10Cache } from "./highscoresCache";
 import { Threshold, qualifies, rankRows, thresholdFromTop10 } from "../core/leaderboard/threshold";
-import { lookOf } from '../core/cosmetics/look';
+import { lookOf, lookProblems } from '../core/cosmetics/look';
 import { peekLocalStats } from './localStats';
 import {
   collection,
@@ -122,7 +122,11 @@ export async function addHighscore(row: HighscoreRow): Promise<void> {
   const ref = doc(db, "highscores", uid);
   const existing = await withTimeout(getDoc(ref), REQUEST_TIMEOUT_MS, "readOwnRow");
   if (existing.exists() && Number(existing.data()?.score) >= safeRow.score) return; // the player's best is already there
-  await withTimeout(setDoc(ref, { ...safeRow, ...lookOf(peekLocalStats()) }), REQUEST_TIMEOUT_MS, "addHighscore");
+  // A look the rules would refuse (an id outside their pattern, e.g. a puzzle title with a digit) is left off: the score still saves.
+  const look = lookOf(peekLocalStats());
+  const bad = lookProblems(look);
+  const safeLook = { ...(look.frame && !bad.includes('frame') ? { frame: look.frame } : {}), ...(look.title && !bad.includes('title') ? { title: look.title } : {}) };
+  await withTimeout(setDoc(ref, { ...safeRow, ...safeLook }), REQUEST_TIMEOUT_MS, "addHighscore");
 }
 
 /**

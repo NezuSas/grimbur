@@ -847,6 +847,7 @@ export const es: Record<TranslationKey, string> = {
   'scores.yours': 'Tu récord',
   'scores.bestScore': 'Mejor puntuación',
   'scores.bestFloor': 'Piso más hondo',
+  'scores.bestQuick': 'Mejor rápida',
   'scores.wins': 'Victorias',
   'scores.games': 'Partidas',
   'scores.noRecord': 'Termina una partida para fijar tu récord.',

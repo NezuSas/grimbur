@@ -179,6 +179,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
               <Text style={styles.recordCellValue}>{mine.victories}</Text>
               <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.wins")}</Text>
             </View>
+            {(mine.bestQuickScore ?? 0) > 0 ? (
+              <View style={styles.recordCell}>
+                <Text style={styles.recordCellValue} numberOfLines={1}>{n(mine.bestQuickScore ?? 0)}</Text>
+                <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.bestQuick")}</Text>
+              </View>
+            ) : null}
             <View style={styles.recordCell}>
               <Text style={styles.recordCellValue}>{mine.gamesPlayed}</Text>
               <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.games")}</Text>

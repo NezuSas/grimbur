@@ -846,6 +846,7 @@ export const en = {
   'scores.yours': 'Your record',
   'scores.bestScore': 'Best score',
   'scores.bestFloor': 'Deepest floor',
+  'scores.bestQuick': 'Best quick',
   'scores.wins': 'Victories',
   'scores.games': 'Runs',
   'scores.noRecord': 'Finish a run to set your record.',

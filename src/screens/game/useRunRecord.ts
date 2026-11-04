@@ -219,8 +219,16 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
         isTopTenScore(s.score, time).catch(() => null),
         new Promise<null>(resolve => setTimeout(() => resolve(null), TOP_TEN_CHECK_TIMEOUT_MS)),
       ]);
-      const ask = qualifies === true || (qualifies === null && !!result?.isNewBest && s.score > 0);
-      if (!cancelled && mounted.current && ask) setShowHighScoreEntry(true);
+      // Every new personal best goes on the board (the player's own row only ever rises), not only a top-10 one: a player who
+      // gave their name once is saved silently; otherwise the name is asked for a top-10 run or a new best.
+      const newBest = !!result?.isNewBest && s.score > 0;
+      const saved = await getPlayerName();
+      if (cancelled || !mounted.current) return;
+      if (saved && s.score > 0) {
+        void addHighscore({ score: s.score, level: s.level, name: saved, coins: s.totalCoins, characterIndex, time }).catch(e => console.warn("[Highscores] silent save failed", e));
+        return;
+      }
+      if (qualifies === true || newBest) setShowHighScoreEntry(true);
     }, s.isVictory ? VICTORY_CARD_DELAY_MS : afterQuestion ? 120 : GAME_OVER_CARD_DELAY_MS);
 
     return () => {
@@ -240,10 +248,11 @@ export function useRunRecord({ stateRef, runEnded, afterQuestion = false, charac
         return;
       }
       const s = stateRef.current;
+      const name = (await setPlayerName(playerName)) ?? playerName; // remembered: later bests save without asking
       await addHighscore({
         score: s.score,
         level: s.level,
-        name: playerName,
+        name,
         coins: s.totalCoins,
         characterIndex,
         time: sessionTimeRef.current,
