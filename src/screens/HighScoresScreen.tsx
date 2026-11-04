@@ -79,6 +79,8 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const cardWidth = Math.min(usable, 1100);
   const twoPanes = cardWidth >= 640;
+  /** The ranking pane (right of the record) is wide enough to hold the podium and the rows 4-10 side by side. */
+  const sideBySide = twoPanes && cardWidth * 0.68 >= 500;
 
   const loadData = useCallback(async () => {
     setStatus("loading");
@@ -211,7 +213,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
         <View style={styles.threshold}>
           <GameIcon name="flag" size={14} color="#8FC0C5" />
           <Text style={styles.thresholdText} maxFontSizeMultiplier={1.2}>
-            {t("scores.threshold", { score: tenth })}
+            {mine.bestScore >= tenth ? t("scores.inTop10", { score: n(tenth) }) : t("scores.toTop10", { n: n(tenth - mine.bestScore), score: n(tenth) })}
           </Text>
         </View>
       )}
@@ -276,6 +278,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
+  // The three best stand on a podium (the first in the middle, the highest), the rest follow as rows.
+  const podium = status === "ready" && visible.length >= 3 ? visible.slice(0, 3) : [];
+  const rest = podium.length ? visible.slice(3) : visible;
   const renderItem = ({ item, index: at }: { item: Doc; index: number }) => {
     const index = at + (status === "ready" && visible.length >= 3 ? 3 : 0);
     const row = item.data();
@@ -283,37 +288,38 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     const time = typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime");
     const medal = index < 3 ? MEDALS[index] : null;
     const mineRow = !!myId && row.pid === myId;
+    const compact = sideBySide && podium.length > 0;
 
     return (
       <View>
-      <View style={[styles.row, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }, mineRow && styles.rowMine]}>
+      <View style={[styles.row, compact && styles.rowCompact, medal && { borderColor: medal, backgroundColor: "rgba(255,255,255,0.07)" }, mineRow && styles.rowMine]}>
         <View
           style={styles.rowMain}
           accessible
           accessibilityLabel={`#${index + 1} ${row.name}. ${t("scores.col.score")} ${row.score}. ${t("scores.col.floor")} ${row.level}`}
         >
-        <View style={[styles.rank, medal ? { backgroundColor: medal } : null]}>
+        <View style={[styles.rank, compact && styles.rankCompact, medal ? { backgroundColor: medal } : null]}>
           <Text style={[styles.rankText, medal ? { color: "#2A2016" } : null]} maxFontSizeMultiplier={1.2}>
             {index + 1}
           </Text>
         </View>
-        <PlayerPortrait source={char.scoreImage} size={row.frame ? 50 : 40} frame={row.frame} />
+        <PlayerPortrait source={char.scoreImage} size={compact ? (row.frame ? 32 : 26) : row.frame ? 50 : 40} frame={row.frame} />
         <View style={{ flex: 1 }}>
-          <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          <Text style={[styles.name, compact && styles.nameCompact]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {row.name}
             {mineRow ? `  ·  ${t("scores.you")}` : ""}
           </Text>
-          <PlayerTitle title={row.title} />
-          <Text style={styles.sub} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+          {compact ? null : <PlayerTitle title={row.title} />}
+          <Text style={[styles.sub, compact && styles.subCompact]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
             {board === "endless" ? t("scores.endlessSub") : board === "season" ? t("season.pointsShort") : <>{t("scores.floorShort", { n: row.level })}  ·  <GlyphIcon name="gem" size={11} /> {Number(row.coins) || 0}  ·  {time}</>}
           </Text>
         </View>
-        <Text style={[styles.score, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+        <Text style={[styles.score, compact && styles.scoreCompact, medal ? { color: medal } : null]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
           {n(Number(row.score) || 0)}
         </Text>
         </View>
         <TouchableOpacity
-          style={styles.flag}
+          style={[styles.flag, compact && styles.flagCompact]}
           onPress={() => setMenuFor(menuFor === item.id ? null : item.id)}
           hitSlop={8}
           accessibilityRole="button"
@@ -328,9 +334,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     );
   };
 
-  // The three best stand on a podium (the first in the middle, the highest), the rest follow as rows.
-  const podium = status === "ready" && visible.length >= 3 ? visible.slice(0, 3) : [];
-  const rest = podium.length ? visible.slice(3) : visible;
+  const beside = sideBySide && podium.length > 0;
   const podiumView = podium.length ? (
     <View style={{ gap: 6 }}>
       <View style={styles.podium}>
@@ -344,7 +348,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           // Each of the three stands full-body in their own frame (or, without one, in the frame of their medal), celebrating.
           const worn = parseLook({ frame: row.frame }).frame ?? PODIUM_FRAMES[place];
           // Sized to the window, so name and score always show under the frames without scrolling.
-          const tall = Math.round(Math.min(first ? 176 : 146, height * (first ? 0.38 : 0.31)));
+          const tall = Math.round(Math.min(first ? 176 : 146, height * (first ? 0.38 : 0.31), beside ? cardWidth * (first ? 0.17 : 0.14) : Infinity));
           return (
             <Rise key={item.id} delay={riseDelay(place === 0 ? 2 : place - 1, 80)} style={styles.podiumCol}>
               <PressScale
@@ -421,7 +425,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       keyExtractor={doc => doc.id}
       renderItem={renderItem}
       ListHeaderComponent={
-        <View style={{ marginBottom: 2, gap: 8 }}>
+        <View style={beside ? { gap: 6 } : { marginBottom: 2, gap: 8 }}>
           {twoPanes ? null : record}
           {twoPanes ? null : tabs}
           {board !== "global" ? (
@@ -430,11 +434,11 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
             </Text>
           ) : null}
           {status === "ready" ? offlineNotice : null}
-          {podiumView}
+          {beside ? null : podiumView}
         </View>
       }
       ListEmptyComponent={podium.length ? undefined : placeholder}
-      contentContainerStyle={{ gap: 8, paddingBottom: 24 + insets.bottom }}
+      contentContainerStyle={{ gap: beside ? 4 : 8, paddingBottom: (beside ? 8 : 24) + insets.bottom }}
       ListFooterComponent={
         hidden.length > 0 && status === "ready" ? (
           <TouchableOpacity onPress={showHidden} style={styles.hiddenNote} accessibilityRole="button" accessibilityLabel={t("scores.hidden.show")}>
@@ -459,7 +463,16 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           ) : null}
           <View style={{ flex: 1, gap: 8 }}>
             {twoPanes ? tabs : null}
-            {list}
+            {beside ? (
+              <View style={styles.beside}>
+                <ScrollView style={styles.podiumPane} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
+                  {podiumView}
+                </ScrollView>
+                {list}
+              </View>
+            ) : (
+              list
+            )}
           </View>
         </View>
       </SafeAreaView>
@@ -488,6 +501,14 @@ const styles = StyleSheet.create({
   podiumScore: { fontWeight: "900", fontSize: 18, marginTop: 1 },
   podiumMeta: { color: "#C4AA91", fontSize: 11, fontWeight: "700" },
   boardNote: { color: "#C4AA91", fontSize: 12, textAlign: "center" },
+  rowCompact: { gap: 8, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 12, borderWidth: 1 },
+  rankCompact: { width: 24, height: 24, borderRadius: 12 },
+  nameCompact: { fontSize: 13, lineHeight: 16 },
+  subCompact: { fontSize: 10.5, lineHeight: 13, marginTop: 0 },
+  scoreCompact: { fontSize: 15.5, minWidth: 60 },
+  flagCompact: { width: 22, height: 22, borderRadius: 11 },
+  beside: { flex: 1, flexDirection: "row", gap: 10 },
+  podiumPane: { flex: 1.15 },
   rowMine: { borderColor: "#C9A55A", backgroundColor: "rgba(201, 165, 90,0.1)" },
   layout: { flex: 1, alignSelf: "center", padding: 8, gap: 10 },
   layoutRow: { flexDirection: "row" },
@@ -499,7 +520,7 @@ const styles = StyleSheet.create({
     padding: 14,
     gap: 4,
   },
-  recordPane: { width: "34%", flexGrow: 0 },
+  recordPane: { width: "30%", flexGrow: 0 },
   recordTitle: { color: "#C9A55A", fontWeight: "900", letterSpacing: 2, fontSize: 12 },
   recordScore: { color: "#F3EADB", fontWeight: "900", fontSize: 34 },
   recordCaption: { flex: 1, color: "#C1A68C", fontWeight: "800", fontSize: 11, letterSpacing: 1.2 },

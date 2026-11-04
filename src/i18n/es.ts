@@ -852,6 +852,8 @@ export const es: Record<TranslationKey, string> = {
   'scores.games': 'Partidas',
   'scores.noRecord': 'Termina una partida para fijar tu récord.',
   'scores.threshold': 'El top 10 empieza en {score}.',
+  'scores.inTop10': 'Ya estás en el top 10 (empieza en {score}).',
+  'scores.toTop10': 'Te faltan {n} puntos para el top 10 (empieza en {score}).',
   'scores.floorShort': 'P{n}',
   'scores.noTime': 'N/D',
   'scores.tab.global': "Global",

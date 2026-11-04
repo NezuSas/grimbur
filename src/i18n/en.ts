@@ -851,6 +851,8 @@ export const en = {
   'scores.games': 'Runs',
   'scores.noRecord': 'Finish a run to set your record.',
   'scores.threshold': 'The top 10 starts at {score}.',
+  'scores.inTop10': "You're in the top 10 (it starts at {score}).",
+  'scores.toTop10': 'You need {n} more points for the top 10 (it starts at {score}).',
   'scores.floorShort': 'F{n}',
   'scores.noTime': 'N/A',
   'scores.tab.global': "Global",
