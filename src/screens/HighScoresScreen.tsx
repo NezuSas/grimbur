@@ -366,7 +366,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
                   <Text style={styles.podiumName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
                     {row.name}
                   </Text>
-                  <PlayerTitle title={row.title} />
+                  <PlayerTitle title={row.title} center />
                   <Text style={[styles.podiumScore, { color: medal }, first && { fontSize: 21 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>
                     {n(Number(row.score) || 0)}
                   </Text>

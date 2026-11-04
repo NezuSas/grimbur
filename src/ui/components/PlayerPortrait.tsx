@@ -23,12 +23,12 @@ export const PlayerPortrait = ({ source, size, frame, style }: { source: ImageSo
 };
 
 /** A player's title, a small gold plate (nothing when they wear none or the row carries something unknown). */
-export const PlayerTitle = ({ title }: { title?: unknown }) => {
+export const PlayerTitle = ({ title, center }: { title?: unknown; /** Centred under a centred name (the podium); otherwise it starts at the name's left edge. */ center?: boolean }) => {
   const { t } = useT();
   const look = parseLook({ title });
   if (!look.title) return null;
   return (
-    <View style={styles.plate}>
+    <View style={[styles.plate, center && { alignSelf: "center" }]}>
       <Text style={styles.plateText} numberOfLines={1} maxFontSizeMultiplier={1.1}>
         {cosmeticText(t, look.title).toLocaleUpperCase()}
       </Text>

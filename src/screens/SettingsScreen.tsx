@@ -586,7 +586,7 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
         {playerName ?? t("friends.noName")}
       </Text>
-      <PlayerTitle title={look.title} />
+      <PlayerTitle title={look.title} center />
       <Text style={styles.meSub} numberOfLines={1} maxFontSizeMultiplier={1.15}>
         {t("friends.card")}
       </Text>
