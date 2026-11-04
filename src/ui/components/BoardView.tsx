@@ -221,7 +221,6 @@ type Props = {
   secretTile?: number | null;
 };
 
-const HERO_PLATE = require("../../assets/sprites/ui/Hero_Plate.png");
 const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];
 
 /**
@@ -231,6 +230,10 @@ const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0]
  */
 const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType; visible: boolean; line: number }) => (
   <View pointerEvents="none" style={[styles.heroLayer, { opacity: visible ? 1 : 0 }]}>
+    {/* A warm rim of light outside the dark line: the tiles are as dark as the hero's leathers, so a dark edge alone vanishes. */}
+    {OUTLINE_OFFSETS.map(([dx, dy], k) => (
+      <SpriteImage key={`r${k}`} source={source} style={[styles.heroLayer, { left: dx * line * 2.4, top: dy * line * 2.4, tintColor: "#FFE7B0", opacity: 0.75 }]} />
+    ))}
     {OUTLINE_OFFSETS.map(([dx, dy], k) => (
       <SpriteImage key={k} source={source} style={[styles.heroLayer, { left: dx * line, top: dy * line, tintColor: "#140a05", opacity: 0.9 }]} />
     ))}
@@ -683,8 +686,9 @@ const BoardView: React.FC<Props> = memo(
             ]}
             pointerEvents="none"
           >
-            {/* A dark pool and a shadow at the feet: whatever the board's colours, the hero stands out from the tile. */}
-            <SpriteImage pointerEvents="none" source={HERO_PLATE} style={{ position: "absolute", width: tileSize * 1.04, height: tileSize * 1.04, left: -tileSize * 0.02, top: -tileSize * 0.02 }} />
+            {/* A pool of warm light on the tile and a ring at the feet: every floor is dark, so light (not shadow) is what sets the hero apart. */}
+            <View pointerEvents="none" style={[styles.heroGlow, { width: tileSize * 0.94, height: tileSize * 0.94, borderRadius: tileSize * 0.47, left: tileSize * 0.03, top: tileSize * 0.03 }]} />
+            <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * 0.04 }]} />
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
             {pet && !dying ? (
               <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, [lastSide.current === "left" ? "right" : "left"]: 0, zIndex: 3 }}>
@@ -838,6 +842,8 @@ const styles = StyleSheet.create({
     borderColor: "#444",
     position: "relative",
   },
+  heroGlow: { position: "absolute", backgroundColor: "rgba(255,226,160,0.16)" },
+  heroRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,214,130,0.85)", backgroundColor: "rgba(255,214,130,0.22)" },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
   heroLayer: { position: "absolute", left: 0, top: 0, width: "100%", height: "100%", resizeMode: "contain" },
 });
