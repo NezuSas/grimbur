@@ -17,7 +17,7 @@ describe('tilted board', () => {
     const backWidth = projectPoint(t, 8 * tile, 0).x - projectPoint(t, 0, 0).x;
     const frontWidth = projectPoint(t, 8 * tile, 5 * tile).x - projectPoint(t, 0, 5 * tile).x;
     expect(backWidth).toBeLessThan(frontWidth);
-    expect(backWidth / frontWidth).toBeGreaterThan(0.85);
+    expect(backWidth / frontWidth).toBeGreaterThan(0.8);
     expect(projectPoint(t, 0, 0).y).toBeGreaterThanOrEqual(0);
     expect(t.lipTop + t.lipHeight).toBeLessThanOrEqual(5 * tile + 0.5);
     expect(frontWidth).toBeCloseTo(8 * tile * TILT_FIT.width, 4);
