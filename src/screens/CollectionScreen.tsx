@@ -48,10 +48,10 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType; label?: TranslationK
   { id: "deals", art: require("../assets/sprites/items/Icon_Gem.webp") },
   { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.webp") },
   { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.webp") },
-  { id: "trail", art: require("../assets/sprites/cosmetics/Arrow_Fire.png") },
-  // Mira's orb styles and Bram's bomb styles, beside the archers' trails.
-  { id: "orb", art: AMMO_ART.orb, label: "cosmetic.kind.orb" as TranslationKey },
-  { id: "bomb", art: AMMO_ART.bomb, label: "cosmetic.kind.bomb" as TranslationKey },
+  // Each weapon's styles, side by side: the archers' arrows, Mira's orbs, Bram's bombs.
+  { id: "trail", art: AMMO_ART.bow },
+  { id: "orb", art: AMMO_ART.orb },
+  { id: "bomb", art: AMMO_ART.bomb },
   { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
   { id: "title", art: require("../assets/sprites/ui/Icon_Medal.webp") },
   { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },

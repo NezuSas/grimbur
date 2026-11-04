@@ -84,12 +84,19 @@ const BombPreview = ({ id, size, small }: Props) => {
     ));
 
   if (still) {
+    // On a card the bomb itself is the picture: big, its fuse burning in the style's spark, a burst of its blast behind it.
+    const big = size * 0.58;
+    const rays = Array.from({ length: 8 }, (_, k) => (k * Math.PI) / 4 + Math.PI / 8);
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        {plus(0.4, 1)}
-        <View style={{ position: "absolute", left: size / 2 - size * 0.42, top: size / 2 - size * 0.16 - ball / 2 }}>
-          <BombBall look={look} size={ball * 0.9} />
-        </View>
+        <View style={{ position: "absolute", width: size * 0.86, height: size * 0.86, borderRadius: size, backgroundColor: look.blast, opacity: 0.16 }} />
+        {rays.map((r, k) => (
+          <View
+            key={k}
+            style={{ position: "absolute", left: size / 2 - size * 0.035, top: size / 2 - size * 0.42, width: size * 0.07, height: size * 0.2, borderRadius: size, backgroundColor: k % 2 ? look.spark : look.blast, opacity: 0.7, transform: [{ translateY: size * 0.32 }, { rotate: `${(r * 180) / Math.PI}deg` }, { translateY: -size * 0.32 }] }}
+          />
+        ))}
+        <BombBall look={look} size={big} />
       </View>
     );
   }

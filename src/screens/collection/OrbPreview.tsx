@@ -48,15 +48,17 @@ const OrbPreview = ({ id, size, small }: Props) => {
   const landX = AT * size;
 
   if (still) {
+    // On a card the orb itself is the picture: big, glowing in its colours, with a few motes of its light around it.
+    const big = size * 0.62;
+    const motes = [[-0.36, -0.26, 0.07], [0.34, -0.3, 0.05], [0.38, 0.22, 0.06], [-0.3, 0.32, 0.045], [0.02, -0.42, 0.04]] as const;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        {PLUS.map(([dx, dy], k) => (
-          <View key={k} style={{ position: "absolute", left: size / 2 + landX + dx * tile * 1.15 - tile / 2, top: size / 2 + dy * tile * 1.15 - tile / 2, width: tile, height: tile, borderRadius: tile * 0.25, backgroundColor: look.glow, opacity: 0.35 }} />
+        <View style={{ position: "absolute", width: big * 1.45, height: big * 1.45, borderRadius: big, backgroundColor: look.glow, opacity: 0.12 }} />
+        <View style={{ position: "absolute", width: big * 1.12, height: big * 1.12, borderRadius: big, borderWidth: Math.max(1.5, size * 0.014), borderColor: look.glow, opacity: 0.45 }} />
+        {motes.map(([mx, my, ms], k) => (
+          <View key={k} style={{ position: "absolute", left: size / 2 + mx * size - (ms * size) / 2, top: size / 2 + my * size - (ms * size) / 2, width: ms * size, height: ms * size, borderRadius: size, backgroundColor: k % 2 ? look.core : look.glow, opacity: 0.85 }} />
         ))}
-        <View style={{ position: "absolute", left: size / 2 + landX - ball * 0.9, top: size / 2 - ball * 0.9, width: ball * 1.8, height: ball * 1.8, borderRadius: ball * 2, borderWidth: Math.max(1.5, size * 0.015), borderColor: look.glow, opacity: 0.5 }} />
-        <View style={{ position: "absolute", left: size / 2 + landX - ball / 2, top: size / 2 - ball / 2 }}>
-          <OrbBall look={look} size={ball} />
-        </View>
+        <OrbBall look={look} size={big} />
       </View>
     );
   }
