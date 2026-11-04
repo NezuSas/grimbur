@@ -41,6 +41,7 @@ import { equippedSkin } from "../core/skins/ownership";
 import { skinArt } from "../data/skinArt";
 import { useSettingsStore } from "../state/settings/store";
 import FramedHero from "../ui/components/FramedHero";
+import { currentUid } from "../lib/auth";
 import { parseLook } from "../core/cosmetics/look";
 import type { CosmeticId } from "../core/cosmetics/cosmetics";
 
@@ -71,6 +72,7 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const [myId, setMyId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string | null>(null);
   const lastHero = useSettingsStore(s => s.lastHero);
+  const myUid = currentUid();
   useEffect(() => {
     void getPlayerId().then(setMyId);
     void getPlayerName().then(setMyName);
@@ -79,8 +81,8 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   const usable = width - Math.max(insets.left, 8) - Math.max(insets.right, 8) - 16;
   const cardWidth = Math.min(usable, 1100);
   const twoPanes = cardWidth >= 640;
-  /** The ranking pane (right of the record) is wide enough to hold the podium and the rows 4-10 side by side. */
-  const sideBySide = twoPanes && cardWidth * 0.68 >= 500;
+  /** Wide enough to hold the podium and the rows 4-10 side by side. */
+  const sideBySide = twoPanes;
 
   const loadData = useCallback(async () => {
     setStatus("loading");
@@ -146,79 +148,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
     }, []),
   );
 
-  const tenth = board === "global" && data.length >= 10 ? Number(data[9].data().score) || 0 : 0;
-
-  const record = (
-    <Rise style={styles.record}>
-      <View style={styles.meRow}>
-        <PlayerPortrait source={skinArt(Math.max(0, lastHero ?? 0), equippedSkin(mine, Math.max(0, lastHero ?? 0))).scoreImage} size={58} frame={lookOf(mine).frame} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text style={styles.recordTitle} maxFontSizeMultiplier={1.1}>
-            {t("scores.yours").toLocaleUpperCase()}
-          </Text>
-          <Text style={styles.meName} numberOfLines={1} maxFontSizeMultiplier={1.1}>
-            {myName ?? t("friends.noName")}
-          </Text>
-          <PlayerTitle title={lookOf(mine).title} />
-        </View>
-      </View>
-      {mine.gamesPlayed > 0 ? (
-        <>
-          <View style={styles.bestRow}>
-            <Text style={styles.recordScore} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
-              {n(mine.bestScore)}
-            </Text>
-            <Text style={styles.recordCaption} numberOfLines={2} maxFontSizeMultiplier={1.1}>
-              {t("scores.bestScore").toLocaleUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.recordGrid}>
-            <View style={styles.recordCell}>
-              <Text style={styles.recordCellValue}>{mine.bestLevel}</Text>
-              <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.bestFloor")}</Text>
-            </View>
-            <View style={styles.recordCell}>
-              <Text style={styles.recordCellValue}>{mine.victories}</Text>
-              <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.wins")}</Text>
-            </View>
-            {(mine.bestQuickScore ?? 0) > 0 ? (
-              <View style={styles.recordCell}>
-                <Text style={styles.recordCellValue} numberOfLines={1}>{n(mine.bestQuickScore ?? 0)}</Text>
-                <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.bestQuick")}</Text>
-              </View>
-            ) : null}
-            <View style={styles.recordCell}>
-              <Text style={styles.recordCellValue}>{mine.gamesPlayed}</Text>
-              <Text style={styles.recordCellLabel} maxFontSizeMultiplier={1.2}>{t("scores.games")}</Text>
-            </View>
-          </View>
-        </>
-      ) : (
-        <Text style={styles.recordEmpty} maxFontSizeMultiplier={1.2}>
-          {t("scores.noRecord")}
-        </Text>
-      )}
-      <TouchableOpacity
-        style={styles.progressLink}
-        onPress={() => navigation.navigate("ProgressScreen")}
-        accessibilityRole="button"
-        accessibilityLabel={t("progress.open")}
-      >
-        <GameIcon name="trending-up" size={18} color="#2A2016" />
-        <Text style={styles.progressLinkText} maxFontSizeMultiplier={1.2}>
-          {t("progress.open").toLocaleUpperCase()}
-        </Text>
-      </TouchableOpacity>
-      {tenth > 0 && (
-        <View style={styles.threshold}>
-          <GameIcon name="flag" size={14} color="#8FC0C5" />
-          <Text style={styles.thresholdText} maxFontSizeMultiplier={1.2}>
-            {mine.bestScore >= tenth ? t("scores.inTop10", { score: n(tenth) }) : t("scores.toTop10", { n: n(tenth - mine.bestScore), score: n(tenth) })}
-          </Text>
-        </View>
-      )}
-    </Rise>
-  );
 
   const age = offlineAt !== null ? describeAge(offlineAt) : null;
   const offlineNotice = age ? (
@@ -281,13 +210,36 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
   // The three best stand on a podium (the first in the middle, the highest), the rest follow as rows.
   const podium = status === "ready" && visible.length >= 3 ? visible.slice(0, 3) : [];
   const rest = podium.length ? visible.slice(3) : visible;
+  const meShown = visible.some(d => (!!myId && d.data().pid === myId) || (!!myUid && d.id === myUid));
+  const myBest = board === "global" ? mine.bestScore : board === "endless" ? mine.bestEndlessFloor : board === "today" && mine.daily?.date === dailyKey() ? mine.daily.bestScore : 0;
+  const youRow =
+    status === "ready" && !meShown && myBest > 0 && (board === "global" || board === "endless" || board === "today") ? (
+      <View style={[styles.row, styles.rowMine, styles.youRow, sideBySide && styles.rowCompact]} accessible accessibilityLabel={`${t("scores.you")}. ${myBest}`}>
+        <View style={[styles.rank, sideBySide && styles.rankCompact]}>
+          <Text style={styles.rankText} maxFontSizeMultiplier={1.2}>–</Text>
+        </View>
+        <PlayerPortrait source={skinArt(Math.max(0, lastHero ?? 0), equippedSkin(mine, Math.max(0, lastHero ?? 0))).scoreImage} size={sideBySide ? 30 : 40} frame={lookOf(mine).frame} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.name, sideBySide && styles.nameCompact]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            {myName ?? t("friends.noName")}  ·  {t("scores.you")}
+          </Text>
+          <Text style={[styles.sub, sideBySide && styles.subCompact, { color: "#8FC0C5" }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+            {visible.length >= 10 && myBest < Number(visible[visible.length - 1].data().score) ? t("scores.toTop10Short", { n: n(Math.max(1, Number(visible[visible.length - 1].data().score) - myBest + 1)) }) : t("scores.yourBest")}
+          </Text>
+        </View>
+        <Text style={[styles.score, sideBySide && styles.scoreCompact, { color: "#C9A55A" }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+          {n(myBest)}
+        </Text>
+      </View>
+    ) : null;
+
   const renderItem = ({ item, index: at }: { item: Doc; index: number }) => {
     const index = at + (status === "ready" && visible.length >= 3 ? 3 : 0);
     const row = item.data();
     const char = characters[row.characterIndex] || characters[0];
     const time = typeof row.time === "number" ? formatTime(row.time) : t("scores.noTime");
     const medal = index < 3 ? MEDALS[index] : null;
-    const mineRow = !!myId && row.pid === myId;
+    const mineRow = (!!myId && row.pid === myId) || (!!myUid && item.id === myUid);
     const compact = sideBySide && podium.length > 0;
 
     return (
@@ -343,12 +295,12 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
           const row = item.data();
           const char = characters[row.characterIndex] || characters[0];
           const medal = MEDALS[place];
-          const mineRow = !!myId && row.pid === myId;
+          const mineRow = (!!myId && row.pid === myId) || (!!myUid && item.id === myUid);
           const first = place === 0;
           // Each of the three stands full-body in their own frame (or, without one, in the frame of their medal), celebrating.
           const worn = parseLook({ frame: row.frame }).frame ?? PODIUM_FRAMES[place];
           // Sized to the window, so name and score always show under the frames without scrolling.
-          const tall = Math.round(Math.min(first ? 176 : 146, height * (first ? 0.38 : 0.31), beside ? cardWidth * (first ? 0.17 : 0.14) : Infinity));
+          const tall = Math.round(Math.min(first ? 176 : 146, height * (first ? 0.38 : 0.31), beside ? cardWidth * (first ? 0.2 : 0.165) : Infinity));
           return (
             <Rise key={item.id} delay={riseDelay(place === 0 ? 2 : place - 1, 80)} style={styles.podiumCol}>
               <PressScale
@@ -426,8 +378,6 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={beside ? { gap: 6 } : { marginBottom: 2, gap: 8 }}>
-          {twoPanes ? null : record}
-          {twoPanes ? null : tabs}
           {board !== "global" ? (
             <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
               {board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : board === "endless" ? t("scores.endlessNote") : t("scores.weekNote")}
@@ -440,13 +390,16 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       ListEmptyComponent={podium.length ? undefined : placeholder}
       contentContainerStyle={{ gap: beside ? 4 : 8, paddingBottom: (beside ? 8 : 24) + insets.bottom }}
       ListFooterComponent={
-        hidden.length > 0 && status === "ready" ? (
+        <>
+        {beside ? null : youRow}
+        {hidden.length > 0 && status === "ready" ? (
           <TouchableOpacity onPress={showHidden} style={styles.hiddenNote} accessibilityRole="button" accessibilityLabel={t("scores.hidden.show")}>
             <Text style={styles.hiddenText} maxFontSizeMultiplier={1.2}>
               {t("scores.hidden", { count: hidden.length })} · {t("scores.hidden.show")}
             </Text>
           </TouchableOpacity>
-        ) : undefined
+        ) : null}
+        </>
       }
     />
   );
@@ -456,19 +409,17 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(13, 10, 7,0.88)" }} edges={["top", "left", "right"]}>
         <ScreenHeader title={t("scores.title")} onBack={() => navigation.goBack()} />
         <View style={[styles.layout, { width: cardWidth }, twoPanes ? styles.layoutRow : null]}>
-          {twoPanes ? (
-            <ScrollView style={styles.recordPane} showsVerticalScrollIndicator={false}>
-              {record}
-            </ScrollView>
-          ) : null}
           <View style={{ flex: 1, gap: 8 }}>
-            {twoPanes ? tabs : null}
+            {tabs}
             {beside ? (
               <View style={styles.beside}>
                 <ScrollView style={styles.podiumPane} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
                   {podiumView}
                 </ScrollView>
-                {list}
+                <View style={{ flex: 1, gap: 4 }}>
+                  {list}
+                  {youRow}
+                </View>
               </View>
             ) : (
               list
@@ -501,6 +452,7 @@ const styles = StyleSheet.create({
   podiumScore: { fontWeight: "900", fontSize: 18, marginTop: 1 },
   podiumMeta: { color: "#C4AA91", fontSize: 11, fontWeight: "700" },
   boardNote: { color: "#C4AA91", fontSize: 12, textAlign: "center" },
+  youRow: { marginTop: 2, marginBottom: 6, borderStyle: "dashed" },
   rowCompact: { gap: 8, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 12, borderWidth: 1 },
   rankCompact: { width: 24, height: 24, borderRadius: 12 },
   nameCompact: { fontSize: 13, lineHeight: 16 },

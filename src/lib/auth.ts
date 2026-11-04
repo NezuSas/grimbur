@@ -27,6 +27,11 @@ const auth = makeAuth();
 
 let signing: Promise<string> | null = null;
 
+/** The signed-in player's uid when the session has loaded (null before, or offline): never signs in. */
+export function currentUid(): string | null {
+  return auth.currentUser?.uid ?? null;
+}
+
 /** The signed-in player's uid, signing in anonymously first when needed. Rejects offline; calling again retries. */
 export function ensureSignedIn(): Promise<string> {
   const current = auth.currentUser;
