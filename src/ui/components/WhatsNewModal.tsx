@@ -11,7 +11,6 @@ import { PopButton, PopupPanel } from "./game/popup";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
 import { useSettingsStore } from "../../state/settings/store";
-import { emitSound } from "../../audio/audioEventBus";
 import { useEscapeKey } from "../hotkeys";
 
 /** Bump when a new set of news ships: a returning player sees the card once per version. */
@@ -113,7 +112,6 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
   const goTo = (next: number) => {
     const to = Math.max(0, Math.min(ITEMS.length - 1, next));
     if (to === page) return;
-    emitSound("UI_TAP");
     setPage(to);
     scroller.current?.scrollTo({ x: to * cardWidth, animated: !calm });
   };
@@ -121,7 +119,6 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const at = Math.round(e.nativeEvent.contentOffset.x / cardWidth);
     if (at !== page && at >= 0 && at < ITEMS.length) {
-      emitSound("UI_TAP");
       setPage(at);
     }
   };
@@ -176,6 +173,7 @@ const WhatsNewModal = ({ onClose, onSeePuzzles, onSeePets }: Props) => {
             </Pressable>
           ) : null}
           <PopButton
+            silent
             label={last ? t("whatsnew.go") : t("whatsnew.next")}
             onPress={() => (last ? onClose() : goTo(page + 1))}
             tint={item.tint}

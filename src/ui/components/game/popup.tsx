@@ -96,6 +96,8 @@ export const PopupTitle = ({ tint, title, icon, glyph, subtitle }: TitleProps) =
 );
 
 type ButtonProps = {
+  /** No tap sound (pages turned in a card, where a click on every page is noise). */
+  silent?: boolean;
   /** Text, or a node when part of the label is an inline image (pass accessibilityLabel then). */
   label: string | React.ReactElement;
   onPress: () => void;
@@ -133,11 +135,11 @@ export const shade = (hex: string, amount: number): string => {
   return "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
 };
 
-export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, icon, art, accessibilityLabel, style, tint, enterKey }: ButtonProps) => {
+export const PopButton = ({ label, onPress, variant = "primary", disabled, busy, glyph, icon, art, accessibilityLabel, style, tint, enterKey, silent }: ButtonProps) => {
   const press = useRef(new Animated.Value(0)).current;
   useEnterKey(
     () => {
-      emitSound("UI_TAP");
+      if (!silent) emitSound("UI_TAP");
       onPress();
     },
     !!enterKey && !disabled && !busy,
@@ -147,7 +149,7 @@ export const PopButton = ({ label, onPress, variant = "primary", disabled, busy,
   return (
     <Pressable
       onPress={() => {
-        emitSound("UI_TAP");
+        if (!silent) emitSound("UI_TAP");
         onPress();
       }}
       onPressIn={() => to(1)}
