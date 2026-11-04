@@ -3,7 +3,7 @@ import { StyleSheet, View, Animated, Easing, ImageSourcePropType } from "react-n
 import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import GameIcon from "./GameIcon";
-import { BIOME_ART } from "../biomeArt";
+import { BIOME_ART, BLOCK_ART } from "../biomeArt";
 import type { ArtTheme } from "../biomeArt";
 import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
@@ -185,7 +185,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null, draft = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null, draft = false, block = false
 }: {
   index: number;
   tileSize: number;
@@ -226,6 +226,8 @@ const GridCell = memo(({
   flagPing: number;
   /** The cave type of the floor: it decides which pair of tiles is drawn. */
   biome: ArtTheme;
+  /** The tilted board: the tile is drawn as a stone block (see BLOCK_ART). */
+  block?: boolean;
   /** Reduced motion: the vortex does not spin and the gems do not glint. */
   calm: boolean;
   /** A trap went off here: the sprung jaws stay on the ground as a mark. */
@@ -335,7 +337,9 @@ const GridCell = memo(({
   // The explored ground under an unveiled creature fades in with it (same timing), never before it.
   const opened = isVisited || isPlayerHere;
   const unveiling = unveiled && hazard && !opened;
-  const backgroundAsset = opened ? BIOME_ART[biome].tileRevealed : BIOME_ART[biome].tileHidden;
+  // The tilted board paints its tiles as stone blocks where the cave has them.
+  const tiles = (block && BLOCK_ART[biome]) || BIOME_ART[biome];
+  const backgroundAsset = opened ? tiles.tileRevealed : tiles.tileHidden;
 
   const row = Math.floor(index / cols);
   const col = index % cols;
@@ -395,7 +399,7 @@ const GridCell = memo(({
 
       {unveiling && (
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: unveil }]}>
-          <SpriteImage source={BIOME_ART[biome].tileRevealed} style={{ width: tileSize, height: tileSize }} resizeMode="contain" />
+          <SpriteImage source={tiles.tileRevealed} style={{ width: tileSize, height: tileSize }} resizeMode="contain" />
           <View style={[styles.tileTone, styles.toneLit, { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * 0.09 }]} />
         </Animated.View>
       )}

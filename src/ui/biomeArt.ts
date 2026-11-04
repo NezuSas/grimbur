@@ -8,6 +8,17 @@ export interface BiomeArt {
   tileRevealed: ImageSourcePropType;
 }
 
+/**
+ * The tiles painted as stone blocks (the top face and, below it, the block's front edge) for the tilted board: a flat
+ * top-down tile tilted reads as a bent photo, a block reads as a table. Caves without them yet keep their flat tiles.
+ */
+export const BLOCK_ART: Partial<Record<ArtTheme, Pick<BiomeArt, 'tileHidden' | 'tileRevealed'>>> = {
+  cave: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Block.webp'),
+  },
+};
+
 /** A look the floor can be painted with: every cave type, plus the board themes that are looks only (Collection). */
 export type ArtTheme = BiomeId | 'frost' | 'moss' | 'vault';
 

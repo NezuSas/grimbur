@@ -626,6 +626,7 @@ const BoardView: React.FC<Props> = memo(
                   killer={killerTile === i}
                   flagPing={flagPing && flagPing.index === i ? flagPing.n : 0}
                   biome={biome}
+                  block={!!tilt}
                   flagArt={flag}
                   unveiled={unveil}
                   lurking={shown[i]?.type === "stalker" && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) <= 2}
