@@ -1,4 +1,5 @@
 import { createPRNG } from '../random/prng';
+import type { WeaponId } from './weapons';
 import { deriveLevelSeed } from './seed';
 
 /**
@@ -348,6 +349,8 @@ export interface DraftContext {
   trapImmune?: boolean;
   /** Every floor already starts lit (the Old Lantern would be wasted). */
   startLit?: boolean;
+  /** What the hero attacks with (missing = the bow). A bomber gets nothing from the Glass Bow. */
+  weapon?: WeaponId;
 }
 
 /** True when `id` can still help a run with this hero and these relics. */
@@ -356,6 +359,7 @@ export function isUsefulRelic(id: RelicId, owned: readonly RelicId[], ctx: Draft
   if (id === 'bulwark' && ctx.startShield) return false;
   if (id === 'trap_sense' && ctx.trapImmune) return false;
   if (id === 'lantern' && ctx.startLit) return false;
+  if (id === 'glass_bow' && ctx.weapon === 'bomb') return false;
   // A run without shields gets nothing from the shield relics, and a shield relic is wasted on Blood Gems.
   if ((id === 'bulwark' || id === 'thorns') && owned.includes('blood_gems')) return false;
   if (id === 'blood_gems' && (ctx.startShield || owned.includes('bulwark'))) return false;

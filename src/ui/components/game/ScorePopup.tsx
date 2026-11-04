@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View, type ImageSourcePropType } from "react-native";
 import Text from "../Text";
 import SpriteImage from "../SpriteImage";
-import { GLYPHS, type GlyphName } from "../../glyphArt";
+import { AMMO_GLYPH, GLYPHS, type GlyphName } from "../../glyphArt";
+import type { WeaponId } from "../../../core/engine/weapons";
 import { useT } from '../../../i18n/useT';
 
 export type PopupType = 'coin' | 'kill' | 'trap' | 'shield' | 'ammo' | 'boss' | 'streak';
@@ -21,6 +22,8 @@ const POPUP_STYLE: Record<PopupType, { color: string; glyph: GlyphName | null; l
 const BOX_WIDTH = 240;
 
 type Props = {
+  /** The hero's weapon: an ammo popup shows its own ammo. */
+  weapon?: WeaponId;
   points: number;
   type?: PopupType;
   /** Screen coordinates of the tile it rises from. Without them it appears near the middle of the screen. */
@@ -43,12 +46,13 @@ type Props = {
   onComplete: () => void;
 };
 
-const ScorePopup = ({ points, type = 'kill', x, y, slot = 0, sub, subColor, popScale = 1, art, subArt, hold, onComplete }: Props) => {
+const ScorePopup = ({ points, type = 'kill', x, y, slot = 0, sub, subColor, popScale = 1, art, subArt, hold, onComplete, weapon = 'bow' }: Props) => {
   const translateY = useRef(new Animated.Value(0)).current;
   const opacity    = useRef(new Animated.Value(1)).current;
   const scale      = useRef(new Animated.Value(0.6)).current;
   const { t } = useT();
-  const { color, glyph, label } = POPUP_STYLE[type];
+  const { color, label } = POPUP_STYLE[type];
+  const glyph = type === 'ammo' ? AMMO_GLYPH[weapon] : POPUP_STYLE[type].glyph;
   const text = label(points, t('popup.shield'));
 
   useEffect(() => {

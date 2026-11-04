@@ -36,17 +36,22 @@ import { heroText, skinText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
 import { useSettingsStore } from "../state/settings/store";
 import { heroAccent } from "../data/heroAccent";
+import { AMMO_ART } from "../ui/weaponArt";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 
 type Category = "skins" | "rewards" | CosmeticCategory;
 /** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
 /** Each category wears a piece of its own painted art. */
-const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
+/** `label` names a tab whose words are not `collection.cat.<id>` (the weapon styles use their kind's name). */
+const CATEGORIES: { id: Category; art: ImageSourcePropType; label?: TranslationKey }[] = [
   { id: "deals", art: require("../assets/sprites/items/Icon_Gem.webp") },
   { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.webp") },
   { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.webp") },
   { id: "trail", art: require("../assets/sprites/cosmetics/Arrow_Fire.png") },
+  // Mira's orb styles and Bram's bomb styles, beside the archers' trails.
+  { id: "orb", art: AMMO_ART.orb, label: "cosmetic.kind.orb" as TranslationKey },
+  { id: "bomb", art: AMMO_ART.bomb, label: "cosmetic.kind.bomb" as TranslationKey },
   { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
   { id: "title", art: require("../assets/sprites/ui/Icon_Medal.webp") },
   { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
@@ -265,7 +270,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <SpriteImage source={c.art} style={{ width: 20, height: 20 }} resizeMode="contain" accessibilityIgnoresInvertColors />
                 <Text style={[styles.catText, on && styles.catTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-                  {t(`collection.cat.${c.id}` as TranslationKey)}
+                  {t(c.label ?? (`collection.cat.${c.id}` as TranslationKey))}
                 </Text>
                 {c.id === "deals" || (c.id === "rewards" && newReward) ? <View style={[styles.catDot, on && { backgroundColor: "#1a0f00" }]} /> : null}
               </PressScale>

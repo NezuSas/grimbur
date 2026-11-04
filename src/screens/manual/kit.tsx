@@ -11,6 +11,7 @@ import { Art, FactCard } from "../../ui/components/manual/ManualParts";
 import { GAME_CONFIG } from "../../config/gameConfig";
 import { MAX_ASCENSION } from "../../core/engine/ascension";
 import { abilityCooldown, MAX_ITEMS } from "../../core/engine/shop";
+import { BOMB_REACH, BOMB_WAKE } from "../../core/engine/weapons";
 import { FREEZE_EVERY_DAYS, MAX_FREEZES } from "../../core/stats/runStats";
 import type { RootStackParamList } from "../../navigation/types";
 import type { TranslationKey } from "../../i18n/en";
@@ -72,6 +73,8 @@ export const PARAMS: Params = {
   sellGems: MERCHANT_GEMS,
   cooldown: `${abilityCooldown("scout")}-${abilityCooldown("brace")}`,
   maxItems: MAX_ITEMS,
+  bombReach: BOMB_REACH,
+  bombWake: BOMB_WAKE,
   days: FREEZE_EVERY_DAYS,
   max: MAX_FREEZES,
 };

@@ -10,6 +10,7 @@ import { ABILITY_ART } from "../../ui/toolArt";
 import { Art, ClueExample } from "../../ui/components/manual/ManualParts";
 import { CLUE_ART } from "../../ui/components/GridCell";
 import { IMG } from "./kit";
+import { AMMO_ART } from "../../ui/weaponArt";
 import type { Kit } from "./kit";
 import { manualStyles as styles } from "./styles";
 
@@ -127,6 +128,10 @@ export const CombatPane = ({ kit }: { kit: Kit }) => {
       {fact("manual.combat.strike", "#B5524A", image(IMG.arrows, "#B5524A"))}
       {fact("manual.combat.turn", "#D49242", icon("hourglass", "#D49242"))}
       {fact("manual.combat.ammo", "#B0524A", image(IMG.arrows, "#B0524A"))}
+      {/* Each hero attacks with the weapon of their art, and it plays differently. */}
+      {fact("manual.combat.bow", "#C99A5C", image(AMMO_ART.bow, "#C99A5C"))}
+      {fact("manual.combat.orb", "#9A72AC", image(AMMO_ART.orb, "#9A72AC"))}
+      {fact("manual.combat.bomb", "#B86A48", image(AMMO_ART.bomb, "#B86A48"))}
       {fact("manual.combat.combo", "#B86A48", icon("trending-up", "#B86A48"))}
     </>
   );

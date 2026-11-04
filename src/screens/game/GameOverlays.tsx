@@ -17,6 +17,7 @@ import type { RelicId } from "../../core/engine/relics";
 import type { Door, ShopItem } from "../../core/engine/shop";
 import type { RunResult } from "./types";
 import EncounterModal from "../../ui/components/game/EncounterModal";
+import { weaponOf } from "../../core/engine/weapons";
 
 type Props = {
   state: GameState;
@@ -80,6 +81,8 @@ type Props = {
 const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop, onPickRelic, pause, gameOver, revive, highScore, encounter }) => {
   const result = gameOver.result;
   const levelUpWindow = state.isLevelUp && !state.isVictory;
+  // What the hero shoots: the shop, the pause card and the revive speak of that ammo.
+  const weapon = weaponOf(state);
   return (
     <>
       <IntermissionOverlay
@@ -101,15 +104,16 @@ const GameOverlays: React.FC<Props> = ({ state, character, time, bootCover, shop
         merchantUsed={!!state.merchantUsed}
         onSell={shop.onSell}
         onGo={shop.onGo}
+        weapon={weapon}
       />
 
       {encounter.visible && state.encounter ? <EncounterModal encounter={state.encounter} state={state} onChoose={encounter.onChoose} onClose={encounter.onClose} /> : null}
 
-      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} owned={state.relics} />
+      <RelicDraftOverlay offer={state.pendingDraft} floor={state.level} lairNext={isLairFloor(state.mode, state.level)} onPick={onPickRelic} owned={state.relics} weapon={weaponOf(state)} />
 
-      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} summary={{ floor: state.level, floors: runFloors(state.mode), score: state.score, gems: state.gems, arrows: state.attack, relics: state.relics }} />
+      <PauseOverlay visible={pause.visible} saveOnExit={pause.saveOnExit} canRestart={pause.canRestart} onResume={pause.onResume} onRestart={pause.onRestart} onMainMenu={pause.onMainMenu} summary={{ floor: state.level, floors: runFloors(state.mode), score: state.score, gems: state.gems, arrows: state.attack, relics: state.relics, weapon }} />
 
-      <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} hero={character.loseImage ?? character.scoreImage} onRevive={revive.onRevive} onDecline={revive.onDecline} />
+      <ReviveOverlay visible={revive.visible} price={revive.price} embers={revive.embers} used={revive.used} busy={revive.busy} hero={character.loseImage ?? character.scoreImage} onRevive={revive.onRevive} onDecline={revive.onDecline} weapon={weapon} />
 
       <GameOverOverlay
         visible={gameOver.visible}

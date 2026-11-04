@@ -9,6 +9,8 @@ import Companion from "../../ui/components/game/Companion";
 import GemShower from "../../ui/components/game/GemShower";
 import { PlayerPortrait } from "../../ui/components/PlayerPortrait";
 import TrailPreview from "./TrailPreview";
+import OrbPreview from "./OrbPreview";
+import BombPreview from "./BombPreview";
 import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
 import { cosmeticText } from "../../i18n/keys";
@@ -30,12 +32,14 @@ type Props = {
   petStage?: number;
 };
 
-/** What a cosmetic looks like, as the player will see it: an arrow in flight, a framed portrait, a title, a patch of floor. */
+/** What a cosmetic looks like, as the player will see it: an arrow, orb or bomb in flight, a framed portrait, a title, a patch of floor. */
 const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStage = 0 }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const kind = cosmeticInfo(id).kind;
   if (kind === "trail") return <TrailPreview id={id} size={size} small={small} />;
+  if (kind === "orb") return <OrbPreview id={id} size={size} small={small} />;
+  if (kind === "bomb") return <BombPreview id={id} size={size} small={small} />;
   if (kind === "frame") {
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>

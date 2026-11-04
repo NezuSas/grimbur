@@ -1,5 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
-import type { CosmeticId } from '../core/cosmetics/cosmetics';
+import { SHOT_KIND, equippedCosmetic, type CosmeticId } from '../core/cosmetics/cosmetics';
+import type { LocalStats } from '../core/stats/runStats';
+import type { WeaponId } from '../core/engine/weapons';
 import type { ArtTheme } from './biomeArt';
 
 /** How a trail looks in flight: its painted arrow, and the two colours its sparks and wake alternate. */
@@ -18,6 +20,55 @@ export const TRAIL_LOOKS: Partial<Record<CosmeticId, TrailLook>> = {
   trail_void: { arrow: require('../assets/sprites/cosmetics/Arrow_Void.png'), colors: ['#6CB0B9', '#311B92'] },
   trail_royal: { arrow: require('../assets/sprites/cosmetics/Arrow_Royal.png'), colors: ['#C9A55A', '#9A72AC'] },
 };
+
+/** How Mira's orb looks in flight, drawn in code (no picture): its bright heart and the halo of light around it. */
+export interface OrbLook {
+  core: string;
+  glow: string;
+}
+
+export const ORB_LOOKS: Partial<Record<CosmeticId, OrbLook>> = {
+  orb_frost: { core: '#E6F7FF', glow: '#7FDBFF' },
+  orb_ember: { core: '#FFD27A', glow: '#FF8C2A' },
+  orb_venom: { core: '#C8F5A0', glow: '#3FAF4A' },
+  orb_void: { core: '#7FD6E0', glow: '#5B3CC4' },
+  orb_stars: { core: '#FFFFFF', glow: '#FFE38A' },
+  orb_royal: { core: '#F2CF6A', glow: '#9A72AC' },
+};
+
+/** How Bram's bomb looks, drawn in code (no picture): the spark on its fuse and the colour of its blast. */
+export interface BombLook {
+  spark: string;
+  blast: string;
+}
+
+export const BOMB_LOOKS: Partial<Record<CosmeticId, BombLook>> = {
+  bomb_ember: { spark: '#FFD27A', blast: '#FF7A1A' },
+  bomb_frost: { spark: '#E6F7FF', blast: '#5FC8F0' },
+  bomb_venom: { spark: '#C8F5A0', blast: '#4FA83A' },
+  bomb_storm: { spark: '#FFF59D', blast: '#8FB8E0' },
+  bomb_void: { spark: '#7FD6E0', blast: '#5B3CC4' },
+  bomb_royal: { spark: '#F2CF6A', blast: '#9A72AC' },
+};
+
+/** The look of a shot of any weapon. */
+export type ShotLook = TrailLook | OrbLook | BombLook;
+
+/**
+ * The style the player wears for that weapon's shots: the arrow trail for the bow, the orb style for the orb, the bomb
+ * style for the bomb; null when none is worn (the plain shot).
+ */
+export function shotLookFor(stats: LocalStats | null | undefined, weapon: 'bow'): TrailLook | null;
+export function shotLookFor(stats: LocalStats | null | undefined, weapon: 'orb'): OrbLook | null;
+export function shotLookFor(stats: LocalStats | null | undefined, weapon: 'bomb'): BombLook | null;
+export function shotLookFor(stats: LocalStats | null | undefined, weapon: WeaponId): ShotLook | null;
+export function shotLookFor(stats: LocalStats | null | undefined, weapon: WeaponId): ShotLook | null {
+  if (!stats) return null;
+  const id = equippedCosmetic(stats, SHOT_KIND[weapon]);
+  if (!id) return null;
+  const looks = weapon === 'orb' ? ORB_LOOKS : weapon === 'bomb' ? BOMB_LOOKS : TRAIL_LOOKS;
+  return looks[id] ?? null;
+}
 
 /** The two frames of each companion (cut from one sheet: scripts/sliceIconGrid.py). */
 export const PET_ART: Partial<Record<CosmeticId, readonly [ImageSourcePropType, ImageSourcePropType]>> = {

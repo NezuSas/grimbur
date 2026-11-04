@@ -102,7 +102,7 @@ import { getPlayerName } from "../services/playerProfile";
 import { lookOf } from "../core/cosmetics/look";
 import { rankOf } from "../core/stats/rank";
 import { cosmeticText } from "../i18n/keys";
-import { BOARD_BIOME, FLAG_ART, TRAIL_LOOKS, PET_TINT, petLook } from "../ui/cosmeticArt";
+import { BOARD_BIOME, FLAG_ART, PET_TINT, petLook, shotLookFor } from "../ui/cosmeticArt";
 import { petStage } from "../core/cosmetics/petGrowth";
 import ShareCard, { SHARE_CARD_WIDTH } from "../ui/components/ShareCard";
 import type { ShareCardData } from "../ui/components/ShareCard";
@@ -111,6 +111,8 @@ import { rememberChallenge } from "../services/challenges";
 import { canSaveState, clearSavedRun, loadSavedRun, restoredState, saveRun } from "../services/savedRun";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { omenText, relicText } from "../i18n/keys";
+import { weaponOf } from "../core/engine/weapons";
+import { ammoLeftText, weaponLine } from "../i18n/weaponText";
 /** The Grimbur's lieutenant on the floor banner. */
 const LIEUTENANT_ART = require("../assets/sprites/enemies/Lieutenant_Boss.webp");
 const WARDEN_ART = require("../assets/sprites/enemies/Warden_Boss.webp");
@@ -200,14 +202,16 @@ export default function GameScreen({ navigation, route }: Props) {
   // Equipped looks (Collection): read once per run. A board theme only repaints the floor; the biome's rules stay.
   const [looks] = useState(() => {
     const saved = peekLocalStats();
-    const trail = saved ? equippedCosmetic(saved, "trail") : null;
     const board = saved ? equippedCosmetic(saved, "board") : null;
     const flag = saved ? equippedCosmetic(saved, "flag") : null;
     const pet = saved ? equippedCosmetic(saved, "pet") : null;
     // A companion shows its stage: its adult form, and an aura from young on.
     const stage = pet && saved ? petStage(saved.petFloors?.[pet]) : 0;
     return {
-      trail: trail ? TRAIL_LOOKS[trail] ?? null : null,
+      // The shot's style per weapon: the arrow trail (bow), the orb style (Mira), the bomb style (Bram).
+      trail: shotLookFor(saved, "bow"),
+      orb: shotLookFor(saved, "orb"),
+      bomb: shotLookFor(saved, "bomb"),
       board: board ? BOARD_BIOME[board] ?? null : null,
       flag: flag ? FLAG_ART[flag] ?? null : null,
       pet: pet ? petLook(pet, stage) ?? null : null,
@@ -289,7 +293,7 @@ export default function GameScreen({ navigation, route }: Props) {
       art: own.map(r => RELIC_IMAGES[r]),
       kicker: t("fanfare.family.kicker"),
       title: t("fanfare.family.title", { name: t(`family.${fresh}.name` as TranslationKey) }),
-      line: t(`family.${fresh}.bonus` as TranslationKey),
+      line: weaponLine(t, `family.${fresh}.bonus` as TranslationKey, weaponOf(state)),
     });
   }, [state.relics, state.runSeed, t]);
 
@@ -300,7 +304,7 @@ export default function GameScreen({ navigation, route }: Props) {
     const timer = setTimeout(() => {
       setFanfare(
         kind === "family"
-          ? { key: 1, tint: FAMILY_COLOR.archer, art: (["quiver", "long_bow", "hunter"] as RelicId[]).map(r => RELIC_IMAGES[r]), kicker: t("fanfare.family.kicker"), title: t("fanfare.family.title", { name: t("family.archer.name") }), line: t("family.archer.bonus") }
+          ? { key: 1, tint: FAMILY_COLOR.archer, art: (["quiver", "long_bow", "hunter"] as RelicId[]).map(r => RELIC_IMAGES[r]), kicker: t("fanfare.family.kicker"), title: t("fanfare.family.title", { name: t("family.archer.name") }), line: weaponLine(t, "family.archer.bonus", weaponOf(state)) }
           : { key: 2, tint: BEAST_TINT.mimic, art: [BEAST_ART.mimic], kicker: t("fanfare.beast.kicker"), title: t("bestiary.mimic.name"), line: t("fanfare.beast.line") },
       );
     }, 1500);
@@ -398,7 +402,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const pausedRef = useRef(false);
   pausedRef.current = paused;
   const onRefusedFlag = useCallback(() => setToast({ text: t("toast.flagged"), key: Date.now() }), [t]);
-  const { flags, flagPing, toggleFlag, manualMove, manualAttack, canRepeatMove, fireDragged, setAim, aimDir, aimTiles, shot, travelTo, cancelTravel, stepSoundedAt } = useBoardInput({
+  const { flags, flagPing, toggleFlag, manualMove, manualAttack, canRepeatMove, fireDragged, setAim, aimDir, aimTiles, aimArea, shot, shotRef, travelTo, cancelTravel, stepSoundedAt } = useBoardInput({
     state,
     stateRef,
     pausedRef,
@@ -414,6 +418,7 @@ export default function GameScreen({ navigation, route }: Props) {
     stepSoundedAt,
     reduceFlash,
     bootCover,
+    shotRef,
   });
   // The clock ticks outside React state: only the timer text in the HUD re-renders every second.
   const clock = useSessionClock(!runEnded && !state.isLevelUp && !paused && !state.pendingDraft && isFocused);
@@ -907,7 +912,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const boardSummary = [
     t("hud.floorOf", { level: state.level, floors: runFloors(mode) }),
     plural("a11y.gemsLeft", state.coins),
-    t("a11y.arrowsLeft", { count: state.attack }),
+    ammoLeftText(t, weaponOf(state), state.attack),
     state.shield ? t("a11y.shieldActive") : "",
     state.relics.length ? t("a11y.relics", { names: relicNames }) : "",
     nearby.enemy ? t("a11y.nearGuardian") : "",
@@ -978,6 +983,7 @@ export default function GameScreen({ navigation, route }: Props) {
       <View style={{ paddingTop: insets.top, zIndex: 10 }} {...behindOverlay}>
         <Profiler id="hud" onRender={onRenderProfile}>
         <ScoreBar
+          weapon={weaponOf(state)}
           score={state.score}
           // Gems still flying are not counted off yet: the counter ticks as each one lands.
           coins={state.coins + activeCoins.length}
@@ -1020,7 +1026,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onDone={() => setBannerDone(bannerKey)}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : eventAnnounce ? `${t("event.kicker")}: ${t(`event.${state.event}.name` as TranslationKey)}` : undefined}
-          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule") : biomeAnnounce ? t(`biome.${floorBiome}.rule` as TranslationKey) : eventAnnounce ? t(`event.${state.event}.rule` as TranslationKey) : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule", weaponOf(state)) : biomeAnnounce ? weaponLine(t, `biome.${floorBiome}.rule` as TranslationKey, weaponOf(state)) : eventAnnounce ? t(`event.${state.event}.rule` as TranslationKey) : undefined}
           story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
           dismiss={bannerSkipped === bannerKey}
@@ -1043,7 +1049,7 @@ export default function GameScreen({ navigation, route }: Props) {
           },
         ]}
       >
-        <AttackPanel onAttack={manualAttack} onAim={setAim} arrows={state.attack} refill={{ show: arrowShop.show, price: arrowShop.price, arrows: arrowShop.arrows, busy: arrowShop.busy, onBuy: () => void arrowShop.buy() }} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
+        <AttackPanel weapon={weaponOf(state)} onAttack={manualAttack} onAim={setAim} arrows={state.attack} refill={{ show: arrowShop.show, price: arrowShop.price, arrows: arrowShop.arrows, busy: arrowShop.busy, onBuy: () => void arrowShop.buy() }} relics={state.relics} relicsLabel={t("a11y.relics", { names: relicNames })} />
 
         <View ref={boardBox} onLayout={measureBoard} accessible accessibilityRole="summary" accessibilityLabel={boardSummary}>
           <Profiler id="board" onRender={onRenderProfile}>
@@ -1065,6 +1071,9 @@ export default function GameScreen({ navigation, route }: Props) {
             skin={skin}
             biome={artBiome}
             trail={looks.trail}
+            weapon={weaponOf(state)}
+            orbLook={looks.orb}
+            bombLook={looks.bomb}
             flag={looks.flag}
             pet={looks.pet}
             petAura={looks.petAura}
@@ -1075,6 +1084,7 @@ export default function GameScreen({ navigation, route }: Props) {
             onTilePress={travelTo}
             flags={flags}
             aimTiles={aimTiles}
+            aimArea={state.attack > 0 ? aimArea : undefined}
             aimDir={state.attack > 0 ? aimDir : null}
             shot={shot}
             teleported={state.wasTeleported}
@@ -1118,9 +1128,9 @@ export default function GameScreen({ navigation, route }: Props) {
             />
           </View>
           {movePad === "floating" ? (
-            <FloatingPad onMove={manualMove} canRepeat={canRepeatMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
+            <FloatingPad onMove={manualMove} canRepeat={canRepeatMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} weapon={weaponOf(state)} />
           ) : (
-            <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} />
+            <Controls onMove={manualMove} onAttack={manualAttack} onAim={setAim} arrows={state.attack} weapon={weaponOf(state)} />
           )}
         </View>
       </View>
@@ -1140,6 +1150,7 @@ export default function GameScreen({ navigation, route }: Props) {
           popScale={p.popScale}
           art={p.art}
           subArt={p.subArt}
+          weapon={weaponOf(state)}
           onComplete={() => removePopup(p.id)}
         />
       ))}
@@ -1150,7 +1161,7 @@ export default function GameScreen({ navigation, route }: Props) {
           <ScorePopup points={0} type="streak" sub="Linterna del minero" subColor="#C9A55A" popScale={1.1} art={RELIC_IMAGES.lantern} hold onComplete={() => {}} />
           <ScorePopup points={120} type="coin" x={420} y={140} hold onComplete={() => {}} />
           <ScorePopup points={300} type="kill" sub="x3 COMBO" subColor="#C8763A" x={600} y={140} hold onComplete={() => {}} />
-          <ScorePopup points={250} type="streak" sub={t("secret.found", { gems: 3, arrows: 1 })} subColor="#DCC48E" popScale={1.1} art={GLYPHS.sparkles} x={200} y={260} hold onComplete={() => {}} />
+          <ScorePopup points={250} type="streak" sub={weaponLine(t, "secret.found", weaponOf(state), { gems: 3, arrows: 1 })} subColor="#DCC48E" popScale={1.1} art={GLYPHS.sparkles} x={200} y={260} hold onComplete={() => {}} />
           <ScorePopup points={0} type="streak" sub="−1" subColor="#A397BF" art={CLUE_ART.vortex} subArt={GLYPHS.arrows} x={420} y={260} hold onComplete={() => {}} />
           <ScorePopup points={0} type="shield" x={600} y={260} hold onComplete={() => {}} />
         </>

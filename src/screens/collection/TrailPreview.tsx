@@ -131,6 +131,33 @@ const Core = ({ shape, size, color }: { shape: Shape; size: number; color: strin
 type Props = { id: CosmeticId; size: number; small?: boolean };
 
 /**
+ * A clock that runs 0..1 over `ms` again and again (it rests at 0.5 when `still`). Shared by the shot previews (trail, orb,
+ * bomb). Each pass starts the next one when it ends (a looped timing stalled at its end on the web).
+ */
+export function useFlightClock(still: boolean, ms: number): Animated.Value {
+  const clock = useRef(new Animated.Value(0.5)).current;
+  useEffect(() => {
+    if (still) {
+      clock.setValue(0.5);
+      return;
+    }
+    let alive = true;
+    const fly = () => {
+      clock.setValue(0);
+      Animated.timing(clock, { toValue: 1, duration: ms, easing: Easing.linear, useNativeDriver: true }).start(({ finished }) => {
+        if (alive && finished) fly();
+      });
+    };
+    fly();
+    return () => {
+      alive = false;
+      clock.stopAnimation();
+    };
+  }, [still, clock, ms]);
+  return clock;
+}
+
+/**
  * A trail in flight: the arrow crosses the preview with a light swing and a glow, shedding its own wake from the tail
  * (embers rise from fire, crystals fall from frost, sparks crackle around the storm, smoke swells behind the shadow...).
  * Small previews (grid cards) and calm mode show the wake still, frozen mid-flight.
@@ -140,24 +167,7 @@ const TrailPreview = ({ id, size, small }: Props) => {
   const look = TRAIL_LOOKS[id]!;
   const wake = WAKES[id] ?? WAKES.trail_fire;
   const still = calm || !!small;
-  const clock = useRef(new Animated.Value(0.5)).current;
-
-  useEffect(() => {
-    if (still) return;
-    // Each flight starts the next one when it lands (a looped timing stalled at its end on the web).
-    let alive = true;
-    const fly = () => {
-      clock.setValue(0);
-      Animated.timing(clock, { toValue: 1, duration: FLIGHT_MS, easing: Easing.linear, useNativeDriver: true }).start(({ finished }) => {
-        if (alive && finished) fly();
-      });
-    };
-    fly();
-    return () => {
-      alive = false;
-      clock.stopAnimation();
-    };
-  }, [still, clock]);
+  const clock = useFlightClock(still, FLIGHT_MS);
 
   const arrowW = size * 0.95;
   const arrowH = arrowW / 3;

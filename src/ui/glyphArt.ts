@@ -1,4 +1,6 @@
 import type { ImageSourcePropType } from 'react-native';
+import type { WeaponId } from '../core/engine/weapons';
+import { AMMO_ART } from './weaponArt';
 
 /**
  * Painted replacements for the emoji glyphs the UI used to borrow from the system font
@@ -22,6 +24,8 @@ export const GLYPHS = {
   gem: require('../assets/sprites/items/Icon_Gem.webp'),
   shield: require('../assets/sprites/items/Icon_Shield.webp'),
   arrows: require('../assets/sprites/items/Icon_Arrows.webp'),
+  orb: AMMO_ART.orb,
+  bombAmmo: AMMO_ART.bomb,
   play: require('../assets/sprites/ui/Icon_Play.webp'),
   infinity: require('../assets/sprites/ui/Icon_Infinity.webp'),
   flame: require('../assets/sprites/ui/Icon_Flame.webp'),
@@ -35,3 +39,6 @@ export const GLYPHS = {
 } satisfies Record<string, ImageSourcePropType>;
 
 export type GlyphName = keyof typeof GLYPHS;
+
+/** The glyph of each weapon's ammo (score popups of an ammo pickup, counters). */
+export const AMMO_GLYPH: Record<WeaponId, GlyphName> = { bow: 'arrows', orb: 'orb', bomb: 'bombAmmo' };

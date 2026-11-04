@@ -1,6 +1,8 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { AbilityId } from '../core/engine/abilities';
 import type { ShopItem } from '../core/engine/shop';
+import type { WeaponId } from '../core/engine/weapons';
+import { AMMO_ART } from './weaponArt';
 
 /** The one-use items and the undo, as pictures (they are drawn on the toolbar, in the shop and in the manual). */
 export const TOOL_ART = {
@@ -26,6 +28,10 @@ export const SHOP_ART: Record<ShopItem, ImageSourcePropType> = {
   detector: TOOL_ART.detector,
   bomb: TOOL_ART.bomb,
 };
+
+/** The picture of a shop card in the hero's words: the ammo ware is the bundle of the hero's own ammo. */
+export const shopArt = (item: ShopItem, weapon: WeaponId = 'bow'): ImageSourcePropType =>
+  item === 'arrows' && weapon !== 'bow' ? AMMO_ART[weapon] : SHOP_ART[item];
 
 export const ALTAR_ART: ImageSourcePropType = require('../assets/sprites/tools/Shop_Altar.webp');
 

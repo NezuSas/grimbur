@@ -7,6 +7,7 @@ import type { EventId } from './events';
 import type { GameEntity, GameState } from './types';
 import { isClueHazard } from './types';
 import { draftContext, gainRelicNow, nearestTile } from './worldHelpers';
+import { scaleAmmo, weaponOf } from './weapons';
 
 /**
  * Encounters: some floors open with a quick choice told as a scene (a wounded scout, a strange spring, a gambler, a forgotten
@@ -73,9 +74,14 @@ export function encounterFor(runSeed: number, level: number, mode: GameMode, eve
   return ENCOUNTERS[Math.floor(roll() * ENCOUNTERS.length)];
 }
 
+/** The scout's price in the hero's ammo: bombs are scarcer, so a bomber pays half (rounded up). */
+export const scoutCost = (s: Partial<Pick<GameState, 'perks'>>): number => scaleAmmo(s.perks ? weaponOf(s as Pick<GameState, 'perks'>) : 'bow', SCOUT_ARROWS);
+/** The arrows the smith melts the shield into, in the hero's ammo. */
+export const smithAmmo = (s: Partial<Pick<GameState, 'perks'>>): number => scaleAmmo(s.perks ? weaponOf(s as Pick<GameState, 'perks'>) : 'bow', SMITH_ARROWS);
+
 /** Whether the player can pay for the scene right now (walking past is always possible). */
-export function canTake(id: EncounterId, s: Pick<GameState, 'attack' | 'gems' | 'items'> & Partial<Pick<GameState, 'shield' | 'entities' | 'rows' | 'cols' | 'visited' | 'playerIndex' | 'marked'>>): boolean {
-  if (id === 'scout') return s.attack >= SCOUT_ARROWS;
+export function canTake(id: EncounterId, s: Pick<GameState, 'attack' | 'gems' | 'items'> & Partial<Pick<GameState, 'shield' | 'entities' | 'rows' | 'cols' | 'visited' | 'playerIndex' | 'marked' | 'perks'>>): boolean {
+  if (id === 'scout') return s.attack >= scoutCost(s);
   if (id === 'gambler') return s.gems >= GAMBLER_STAKE;
   if (id === 'shrine') return s.attack >= SHRINE_ARROWS && (s.items.detector < MAX_ITEMS || s.items.bomb < MAX_ITEMS);
   if (id === 'miner') return s.items.bomb >= MINER_BOMBS;
@@ -159,7 +165,7 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
   switch (enc.id) {
     case 'scout': {
       const tiles = scoutTiles(state);
-      return { ...state, attack: state.attack - SCOUT_ARROWS, visited: [...state.visited, ...tiles], encounter: { ...enc, outcome: 'done' } };
+      return { ...state, attack: state.attack - scoutCost(state), visited: [...state.visited, ...tiles], encounter: { ...enc, outcome: 'done' } };
     }
     case 'spring': {
       if (roll() < SPRING_LUCK) {
@@ -205,6 +211,6 @@ function resolveScene(state: GameState, enc: Encounter, take: boolean): GameStat
       return { ...state, attack: state.attack - 1, encounter: { ...enc, outcome: 'lose' } };
     }
     case 'smith':
-      return { ...state, shield: false, attack: state.attack + SMITH_ARROWS, encounter: { ...enc, outcome: 'done' } };
+      return { ...state, shield: false, attack: state.attack + smithAmmo(state), encounter: { ...enc, outcome: 'done' } };
   }
 }

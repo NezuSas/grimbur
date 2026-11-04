@@ -23,6 +23,9 @@ import FogPuff from "./game/FogPuff";
 import GlyphIcon from "./GlyphIcon";
 import { useT } from "../../i18n/useT";
 import type { TranslationKey } from "../../i18n/en";
+import type { WeaponId } from "../../core/engine/weapons";
+import { AMMO_ART } from "../weaponArt";
+import { weaponLine } from "../../i18n/weaponText";
 
 const LAVA_ART = require("../../assets/sprites/tiles/Lava_Pool.png");
 import { LAVA_TURNS } from "../../core/engine/generator";
@@ -195,7 +198,7 @@ GemSprite.displayName = "GemSprite";
 
 // ─── Optimized Grid Cell Component ──────────────────────────────────────────
 const GridCell = memo(({ 
-  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null, draft = false, block = false
+  index, tileSize, cols, isVisited: visitedProp, isPlayerHere, entity, enemyCount, pitCount, highlighted, flagged, aimed, aimStep, aimLast, onTileLoaded, revealDelay, pulse, beat, killer, flagPing, biome, calm, sprung = false, flagArt, unveiled = false, lurking = false, hideClue = false, deduced = null, draft = false, block = false, aimZone = null, weapon = "bow"
 }: {
   index: number;
   tileSize: number;
@@ -222,6 +225,10 @@ const GridCell = memo(({
   aimStep: number;
   /** This is the last tile the arrow can reach. */
   aimLast: boolean;
+  /** This tile lies in the burst of the orb / the blast of the bomb at the end of the aim line (null when not). */
+  aimZone?: 'orb' | 'bomb' | null;
+  /** The hero's weapon: the ammo pickup shows its ammo. */
+  weapon?: WeaponId;
   /** The tile's base image has been drawn. */
   onTileLoaded: () => void;
   /** When many tiles are uncovered at once (a relic), each one waits this long so they open as a ripple. */
@@ -372,7 +379,7 @@ const GridCell = memo(({
     if (entity?.lava) return `${where}: ${t("a11y.tile.lava")}`;
     if (!lit) return `${where}: ${t(flagged ? "a11y.tile.flagged" : "a11y.tile.hidden")}`;
     const parts: string[] = [];
-    if (entity && seen) parts.push(t(`a11y.thing.${entity.type}` as TranslationKey));
+    if (entity && seen) parts.push(entity.type === 'ammo' ? weaponLine(t, "a11y.thing.ammo", weapon) : t(`a11y.thing.${entity.type}` as TranslationKey));
     if (showHints && enemyCount > 0) parts.push(t(enemyCount === 1 ? "a11y.tile.guardians.one" : "a11y.tile.guardians", { n: enemyCount }));
     if (showHints && pitCount > 0) parts.push(t(pitCount === 1 ? "a11y.tile.vortexes.one" : "a11y.tile.vortexes", { n: pitCount }));
     if (draft && !hideClue) parts.push(t("a11y.tile.secret"));
@@ -576,7 +583,7 @@ const GridCell = memo(({
       )}
       {entity?.type === 'ammo' && (
         <View style={styles.pickup} pointerEvents="none">
-          <SpriteImage source={ASSETS.ammo} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
+          <SpriteImage source={AMMO_ART[weapon]} style={{ width: tileSize * 0.7, height: tileSize * 0.7 }} resizeMode="contain" />
         </View>
       )}
 
@@ -600,6 +607,11 @@ const GridCell = memo(({
           <GameIcon name={FACING_ICON[aimed]} size={tileSize * 0.46} color="#D58A7E" style={{ opacity: Math.max(0.5, 1 - (aimStep - 1) * 0.13) }} />
           {aimLast && <View style={[styles.aimRing, { width: tileSize * 0.62, height: tileSize * 0.62, borderRadius: tileSize * 0.31 }]} />}
         </View>
+      )}
+
+      {aimZone && (
+        // Where the orb would burst / the bomb would blast: a faint wash and a dashed ring (only around the line's end).
+        <View style={[styles.aimZone, aimZone === 'bomb' ? styles.aimZoneBomb : styles.aimZoneOrb, { borderRadius: tileSize * 0.2 }]} pointerEvents="none" />
       )}
 
       {deduced && !flagged && (
@@ -649,6 +661,9 @@ const styles = StyleSheet.create({
   bossCharged: { backgroundColor: "rgba(194, 58, 68, 0.62)", borderWidth: 2, borderColor: "#DCC25C" },
   aim: { position: "absolute", left: 3, top: 3, right: 3, bottom: 3, borderRadius: 8, borderWidth: 1.5, borderColor: "rgba(181, 82, 74,0.6)", backgroundColor: "rgba(181, 82, 74,0.14)", alignItems: "center", justifyContent: "center", zIndex: 7 },
   aimLast: { borderWidth: 2, borderColor: "rgba(181, 82, 74,0.95)", backgroundColor: "rgba(181, 82, 74,0.24)" },
+  aimZone: { position: "absolute", left: 5, top: 5, right: 5, bottom: 5, borderWidth: 1.5, borderStyle: "dashed", zIndex: 7 },
+  aimZoneOrb: { borderColor: "rgba(248, 200, 240, 0.75)", backgroundColor: "rgba(232, 121, 201, 0.14)" },
+  aimZoneBomb: { borderColor: "rgba(255, 179, 71, 0.8)", backgroundColor: "rgba(255, 90, 54, 0.14)" },
   aimRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,255,255,0.85)" },
   highlight: { position: "absolute", left: 2, top: 2, right: 2, bottom: 2, borderWidth: 3, borderColor: "#C9A55A", borderRadius: 6, zIndex: 6 },
   bossHp: { position: "absolute", bottom: 0, alignSelf: "center", zIndex: 4 },

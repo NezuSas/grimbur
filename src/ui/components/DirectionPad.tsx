@@ -15,6 +15,8 @@ import { ATTACK_ART as ATTACK_SKINS } from "../cosmeticArt";
 import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../../services/localStats";
 import { useTouchScale, useUiScale } from "../layout/scaledWindow";
+import type { WeaponId } from "../../core/engine/weapons";
+import { attackLabel, attackVerb } from "../../i18n/weaponText";
 
 type Props = {
   onMove: (direction: Direction) => void;
@@ -24,6 +26,8 @@ type Props = {
   arrows: number;
   /** No attack at all (the puzzles): the middle of the disc stays empty. */
   noAttack?: boolean;
+  /** What the hero shoots (weaponOf(state)); the bow when missing (tutorial, lessons). */
+  weapon?: WeaponId;
 };
 
 const GOLD = "#C9A55A";
@@ -40,6 +44,8 @@ type AttackButtonProps = {
   onAttack: (direction?: Direction) => void;
   /** Reports what the player is aiming at while the finger is down ('facing' = no drag yet), then null. */
   onAim?: (aim: Direction | "facing" | null) => void;
+  /** What the hero shoots: names the aim actions for screen readers. */
+  weapon?: WeaponId;
 };
 
 const ATTACK_ART = {
@@ -56,7 +62,7 @@ const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT
  * player never has to look away. Tap to shoot where the hero faces; press and drag toward a side to aim without moving,
  * and a painted arrow turns to show the way.
  */
-export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: AttackButtonProps) => {
+export const AttackButton = memo(({ size, arrows, label, onAttack, onAim, weapon = "bow" }: AttackButtonProps) => {
   // The attack button worn in the Collection, read once (an empty quiver always shows the dull stone).
   const [readyArt] = useState(() => {
     const saved = peekLocalStats();
@@ -126,7 +132,7 @@ export const AttackButton = memo(({ size, arrows, label, onAttack, onAim }: Atta
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityState={{ disabled: empty }}
-        accessibilityActions={(Object.keys(names) as Direction[]).map(d => ({ name: d, label: `${t("a11y.attack")}: ${names[d]}` }))}
+        accessibilityActions={(Object.keys(names) as Direction[]).map(d => ({ name: d, label: `${attackVerb(t, weapon)}: ${names[d]}` }))}
         onAccessibilityTap={() => onAttack()}
         onAccessibilityAction={e => onAttack(e.nativeEvent.actionName as Direction)}
         style={[styles.attack, { width: size, height: size, borderRadius: size / 2 }, !empty && styles.attackReady]}
@@ -159,7 +165,7 @@ const ARROWS: { dir: Direction; icon: keyof typeof Ionicons.glyphMap; dx: number
  * One round direction pad. The whole disc is the touch area, split into four quadrants along its diagonals,
  * so a thumb that drifts a little still lands on the intended arrow (a pad of four small buttons has gaps).
  */
-const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, noAttack = false }) => {
+const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, noAttack = false, weapon = "bow" }) => {
   const { t } = useT();
   const { padDiameter: D, splitAttack, attackSize } = useGameLayout();
   const [active, setActive] = useState<Direction | null>(null);
@@ -268,7 +274,7 @@ const DirectionPad: React.FC<Props> = memo(({ onMove, onAttack, onAim, arrows, n
 
       {!splitAttack && !noAttack && (
         <View style={styles.center} pointerEvents="box-none">
-          <AttackButton size={attackSize} arrows={arrows} label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`} onAttack={onAttack} onAim={onAim} />
+          <AttackButton size={attackSize} arrows={arrows} weapon={weapon} label={attackLabel(t, weapon, arrows)} onAttack={onAttack} onAim={onAim} />
         </View>
       )}
     </View>

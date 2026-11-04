@@ -23,6 +23,9 @@ import { RELIC_IMAGES } from "../../ui/relicImages";
 import { GLYPHS } from "../../ui/glyphArt";
 import { CLUE_ART } from "../../ui/components/GridCell";
 import { landMs } from "../../ui/components/game/ArrowFlight";
+import type { ArrowShot } from "../../ui/components/BoardView";
+import { scaleAmmo, weaponOf } from "../../core/engine/weapons";
+import { weaponLine } from "../../i18n/weaponText";
 
 type Params = {
   state: GameState;
@@ -32,6 +35,8 @@ type Params = {
   reduceFlash: boolean;
   /** The opaque cover over the board: the board is measured again when it goes away. */
   bootCover: boolean;
+  /** The last shot, set the moment it is taken (useBoardInput): an orb or a bomb strikes when it is seen to land. */
+  shotRef?: MutableRefObject<ArrowShot | null>;
 };
 
 /**
@@ -39,7 +44,7 @@ type Params = {
  * core/feedback/diffFeedback.ts): so each event fires exactly once, and buying, the detector or undo never replay an old
  * pickup. It owns the floating scores, the flying gems, the screen flashes and the board's anchor for them.
  */
-export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, bootCover }: Params) {
+export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, bootCover, shotRef }: Params) {
   const { t } = useT();
   const relicName = (id: Parameters<typeof relicText>[1]) => relicText(t, id, "name");
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -61,6 +66,8 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
   useEffect(() => () => arrowTimers.current.forEach(clearTimeout), []);
   /** Set while a retry restarts the run: the jump from the old board to the new one must not play any feedback. */
   const isResetting = useRef(false);
+  /** The key of the last shot whose landing was already played (a shot is played once). */
+  const usedShot = useRef(0);
 
   // ── Vortex teleport flash ────────────────────────────────────────────────
   useEffect(() => {
@@ -142,12 +149,31 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
     // A hit by an arrow is heard and seen when the arrow arrives (the board keeps the foe until then), not when it leaves the bow.
     // Calm draws no flight, so nothing waits there; a volley or a bomb spends no arrow and strikes at once.
     const shotFired = state.attack < prev.attack;
+    // An orb or a bomb: everything it does happens where it lands (a blast kills several at once), when it is seen to land.
+    const last = shotRef?.current;
+    const thrown = shotFired && last && last.weapon && last.weapon !== "bow" && last.key !== usedShot.current ? last : null;
+    if (thrown) usedShot.current = thrown.key;
     const whenArrowLands = (tile: number, play: () => void) => {
+      if (thrown) {
+        const wait = reduceFlash ? 0 : landMs(thrown);
+        if (wait === 0) play();
+        else arrowTimers.current.push(setTimeout(play, wait));
+        return;
+      }
       const tiles = Math.abs(Math.floor(tile / state.cols) - Math.floor(state.playerIndex / state.cols)) + Math.abs((tile % state.cols) - (state.playerIndex % state.cols));
-      const wait = shotFired && !reduceFlash && tiles > 0 ? landMs({ key: 0, dir: state.facingDir, tiles, hit: true }) : 0;
+      const wait = shotFired && !reduceFlash && tiles > 0 ? landMs({ tiles, weapon: "bow" }) : 0;
       if (wait === 0) play();
       else arrowTimers.current.push(setTimeout(play, wait));
     };
+
+    // The orb bursts and the bomb blows up wherever it lands, hit or miss.
+    if (thrown && thrown.landing !== undefined && thrown.landing >= 0) {
+      const blast = thrown.weapon === "bomb";
+      whenArrowLands(thrown.landing, () => {
+        emitSound(blast ? "BOMB_BLAST" : "ORB_BURST");
+        if (blast) haptic.impact(ImpactFeedbackStyle.Heavy);
+      });
+    }
 
     // The gem streak ends as soon as the player pauses (see addGem) or any non-gem move happens after the window.
     for (const e of events) {
@@ -195,6 +221,10 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
           break;
         }
         case "miss": {
+          if (thrown) {
+            haptic.impact(ImpactFeedbackStyle.Light); // the burst or the blast is its own sound (above)
+            break;
+          }
           emitSound("ATTACK");
           haptic.impact(ImpactFeedbackStyle.Light); // a miss is a soft tap; a hit has its own heavy one
           break;
@@ -212,7 +242,7 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
             // A secret room: its cache shown where it was found.
             emitSound("RELIC_PICKED");
             haptic.notify(NotificationFeedbackType.Success);
-            pushPopup({ points: secretScore(state.level), type: "streak", sub: t("secret.found", { gems: SECRET_GEMS, arrows: SECRET_ARROWS }), subColor: "#DCC48E", popScale: 1.1, art: GLYPHS.sparkles, centered: true }, e.tile);
+            pushPopup({ points: secretScore(state.level), type: "streak", sub: weaponLine(t, "secret.found", weaponOf(state), { gems: SECRET_GEMS, arrows: scaleAmmo(weaponOf(state), SECRET_ARROWS) }), subColor: "#DCC48E", popScale: 1.1, art: GLYPHS.sparkles, centered: true }, e.tile);
           } else if (e.pickup === "thief") {
             emitSound("COIN_COLLECTED");
             pushPopup({ points: 0, type: "streak", sub: t("popup.recovered"), subColor: "#7FAFC6", art: GLYPHS.gem, centered: true }, e.tile);

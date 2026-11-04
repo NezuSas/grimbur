@@ -8,6 +8,8 @@ import { AttackButton } from "./DirectionPad";
 import RelicTray from "./RelicTray";
 import type { RelicId } from "../../core/engine/relics";
 import type { Direction } from "../../core/engine/types";
+import type { WeaponId } from "../../core/engine/weapons";
+import { attackLabel, weaponLine } from "../../i18n/weaponText";
 
 type Props = {
   onAttack: (direction?: Direction) => void;
@@ -17,13 +19,15 @@ type Props = {
   relicsLabel?: string;
   /** Arrows for embers, offered while the hero has none left (its price and pack size). */
   refill?: { show: boolean; price: number; arrows: number; busy: boolean; onBuy: () => void };
+  /** What the hero shoots (weaponOf(state)); the bow when missing (tutorial, lessons). */
+  weapon?: WeaponId;
 };
 
 /**
  * The attack button on its own column, opposite the direction pad (one thumb moves, the other shoots).
  * Renders nothing when the attack button lives in the middle of the pad instead.
  */
-const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsLabel, refill }) => {
+const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsLabel, refill, weapon = "bow" }) => {
   const { t } = useT();
   const { splitAttack, attackPanelWidth, attackSize } = useGameLayout();
   if (!splitAttack) return null;
@@ -42,13 +46,13 @@ const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsL
             disabled={refill.busy}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel={t("refill.a11y", { n: refill.arrows, price: refill.price })}
+            accessibilityLabel={weaponLine(t, "refill.a11y", weapon, { n: refill.arrows, price: refill.price })}
           >
             {refill.busy ? (
               <ActivityIndicator size="small" color="#1a1200" />
             ) : (
               <Text style={styles.refillText} numberOfLines={2} maxFontSizeMultiplier={1.1}>
-                {t("refill.chip", { n: refill.arrows })}
+                {weaponLine(t, "refill.chip", weapon, { n: refill.arrows })}
                 {"\n"}<EmberIcon size={12} /> {refill.price}
               </Text>
             )}
@@ -57,7 +61,8 @@ const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsL
         <AttackButton
           size={attackSize}
           arrows={arrows}
-          label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`}
+          weapon={weapon}
+          label={attackLabel(t, weapon, arrows)}
           onAttack={onAttack}
           onAim={onAim}
         />

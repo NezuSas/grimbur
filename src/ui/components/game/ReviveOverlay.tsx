@@ -11,6 +11,9 @@ import { PopButton, PopLink, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { useSettingsStore } from "../../../state/settings/store";
 import { REVIVE_ARROWS } from "../../../core/engine/revive";
+import { scaleAmmo, type WeaponId } from "../../../core/engine/weapons";
+import { AMMO_ART } from "../../weaponArt";
+import { weaponLine } from "../../../i18n/weaponText";
 
 type Props = {
   visible: boolean;
@@ -23,6 +26,8 @@ type Props = {
   hero?: ImageSourcePropType;
   onRevive: () => void;
   onDecline: () => void;
+  /** What the hero shoots (weaponOf(state)): the ammo gift is that ammo, in its pack size. The bow when missing. */
+  weapon?: WeaponId;
 };
 
 const FIRE = "#D38C46";
@@ -30,14 +35,14 @@ const PHOENIX = require("../../../assets/sprites/relics/phoenix.webp");
 const GIFTS: { key: string; art: ImageSourcePropType; text: "revive.gift.back" | "revive.gift.shield" | "revive.gift.arrows" }[] = [
   { key: "back", art: require("../../../assets/sprites/tools/Tool_Undo.webp"), text: "revive.gift.back" },
   { key: "shield", art: require("../../../assets/sprites/items/Icon_Shield.webp"), text: "revive.gift.shield" },
-  { key: "arrows", art: require("../../../assets/sprites/items/Icon_Arrows.webp"), text: "revive.gift.arrows" },
+  { key: "arrows", art: AMMO_ART.bow, text: "revive.gift.arrows" },
 ];
 
 /**
  * The second chance, right after the hero falls: the fallen hero with a phoenix feather rising over them on the left; on
  * the right what coming back gives, the price in embers on the big button and a quiet way out.
  */
-const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onDecline }: Props) => {
+const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onDecline, weapon = "bow" }: Props) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const calm = useSettingsStore(s => s.reduceFlash);
@@ -100,9 +105,9 @@ const ReviveOverlay = ({ visible, price, embers, used, busy, hero, onRevive, onD
           <View style={styles.gifts}>
             {GIFTS.map(g => (
               <View key={g.key} style={styles.gift}>
-                <SpriteImage source={g.art} style={styles.giftArt} resizeMode="contain" />
+                <SpriteImage source={g.key === "arrows" ? AMMO_ART[weapon] : g.art} style={styles.giftArt} resizeMode="contain" />
                 <Text style={styles.giftText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-                  {t(g.text, { n: REVIVE_ARROWS })}
+                  {weaponLine(t, g.text, weapon, { n: scaleAmmo(weapon, REVIVE_ARROWS) })}
                 </Text>
               </View>
             ))}

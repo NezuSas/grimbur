@@ -3,6 +3,7 @@ import { analytics } from "../../services/analytics";
 import { getLocalStats, spendEmbersFor } from "../../services/localStats";
 import { REFILL_ARROWS, refillPrice } from "../../core/engine/revive";
 import type { GameState } from "../../core/engine/types";
+import { scaleAmmo, weaponOf } from "../../core/engine/weapons";
 
 type Params = {
   state: GameState;
@@ -61,5 +62,7 @@ export function useArrowRefill({ state, isDaily, playing, refill }: Params) {
   }, [price, state.level, refill]);
 
   const show = dry && embers !== null && embers >= price;
-  return { show, price, arrows: REFILL_ARROWS, busy, buy };
+  // The pack is in the hero's ammo: bombs are scarcer (see scaleAmmo).
+  const weapon = weaponOf(state);
+  return { show, price, arrows: scaleAmmo(weapon, REFILL_ARROWS), weapon, busy, buy };
 }

@@ -1,4 +1,5 @@
 import type { AbilityId } from './abilities';
+import type { WeaponId } from './weapons';
 
 /**
  * Hero perks. They are plain data read by the reducer, so the rules stay pure
@@ -25,6 +26,8 @@ export interface HeroPerks {
   abilityHaste?: number;
   /** The hero's active ability (null when none). */
   ability: AbilityId | null;
+  /** What the hero shoots (see weapons.ts). Missing = the bow (old saves, tutorial, lessons). */
+  weapon?: WeaponId;
 }
 
 export const NO_PERKS: HeroPerks = {
@@ -68,13 +71,13 @@ export const HEROES: readonly HeroInfo[] = [
   },
   {
     perkName: 'Lightbearer',
-    perkDescription: 'Every floor starts with the area around you already lit.',
-    perks: { ...NO_PERKS, startLit: true, ability: 'flare' },
+    perkDescription: 'Every floor starts with the area around you already lit. Casts arcane orbs that burst where they land and light the tiles around (one orb fewer per floor, never below one).',
+    perks: { ...NO_PERKS, startLit: true, ability: 'flare', weapon: 'orb', bonusArrows: -1 },
   },
   {
     perkName: 'Tinkerer',
-    perkDescription: 'Every run starts with a detector and a bomb.',
-    perks: { ...NO_PERKS, startItems: { detector: 1, bomb: 1 }, ability: 'blast' },
+    perkDescription: 'Every run starts with a detector and a powder keg. Throws bombs 2 tiles that blow up a plus around where they land (half the ammo, loud).',
+    perks: { ...NO_PERKS, startItems: { detector: 1, bomb: 1 }, ability: 'blast', weapon: 'bomb', arrowReach: 2 },
   },
 ];
 

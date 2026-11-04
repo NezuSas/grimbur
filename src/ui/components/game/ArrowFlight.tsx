@@ -1,18 +1,27 @@
 import React from "react";
-import { Animated, View } from "react-native";
+import { Animated, Easing, View } from "react-native";
 import type { ArrowShot } from "../BoardView";
 import SpriteImage from "../SpriteImage";
 import type { TrailLook } from "../../cosmeticArt";
 
 /** The part of `flight` (0..1) at which the arrow reaches its tile; the rest is the impact. */
 const LAND_AT = 0.8;
-/** How long an arrow flies: farther tiles take longer. */
-export const flightMs = (shot: ArrowShot) => 110 + 55 * shot.tiles;
 /**
- * When, after the shot, the arrow is seen to land. `flight` runs on an ease-out-quad curve, so it reaches LAND_AT at
- * 1 - sqrt(1 - LAND_AT) of the time (about 55%), well before the whole flight is over.
+ * Where in `flight` (0..1) each weapon's shot reaches its tile; the rest is its impact. The orb's burst and the bomb's blast
+ * last longer than an arrow's strike, so they land earlier in their (longer) run.
  */
-export const landMs = (shot: ArrowShot) => Math.round(flightMs(shot) * (1 - Math.sqrt(1 - LAND_AT)));
+export const landAt = (shot: Pick<ArrowShot, "weapon">) => (shot.weapon === "orb" ? 0.6 : shot.weapon === "bomb" ? 0.55 : LAND_AT);
+/** How long a shot runs (flight and impact): farther tiles take longer; an orb drifts, a bomb is lobbed. */
+export const flightMs = (shot: Pick<ArrowShot, "tiles" | "weapon">) =>
+  shot.weapon === "orb" ? 300 + 80 * shot.tiles : shot.weapon === "bomb" ? 520 + 90 * shot.tiles : 110 + 55 * shot.tiles;
+/** The curve `flight` runs on: the arrow and the orb ease out; a lobbed bomb crosses at a steady pace (its arc is drawn). */
+export const flightEasing = (shot: Pick<ArrowShot, "weapon">) => (shot.weapon === "bomb" ? Easing.linear : Easing.out(Easing.quad));
+/**
+ * When, after the shot, it is seen to land. On the ease-out-quad curve `flight` reaches landAt at 1 - sqrt(1 - landAt) of the
+ * time (about 55% for the arrow), well before the whole run is over; the bomb's linear run reaches it at landAt.
+ */
+export const landMs = (shot: Pick<ArrowShot, "tiles" | "weapon">) =>
+  Math.round(flightMs(shot) * (shot.weapon === "bomb" ? landAt(shot) : 1 - Math.sqrt(1 - landAt(shot))));
 
 /** Ghost arrows behind the real one: how far back each one runs (in `flight`) and how strongly it shows. */
 const GHOSTS = [1, 2, 3, 4].map(k => ({ lag: 0.05 * k, alpha: 0.55 - 0.11 * k, scale: 1 - 0.12 * k }));

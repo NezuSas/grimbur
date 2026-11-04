@@ -36,6 +36,8 @@ export type SoundEvent =
   | 'VORTEX_TELEPORT'    // Player was teleported by a vortex
   | 'SHIELD_BREAK'       // A shield (or feather) soaked a deadly touch
   | 'BOSS_HIT'           // An arrow hurt the Grimbur
+  | 'ORB_BURST'          // Mira's orb burst where it landed (lights the tiles around it)
+  | 'BOMB_BLAST'         // Bram's bomb exploded where it landed
   | 'CHARGE_WARN'       // A hunter started winding up a strike
   | 'UI_TAP'             // A menu or popup button was pressed
   | 'FORGE_HAMMER'       // A Forge upgrade (or outfit) was bought

@@ -12,15 +12,26 @@ import { FAMILY_COLOR } from '../../familyLook';
 import type { TranslationKey } from '../../../i18n/en';
 import type { ImageSourcePropType } from 'react-native';
 import { useEscapeKey } from '../../hotkeys';
+import type { WeaponId } from '../../../core/engine/weapons';
+import { AMMO_ART } from '../../weaponArt';
+import { ammoName, weaponLine } from '../../../i18n/weaponText';
 
 /** Where the run stands, shown under the title so a paused player knows what they come back to. */
-export type PauseSummary = { floor: number; floors: number; score: number; gems: number; arrows: number; relics: readonly RelicId[] };
+export type PauseSummary = {
+  floor: number;
+  floors: number;
+  score: number;
+  gems: number;
+  arrows: number;
+  relics: readonly RelicId[];
+  /** What the hero shoots (weaponOf(state)): the ammo tile shows it. The bow when missing. */
+  weapon?: WeaponId;
+};
 
-const TILE_ART: Record<'floor' | 'score' | 'gems' | 'arrows', ImageSourcePropType> = {
+const TILE_ART: Record<'floor' | 'score' | 'gems', ImageSourcePropType> = {
   floor: require('../../../assets/sprites/ui/Icon_Flag.webp'),
   score: require('../../../assets/sprites/ui/Icon_Trophy.webp'),
   gems: require('../../../assets/sprites/items/Icon_Gem.webp'),
-  arrows: require('../../../assets/sprites/items/Icon_Arrows.webp'),
 };
 
 type Props = {
@@ -80,11 +91,11 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
                   ['floor', `${summary.floor}/${summary.floors}`, t('pause.floor')],
                   ['score', n(summary.score), t('over.score')],
                   ['gems', String(summary.gems), t('over.gems')],
-                  ['arrows', String(summary.arrows), t('pause.arrows')],
+                  ['arrows', String(summary.arrows), ammoName(t, summary.weapon)],
                 ] as const
               ).map(([key, value, label]) => (
                 <View key={key} style={styles.tile} accessible accessibilityLabel={`${label}: ${value}`}>
-                  <SpriteImage source={TILE_ART[key]} style={styles.tileArt} resizeMode="contain" />
+                  <SpriteImage source={key === 'arrows' ? AMMO_ART[summary.weapon ?? 'bow'] : TILE_ART[key]} style={styles.tileArt} resizeMode="contain" />
                   <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.1}>{value}</Text>
                   <Text style={styles.tileLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>{label.toLocaleUpperCase()}</Text>
                 </View>
@@ -95,7 +106,7 @@ const PauseOverlay = ({ visible, saveOnExit, canRestart, onResume, onRestart, on
                 <RelicTray relics={summary.relics} size={24} label={t('pause.relics')} />
                 {activeFamilies(summary.relics).map(f => (
                   <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-                    {`${t(`family.${f}.name` as TranslationKey)}: ${t(`family.${f}.bonus` as TranslationKey)}`}
+                    {`${t(`family.${f}.name` as TranslationKey)}: ${weaponLine(t, `family.${f}.bonus` as TranslationKey, summary.weapon)}`}
                   </Text>
                 ))}
               </View>

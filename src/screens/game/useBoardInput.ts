@@ -3,7 +3,8 @@ import type { MutableRefObject } from "react";
 import { emitSound } from "../../audio/audioEventBus";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { useTravel } from "../../hooks/useTravel";
-import { arrowPath, arrowReachOf } from "../../core/engine/reducer";
+import { arrowReachOf } from "../../core/engine/reducer";
+import { burstArea, ORB_BURST, shotPlan, squareArea, weaponOf } from "../../core/engine/weapons";
 import { lineOfFire, stepTarget } from "../../core/engine/travel";
 import { canRepeatStep } from "../../core/input/floatingPad";
 import type { Direction, GameState } from "../../core/engine/types";
@@ -87,6 +88,8 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
 
   // The arrow in flight: where it goes is worked out from the board as it is when the shot is taken.
   const [shot, setShot] = useState<ArrowShot | null>(null);
+  /** The same shot, set the moment it is taken (the feedback of the state change reads it to time the impact). */
+  const shotRef = useRef<ArrowShot | null>(null);
   const shotCount = useRef(0);
   const manualAttack = useCallback(
     (direction?: Direction) => {
@@ -95,8 +98,13 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
       const s = stateRef.current;
       if (s.attack > 0 && !s.isGameOver && !s.isLevelUp && !s.pendingDraft) {
         const dir = direction ?? s.facingDir;
-        const { tiles, targetIndex } = arrowPath(s, dir);
-        if (tiles.length > 0) setShot({ key: ++shotCount.current, dir, tiles: tiles.length, hit: targetIndex !== -1 });
+        // The plan of the rules themselves (shotPlan): the animation flies, lands and bursts exactly where the shot does.
+        const plan = shotPlan(s, dir);
+        if (plan.tiles.length > 0) {
+          const next: ArrowShot = { key: ++shotCount.current, dir, tiles: plan.tiles.length, hit: plan.targetIndex !== -1, weapon: plan.weapon, landing: plan.landing, area: plan.area };
+          shotRef.current = next;
+          setShot(next);
+        } else shotRef.current = null;
       }
       attack(direction);
     },
@@ -111,6 +119,24 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
     () => (aimDir ? new Set(lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols)) : undefined),
     [aimDir, state.playerIndex, state.rows, state.cols, reach],
   );
+  // The orb and the bomb also show where they would burst: around the END of the full line (never around a hidden target,
+  // which would give it away). The orb lights only the hidden tiles; the bomb blasts all of them.
+  const weapon = weaponOf(state);
+  const flare = state.relics.includes("flare_arrow");
+  const piercing = state.relics.includes("piercing");
+  const aimArea = useMemo(() => {
+    if (!aimDir || weapon === "bow") return undefined;
+    const line = lineOfFire(state.playerIndex, aimDir, reach, state.rows, state.cols);
+    if (line.length === 0) return undefined;
+    const end = line[line.length - 1];
+    const tiles =
+      weapon === "orb"
+        ? burstArea(end, flare ? 2 : ORB_BURST, state.rows, state.cols, state.playerIndex).filter(i => !state.visited.includes(i))
+        : piercing
+          ? squareArea(end, state.rows, state.cols, state.playerIndex)
+          : burstArea(end, 1, state.rows, state.cols, state.playerIndex);
+    return new Set(tiles);
+  }, [aimDir, weapon, flare, piercing, state.playerIndex, state.rows, state.cols, state.visited, reach]);
 
   // The joystick keeps walking while it is held, but only over explored, empty ground (never blindly).
   const canRepeatMove = useCallback((direction: Direction) => !pausedRef.current && canRepeatStep(stateRef.current, direction, flagsRef.current), [pausedRef, stateRef]);
@@ -127,5 +153,5 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
     [manualAttack, stateRef],
   );
 
-  return { flags, flagPing, toggleFlag, manualMove, manualAttack, canRepeatMove, fireDragged, setAim, aimDir, aimTiles, shot, travelTo, cancelTravel, stepSoundedAt };
+  return { flags, flagPing, toggleFlag, manualMove, manualAttack, canRepeatMove, fireDragged, setAim, aimDir, aimTiles, aimArea, weapon, shot, shotRef, travelTo, cancelTravel, stepSoundedAt };
 }

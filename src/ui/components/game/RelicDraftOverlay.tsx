@@ -10,10 +10,13 @@ import RelicIcon from '../RelicIcon';
 import OverlayContainer from './OverlayContainer';
 import { useT } from '../../../i18n/useT';
 import { relicText } from '../../../i18n/keys';
+import type { WeaponId } from '../../../core/engine/weapons';
 import type { TranslationKey } from '../../../i18n/en';
 import { FAMILY_COLOR } from '../../familyLook';
 
 type Props = {
+  /** The hero's weapon: a relic that works differently with it shows its own text. */
+  weapon?: WeaponId;
   /** Relics on offer; the overlay is hidden when null. */
   offer: RelicId[] | null;
   /** The floor the player is about to enter. */
@@ -34,7 +37,7 @@ const RED = '#B0524A';
  * description), so icons, names and texts line up like a hand of cards. Everything is sized from the window so the
  * whole draft fits a small phone without scrolling.
  */
-const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] }: Props) => {
+const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [], weapon = 'bow' }: Props) => {
   const { t } = useT();
   const { width, height } = useWindowDimensions();
   const pop = useRef(new Animated.Value(0.9)).current;
@@ -76,7 +79,7 @@ const RelicDraftOverlay = ({ offer, floor, lairNext = false, onPick, owned = [] 
       <Animated.View style={[styles.row, { gap, marginTop: tight ? 10 : 14, transform: [{ scale: pop }] }]}>
         {offer.map(id => {
           const name = relicText(t, id, 'name');
-          const description = relicText(t, id, 'desc');
+          const description = relicText(t, id, 'desc', weapon);
           const cursed = !!RELICS[id].cursed;
           const tint = cursed ? RED : GOLD;
           return (

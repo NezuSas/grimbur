@@ -34,6 +34,9 @@ import { HEROES } from "../core/engine/heroes";
 import { abilityCooldown } from "../core/engine/shop";
 import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { ABILITY_ART } from "../ui/toolArt";
+import { AMMO_ART } from "../ui/weaponArt";
+import { weaponOfHero } from "../core/engine/weapons";
+import { weaponName, weaponRule } from "../i18n/weaponText";
 import GameIcon from "../ui/components/GameIcon";
 import { useT } from "../i18n/useT";
 import { heroText, unlockText , skinText } from "../i18n/keys";
@@ -239,6 +242,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const ctaDisabled = locked;
   const perks = HEROES[selected]?.perks;
   const ability = perks?.ability ?? null;
+  const weapon = weaponOfHero(selected);
   const name = heroText(t, selected, "name");
   const progress = heroLockProgress(selected, stats);
   const wins = stats.heroWins[selected] ?? 0;
@@ -576,6 +580,25 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
                 <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                   {heroText(t, selected, "desc")}
+                </Text>
+              </View>
+              {/* What they attack with: each weapon plays differently */}
+              <View style={[styles.card, { borderLeftColor: accent }]}>
+                <View style={styles.abilityHead}>
+                  <View style={[styles.abilityIcon, { borderColor: accent, backgroundColor: accent + "26" }]}>
+                    <SpriteImage source={AMMO_ART[weapon]} style={{ width: styles.abilityIcon.width - 10, height: styles.abilityIcon.height - 10 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.cardLabel, { color: accent }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                      {t("weapon.label").toLocaleUpperCase()}
+                    </Text>
+                    <Text style={[styles.cardName, { fontSize: bodySize + 3 }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2}>
+                      {weaponName(t, weapon)}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={[styles.cardDesc, { fontSize: bodySize }]} numberOfLines={short ? 2 : 3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
+                  {weaponRule(t, weapon)}
                 </Text>
               </View>
               {ability && (

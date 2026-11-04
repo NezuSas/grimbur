@@ -9,6 +9,8 @@ import { AttackButton } from "./DirectionPad";
 import JoystickBase from "./JoystickBase";
 import { useSettingsStore } from "../../state/settings/store";
 import { useUiScale } from "../layout/scaledWindow";
+import type { WeaponId } from "../../core/engine/weapons";
+import { attackLabel } from "../../i18n/weaponText";
 
 const NO_THUMB = { x: 0, y: 0 };
 
@@ -20,6 +22,8 @@ type Props = {
   onAttack: (direction?: Direction) => void;
   onAim?: (aim: Direction | "facing" | null) => void;
   arrows: number;
+  /** What the hero shoots (weaponOf(state)); the bow when missing. */
+  weapon?: WeaponId;
 };
 
 const SIDES: { dir: Direction }[] = [{ dir: "UP" }, { dir: "DOWN" }, { dir: "LEFT" }, { dir: "RIGHT" }];
@@ -29,7 +33,7 @@ const SIDES: { dir: Direction }[] = [{ dir: "UP" }, { dir: "DOWN" }, { dir: "LEF
  * stick follows how far the thumb travels from where it landed, so there is no need to aim at the stick. One step per side
  * entered, repeated while it is held (only across explored, empty tiles: see canRepeatStep). A diagonal does nothing.
  */
-const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim, arrows }) => {
+const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim, arrows, weapon = "bow" }) => {
   const { t } = useT();
   const { padDiameter: D, controlPanelWidth, splitAttack, attackSize } = useGameLayout();
   const zoneW = controlPanelWidth;
@@ -143,7 +147,7 @@ const FloatingPad: React.FC<Props> = memo(({ onMove, canRepeat, onAttack, onAim,
       {/* Layouts without a column for the attack button keep it in the corner of the zone */}
       {!splitAttack && (
         <View style={styles.corner} pointerEvents="box-none">
-          <AttackButton size={Math.min(attackSize, D * 0.34)} arrows={arrows} label={`${t("a11y.attack")}. ${t("a11y.arrowsLeft", { count: arrows })}`} onAttack={onAttack} onAim={onAim} />
+          <AttackButton size={Math.min(attackSize, D * 0.34)} arrows={arrows} weapon={weapon} label={attackLabel(t, weapon, arrows)} onAttack={onAttack} onAim={onAim} />
         </View>
       )}
     </View>

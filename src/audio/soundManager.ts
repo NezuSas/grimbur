@@ -183,6 +183,10 @@ export function useSoundManager(): void {
         break;
       }
       case 'BOSS_HIT':       playSfx(own('bosshit') ?? sounds.attack, mixVolume('bossHit'), own('bosshit') ? 1 : 0.8); setTimeout(() => playSfx(sounds.attack, mixVolume('bossEcho'), 0.65), 70); break;
+      // The orb's burst: the vortex's shimmer, quicker and brighter, under a high relic chime. No audio file of its own.
+      case 'ORB_BURST':      playSfx(sounds.teleport ?? sounds.vortex, mixVolume('teleport'), 1.35); setTimeout(() => playSfx(sounds.relic, mixVolume('relic'), 1.6), 40); break;
+      // The bomb's blast: the trap's snap played low and heavy, then the Grimbur's hit for the boom.
+      case 'BOMB_BLAST':     playSfx(own('trap') ?? sounds.attack, mixVolume('trap'), 0.6); setTimeout(() => playSfx(own('bosshit') ?? sounds.attack, mixVolume('bossHit'), 0.7), 30); break;
       case 'SHIELD_BREAK':   if (own('shield')) playSfx(own('shield')!, mixVolume('shieldCrack')); else { playSfx(sounds.death, mixVolume('shieldCrack'), 1.9); playSfx(sounds.attack, mixVolume('shieldThud'), 0.7); } break;
       case 'CHARGE_WARN':    if (own('charge')) playSfx(own('charge')!, mixVolume('charge')); else { playSfx(sounds.move, mixVolume('charge'), 0.55); setTimeout(() => playSfx(sounds.move, mixVolume('charge'), 0.45), 110); } break;
       case 'UI_TAP':         playSfx(sounds.ui, mixVolume('uiTap')); break;

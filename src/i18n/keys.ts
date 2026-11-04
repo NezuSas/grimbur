@@ -7,6 +7,8 @@ import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
 import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
 import { BEASTS } from '../core/stats/bestiary';
 import { UPGRADES, UpgradeId } from '../core/stats/forge';
+import type { WeaponId } from '../core/engine/weapons';
+import { weaponLine } from './weaponText';
 
 type T = (key: TranslationKey, params?: Params) => string;
 
@@ -17,9 +19,12 @@ export const heroText = (t: T, heroIndex: number, part: 'name' | 'title' | 'perk
 /** Localised hero skin name. */
 export const skinText = (t: T, id: SkinId): string => t(`skin.${id}.name` as TranslationKey);
 
-/** Localised relic text. */
-export const relicText = (t: T, id: RelicId, part: 'name' | 'desc') =>
-  t(`relic.${id}.${part}` as TranslationKey);
+/**
+ * Localised relic text. With a weapon, the description is the one of that weapon (`relic.<id>.desc.<weapon>`) when its
+ * effect differs, else the shared `relic.<id>.desc`.
+ */
+export const relicText = (t: T, id: RelicId, part: 'name' | 'desc', weapon?: WeaponId) =>
+  part === 'desc' && weapon ? weaponLine(t, `relic.${id}.desc` as TranslationKey, weapon) : t(`relic.${id}.${part}` as TranslationKey);
 
 /** How to unlock a hero, or an empty string for heroes that are free. */
 export const unlockText = (t: T, heroIndex: number): string => {
@@ -65,9 +70,9 @@ export const forgeText = (t: T, id: UpgradeId, part: 'name' | 'desc'): string =>
   return t(`forge.${id}.${part}` as TranslationKey, params);
 };
 
-/** Localised omen text. */
-export const omenText = (t: T, id: string, part: 'name' | 'rule'): string =>
-  t(`omen.${id}.${part}` as TranslationKey);
+/** Localised omen text (the rule in the words of the hero's weapon when one is given). */
+export const omenText = (t: T, id: string, part: 'name' | 'rule', weapon?: WeaponId): string =>
+  weaponLine(t, `omen.${id}.${part}` as TranslationKey, weapon);
 
 /** The name of a trail, frame, title or board theme. */
 export const cosmeticText = (t: T, id: CosmeticId): string => t(`cosmetic.${id}.name` as TranslationKey);

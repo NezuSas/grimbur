@@ -5,14 +5,17 @@ import type { ImageSourcePropType } from "react-native";
 import GameIcon from "../GameIcon";
 import { LinearGradient } from "expo-linear-gradient";
 import SpriteImage from "../SpriteImage";
-import { ALTAR_ART, SHOP_ART } from "../../toolArt";
+import { ALTAR_ART, shopArt } from "../../toolArt";
+import { AMMO_ART } from "../../weaponArt";
+import { scaleAmmo, type WeaponId } from "../../../core/engine/weapons";
+import { weaponLine } from "../../../i18n/weaponText";
 import { BIOME_ART } from "../../biomeArt";
 import Text from "../Text";
 import OverlayContainer from "./OverlayContainer";
 import { PopButton, PopupPanel, popupTitleStyle } from "./popup";
 import { useT } from "../../../i18n/useT";
 import { omenText } from "../../../i18n/keys";
-import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, type Door, type ShopItem } from "../../../core/engine/shop";
+import { SHOP_ITEMS, SHOP_PRICES, MAX_ITEMS, MERCHANT_ARROWS, MERCHANT_GEMS, SHOP_ARROWS, type Door, type ShopItem } from "../../../core/engine/shop";
 import type { BiomeId } from "../../../core/engine/biomes";
 import type { TranslationKey } from "../../../i18n/en";
 
@@ -25,7 +28,7 @@ const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.webp")
 const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
   bounty: { art: require("../../../assets/sprites/items/Icon_Gem.webp"), color: "#7FAFC6" },
   calm: { art: require("../../../assets/sprites/relics/lantern.webp"), color: "#A3BF7C" },
-  arsenal: { art: require("../../../assets/sprites/items/Icon_Arrows.webp"), color: "#D28663" },
+  arsenal: { art: AMMO_ART.bow, color: "#D28663" },
   dark: { art: require("../../../assets/sprites/items/Icon_Darkness.webp"), color: "#7E87B0" },
   shortcut: { art: require("../../../assets/sprites/items/Icon_Shortcut.webp"), color: "#A1887F" },
   elite: { art: require("../../../assets/sprites/ui/Icon_Skull.webp"), color: "#B5524A" },
@@ -56,14 +59,22 @@ type Props = {
   merchantUsed?: boolean;
   onSell?: () => void;
   onGo: () => void;
+  /** What the hero shoots (weaponOf(state)): the ammo ware, the merchant and the omens speak of it. The bow when missing. */
+  weapon?: WeaponId;
 };
 
 /**
  * Between two floors, over the next cave: the way down so far and the gems on top, the shop as four cards with the ware
  * big, and below the two doors as portals in the colour of their omen (or the floor ahead) beside the button down.
  */
-const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, shield, items, doors, chosen, onChoose, onBuy, altarUsed, altarFree, onAltar, onGo, arrows = 0, merchantUsed = false, onSell }: Props) => {
+const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, shield, items, doors, chosen, onChoose, onBuy, altarUsed, altarFree, onAltar, onGo, arrows = 0, merchantUsed = false, onSell, weapon = "bow" }: Props) => {
   const { t } = useT();
+  // The ammo ware sells a pack of the hero's own ammo (bombs come in half packs), and the merchant buys it the same way.
+  const packSize = scaleAmmo(weapon, SHOP_ARROWS);
+  const sellAmmo = scaleAmmo(weapon, MERCHANT_ARROWS);
+  const wareName = (item: ShopItem) => (item === "arrows" ? t(`shop.ammo.${weapon}.name` as TranslationKey, { n: packSize }) : t(`shop.${item}.name` as TranslationKey));
+  const wareDesc = (item: ShopItem) => (item === "arrows" ? t(`shop.ammo.${weapon}.desc` as TranslationKey, { n: packSize }) : t(`shop.${item}.desc` as TranslationKey));
+  const merchantDesc = weaponLine(t, "shop.merchant.desc", weapon, { arrows: sellAmmo, gems: MERCHANT_GEMS });
   const { width } = useWindowDimensions();
   // The button only works a moment after the overlay appears, so a leftover tap from the level card cannot skip it.
   const [armed, setArmed] = useState(false);
@@ -87,7 +98,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
   };
   const biomeArt = BIOME_ART[nextIsLair ? "lair" : newBiome ?? "cave"];
   const biomeLine =
-    newBiome && newBiome !== "cave" && newBiome !== "lair" ? `${t(`biome.${newBiome}.name` as TranslationKey)}: ${t(`biome.${newBiome}.rule` as TranslationKey)}` : null;
+    newBiome && newBiome !== "cave" && newBiome !== "lair" ? `${t(`biome.${newBiome}.name` as TranslationKey)}: ${weaponLine(t, `biome.${newBiome}.rule` as TranslationKey, weapon)}` : null;
   // The shortcut lands one floor deeper than the next one.
   const landing = doors && chosen !== null && chosen !== undefined && doors[chosen] === "shortcut" ? nextFloor + 1 : nextFloor;
   const goLabel = nextIsLair ? t("shop.goLair") : t("shop.go", { floor: landing });
@@ -138,8 +149,8 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           {CARRY.map(c => {
             const have = c === "arrows" ? arrows : c === "shield" ? (shield ? 1 : 0) : items[c];
             return (
-              <View key={c} style={[styles.carry, have === 0 && { opacity: 0.45 }]} accessible accessibilityLabel={`${t(`shop.${c}.name` as TranslationKey)}: ${have}`}>
-                <SpriteImage source={SHOP_ART[c]} style={{ width: 20, height: 20 }} resizeMode="contain" />
+              <View key={c} style={[styles.carry, have === 0 && { opacity: 0.45 }]} accessible accessibilityLabel={`${c === "arrows" ? t(`weapon.${weapon}.ammo` as TranslationKey) : t(`shop.${c}.name` as TranslationKey)}: ${have}`}>
+                <SpriteImage source={c === "arrows" ? AMMO_ART[weapon] : shopArt(c, weapon)} style={{ width: 20, height: 20 }} resizeMode="contain" />
                 <Text style={styles.carryText} allowFontScaling={false}>
                   {c === "shield" ? (shield ? "✓" : "–") : c === "arrows" ? `${have}` : `${have}/${MAX_ITEMS}`}
                 </Text>
@@ -154,8 +165,8 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             const short = Math.max(0, price - gems);
             const canBuy = short === 0 && !blocked;
             const color = ITEM_COLOR[item];
-            const name = t(`shop.${item}.name` as TranslationKey);
-            const desc = t(`shop.${item}.desc` as TranslationKey);
+            const name = wareName(item);
+            const desc = wareDesc(item);
             return (
               <Pressable
                 key={item}
@@ -167,7 +178,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
                 style={({ pressed }) => [styles.ware, narrow && { flexBasis: "47%" }, { borderColor: canBuy ? color + "CC" : "rgba(255,255,255,0.08)" }, !canBuy && styles.wareOff, pressed && { transform: [{ scale: 0.96 }] }]}
               >
                 <View style={[styles.wareGlow, { backgroundColor: color, opacity: canBuy ? 0.2 : 0.04 }]} />
-                <SpriteImage source={SHOP_ART[item]} style={[styles.wareArt, !canBuy && { opacity: 0.35 }]} resizeMode="contain" />
+                <SpriteImage source={shopArt(item, weapon)} style={[styles.wareArt, !canBuy && { opacity: 0.35 }]} resizeMode="contain" />
                 <View style={styles.wareBody}>
                   <Text style={[styles.wareName, { color: canBuy ? "#F3EADB" : "#9E8E80" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
                     {name}
@@ -196,20 +207,20 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           })}
         </View>
         <View style={styles.deals}>
-        {onSell && (arrows >= MERCHANT_ARROWS || merchantUsed) ? (
+        {onSell && (arrows >= sellAmmo || merchantUsed) ? (
           <TouchableOpacity
             disabled={merchantUsed}
             onPress={onSell}
             activeOpacity={0.8}
             accessibilityRole="button"
-            accessibilityLabel={`${t("shop.merchant.name")}. ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
+            accessibilityLabel={`${t("shop.merchant.name")}. ${merchantDesc}`}
             style={[styles.altar, styles.merchant, merchantUsed && { opacity: 0.55 }]}
           >
             <SpriteImage source={MERCHANT_ART} style={{ width: 30, height: 30 }} resizeMode="contain" />
             <View style={{ flex: 1 }}>
               <Text style={[styles.dealName, { color: "#E9B3AA" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("shop.merchant.name")}</Text>
               <Text style={styles.altarText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-                {merchantUsed ? t("shop.merchant.done") : t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}
+                {merchantUsed ? t("shop.merchant.done") : merchantDesc}
               </Text>
             </View>
             {merchantUsed ? null : (
@@ -253,7 +264,9 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           <View style={styles.doors}>
             {portals.map((p, i) => {
               const on = !p.fork || chosen === i;
-              const look = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#C9A55A" };
+              const omenLook = p.door ? OMEN_LOOK[p.door] ?? { art: biomeArt.tileHidden, color: "#C9B49C" } : { art: biomeArt.tileHidden, color: p.fork ? "#C9B49C" : "#C9A55A" };
+              // The arsenal brings the hero's own ammo.
+              const look = p.door === "arsenal" ? { ...omenLook, art: AMMO_ART[weapon] } : omenLook;
               const name = p.fork
                 ? p.door
                   ? omenText(t, p.door, "name").replace(/^[^:]*:\s*/, "")
@@ -261,7 +274,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
                 : nextIsLair
                   ? t("floor.banner.lair")
                   : t("shop.ahead");
-              const rule = p.fork ? (p.door ? omenText(t, p.door, "rule") : t("fork.plain.rule")) : biomeLine ?? (nextIsLair ? t("story.lair") : t("shop.aheadPlain"));
+              const rule = p.fork ? (p.door ? omenText(t, p.door, "rule", weapon) : t("fork.plain.rule")) : biomeLine ?? (nextIsLair ? t("story.lair") : t("shop.aheadPlain"));
               return (
                 <Pressable
                   key={p.key}

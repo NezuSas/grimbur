@@ -31,8 +31,12 @@ export type FeedbackState = Pick<
 export type FeedbackEvent =
   /** `tile` is where the effect happened (the popups rise from it). */
   | { kind: 'coin'; tile: number }
-  /** A guardian died to an arrow or a bomb. `combo` is the combo after the kill (0 for a bomb). */
-  | { kind: 'kill'; combo: number; tile: number; foe?: EntityType }
+  /**
+   * A guardian died to an arrow or a bomb. `combo` is the combo after the kill (0 for a bomb). `tile` is the closest kill;
+   * `tiles` lists every guardian tile that fell in the action (closest first), so a thrown bomb that slays several can show
+   * each one (a single kill gives `[tile]`).
+   */
+  | { kind: 'kill'; combo: number; tile: number; foe?: EntityType; tiles?: number[] }
   /** The Grimbur lost hearts; `dead` when it has none left. */
   | { kind: 'bossHit'; dead: boolean; hearts: number; tile: number }
   /** An arrow was fired and hit nothing. */
@@ -75,8 +79,11 @@ export function diffFeedback(prev: FeedbackState, next: FeedbackState): Feedback
 
   if (next.coins < prev.coins) events.push({ kind: 'coin', tile: next.playerIndex });
   if (killed) {
-    const tile = goneGuardianTile(prev, next);
-    events.push({ kind: 'kill', combo: shot || next.enemyCombo > prev.enemyCombo ? next.enemyCombo : 0, tile, foe: prev.entityMap[tile]?.type });
+    const tiles = goneGuardianTiles(prev, next);
+    const tile = tiles.length > 0 ? tiles[0] : next.playerIndex;
+    const kill: FeedbackEvent = { kind: 'kill', combo: shot || next.enemyCombo > prev.enemyCombo ? next.enemyCombo : 0, tile, foe: prev.entityMap[tile]?.type };
+    // Several guardians fell at once (a bomb's blast): every tile, for a popup on each.
+    events.push(tiles.length > 1 ? { ...kill, tiles } : kill);
   }
   if (bossHit) {
     const bossTile = prev.entities.find(e => e.type === 'boss')?.index ?? next.playerIndex;
@@ -104,12 +111,27 @@ export function diffFeedback(prev: FeedbackState, next: FeedbackState): Feedback
 
 /** The tile of the guardian that disappeared (the one nearest the hero when several did), or the hero's tile. */
 export function goneGuardianTile(prev: FeedbackState, next: FeedbackState): number {
-  const here = (i: number) => Math.abs(Math.floor(i / prev.cols) - Math.floor(next.playerIndex / prev.cols)) + Math.abs((i % prev.cols) - (next.playerIndex % prev.cols));
-  const gone = prev.entities
-    .filter(e => (e.type === 'enemy' || e.type === 'stalker' || e.type === 'sleeper') && next.entityMap[e.index] === undefined)
-    .map(e => e.index)
-    .sort((a, b) => here(a) - here(b));
+  const gone = goneGuardianTiles(prev, next);
   return gone.length > 0 ? gone[0] : next.playerIndex;
+}
+
+/**
+ * Every tile whose guardian is gone between the two states, closest to the hero first. A stalker that only stepped aside (its
+ * old tile empty, a stalker now on a tile beside it) is not counted as fallen.
+ */
+export function goneGuardianTiles(prev: FeedbackState, next: FeedbackState): number[] {
+  const cols = prev.cols;
+  const dist = (a: number, b: number) => Math.abs(Math.floor(a / cols) - Math.floor(b / cols)) + Math.abs((a % cols) - (b % cols));
+  const isGuardian = (t: string | undefined) => t === 'enemy' || t === 'stalker' || t === 'sleeper' || t === 'mimic';
+  const gone = prev.entities.filter(e => isGuardian(e.type) && next.entityMap[e.index] === undefined).map(e => e.index);
+  // Stalkers standing where none stood before: each one walked from a vanished stalker's tile beside it.
+  const arrived = next.entities.filter(e => e.type === 'stalker' && !isGuardian(prev.entityMap[e.index]?.type)).map(e => e.index);
+  const fallen = [...gone];
+  for (const a of arrived) {
+    const from = fallen.findIndex(g => prev.entityMap[g]?.type === 'stalker' && dist(g, a) === 1);
+    if (from !== -1) fallen.splice(from, 1);
+  }
+  return fallen.sort((a, b) => dist(a, next.playerIndex) - dist(b, next.playerIndex));
 }
 
 /** Hunters (Grimbur, stalkers) currently winding up a strike. */

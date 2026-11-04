@@ -7,17 +7,32 @@ import { ownedSkins } from '../skins/ownership';
 import { MAX_MASTERY, masteryOf } from '../stats/mastery';
 import { allQuestsDone } from '../stats/heroQuests';
 import { isChapterMastered } from '../stats/puzzleProgress';
+import type { WeaponId } from '../engine/weapons';
 
 /**
  * Cosmetics beyond outfits. All of them are looks only: an arrow trail, a frame and a title shown to other players
  * (rankings, duels), a board theme, the flag that marks a tile, the attack button and the celebration that plays on a
  * victory. None of them changes the game, so none of them can buy ranking power.
  */
-export type CosmeticKind = 'trail' | 'frame' | 'title' | 'board' | 'flag' | 'attack' | 'celebration' | 'pet';
-export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'frame', 'title', 'board', 'flag', 'attack', 'celebration', 'pet'];
+export type CosmeticKind = 'trail' | 'orb' | 'bomb' | 'frame' | 'title' | 'board' | 'flag' | 'attack' | 'celebration' | 'pet';
+export const COSMETIC_KINDS: readonly CosmeticKind[] = ['trail', 'orb', 'bomb', 'frame', 'title', 'board', 'flag', 'attack', 'celebration', 'pet'];
+
+/**
+ * The shot styles of each weapon: the archers wear arrow trails, Mira an orb style, Bram a bomb style (see
+ * core/engine/weapons.ts). Each hero only ever shows the style of their own weapon.
+ */
+export const SHOT_KIND: Readonly<Record<WeaponId, CosmeticKind>> = { bow: 'trail', orb: 'orb', bomb: 'bomb' };
+
+/**
+ * Kinds left out of the collection share: the orb and bomb styles came after the collection milestones were set, and
+ * counting them would lower every player's share and take away rewards already earned (the share is computed live).
+ */
+const OUTSIDE_SHARE: ReadonlySet<CosmeticKind> = new Set<CosmeticKind>(['orb', 'bomb']);
 
 export type CosmeticId =
   | 'trail_fire' | 'trail_frost' | 'trail_storm' | 'trail_shadow' | 'trail_stars' | 'trail_venom' | 'trail_void' | 'trail_royal'
+  | 'orb_frost' | 'orb_ember' | 'orb_venom' | 'orb_void' | 'orb_stars' | 'orb_royal'
+  | 'bomb_ember' | 'bomb_frost' | 'bomb_venom' | 'bomb_storm' | 'bomb_void' | 'bomb_royal'
   | 'frame_jade' | 'frame_bone' | 'frame_storm' | 'frame_royal' | 'frame_hoard'
   | 'frame_questvael' | 'frame_questsera' | 'frame_questborin' | 'frame_questauric' | 'frame_questmira' | 'frame_questbram'
   | 'title_questvael' | 'title_questsera' | 'title_questborin' | 'title_questauric' | 'title_questmira' | 'title_questbram'
@@ -202,6 +217,20 @@ export const COSMETICS: readonly CosmeticInfo[] = [
   // The Legend's chest: a title and a frame of the frozen deep.
   item('title_puzzle5', 'title', 'legendary', 0, { kind: 'puzzleChapter', tier: 5 }),
   item('frame_legend', 'frame', 'legendary', 0, { kind: 'puzzleChapter', tier: 5 }),
+
+  // Mira's orb styles and Bram's bomb styles, priced like the arrow trails (kept last: they are outside the collection share).
+  item('orb_frost', 'orb', 'rare', 400),
+  item('orb_ember', 'orb', 'rare', 400),
+  item('orb_venom', 'orb', 'rare', 450),
+  item('orb_void', 'orb', 'epic', 850),
+  item('orb_stars', 'orb', 'legendary', 1200),
+  item('orb_royal', 'orb', 'legendary', 1300),
+  item('bomb_ember', 'bomb', 'rare', 400),
+  item('bomb_frost', 'bomb', 'rare', 400),
+  item('bomb_venom', 'bomb', 'rare', 450),
+  item('bomb_storm', 'bomb', 'epic', 650),
+  item('bomb_void', 'bomb', 'epic', 850),
+  item('bomb_royal', 'bomb', 'legendary', 1300),
 ];
 
 const BY_ID = new Map(COSMETICS.map(c => [c.id, c]));
@@ -217,8 +246,15 @@ export const hasFullWardrobe = (stats: LocalStats): boolean =>
 const isCollectionReward = (c: CosmeticInfo): boolean => c.unlock?.kind === 'collection';
 
 /**
+ * Counted in the collection share: not a share reward, not an event keepsake (only earned in its month, it never holds back
+ * a full collection), not an orb or bomb style (see OUTSIDE_SHARE).
+ */
+export const countsInCollection = (c: CosmeticInfo): boolean =>
+  !isCollectionReward(c) && c.unlock?.kind !== 'event' && !OUTSIDE_SHARE.has(c.kind);
+
+/**
  * How much of the collection the player owns: every outfit beyond each hero's classic one, and every cosmetic that is
- * not itself a collection reward. `pct` is rounded down, so 100 means everything.
+ * counts in it (see countsInCollection). `pct` is rounded down, so 100 means everything.
  */
 export function collectionProgress(stats: LocalStats): { owned: number; total: number; pct: number } {
   let owned = 0;
@@ -228,9 +264,7 @@ export function collectionProgress(stats: LocalStats): { owned: number; total: n
     owned += Math.max(0, ownedSkins(stats, hero).length - 1);
   });
   for (const c of COSMETICS) {
-    if (isCollectionReward(c)) continue;
-    // Event keepsakes can only be earned in their month: they never hold back a full collection.
-    if (c.unlock?.kind === 'event') continue;
+    if (!countsInCollection(c)) continue;
     total++;
     if (ownsCosmetic(stats, c.id)) owned++;
   }

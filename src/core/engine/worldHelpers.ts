@@ -6,6 +6,7 @@ import { floorEffects } from './events';
 import { RelicId, relicCount, removeRelic, hasFamilyBonus } from './relics';
 import { MAX_ITEMS } from './shop';
 import { LAVA_TURNS } from './generator';
+import { scaleAmmo, type WeaponId } from './weapons';
 
 export const createEntityMap = (entities: GameEntity[]): Record<number, GameEntity> => {
   const map: Record<number, GameEntity> = {};
@@ -77,6 +78,7 @@ export const draftContext = (state: Pick<GameState, 'perks'>) => ({
   startShield: state.perks.startShield,
   trapImmune: state.perks.trapImmune,
   startLit: state.perks.startLit,
+  weapon: (state.perks.weapon ?? 'bow') as WeaponId,
 });
 
 /** The bomb's blast: removes every guardian and vortex in the 3x3 around `center` (never the Grimbur). */
@@ -335,10 +337,10 @@ export function secretDraftTiles(secret: number | null | undefined, rows: number
 }
 
 /** What a relic does at once when it is gained mid-floor (a draft pick, a chest, a gift): arrows, a bomb, a shield, light. */
-export function gainRelicNow(state: Pick<GameState, 'relics' | 'attack' | 'items' | 'shield' | 'visited' | 'cols' | 'rows' | 'entities'>, id: RelicId) {
+export function gainRelicNow(state: Pick<GameState, 'relics' | 'attack' | 'items' | 'shield' | 'visited' | 'cols' | 'rows' | 'entities'> & Partial<Pick<GameState, 'perks'>>, id: RelicId) {
   return {
     relics: [...state.relics, id],
-    attack: id === 'quiver' ? state.attack + 2 : state.attack,
+    attack: id === 'quiver' ? state.attack + scaleAmmo(state.perks?.weapon ?? 'bow', 2) : state.attack,
     items: id === 'bomb_belt' ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,
     shield: id === 'bulwark' ? true : state.shield,
     visited: id === 'lantern' ? Array.from(new Set([...state.visited, ...startingVisited(state.cols, state.rows, true, state.entities)])) : state.visited,

@@ -16,7 +16,10 @@ import type { TranslationKey } from "../../i18n/en";
 import type { LocalStats } from "../../core/stats/runStats";
 import { petProgress, petStage } from "../../core/cosmetics/petGrowth";
 import { PET_ADULT_ART } from "../../ui/cosmeticArt";
-import { cosmeticInfo, cosmeticsOf, equippedCosmetic, ownsCosmetic, type CosmeticId, type CosmeticInfo, type CosmeticKind } from "../../core/cosmetics/cosmetics";
+import { SHOT_KIND, cosmeticInfo, cosmeticsOf, equippedCosmetic, ownsCosmetic, type CosmeticId, type CosmeticInfo, type CosmeticKind } from "../../core/cosmetics/cosmetics";
+import { WEAPONS, weaponOfHero } from "../../core/engine/weapons";
+import characters from "../../data/characters";
+import { heroAccent } from "../../data/heroAccent";
 import { dailyDeals, type Deal } from "../../core/cosmetics/dailyShop";
 import { dailyKey, msUntilNextDay } from "../../core/engine/seed";
 import { formatCountdown } from "../../core/stats/countdown";
@@ -32,6 +35,16 @@ export type CosmeticCategory = "deals" | CosmeticKind;
 
 const TIER_COLOR = { rare: "#7FAFC6", epic: "#B08DBE", legendary: "#C9A55A" } as const;
 const GOLD = "#CFA052";
+
+/**
+ * The heroes who show a cosmetic of this kind: an orb style is only seen on Mira's orbs, a bomb style on Bram's bombs
+ * (every hero with that weapon, found from weaponOfHero). Empty for the kinds every hero shows.
+ */
+export const heroesWearing = (kind: CosmeticKind): number[] => {
+  if (kind !== "orb" && kind !== "bomb") return [];
+  const weapon = WEAPONS.find(w => SHOT_KIND[w] === kind);
+  return characters.map((_, hero) => hero).filter(hero => weaponOfHero(hero) === weapon);
+};
 
 type Props = {
   category: CosmeticCategory;
@@ -293,6 +306,14 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
           <View style={[styles.tag, { borderColor: tierColor }]}>
             <Text style={[styles.tagText, { color: tierColor }]} maxFontSizeMultiplier={1.2}>{tierLabel.toLocaleUpperCase()}</Text>
           </View>
+          {/* Who shows it: an orb or bomb style is only ever seen on the hero who throws that weapon. */}
+          {info
+            ? heroesWearing(info.kind).map(h => (
+                <View key={`hero${h}`} style={[styles.tag, { borderColor: heroAccent(h), backgroundColor: heroAccent(h) + "22" }]}>
+                  <Text style={[styles.tagText, { color: heroAccent(h) }]} maxFontSizeMultiplier={1.2}>{heroText(t, h, "name").toLocaleUpperCase()}</Text>
+                </View>
+              ))
+            : null}
           {deal && !deal.bought ? (
             <View style={[styles.tag, { borderColor: "#B86A48", backgroundColor: "rgba(184, 106, 72,0.16)" }]}>
               <Text style={[styles.tagText, { color: "#D28663" }]} maxFontSizeMultiplier={1.2}>-30%</Text>

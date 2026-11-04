@@ -7,7 +7,8 @@ import Text from "../Text";
 import SpriteImage from "../SpriteImage";
 import { emitSound } from "../../../audio/audioEventBus";
 import { useSettingsStore } from "../../../state/settings/store";
-import { GLYPHS } from "../../glyphArt";
+import { AMMO_GLYPH, GLYPHS } from "../../glyphArt";
+import { scaleAmmo, type WeaponId } from "../../../core/engine/weapons";
 import { ABILITY_ART, TOOL_ART } from "../../toolArt";
 import { RELIC_IMAGES } from "../../relicImages";
 import {
@@ -29,19 +30,20 @@ type Token = { art: ImageSourcePropType; amount: string; bad?: boolean };
 type Reveal = { paid: Token[]; got: Token[]; suspense: boolean };
 
 /** The exchange each scene tells, from its outcome (the gambler has its own die and is not here). */
-export function revealFor(enc: Encounter): Reveal | null {
+export function revealFor(enc: Encounter, weapon: WeaponId = "bow"): Reveal | null {
   const won = enc.outcome === "win";
+  const ammo = GLYPHS[AMMO_GLYPH[weapon]];
   switch (enc.id) {
     case "scout":
-      return { paid: [{ art: GLYPHS.arrows, amount: `−${SCOUT_ARROWS}` }], got: [{ art: ABILITY_ART.scout, amount: `×${SCOUT_TILES}` }], suspense: false };
+      return { paid: [{ art: ammo, amount: `−${scaleAmmo(weapon, SCOUT_ARROWS)}` }], got: [{ art: ABILITY_ART.scout, amount: `×${SCOUT_TILES}` }], suspense: false };
     case "spring":
       return {
         paid: [],
-        got: won ? [{ art: enc.gift === "arrow" ? GLYPHS.arrows : GLYPHS.shield, amount: "+1" }] : [{ art: GLYPHS.gem, amount: `−${SPRING_LOSS}`, bad: true }],
+        got: won ? [{ art: enc.gift === "arrow" ? ammo : GLYPHS.shield, amount: "+1" }] : [{ art: GLYPHS.gem, amount: `−${SPRING_LOSS}`, bad: true }],
         suspense: true,
       };
     case "shrine":
-      return { paid: [{ art: GLYPHS.arrows, amount: `−${SHRINE_ARROWS}` }], got: [{ art: enc.gift === "bomb" ? TOOL_ART.bomb : TOOL_ART.detector, amount: "+1" }], suspense: false };
+      return { paid: [{ art: ammo, amount: `−${SHRINE_ARROWS}` }], got: [{ art: enc.gift === "bomb" ? TOOL_ART.bomb : TOOL_ART.detector, amount: "+1" }], suspense: false };
     case "miner":
       return {
         paid: [{ art: TOOL_ART.bomb, amount: `−${MINER_BOMBS}` }],
@@ -51,9 +53,9 @@ export function revealFor(enc: Encounter): Reveal | null {
     case "map":
       return { paid: [{ art: GLYPHS.gem, amount: `−${MAP_GEMS}` }], got: [{ art: GLYPHS.lantern, amount: `×${enc.tiles ?? 1}` }], suspense: false };
     case "echo":
-      return { paid: [], got: won ? [{ art: GLYPHS.flag, amount: "+1" }] : [{ art: GLYPHS.arrows, amount: "−1", bad: true }], suspense: true };
+      return { paid: [], got: won ? [{ art: GLYPHS.flag, amount: "+1" }] : [{ art: ammo, amount: "−1", bad: true }], suspense: true };
     case "smith":
-      return { paid: [{ art: GLYPHS.shield, amount: "−1" }], got: [{ art: GLYPHS.arrows, amount: `+${SMITH_ARROWS}` }], suspense: false };
+      return { paid: [{ art: GLYPHS.shield, amount: "−1" }], got: [{ art: ammo, amount: `+${scaleAmmo(weapon, SMITH_ARROWS)}` }], suspense: false };
     default:
       return null;
   }
@@ -63,7 +65,7 @@ export function revealFor(enc: Encounter): Reveal | null {
  * Every picture a scene's exchange may show, whatever comes of it: drawn unseen while the choice is open, so the outcome
  * never pops in with an empty disc while its picture is still on the way.
  */
-export function revealArts(id: Encounter["id"]): ImageSourcePropType[] {
+export function revealArts(id: Encounter["id"], weapon: WeaponId = "bow"): ImageSourcePropType[] {
   const outcomes: Encounter[] = [
     { id, outcome: "win", gift: "shield" },
     { id, outcome: "win", gift: "arrow" },
@@ -73,7 +75,7 @@ export function revealArts(id: Encounter["id"]): ImageSourcePropType[] {
   ];
   const arts = new Set<ImageSourcePropType>();
   for (const o of outcomes) {
-    const r = revealFor(o);
+    const r = revealFor(o, weapon);
     r?.paid.forEach(t => arts.add(t.art));
     r?.got.forEach(t => arts.add(t.art));
   }
@@ -106,6 +108,8 @@ type Props = {
   size: number;
   /** Called once what came of the scene is on the card (the result can be told). */
   onLanded: () => void;
+  /** The hero's weapon: the ammo paid or received is its own. */
+  weapon?: WeaponId;
 };
 
 /**
@@ -114,8 +118,8 @@ type Props = {
  * trembling "?" whose glow swells, ticking faster like a heartbeat. Then the answer bursts out of a shockwave, light rays
  * and sparks, overshoots, settles and keeps floating. A loss bursts in red. Calm mode shows the result at once.
  */
-const EncounterReveal = ({ encounter, tint, size, onLanded }: Props) => {
-  const reveal = revealFor(encounter);
+const EncounterReveal = ({ encounter, tint, size, onLanded, weapon = "bow" }: Props) => {
+  const reveal = revealFor(encounter, weapon);
   const calm = useSettingsStore(s => s.reduceFlash);
   const [phase, setPhase] = useState<"pay" | "suspense" | "got">(() => (calm || !reveal ? "got" : reveal.paid.length ? "pay" : "suspense"));
   const fly = useRef(new Animated.Value(calm ? 1 : 0)).current;

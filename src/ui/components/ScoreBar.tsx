@@ -11,6 +11,9 @@ import { formatTime } from "../../shared/utils/formatTime";
 import { useT } from "../../i18n/useT";
 import SpriteImage from "./SpriteImage";
 import type { SessionClock } from "../../core/feedback/clock";
+import { weaponOfHero, type WeaponId } from "../../core/engine/weapons";
+import { AMMO_ART } from "../weaponArt";
+import { ammoLeftText } from "../../i18n/weaponText";
 
 type Props = {
   score: number;
@@ -40,6 +43,8 @@ type Props = {
   onPause?: () => void;
   /** Reports where the gem counter's icon is on screen (picked gems fly into it). */
   onGemAnchor?: (at: { x: number; y: number }) => void;
+  /** What the hero shoots (weaponOf(state)); without it, the weapon of `character`. */
+  weapon?: WeaponId;
 };
 
 /** The HUD never scales text beyond this, so it always fits the fixed bar height. */
@@ -95,8 +100,9 @@ const ShieldBadge: React.FC<{ shield: boolean; breakKey: number; calm: boolean; 
 };
 
 const ScoreBar: React.FC<Props> = memo(
-  ({ score, attackValue, coins, gemsTotal, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause, onGemAnchor }) => {
+  ({ score, attackValue, coins, gemsTotal, character, level, floors, clock, shield = false, combo = 0, comboMax = 3, shieldBreakKey = 0, gemPop, calm = false, bossHearts, onPause, onGemAnchor, weapon: weaponProp }) => {
     const { t, plural } = useT();
+    const weapon = weaponProp ?? weaponOfHero(character.id - 1);
     const { hudHeight, insets, fontSize, spacing, screenWidth } = useGameLayout();
     // Portrait and split-screen windows: the avatar goes and the sides take only what they need.
     const compact = screenWidth < COMPACT_WIDTH;
@@ -204,11 +210,11 @@ const ScoreBar: React.FC<Props> = memo(
             />
           )}
           <ScoreCounter
-            icon={require("../../assets/sprites/items/Icon_Arrows.webp")}
+            icon={AMMO_ART[weapon]}
             value={attackValue}
             iconDim={statIconSize}
             compact={compact}
-            a11yLabel={t("a11y.arrowsLeft", { count: attackValue })}
+            a11yLabel={ammoLeftText(t, weapon, attackValue)}
           />
           <ScoreCounter
             iconNode={<GlyphIcon name="trophy" size={Math.round(statIconSize * 0.9)} />}

@@ -12,7 +12,11 @@ import BoardTouchLayer from "./BoardTouchLayer";
 import { LinearGradient } from "expo-linear-gradient";
 import { BLOCK_FACE, makeTilt, projectPoint, tiltTransforms } from "../layout/boardTilt";
 import type { TrailLook } from "../cosmeticArt";
-import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
+import ArrowFlight, { flightEasing, flightMs, landMs } from "./game/ArrowFlight";
+import OrbFlight from "./game/OrbFlight";
+import BombFlight from "./game/BombFlight";
+import type { WeaponId } from "../../core/engine/weapons";
+import type { BombLook, OrbLook } from "../cosmeticArt";
 import FallenFoe from "./game/FallenFoe";
 import Companion, { type CompanionLook } from "./game/Companion";
 import { getNearbyHazards } from "../../core/engine/proximity";
@@ -21,8 +25,12 @@ import Text from "./Text";
 import GridCell, { ASSETS, CLUE_ART, HeroClues, NO_HINTS } from "./GridCell";
 import { ANCIENT_FRAMES } from "./BossSprite";
 
-/** An arrow in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot. */
-export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean };
+/**
+ * A shot in flight: shot toward `dir`, crossing `tiles` tiles, and whether it hit something at the end. `key` changes per shot.
+ * `weapon` (the bow when missing) picks the animation; `landing` (the tile it lands on) and `area` (the tiles its orb burst or
+ * bomb blast covers, explored ones included) come from the rules' own shotPlan, so the board shows what the shot does.
+ */
+export type ArrowShot = { key: number; dir: Direction; tiles: number; hit: boolean; weapon?: WeaponId; landing?: number; area?: readonly number[] };
 
 /** A pencil mark the player put on a hidden tile while reasoning (puzzles). */
 export type TileNote = "safe" | "noGuardian" | "noVortex";
@@ -164,6 +172,8 @@ type Props = {
   flags?: ReadonlySet<number>;
   /** Tiles an arrow would cross right now (shown while the attack button is held). */
   aimTiles?: ReadonlySet<number>;
+  /** The orb's burst / the bomb's blast around the end of the aim line (never around a hidden target). */
+  aimArea?: ReadonlySet<number>;
   /** The direction being aimed while the attack button is held: the hero turns that way and draws the bow. */
   aimDir?: Direction | null;
   /** The game is paused or the screen is not in front: the idle loops (breath, pulse) stop. */
@@ -199,6 +209,11 @@ type Props = {
   biome?: ArtTheme;
   /** The equipped arrow trail, if any. */
   trail?: TrailLook | null;
+  /** The weapon the hero attacks with (the ammo pickup and the aim preview follow it); the bow when missing. */
+  weapon?: WeaponId;
+  /** The equipped orb / bomb style, if any (Mira / Bram). */
+  orbLook?: OrbLook | null;
+  bombLook?: BombLook | null;
   /** The equipped flag, if any. */
   flag?: ImageSourcePropType | null;
   /** The companion floating by the hero (Collection), or null. */
@@ -243,7 +258,7 @@ const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType
 );
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimArea, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, weapon = "bow", orbLook = null, bombLook = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
     const { tileSize, boardWidth, boardHeight, boardTilted } = useGameLayout(cols, rows);
     // The board leans back like a table (2.5D) unless the player chose the flat view (see ui/layout/boardTilt.ts).
     const tilt = useMemo(() => (boardTilted ? makeTilt(boardWidth, boardHeight, tileSize) : null), [boardTilted, boardWidth, boardHeight, tileSize]);
@@ -280,6 +295,8 @@ const BoardView: React.FC<Props> = memo(
       if (shot && !calm) arrowLands.current = Date.now() + landMs(shot);
     }, [shot, calm]);
     const untilArrowLands = () => Math.max(0, arrowLands.current - Date.now());
+    /** Until when (ms since epoch) a bomb's blast shakes the board: a kill by it does not shake it a second time. */
+    const bombShakes = useRef(0);
 
     // A foe the arrow kills leaves the game state at once, but the player must see it die when the arrow gets there: it stays on
     // the board as a ghost until the arrow lands, then falls (see FallenFoe). Laid out before paint so it never blinks. Calm: as before.
@@ -295,7 +312,8 @@ const BoardView: React.FC<Props> = memo(
       const before = prevEntities.current;
       prevEntities.current = entityMap;
       if (before[playerIndex]?.type === "trap" && !entityMap[playerIndex]) setSprung(s => new Set(s).add(playerIndex));
-      if (calm || !shot || !shot.hit || ghostShot.current === shot.key || before === entityMap) return;
+      // A bomb that hits nothing on its line still blasts the guardians around where it lands (several fall at once).
+      if (calm || !shot || (!shot.hit && shot.weapon !== "bomb") || ghostShot.current === shot.key || before === entityMap) return;
       ghostShot.current = shot.key;
       const gone = Object.values(before).filter(e => (GUARDIAN_TYPES.includes(e.type) || e.type === "boss") && !entityMap[e.index]);
       if (gone.length === 0) return;
@@ -481,6 +499,7 @@ const BoardView: React.FC<Props> = memo(
       const prev = shakeGuard.current;
       shakeGuard.current = guardianCount;
       if (prev === undefined || guardianCount >= prev || calm) return;
+      if (Date.now() < bombShakes.current) return; // the bomb's own blast already shakes the board
       impact(3, 60, untilArrowLands());
     }, [guardianCount]);
 
@@ -593,7 +612,12 @@ const BoardView: React.FC<Props> = memo(
       if (!shot || calm) return;
       setFlying(shot);
       flight.setValue(0);
-      Animated.timing(flight, { toValue: 1, duration: flightMs(shot), easing: Easing.out(Easing.quad), useNativeDriver: true }).start(({ finished }) => {
+      // The bomb's blast: a firm jolt the moment it goes off (calm never gets here).
+      if (shot.weapon === "bomb") {
+        bombShakes.current = Date.now() + flightMs(shot);
+        impact(5, 50, landMs(shot));
+      }
+      Animated.timing(flight, { toValue: 1, duration: flightMs(shot), easing: flightEasing(shot), useNativeDriver: true }).start(({ finished }) => {
         if (finished) setFlying(null);
       });
     }, [shot?.key]);
@@ -681,6 +705,8 @@ const BoardView: React.FC<Props> = memo(
                   aimed={aimTiles && aimTiles.has(i) ? aimDir : null}
                   aimStep={aimTiles && aimTiles.has(i) ? Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) : 0}
                   aimLast={!!aimTiles && aimTiles.has(i) && Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex)) === aimTiles.size}
+                  aimZone={aimArea && aimArea.has(i) ? (weapon === "bomb" ? "bomb" : "orb") : null}
+                  weapon={weapon}
                   onTileLoaded={onTileLoaded}
                   pulse={pulse}
                   beat={calm ? undefined : beat}
@@ -784,7 +810,15 @@ const BoardView: React.FC<Props> = memo(
             />
           ))}
 
-          {flying && <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} trail={trail} />}
+          {flying ? (
+            flying.weapon === "orb" ? (
+              <OrbFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} cols={cols} look={orbLook} />
+            ) : flying.weapon === "bomb" ? (
+              <BombFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} cols={cols} look={bombLook} />
+            ) : (
+              <ArrowFlight shot={flying} flight={flight} tileSize={tileSize} row={rowIndex} col={colIndex} color={heroArt.arrowColor} trail={trail} />
+            )
+          ) : null}
 
           {/* A spotlight on the killer: the rest of the board dims so nothing competes with it */}
           {dying && killerTile != null && killerEntityType && (

@@ -26,6 +26,8 @@ import {
   type EncounterId,
 } from "../../../core/engine/encounters";
 import type { GameState } from "../../../core/engine/types";
+import { scaleAmmo, weaponOf, type WeaponId } from "../../../core/engine/weapons";
+import { weaponLine } from "../../../i18n/weaponText";
 
 /** The picture and colour of each scene. */
 export const ENCOUNTER_ART: Record<EncounterId, ImageSourcePropType> = {
@@ -51,9 +53,12 @@ export const ENCOUNTER_TINT: Record<EncounterId, string> = {
 
 export const ENCOUNTER_PARAMS = { arrows: SCOUT_ARROWS, tiles: SCOUT_TILES, loss: SPRING_LOSS, stake: GAMBLER_STAKE, payout: GAMBLER_PAYOUT, winFrom: GAMBLER_WIN_FROM, shrine: SHRINE_ARROWS, minerGems: MINER_GEMS, mapGems: MAP_GEMS, smith: SMITH_ARROWS };
 
+/** The scene's numbers in the hero's ammo: a bomber pays and gets half (see scaleAmmo). */
+export const encounterParams = (weapon: WeaponId) => ({ ...ENCOUNTER_PARAMS, arrows: scaleAmmo(weapon, SCOUT_ARROWS), smith: scaleAmmo(weapon, SMITH_ARROWS) });
+
 type Props = {
   encounter: Encounter;
-  state: Pick<GameState, "attack" | "gems" | "items" | "shield" | "entities" | "rows" | "cols" | "visited" | "playerIndex">;
+  state: Pick<GameState, "attack" | "gems" | "items" | "shield" | "entities" | "rows" | "cols" | "visited" | "playerIndex"> & Partial<Pick<GameState, "perks">>;
   onChoose: (take: boolean) => void;
   onClose: () => void;
 };
@@ -68,7 +73,11 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
   const { id, outcome } = encounter;
   const tint = ENCOUNTER_TINT[id];
   const affordable = canTake(id, state);
+  // The scene speaks of the hero's own ammo (orbs, bombs) where it differs from the arrows.
+  const weapon: WeaponId = state.perks ? weaponOf({ perks: state.perks }) : "bow";
+  const params = encounterParams(weapon);
   const k = (part: string) => `encounter.${id}.${part}` as TranslationKey;
+  const say = (part: string, extra?: Record<string, string | number>) => weaponLine(t, k(part), weapon, { ...params, ...extra });
   const artSize = Math.min(height * 0.36, 150);
   const wide = width > height;
 
@@ -83,9 +92,9 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
     outcome === "skip"
       ? t("encounter.skipped")
       : rolling
-        ? t(rolled ? "encounter.gambler.rolling" : k("acting"))
+        ? rolled ? t("encounter.gambler.rolling") : say("acting")
         : outcome
-          ? t(k(outcome === "done" && encounter.gift === "bomb" ? "doneBomb" : outcome), { ...ENCOUNTER_PARAMS, relic: relicName, die: encounter.die ?? 0, path: encounter.tiles ?? 0 })
+          ? say(outcome === "done" && encounter.gift === "bomb" ? "doneBomb" : outcome, { relic: relicName, die: encounter.die ?? 0, path: encounter.tiles ?? 0 })
           : null;
 
   return (
@@ -94,7 +103,7 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
         {/* The exchange's pictures, warmed while the choice is open (unseen). */}
         {!outcome ? (
           <View pointerEvents="none" style={styles.warm}>
-            {revealArts(id).map((art, i) => (
+            {revealArts(id, weapon).map((art, i) => (
               <SpriteImage key={i} source={art} style={styles.warmImage} />
             ))}
           </View>
@@ -115,7 +124,7 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
             </View>
           ) : revealed ? (
             <View style={[styles.dieRow, wide && { alignSelf: "flex-start" }]}>
-              <EncounterReveal encounter={encounter} tint={tint} size={Math.min(46, artSize * 0.34)} onLanded={() => setLanded(true)} />
+              <EncounterReveal encounter={encounter} tint={tint} size={Math.min(46, artSize * 0.34)} onLanded={() => setLanded(true)} weapon={weapon} />
             </View>
           ) : null}
           <Text
@@ -126,16 +135,16 @@ const EncounterModal = ({ encounter, state, onChoose, onClose }: Props) => {
             ]}
             maxFontSizeMultiplier={1.15}
           >
-            {resultText ?? t(k("body"), ENCOUNTER_PARAMS)}
+            {resultText ?? say("body")}
           </Text>
           {outcome ? (
             <PopButton label={t("encounter.go")} onPress={onClose} disabled={rolling} style={[styles.button, rolling && { opacity: 0 }]} />
           ) : (
             <>
-              <PopButton label={t(k("take"), ENCOUNTER_PARAMS)} onPress={() => onChoose(true)} disabled={!affordable} tint={tint} style={styles.button} />
+              <PopButton label={say("take")} onPress={() => onChoose(true)} disabled={!affordable} tint={tint} style={styles.button} />
               {!affordable ? (
                 <Text style={styles.cant} maxFontSizeMultiplier={1.1}>
-                  {t(k("cant"), ENCOUNTER_PARAMS)}
+                  {say("cant")}
                 </Text>
               ) : null}
               <PopLink label={t("encounter.leave")} onPress={() => onChoose(false)} />
