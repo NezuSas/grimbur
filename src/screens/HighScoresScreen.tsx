@@ -378,11 +378,9 @@ const HighScoresScreen: React.FC<Props> = ({ navigation }) => {
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={beside ? { gap: 6 } : { marginBottom: 2, gap: 8 }}>
-          {board !== "global" ? (
-            <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
-              {board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : board === "endless" ? t("scores.endlessNote") : t("scores.weekNote")}
-            </Text>
-          ) : null}
+          <Text style={styles.boardNote} maxFontSizeMultiplier={1.2}>
+              {board === "global" ? t("scores.globalNote") : board === "today" ? t("scores.dailyNote") : board === "season" ? t("scores.seasonNote") : board === "endless" ? t("scores.endlessNote") : t("scores.weekNote")}
+          </Text>
           {status === "ready" ? offlineNotice : null}
           {beside ? null : podiumView}
         </View>

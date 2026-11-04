@@ -864,6 +864,7 @@ export const es: Record<TranslationKey, string> = {
   'scores.empty.today': "Aún no hay resultados hoy. ¡Juega el reto diario!",
   'scores.empty.week': "Aún no hay resultados esta semana. ¡Juega el reto diario!",
   'scores.dailyNote': "La misma cueva para todos. Un resultado por día: tu mejor.",
+  'scores.globalNote': 'Tu mejor expedición. Las partidas diarias cuentan en Hoy y Esta semana.',
   'scores.weekNote': "Los mejores resultados diarios de la semana (de lunes a domingo).",
   'scores.you': "Tú",
   'entry.daily.badge': "Reto diario",

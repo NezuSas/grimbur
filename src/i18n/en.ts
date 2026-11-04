@@ -863,6 +863,7 @@ export const en = {
   'scores.empty.today': "No results yet today. Play the daily challenge!",
   'scores.empty.week': "No results this week yet. Play the daily challenge!",
   'scores.dailyNote': "Same cave for everyone. One result per day: your best.",
+  'scores.globalNote': 'Your best expedition. Daily runs count on Today and This week.',
   'scores.weekNote': "The best daily results of the week (Monday to Sunday).",
   'scores.you': "You",
   'entry.daily.badge': "Daily challenge",
