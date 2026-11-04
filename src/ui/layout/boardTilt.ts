@@ -8,17 +8,21 @@
  * board's box.
  */
 
-/** How far the floor leans back. Gentle: the back row stays readable (about 10% smaller than the front one). */
-export const TILT_DEG = 18;
+/** How far the floor leans back (the back row about 17% narrower than the front one, as in the approved mock-up). */
+export const TILT_DEG = 20;
 /** The camera's distance, in board heights: farther is flatter. */
-const CAMERA_K = 3;
+const CAMERA_K = 1.85;
 /** The table's front edge under the board, in tiles. */
-export const LIP_TILES = 0.22;
+export const LIP_TILES = 0.12;
+/** A block tile's top face, from its top (the rest is the block's front edge): what stands on a tile stands on this face. */
+export const BLOCK_FACE = 0.82;
 
 const S = Math.sin((TILT_DEG * Math.PI) / 180);
 const C = Math.cos((TILT_DEG * Math.PI) / 180);
 /** Half the board's height over the camera distance, times the sine: the same for every board (the camera scales with it). */
 const SK = S / (2 * CAMERA_K);
+/** What stands on the tilted floor is stretched back up by this much, so the tilt does not flatten it. */
+export const STAND = 1 / C;
 
 export interface BoardTilt {
   w: number;

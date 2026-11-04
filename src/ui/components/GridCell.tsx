@@ -4,6 +4,16 @@ import Text from "./Text";
 import { Ionicons } from "@expo/vector-icons";
 import GameIcon from "./GameIcon";
 import { BIOME_ART, BLOCK_ART } from "../biomeArt";
+import { BLOCK_FACE, STAND } from "../layout/boardTilt";
+
+/** Creatures on the tilted board: a little bigger, stretched back up against the tilt and standing on the block's face, so
+ *  they rise into the tile behind them as the hero does. */
+const CREATURE_GROW = 1.12;
+const standUp = (tile: number) => {
+  const ky = CREATURE_GROW * STAND;
+  const shift = BLOCK_FACE * tile * 0.5 - 0.02 * tile - ky * 0.49 * tile;
+  return { transform: [{ translateY: shift }, { scaleX: CREATURE_GROW }, { scaleY: ky }] };
+};
 import type { ArtTheme } from "../biomeArt";
 import type { Direction, GameEntity } from "../../core/engine/types";
 import type { NearbyHazards } from "../../core/engine/proximity";
@@ -392,10 +402,13 @@ const GridCell = memo(({
         pointerEvents="none"
         style={[
           styles.tileTone,
-          { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * 0.09 },
+          { left: tileSize * 0.09, top: tileSize * 0.09, right: tileSize * 0.09, bottom: tileSize * (block ? 1.09 - BLOCK_FACE : 0.09) },
           opened ? styles.toneLit : styles.toneDark,
         ]}
       />
+
+      {/* On a block tile everything stands on the top face (the front edge below it is the block's side). */}
+      <View pointerEvents="none" style={[styles.cell, block ? { position: "absolute", left: 0, top: 0, width: tileSize, height: tileSize * BLOCK_FACE } : StyleSheet.absoluteFill]}>
 
       {unveiling && (
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: unveil }]}>
@@ -427,7 +440,7 @@ const GridCell = memo(({
       {puff > 0 ? <FogPuff key={puff} size={tileSize} color={roar ? "#C99A5C" : vortex ? "#A397BF" : "#D7CCC8"} /> : null}
 
       {/* Pit / Enemy revealed when visited (or when the floor is over: then they fade in out of the fog) */}
-      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }]}>
+      <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, !lit && !lurking && { opacity: killer ? 1 : unveil }, block && standUp(tileSize)]}>
       {entity?.type === 'stalker' && seen && (
         <Animated.View
           style={[
@@ -605,6 +618,7 @@ const GridCell = memo(({
       {isPlayerHere && (
         <View style={[styles.playerHighlight, { width: tileSize, height: tileSize }]} />
       )}
+      </View>
     </Animated.View>
   );
 });

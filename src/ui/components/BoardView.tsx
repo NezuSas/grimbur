@@ -10,7 +10,7 @@ import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import { secretDraftTiles } from "../../core/engine/worldHelpers";
 import BoardTouchLayer from "./BoardTouchLayer";
 import { LinearGradient } from "expo-linear-gradient";
-import { makeTilt, tiltTransforms } from "../layout/boardTilt";
+import { BLOCK_FACE, STAND, makeTilt, tiltTransforms } from "../layout/boardTilt";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
@@ -369,7 +369,11 @@ const BoardView: React.FC<Props> = memo(
     const heroBody = tileSize * HERO_SCALE;
     // Where the feet land: low on the tile (on the gold ring). On the top row the board's edge would cut the head, so the
     // hero stands a little lower there.
-    const heroLift = (rowIndex === 0 ? 0.97 : 0.88) * tileSize - ((tileSize - heroBody) / 2 + HERO_FEET * heroBody);
+    // On the tilted board the hero stands on the block's top face, stretched back up against the tilt, and the board does not
+    // clip (its top row's heads rise above it).
+    const heroStand = tilt ? STAND : 1;
+    const heroFeetAt = tilt ? BLOCK_FACE - 0.04 : rowIndex === 0 ? 0.97 : 0.88;
+    const heroLift = heroFeetAt * tileSize - ((tileSize - heroBody) / 2 + HERO_FEET * heroBody) - (heroStand - 1) * heroBody * (HERO_FEET - 0.5);
     const outline = Math.max(1.2, tileSize * 0.02);
     const bodyX = useMemo(() => Animated.multiply(stretchX, heroBreath.interpolate({ inputRange: [1, 1.04], outputRange: [1, 0.985] })), [stretchX, heroBreath]);
     const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
@@ -580,7 +584,7 @@ const BoardView: React.FC<Props> = memo(
         {/* The table's front edge under the tilted floor: the stone has a thickness. */}
         {tilt ? (
           <View pointerEvents="none" style={{ position: "absolute", top: tilt.lipTop - 2, left: (boardWidth - tilt.lipWidth) / 2, width: tilt.lipWidth, height: tilt.lipHeight + 2 }}>
-            <LinearGradient colors={["#6A5038", "#2E1F14", "#100A06"]} locations={[0, 0.45, 1]} style={[StyleSheet.absoluteFill, styles.lip]} />
+            <LinearGradient colors={["#2A1E15", "#140D08", "#070403"]} locations={[0, 0.45, 1]} style={[StyleSheet.absoluteFill, styles.lip]} />
             <View style={styles.lipEdge} />
             <View style={[styles.lipShadow, { top: tilt.lipHeight + 2, height: tilt.lipHeight * 1.4 }]} />
           </View>
@@ -592,7 +596,7 @@ const BoardView: React.FC<Props> = memo(
               width: boardWidth,
               height: boardHeight,
               transform: [...(tilt ? tiltTransforms(tilt) : []), { translateX: shakeAnim }, { translateY: shakeY }, { scale: punch }],
-              overflow: dying && killerTile != null ? "visible" : "hidden",
+              overflow: tilt || (dying && killerTile != null) ? "visible" : "hidden",
             },
           ]}
         >
@@ -700,8 +704,8 @@ const BoardView: React.FC<Props> = memo(
             pointerEvents="none"
           >
             {/* A pool of warm light on the tile and a ring at the feet: every floor is dark, so light (not shadow) is what sets the hero apart. */}
-            <View pointerEvents="none" style={[styles.heroGlow, { width: tileSize * 0.94, height: tileSize * 0.94, borderRadius: tileSize * 0.47, left: tileSize * 0.03, top: tileSize * 0.03 }]} />
-            <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * 0.04 }]} />
+            <View pointerEvents="none" style={[styles.heroGlow, { width: tileSize * 0.94, height: tileSize * (tilt ? BLOCK_FACE - 0.06 : 0.94), borderRadius: tileSize * 0.47, left: tileSize * 0.03, top: tileSize * 0.03 }]} />
+            <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * (tilt ? 1.02 - BLOCK_FACE : 0.04) }]} />
             {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
             {pet && !dying ? (
               <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.08, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.16, zIndex: 3 }}>
@@ -711,7 +715,7 @@ const BoardView: React.FC<Props> = memo(
             {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
             {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
             {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
-            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
+            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
             <Animated.View
               style={{
                 width: heroBody,
@@ -830,8 +834,6 @@ const BoardView: React.FC<Props> = memo(
               </>
             );
           })()}
-          {/* The far rows sit a little in the cave's shade: depth, without hiding anything. */}
-          {tilt ? <LinearGradient pointerEvents="none" colors={["rgba(0,0,0,0.22)", "rgba(0,0,0,0)"]} end={{ x: 0.5, y: 0.45 }} style={[StyleSheet.absoluteFill, { zIndex: 19 }]} /> : null}
         </Animated.View>
 
         {/* Touches are read off the board as drawn and turned back into tiles (the layer itself is not tilted). */}
