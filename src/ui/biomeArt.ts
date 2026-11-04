@@ -10,12 +10,36 @@ export interface BiomeArt {
 
 /**
  * The tiles painted as stone blocks (the top face and, below it, the block's front edge) for the tilted board: a flat
- * top-down tile tilted reads as a bent photo, a block reads as a table. Caves without them yet keep their flat tiles.
+ * top-down tile tilted reads as a bent photo, a block reads as a table.
  */
-export const BLOCK_ART: Partial<Record<ArtTheme, Pick<BiomeArt, 'tileHidden' | 'tileRevealed'>>> = {
+export const BLOCK_ART: Record<ArtTheme, Pick<BiomeArt, 'tileHidden' | 'tileRevealed'>> = {
   cave: {
     tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Block.webp'),
     tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Block.webp'),
+  },
+  crystal: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Crystal_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Crystal_Block.webp'),
+  },
+  magma: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Magma_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Magma_Block.webp'),
+  },
+  lair: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Lair_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Lair_Block.webp'),
+  },
+  frost: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Frost_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Frost_Block.webp'),
+  },
+  moss: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Moss_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Moss_Block.webp'),
+  },
+  vault: {
+    tileHidden: require('../assets/sprites/tiles/Tile_Hidden_Vault_Block.webp'),
+    tileRevealed: require('../assets/sprites/tiles/Tile_Revealed_Vault_Block.webp'),
   },
 };
 
@@ -63,4 +87,4 @@ export const BIOME_ART: Record<ArtTheme, BiomeArt> = {
 
 /** Every picture of every biome (for the start-up preload). */
 export const allBiomeImages = (): ImageSourcePropType[] =>
-  Object.values(BIOME_ART).flatMap(a => [a.background, a.tileHidden, a.tileRevealed]);
+  [...Object.values(BIOME_ART).flatMap(a => [a.background, a.tileHidden, a.tileRevealed]), ...Object.values(BLOCK_ART).flatMap(a => [a.tileHidden, a.tileRevealed])];

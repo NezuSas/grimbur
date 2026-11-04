@@ -20,7 +20,7 @@ export const useSettingsStore = create<SettingsState>()(
       swipeMove: false,
       dragAim: true,
       deductionHint: false,
-      tiltBoard: false,
+      tiltBoard: true,
       language: 'auto',
       tutorialSeen: false,
       storySeen: false,

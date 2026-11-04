@@ -140,7 +140,7 @@ export function readDevHarness(): DevLaunch | null {
       window.localStorage.setItem(STATS_KEY, JSON.stringify({ ...EMPTY_STATS, ...PRESETS[preset] }));
       window.localStorage.setItem(
         SETTINGS_KEY,
-        JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: q.get("hints") ? q.get("hints")!.split(",") : [], reduceFlash: q.get("calm") === "1", ...(q.get("pad") === "floating" ? { movePad: "floating" } : {}), ...(q.get("skin") ? { joystickSkin: q.get("skin") } : {}), ...(q.get("tilt") === "1" ? { tiltBoard: true } : {}) }, version: 0 }),
+        JSON.stringify({ state: { tutorialSeen: preset !== "new", language: q.get("lang") ?? "auto", hintsSeen: q.get("hints") ? q.get("hints")!.split(",") : [], reduceFlash: q.get("calm") === "1", ...(q.get("pad") === "floating" ? { movePad: "floating" } : {}), ...(q.get("skin") ? { joystickSkin: q.get("skin") } : {}), ...(q.get("flat") === "1" ? { tiltBoard: false } : {}) }, version: 0 }),
       );
     }
     // ?collector=1 owns every cosmetic for sale, so the collection rewards (and their banner) can be reviewed.

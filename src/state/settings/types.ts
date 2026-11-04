@@ -30,7 +30,7 @@ export interface SettingsState {
   dragAim: boolean;
   /** Practice help: the board marks the tiles the clues already prove safe or dangerous (expeditions only; such runs skip the top 10). */
   deductionHint: boolean;
-  /** Trial: the board leans back (2.5D). Off by default until the tiles are painted as stone blocks. */
+  /** The board leans back like a stone table (2.5D), its tiles painted as blocks; off shows it flat from straight above. */
   tiltBoard: boolean;
   language: LanguagePreference;
   /** True once the player has finished or skipped the tutorial. */
