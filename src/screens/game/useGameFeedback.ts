@@ -8,6 +8,7 @@ import { haptic, ImpactFeedbackStyle, NotificationFeedbackType } from "../../sha
 import { diffFeedback } from "../../core/feedback/diffFeedback";
 import { addGem, comboLook, comboRate, EMPTY_STREAK, gemPopScale, gemRate, gemStreakLabel } from "../../core/feedback/combo";
 import { tileCenter } from "../../core/feedback/geometry";
+import { makeTilt, projectPoint } from "../../ui/layout/boardTilt";
 import { coinReward, killValue } from "../../core/engine/scoring";
 import { floorEffects } from "../../core/engine/events";
 import { relicCount } from "../../core/engine/relics";
@@ -83,7 +84,8 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
       if (w > 0) boardOrigin.current = { x: x / ui + 1, y: y / ui + 1 };
     });
   }, [ui]);
-  const { tileSize: boardTile } = useGameLayout(state.cols, state.rows);
+  const { tileSize: boardTile, boardTilted, boardWidth, boardHeight } = useGameLayout(state.cols, state.rows);
+  const tilt = boardTilted ? makeTilt(boardWidth, boardHeight, boardTile) : null;
   useEffect(() => {
     measureBoard();
     const timer = setTimeout(measureBoard, 400); // the layout settles after the first frames
@@ -94,7 +96,11 @@ export function useGameFeedback({ state, stateRef, stepSoundedAt, reduceFlash, b
   const anchorOf = (tile: number): { x?: number; y?: number } => {
     const origin = boardOrigin.current;
     if (!origin) return {};
-    return tileCenter(tile, { originX: origin.x, originY: origin.y, tileSize: boardTile, cols: stateRef.current.cols });
+    if (!tilt) return tileCenter(tile, { originX: origin.x, originY: origin.y, tileSize: boardTile, cols: stateRef.current.cols });
+    // The tilted board: the tile's centre where it is drawn.
+    const flat = tileCenter(tile, { originX: 0, originY: 0, tileSize: boardTile, cols: stateRef.current.cols });
+    const drawn = projectPoint(tilt, flat.x, flat.y);
+    return { x: origin.x + drawn.x, y: origin.y + drawn.y };
   };
 
   const pushPopup = (popup: Omit<Popup, "id" | "slot" | "at">, tile: number) => {

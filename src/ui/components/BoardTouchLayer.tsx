@@ -4,6 +4,7 @@ import type { Direction } from '../../core/engine/types';
 import { SWIPE_MIN_DISTANCE, TAP_MAX_DISTANCE, classifyGesture, heroAimFromDrag } from '../../core/input/swipe';
 import { haptic } from '../../shared/haptics';
 import { useTouchScale, useUiScale } from '../layout/scaledWindow';
+import { unprojectPoint, type BoardTilt } from '../layout/boardTilt';
 
 const LONG_PRESS_MS = 450;
 
@@ -23,6 +24,8 @@ type Props = {
   onAimFire?: (direction: Direction) => void;
   /** A mouse (web): Shift + click on a tile. The plain tap that would follow is dropped. */
   onTileShiftClick?: (index: number) => void;
+  /** The board is drawn tilted (2.5D): a point on the layer is turned back into the flat board's point before finding its tile. */
+  tilt?: BoardTilt | null;
 };
 
 /**
@@ -32,13 +35,13 @@ type Props = {
  * Drag from the hero (when `onAimFire` is given): press the hero, drag toward a side and the board shows the line of fire;
  * let go to shoot, or drag back onto the hero to cancel. A plain tap on the hero stays a tap.
  */
-const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick }) => {
+const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, tilt = null }) => {
   // On a scaled screen (a big window) drags are measured on the real screen and, on the web, touch points too: both are
   // brought back to the board's own units, so a tile and a swipe are the same size to the finger as they look.
   const ui = useUiScale();
   const touch = useTouchScale();
-  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch });
-  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch };
+  const latest = useRef({ tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch, tilt });
+  latest.current = { tileSize, rows, cols, onTilePress, onSwipe, onTileLongPress, heroIndex, onAimDrag, onAimFire, onTileShiftClick, ui, touch, tilt };
   // A Shift + click (web) already did its job: the tap the responder reports next is dropped.
   const dropTap = useRef(false);
   const layer = useRef<React.ComponentRef<typeof View>>(null);
@@ -54,8 +57,9 @@ const BoardTouchLayer: React.FC<Props> = ({ tileSize, rows, cols, onTilePress, o
   };
   useEffect(() => clearTimer, []);
 
-  const tileAt = (x: number, y: number): number | null => {
+  const tileAt = (drawnX: number, drawnY: number): number | null => {
     const cur = latest.current;
+    const { x, y } = cur.tilt ? unprojectPoint(cur.tilt, drawnX, drawnY) : { x: drawnX, y: drawnY };
     const col = Math.floor(x / cur.tileSize);
     const row = Math.floor(y / cur.tileSize);
     return row >= 0 && row < cur.rows && col >= 0 && col < cur.cols ? row * cur.cols + col : null;

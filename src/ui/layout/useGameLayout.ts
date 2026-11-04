@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSettingsStore } from "../../state/settings/store";
 
 import type { ControlSize } from '../../state/settings/types';
+import { TILT_FIT } from './boardTilt';
 
 /** How much the player's size setting scales the pad and the attack button. */
 const CONTROL_SCALE: Record<ControlSize, number> = { small: 0.85, medium: 1, large: 1.2 };
@@ -31,6 +32,8 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
 
   const attackPlacement = useSettingsStore(s => s.attackButton);
   const controlSize = useSettingsStore(s => s.controlSize);
+  // The board leans back (2.5D) unless the player asked for the flat view.
+  const boardTilted = !useSettingsStore(s => s.flatBoard);
   // The extra column needs a wide landscape window (portrait or tall split-screen windows keep the pad as is).
   const splitAttack =
     attackPlacement === 'side' && screenWidth >= MIN_WIDTH_FOR_SPLIT_ATTACK && screenWidth > screenHeight;
@@ -52,7 +55,10 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
   const cameraWidth = screenWidth - controlPanelWidth - attackPanelWidth - insets.left - insets.right - GAME_ROW_PADDING * 2;
   const cameraHeight = screenHeight - hudHeight - insets.top - insets.bottom;
 
-  const tileSize = Math.max(8, Math.min(cameraWidth / boardColumns, cameraHeight / boardRows));
+  // Tilted, the front row is a little wider and the floor (with the table's edge) a little shorter than the flat board.
+  const tileSize = boardTilted
+    ? Math.max(8, Math.min(cameraWidth / (boardColumns * TILT_FIT.width), cameraHeight / (boardRows * TILT_FIT.heightPerRow + TILT_FIT.extraTiles)))
+    : Math.max(8, Math.min(cameraWidth / boardColumns, cameraHeight / boardRows));
   const boardWidth = tileSize * boardColumns;
   const boardHeight = tileSize * boardRows;
 
@@ -78,6 +84,7 @@ export const useGameLayout = (boardColumns: number = 15, boardRows: number = 8) 
     splitAttack,
     padDiameter,
     tileSize,
+    boardTilted,
     boardWidth,
     boardHeight,
     heroSize,

@@ -9,6 +9,8 @@ import { useGameLayout } from "../layout/useGameLayout";
 import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import { secretDraftTiles } from "../../core/engine/worldHelpers";
 import BoardTouchLayer from "./BoardTouchLayer";
+import { LinearGradient } from "expo-linear-gradient";
+import { makeTilt, tiltTransforms } from "../layout/boardTilt";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
@@ -246,7 +248,9 @@ const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType
 
 const BoardView: React.FC<Props> = memo(
   ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
-    const { tileSize, boardWidth, boardHeight } = useGameLayout(cols, rows);
+    const { tileSize, boardWidth, boardHeight, boardTilted } = useGameLayout(cols, rows);
+    // The board leans back like a table (2.5D) unless the player chose the flat view (see ui/layout/boardTilt.ts).
+    const tilt = useMemo(() => (boardTilted ? makeTilt(boardWidth, boardHeight, tileSize) : null), [boardTilted, boardWidth, boardHeight, tileSize]);
 
     const rowIndex = Math.floor(playerIndex / cols);
     const colIndex = playerIndex % cols;
@@ -572,10 +576,24 @@ const BoardView: React.FC<Props> = memo(
 
     return (
       <View style={styles.cameraContainer}>
+        <View style={{ width: boardWidth, height: boardHeight }}>
+        {/* The table's front edge under the tilted floor: the stone has a thickness. */}
+        {tilt ? (
+          <View pointerEvents="none" style={{ position: "absolute", top: tilt.lipTop - 2, left: (boardWidth - tilt.lipWidth) / 2, width: tilt.lipWidth, height: tilt.lipHeight + 2 }}>
+            <LinearGradient colors={["#6A5038", "#2E1F14", "#100A06"]} locations={[0, 0.45, 1]} style={[StyleSheet.absoluteFill, styles.lip]} />
+            <View style={styles.lipEdge} />
+            <View style={[styles.lipShadow, { top: tilt.lipHeight + 2, height: tilt.lipHeight * 1.4 }]} />
+          </View>
+        ) : null}
         <Animated.View
           style={[
             styles.boardFrame,
-            { width: boardWidth, height: boardHeight, transform: [{ translateX: shakeAnim }, { translateY: shakeY }, { scale: punch }], overflow: dying && killerTile != null ? "visible" : "hidden" },
+            {
+              width: boardWidth,
+              height: boardHeight,
+              transform: [...(tilt ? tiltTransforms(tilt) : []), { translateX: shakeAnim }, { translateY: shakeY }, { scale: punch }],
+              overflow: dying && killerTile != null ? "visible" : "hidden",
+            },
           ]}
         >
           {/* Grid Cells optimization */}
@@ -660,20 +678,6 @@ const BoardView: React.FC<Props> = memo(
             </View>
           ))}
 
-          {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
-            <BoardTouchLayer
-              tileSize={tileSize}
-              rows={rows}
-              cols={cols}
-              onTilePress={onTilePress}
-              onSwipe={onSwipe}
-              onTileLongPress={onTileLongPress}
-              heroIndex={playerIndex}
-              onAimDrag={onAimDrag}
-              onAimFire={onAimFire}
-              onTileShiftClick={onTileShiftClick}
-            />
-          )}
 
           {/* Player sprite */}
           <Animated.View
@@ -825,7 +829,27 @@ const BoardView: React.FC<Props> = memo(
               </>
             );
           })()}
+          {/* The far rows sit a little in the cave's shade: depth, without hiding anything. */}
+          {tilt ? <LinearGradient pointerEvents="none" colors={["rgba(0,0,0,0.22)", "rgba(0,0,0,0)"]} end={{ x: 0.5, y: 0.45 }} style={[StyleSheet.absoluteFill, { zIndex: 19 }]} /> : null}
         </Animated.View>
+
+        {/* Touches are read off the board as drawn and turned back into tiles (the layer itself is not tilted). */}
+          {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
+            <BoardTouchLayer
+              tileSize={tileSize}
+              rows={rows}
+              cols={cols}
+              onTilePress={onTilePress}
+              onSwipe={onSwipe}
+              onTileLongPress={onTileLongPress}
+              heroIndex={playerIndex}
+              onAimDrag={onAimDrag}
+              onAimFire={onAimFire}
+              onTileShiftClick={onTileShiftClick}
+              tilt={tilt}
+            />
+          )}
+        </View>
       </View>
     );
   }
@@ -842,6 +866,9 @@ const styles = StyleSheet.create({
   ghostRing: { alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(200,230,255,0.85)", backgroundColor: "rgba(120,160,220,0.35)" },
   ghostName: { position: "absolute", bottom: -6, color: "#E3F2FD", fontSize: 9, fontWeight: "900", backgroundColor: "rgba(10,20,40,0.8)", paddingHorizontal: 4, borderRadius: 4, overflow: "hidden" },
   cameraContainer: { justifyContent: "center", alignItems: "center" },
+  lip: { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, borderWidth: 1, borderTopWidth: 0, borderColor: "rgba(0,0,0,0.6)" },
+  lipEdge: { position: "absolute", top: 2, left: 0, right: 0, height: 1, backgroundColor: "rgba(255,222,170,0.28)" },
+  lipShadow: { position: "absolute", left: "4%", right: "4%", backgroundColor: "rgba(0,0,0,0.35)", borderRadius: 40 },
   boardFrame: {
     backgroundColor: "#111",
     borderRadius: 8,

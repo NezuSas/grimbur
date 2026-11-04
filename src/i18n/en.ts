@@ -1812,6 +1812,8 @@ export const en = {
   'over.demo.cta': 'Continue the expedition',
   'settings.deductionHint': 'Deduction help (practice)',
   'settings.deductionHintHint': 'In expeditions, the tiles the clues already prove safe get a green check and the dangerous ones a red mark. Runs played with it do not enter the top 10.',
+  'settings.flatBoard': "Flat board view",
+  'settings.flatBoardHint': "Removes the board's tilt: everything is seen from straight above. It may read better on small screens.",
   'event.kicker': 'Event of the week',
   'event.best': 'Your best: {n}',
   'event.played': 'Played during: {name}',

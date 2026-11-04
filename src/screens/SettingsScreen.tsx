@@ -105,6 +105,8 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
   const swipeMove = useSettingsStore(s => s.swipeMove);
   const dragAim = useSettingsStore(s => s.dragAim);
   const deductionHint = useSettingsStore(s => s.deductionHint);
+  const flatBoard = useSettingsStore(s => s.flatBoard);
+  const setFlatBoard = useSettingsStore(s => s.setFlatBoard);
   const musicVolume = useSettingsStore(s => s.musicVolume);
   const sfxVolume = useSettingsStore(s => s.sfxVolume);
   const setMusicVolume = useSettingsStore(s => s.setMusicVolume);
@@ -516,6 +518,10 @@ const SettingsScreen: React.FC<Props> = ({ navigation }) => {
     <SettingCard>
       <SettingRow label={t("settings.haptics")} icon="phone-portrait-outline" tint="#A3BF7C">
         <ToggleSwitch value={hapticsEnabled} onValueChange={setHapticsEnabled} accessibilityLabel={t("settings.haptics")} />
+      </SettingRow>
+      <RowDivider />
+      <SettingRow label={t("settings.flatBoard")} hint={t("settings.flatBoardHint")} icon="grid" tint="#8FC0C5">
+        <ToggleSwitch value={flatBoard} onValueChange={setFlatBoard} accessibilityLabel={t("settings.flatBoard")} />
       </SettingRow>
       <RowDivider />
       <SettingRow label={t("settings.deductionHint")} hint={t("settings.deductionHintHint")} icon="bulb" tint="#C9A55A">

@@ -1813,6 +1813,8 @@ export const es: Record<TranslationKey, string> = {
   'over.demo.cta': 'Continuar la expedición',
   'settings.deductionHint': 'Ayuda de deducción (práctica)',
   'settings.deductionHintHint': 'En las expediciones, las casillas que las pistas ya prueban seguras llevan un visto verde y las peligrosas una marca roja. Las partidas jugadas con ella no entran al top 10.',
+  'settings.flatBoard': "Vista plana del tablero",
+  'settings.flatBoardHint': "Quita la inclinación del tablero: todo se ve desde arriba. Puede leerse mejor en pantallas pequeñas.",
   'event.kicker': 'Evento de la semana',
   'event.best': 'Tu mejor: {n}',
   'event.played': 'Jugada durante: {name}',

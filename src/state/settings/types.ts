@@ -30,6 +30,8 @@ export interface SettingsState {
   dragAim: boolean;
   /** Practice help: the board marks the tiles the clues already prove safe or dangerous (expeditions only; such runs skip the top 10). */
   deductionHint: boolean;
+  /** The board seen from straight above, without the 2.5D tilt. */
+  flatBoard: boolean;
   language: LanguagePreference;
   /** True once the player has finished or skipped the tutorial. */
   tutorialSeen: boolean;
@@ -63,6 +65,7 @@ export interface SettingsState {
   setJoystickSkin: (skin: JoystickSkin) => void;
   setSwipeMove: (enabled: boolean) => void;
   setDragAim: (enabled: boolean) => void;
+  setFlatBoard: (flat: boolean) => void;
   setDeductionHint: (enabled: boolean) => void;
   setLanguage: (language: LanguagePreference) => void;
   setTutorialSeen: (seen: boolean) => void;
