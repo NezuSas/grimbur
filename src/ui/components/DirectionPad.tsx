@@ -70,11 +70,14 @@ const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT
  */
 export const AttackButton = memo(({ size, arrows, label, onAttack, onAim, weapon = "bow" }: AttackButtonProps) => {
   // The attack button worn in the Collection, read once (an empty quiver always shows the dull stone).
-  const [readyArt] = useState(() => {
+  const [worn] = useState(() => {
     const saved = peekLocalStats();
     const id = saved ? equippedCosmetic(saved, "attack") : null;
-    return (id && ATTACK_SKINS[id]) || WEAPON_READY[weapon];
+    return id ? ATTACK_SKINS[id] ?? null : null;
   });
+  // The worn medallions are painted with an arrow: they dress the bow only; the orb and the bomb keep their own. Picked on
+  // every render: the run (and so the weapon) is set up after the button first appears.
+  const readyArt = (weapon === "bow" && worn) || WEAPON_READY[weapon];
   const { t } = useT();
   const scale = useRef(new Animated.Value(1)).current;
   const empty = arrows <= 0;
