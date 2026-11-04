@@ -10,7 +10,7 @@ import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import { secretDraftTiles } from "../../core/engine/worldHelpers";
 import BoardTouchLayer from "./BoardTouchLayer";
 import { LinearGradient } from "expo-linear-gradient";
-import { BLOCK_FACE, STAND, makeTilt, tiltTransforms } from "../layout/boardTilt";
+import { BLOCK_FACE, makeTilt, projectPoint, tiltTransforms } from "../layout/boardTilt";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightMs, landMs } from "./game/ArrowFlight";
 import FallenFoe from "./game/FallenFoe";
@@ -235,10 +235,6 @@ const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0]
  */
 const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType; visible: boolean; line: number }) => (
   <View pointerEvents="none" style={[styles.heroLayer, { opacity: visible ? 1 : 0 }]}>
-    {/* A warm rim of light outside the dark line: the tiles are as dark as the hero's leathers, so a dark edge alone vanishes. */}
-    {OUTLINE_OFFSETS.map(([dx, dy], k) => (
-      <SpriteImage key={`r${k}`} source={source} style={[styles.heroLayer, { left: dx * line * 2.4, top: dy * line * 2.4, tintColor: "#FFE7B0", opacity: 0.75 }]} />
-    ))}
     {OUTLINE_OFFSETS.map(([dx, dy], k) => (
       <SpriteImage key={k} source={source} style={[styles.heroLayer, { left: dx * line, top: dy * line, tintColor: "#140a05", opacity: 0.9 }]} />
     ))}
@@ -371,10 +367,34 @@ const BoardView: React.FC<Props> = memo(
     // hero stands a little lower there.
     // On the tilted board the hero stands on the block's top face, stretched back up against the tilt, and the board does not
     // clip (its top row's heads rise above it).
-    const heroStand = tilt ? STAND : 1;
+    const heroStand = 1;
     const heroFeetAt = tilt ? BLOCK_FACE - 0.04 : rowIndex === 0 ? 0.97 : 0.88;
     const heroLift = heroFeetAt * tileSize - ((tileSize - heroBody) / 2 + HERO_FEET * heroBody) - (heroStand - 1) * heroBody * (HERO_FEET - 0.5);
     const outline = Math.max(1.2, tileSize * 0.02);
+    // Where the upright hero is drawn over the tilted board: its feet on the projected point of its tile's face, scaled by how
+    // big the floor is drawn there. Sampled along the rows so the native driver can follow the walk.
+    const heroScreen = useMemo(() => {
+      if (!tilt) return null;
+      const f = heroFeetAt * tileSize;
+      const ys: number[] = [];
+      const ks: number[] = [];
+      const ays: number[] = [];
+      for (let y = -tileSize; y <= boardHeight + tileSize + 0.01; y += tileSize / 4) {
+        const feetY = y + f;
+        const a = projectPoint(tilt, boardWidth / 2, feetY);
+        ys.push(y);
+        ks.push((projectPoint(tilt, boardWidth / 2 + 100, feetY).x - a.x) / 100);
+        ays.push(a.y);
+      }
+      const k = playerPos.y.interpolate({ inputRange: ys, outputRange: ks });
+      const ay = playerPos.y.interpolate({ inputRange: ys, outputRange: ays });
+      const ax = Animated.add(boardWidth / 2, Animated.multiply(Animated.add(playerPos.x, tileSize / 2 - boardWidth / 2), k));
+      return {
+        k,
+        x: Animated.add(ax, -tileSize / 2),
+        y: Animated.subtract(ay, Animated.add(tileSize / 2, Animated.multiply(k, f - tileSize / 2))),
+      };
+    }, [tilt, tileSize, boardWidth, boardHeight, heroFeetAt, playerPos]);
     const bodyX = useMemo(() => Animated.multiply(stretchX, heroBreath.interpolate({ inputRange: [1, 1.04], outputRange: [1, 0.985] })), [stretchX, heroBreath]);
     const bodyY = useMemo(() => Animated.multiply(stretchY, heroBreath), [stretchY, heroBreath]);
     const feet = useMemo(() => bodyY.interpolate({ inputRange: [0, 2], outputRange: [heroBody / 2, -heroBody / 2] }), [bodyY, heroBody]);
@@ -578,6 +598,38 @@ const BoardView: React.FC<Props> = memo(
       });
     }, [shot?.key]);
 
+    // The hero itself (and its companion). On the tilted board it is drawn upright over the board, not on the tilted floor:
+    // the floor's perspective would blur it and flatten it (see heroScreen).
+    const heroFigure = (
+      <>
+            {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
+        {pet && !dying ? (
+          <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.08, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.16, zIndex: 3 }}>
+            <Companion look={pet} size={tileSize * 0.46} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
+          </Animated.View>
+        ) : null}
+        {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
+        {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
+        {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
+        <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
+        <Animated.View
+          style={{
+            width: heroBody,
+            height: heroBody,
+            transform: [
+              { scaleX: lastSide.current === "left" ? -1 : 1 },
+              { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
+              { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
+            ],
+          }}
+        >
+          {idleSource && <OutlinedSprite source={idleSource} visible={!drawn} line={outline} />}
+          {attackSource && <OutlinedSprite source={attackSource} visible={drawn} line={outline} />}
+        </Animated.View>
+        </Animated.View>
+      </>
+    );
+
     return (
       <View style={styles.cameraContainer}>
         <View style={{ width: boardWidth, height: boardHeight }}>
@@ -706,31 +758,7 @@ const BoardView: React.FC<Props> = memo(
             {/* A pool of warm light on the tile and a ring at the feet: every floor is dark, so light (not shadow) is what sets the hero apart. */}
             <View pointerEvents="none" style={[styles.heroGlow, { width: tileSize * 0.94, height: tileSize * (tilt ? BLOCK_FACE - 0.06 : 0.94), borderRadius: tileSize * 0.47, left: tileSize * 0.03, top: tileSize * 0.03 }]} />
             <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * (tilt ? 1.02 - BLOCK_FACE : 0.04) }]} />
-            {/* The companion rides along at the hero's shoulder (behind it, on the side it faces away from). */}
-            {pet && !dying ? (
-              <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.08, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.16, zIndex: 3 }}>
-                <Companion look={pet} size={tileSize * 0.46} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
-              </Animated.View>
-            ) : null}
-            {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
-            {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
-            {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
-            <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
-            <Animated.View
-              style={{
-                width: heroBody,
-                height: heroBody,
-                transform: [
-                  { scaleX: lastSide.current === "left" ? -1 : 1 },
-                  { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
-                  { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
-                ],
-              }}
-            >
-              {idleSource && <OutlinedSprite source={idleSource} visible={!drawn} line={outline} />}
-              {attackSource && <OutlinedSprite source={attackSource} visible={drawn} line={outline} />}
-            </Animated.View>
-            </Animated.View>
+            {tilt ? null : heroFigure}
           </Animated.View>
 
           {/* The clues of the hero's tile, above the hero: its body would cover them where they matter most. */}
@@ -835,6 +863,27 @@ const BoardView: React.FC<Props> = memo(
             );
           })()}
         </Animated.View>
+
+        {/* The tilted board's hero: upright and sharp, standing where its tile's face is drawn, as big as the floor is there. */}
+        {tilt && heroScreen ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.playerCell,
+              {
+                width: tileSize,
+                height: tileSize,
+                position: "absolute",
+                left: 0,
+                top: 0,
+                opacity: heroFade,
+                transform: [{ translateX: heroScreen.x }, { translateY: heroScreen.y }, { scale: heroScreen.k }, { scale: heroShrink }, { scale: warp }],
+              },
+            ]}
+          >
+            {heroFigure}
+          </Animated.View>
+        ) : null}
 
         {/* Touches are read off the board as drawn and turned back into tiles (the layer itself is not tilted). */}
           {(onTilePress || onSwipe || onTileLongPress || onAimFire) && (
