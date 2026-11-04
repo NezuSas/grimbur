@@ -18,6 +18,8 @@ import type { TranslationKey } from "../../../i18n/en";
 
 const ITEM_COLOR: Record<ShopItem, string> = { arrows: "#C99A5C", shield: "#7FAFC6", detector: "#8EAE7C", bomb: "#B86A48" };
 const GEM = require("../../../assets/sprites/items/Icon_Gem.webp");
+/** What the hero carries into the next floor, shown beside the shop so a buy is never blind. */
+const CARRY: readonly ShopItem[] = ["arrows", "shield", "detector", "bomb"];
 /** Each omen's door wears the art and colour of what it brings. */
 const MERCHANT_ART = require("../../../assets/sprites/items/Icon_Merchant.webp");
 const OMEN_LOOK: Record<string, { art: ImageSourcePropType; color: string }> = {
@@ -128,12 +130,29 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
           </View>
         </View>
 
-        {/* ── The shop: four cards, the ware big ────────────────────────────── */}
+        {/* ── The shop: what the hero carries, then four cards (the ware big beside its words) ── */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.section} maxFontSizeMultiplier={1.1}>{t("shop.section").toLocaleUpperCase()}</Text>
+          <View style={styles.sectionLine} />
+          <Text style={styles.carryLabel} maxFontSizeMultiplier={1.1}>{t("shop.carry").toLocaleUpperCase()}</Text>
+          {CARRY.map(c => {
+            const have = c === "arrows" ? arrows : c === "shield" ? (shield ? 1 : 0) : items[c];
+            return (
+              <View key={c} style={[styles.carry, have === 0 && { opacity: 0.45 }]} accessible accessibilityLabel={`${t(`shop.${c}.name` as TranslationKey)}: ${have}`}>
+                <SpriteImage source={SHOP_ART[c]} style={{ width: 20, height: 20 }} resizeMode="contain" />
+                <Text style={styles.carryText} allowFontScaling={false}>
+                  {c === "shield" ? (shield ? "✓" : "–") : c === "arrows" ? `${have}` : `${have}/${MAX_ITEMS}`}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
         <View style={[styles.shop, narrow && { flexWrap: "wrap" }]}>
           {SHOP_ITEMS.map(item => {
             const price = SHOP_PRICES[item];
             const blocked = reason(item);
-            const canBuy = gems >= price && !blocked;
+            const short = Math.max(0, price - gems);
+            const canBuy = short === 0 && !blocked;
             const color = ITEM_COLOR[item];
             const name = t(`shop.${item}.name` as TranslationKey);
             const desc = t(`shop.${item}.desc` as TranslationKey);
@@ -145,21 +164,32 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
                 accessibilityRole="button"
                 accessibilityLabel={`${name}. ${desc}. ${blocked ?? t("shop.purse", { count: price })}`}
                 accessibilityState={{ disabled: !canBuy }}
-                style={({ pressed }) => [styles.ware, narrow && { flexBasis: "47%" }, { borderColor: canBuy ? color + "CC" : "rgba(255,255,255,0.1)" }, pressed && { transform: [{ scale: 0.96 }] }]}
+                style={({ pressed }) => [styles.ware, narrow && { flexBasis: "47%" }, { borderColor: canBuy ? color + "CC" : "rgba(255,255,255,0.08)" }, !canBuy && styles.wareOff, pressed && { transform: [{ scale: 0.96 }] }]}
               >
-                <View style={[styles.wareGlow, { backgroundColor: color, opacity: canBuy ? 0.16 : 0.05 }]} />
-                <SpriteImage source={SHOP_ART[item]} style={[styles.wareArt, !canBuy && { opacity: 0.4 }]} resizeMode="contain" />
-                <Text style={[styles.wareName, !canBuy && { color: "#A8978A" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-                  {name}
-                </Text>
-                <Text style={styles.wareDesc} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
-                  {blocked ?? desc}
-                </Text>
-                <View style={[styles.wareBuy, { backgroundColor: canBuy ? color : "rgba(255,255,255,0.1)" }]}>
-                  <SpriteImage source={GEM} style={{ width: 13, height: 13 }} resizeMode="contain" />
-                  <Text style={[styles.wareBuyText, !canBuy && { color: "#C9B49C" }]} allowFontScaling={false}>
-                    {price}
+                <View style={[styles.wareGlow, { backgroundColor: color, opacity: canBuy ? 0.2 : 0.04 }]} />
+                <SpriteImage source={SHOP_ART[item]} style={[styles.wareArt, !canBuy && { opacity: 0.35 }]} resizeMode="contain" />
+                <View style={styles.wareBody}>
+                  <Text style={[styles.wareName, { color: canBuy ? "#F3EADB" : "#9E8E80" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+                    {name}
                   </Text>
+                  <Text style={[styles.wareDesc, !canBuy && { color: "#8F7F72" }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>
+                    {desc}
+                  </Text>
+                  <View style={styles.wareFoot}>
+                    {blocked ? (
+                      <Text style={styles.wareBlocked} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.05}>{blocked}</Text>
+                    ) : (
+                      <View style={[styles.wareBuy, { backgroundColor: canBuy ? color : "rgba(255,255,255,0.08)" }]}>
+                        <SpriteImage source={GEM} style={{ width: 13, height: 13 }} resizeMode="contain" />
+                        <Text style={[styles.wareBuyText, !canBuy && { color: "#C9B49C" }]} allowFontScaling={false}>
+                          {price}
+                        </Text>
+                      </View>
+                    )}
+                    {!blocked && short > 0 ? (
+                      <Text style={styles.wareShort} numberOfLines={1} maxFontSizeMultiplier={1.05}>{t("shop.short", { n: short })}</Text>
+                    ) : null}
+                  </View>
                 </View>
               </Pressable>
             );
@@ -175,10 +205,18 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             accessibilityLabel={`${t("shop.merchant.name")}. ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
             style={[styles.altar, styles.merchant, merchantUsed && { opacity: 0.55 }]}
           >
-            <SpriteImage source={MERCHANT_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
-            <Text style={[styles.altarText, { color: "#E3C7C4" }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-              {merchantUsed ? t("shop.merchant.done") : `${t("shop.merchant.name")}: ${t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}`}
-            </Text>
+            <SpriteImage source={MERCHANT_ART} style={{ width: 30, height: 30 }} resizeMode="contain" />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.dealName, { color: "#E9B3AA" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("shop.merchant.name")}</Text>
+              <Text style={styles.altarText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+                {merchantUsed ? t("shop.merchant.done") : t("shop.merchant.desc", { arrows: MERCHANT_ARROWS, gems: MERCHANT_GEMS })}
+              </Text>
+            </View>
+            {merchantUsed ? null : (
+              <View style={[styles.dealAction, { backgroundColor: "#C47268" }]}>
+                <Text style={styles.dealActionText} maxFontSizeMultiplier={1.05}>{t("shop.merchant.sell").toLocaleUpperCase()}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         ) : null}
         {(shield || altarUsed) && !altarFree ? (
@@ -190,14 +228,26 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
             accessibilityLabel={`${t("shop.altar.name")}. ${t("shop.altar.desc")}`}
             style={[styles.altar, altarUsed && { opacity: 0.55 }]}
           >
-            <SpriteImage source={ALTAR_ART} style={{ width: 28, height: 28 }} resizeMode="contain" />
-            <Text style={styles.altarText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
-              {altarUsed ? t("shop.altar.done") : `${t("shop.altar.name")}: ${t("shop.altar.desc")}`}
-            </Text>
+            <SpriteImage source={ALTAR_ART} style={{ width: 30, height: 30 }} resizeMode="contain" />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.dealName, { color: "#CDB0DA" }]} numberOfLines={1} maxFontSizeMultiplier={1.1}>{t("shop.altar.name")}</Text>
+              <Text style={styles.altarText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={1.1}>
+                {altarUsed ? t("shop.altar.done") : t("shop.altar.desc")}
+              </Text>
+            </View>
+            {altarUsed ? null : (
+              <View style={[styles.dealAction, { backgroundColor: "#B08DBE" }]}>
+                <Text style={styles.dealActionText} maxFontSizeMultiplier={1.05}>{t("shop.altar.offer").toLocaleUpperCase()}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         ) : null}
         </View>
 
+        <View style={styles.sectionRow}>
+          <Text style={styles.section} maxFontSizeMultiplier={1.1}>{(doors ? t("shop.choose") : t("shop.ahead")).toLocaleUpperCase()}</Text>
+          <View style={styles.sectionLine} />
+        </View>
         {/* ── The way on: two portals (or the floor ahead) and the button ───── */}
         <View style={[styles.wayRow, narrow && { flexDirection: "column" }]}>
           <View style={styles.doors}>
@@ -259,7 +309,7 @@ const IntermissionOverlay = ({ visible, nextFloor, nextIsLair, newBiome, gems, s
 export default IntermissionOverlay;
 
 const styles = StyleSheet.create({
-  card: { paddingHorizontal: 14, paddingVertical: 14, gap: 10, alignItems: "stretch" },
+  card: { paddingHorizontal: 14, paddingVertical: 12, gap: 9, alignItems: "stretch" },
   header: { flexDirection: "row", alignItems: "center", gap: 12 },
   journey: { flex: 1, flexDirection: "row", alignItems: "center", gap: 4 },
   journeyFrom: { color: "#B99A7C", fontWeight: "900", fontSize: 12, letterSpacing: 1.2 },
@@ -267,18 +317,32 @@ const styles = StyleSheet.create({
   title: { flexShrink: 1 },
   purse: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 6 },
   purseText: { color: "#F3EADB", fontWeight: "900", fontSize: 20, textShadowColor: "rgba(127, 175, 198,0.6)", textShadowRadius: 8 },
+  sectionRow: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: -4 },
+  section: { color: "#C9A55A", fontWeight: "900", fontSize: 11, letterSpacing: 2 },
+  sectionLine: { flex: 1, height: 1, backgroundColor: "rgba(201,165,90,0.25)" },
+  carryLabel: { color: "#B99A7C", fontWeight: "900", fontSize: 10.5, letterSpacing: 1.5 },
+  carry: { flexDirection: "row", alignItems: "center", gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.4)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
+  carryText: { color: "#F3EADB", fontWeight: "900", fontSize: 12 },
   shop: { flexDirection: "row", gap: 8 },
-  ware: { flex: 1, alignItems: "center", gap: 2, paddingVertical: 8, paddingHorizontal: 6, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.38)", overflow: "hidden" },
-  wareGlow: { position: "absolute", top: -30, width: 120, height: 90, borderRadius: 60 },
-  wareArt: { width: 42, height: 42 },
-  wareName: { color: "#F3EADB", fontWeight: "900", fontSize: 13.5 },
-  wareDesc: { color: "#CAB39C", fontSize: 11, fontWeight: "600", textAlign: "center", minHeight: 28 },
-  wareBuy: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, paddingHorizontal: 14, paddingVertical: 4, borderRadius: 12 },
-  wareBuyText: { color: "#1a1200", fontWeight: "900", fontSize: 14 },
+  ware: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingLeft: 8, paddingRight: 6, borderRadius: 16, borderWidth: 1.5, backgroundColor: "rgba(0,0,0,0.38)", overflow: "hidden" },
+  wareOff: { backgroundColor: "rgba(0,0,0,0.5)" },
+  wareGlow: { position: "absolute", left: -24, width: 96, height: 96, borderRadius: 48 },
+  wareArt: { width: 52, height: 52 },
+  wareBody: { flex: 1, gap: 1 },
+  wareName: { fontWeight: "900", fontSize: 14 },
+  wareDesc: { color: "#CAB39C", fontSize: 11, fontWeight: "600", lineHeight: 14, minHeight: 28 },
+  wareFoot: { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 3 },
+  wareBuy: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10 },
+  wareBuyText: { color: "#1a1200", fontWeight: "900", fontSize: 13.5 },
+  wareShort: { flexShrink: 1, color: "#D58A7E", fontWeight: "800", fontSize: 10.5 },
+  wareBlocked: { flexShrink: 1, color: "#A3BF7C", fontWeight: "800", fontSize: 11.5 },
+  dealName: { fontWeight: "900", fontSize: 12.5 },
+  dealAction: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  dealActionText: { color: "#1A0F04", fontWeight: "900", fontSize: 11.5, letterSpacing: 1 },
   deals: { flexDirection: "row", gap: 8 },
   merchant: { borderColor: "#C47268", backgroundColor: "rgba(229,115,115,0.12)" },
   altar: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1.5, borderColor: "#B08DBE", backgroundColor: "rgba(176, 141, 190,0.12)" },
-  altarText: { flex: 1, color: "#D3C2D8", fontWeight: "800", fontSize: 12 },
+  altarText: { color: "#D3C2D8", fontWeight: "700", fontSize: 11.5 },
   wayRow: { flexDirection: "row", alignItems: "stretch", gap: 10 },
   doors: { flex: 1, flexDirection: "row", gap: 8 },
   portal: { flex: 1, flexDirection: "row", alignItems: "center", gap: 10, padding: 8, borderRadius: 16, borderWidth: 2, backgroundColor: "rgba(0,0,0,0.32)" },
