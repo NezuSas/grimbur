@@ -252,6 +252,9 @@ const styleIdOf = <T,>(looks: Partial<Record<CosmeticId, T>>, look: T | null | u
   look ? ((Object.keys(looks) as CosmeticId[]).find(k => looks[k] === look) ?? null) : null;
 
 /** The hero's height against its tile, and where its feet sit inside its picture (from the top). */
+const HERO_LIGHT = require("../../assets/sprites/ui/Hero_Light.png");
+const HERO_SHADOW = require("../../assets/sprites/ui/Hero_Shadow.png");
+
 /** One tile walked: the slide and its two footfalls. A held direction (repeats every 210 ms) chains them, each restarting from where the hero is. */
 const WALK_MS = 260;
 const HERO_SCALE = 1.12;
@@ -815,9 +818,19 @@ const BoardView: React.FC<Props> = memo(
             ]}
             pointerEvents="none"
           >
-            {/* A pool of warm light on the tile and a ring at the feet: every floor is dark, so light (not shadow) is what sets the hero apart. */}
-            <View pointerEvents="none" style={[styles.heroGlow, { width: tileSize * 0.94, height: tileSize * (tilt ? BLOCK_FACE - 0.06 : 0.94), borderRadius: tileSize * 0.47, left: tileSize * 0.03, top: tileSize * 0.03 }]} />
-            <View pointerEvents="none" style={[styles.heroRing, { width: tileSize * 0.7, height: tileSize * 0.22, borderRadius: tileSize * 0.11, left: tileSize * 0.15, bottom: tileSize * (tilt ? 1.02 - BLOCK_FACE : 0.04) }]} />
+            {/* The hero carries its own light: a warm lantern glow that fades softly over the stone around it (squashed by the
+                table's tilt), and a soft contact shadow at the feet that grounds it. No hard shapes: it reads as light, not a marker. */}
+            {(() => {
+              const feetY = tileSize * (1 - (tilt ? 1.02 - BLOCK_FACE : 0.04) - 0.11);
+              const lightW = tileSize * 1.9;
+              const lightH = lightW * (tilt ? BLOCK_FACE : 0.9);
+              return (
+                <>
+                  <SpriteImage source={HERO_LIGHT} pointerEvents="none" resizeMode="stretch" style={{ position: "absolute", width: lightW, height: lightH, left: (tileSize - lightW) / 2, top: feetY - lightH * 0.55, opacity: 0.8 }} />
+                  <SpriteImage source={HERO_SHADOW} pointerEvents="none" resizeMode="stretch" style={{ position: "absolute", width: tileSize * 0.66, height: tileSize * 0.2, left: tileSize * 0.17, top: feetY - tileSize * 0.1, opacity: 0.7 }} />
+                </>
+              );
+            })()}
             {tilt ? null : heroFigure}
           </Animated.View>
 
@@ -1014,8 +1027,6 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   petShadow: { position: "absolute", backgroundColor: "rgba(0,0,0,0.38)" },
-  heroGlow: { position: "absolute", backgroundColor: "rgba(255,226,160,0.16)" },
-  heroRing: { position: "absolute", borderWidth: 2, borderColor: "rgba(255,214,130,0.85)", backgroundColor: "rgba(255,214,130,0.22)" },
   playerCell: { alignItems: "center", justifyContent: "center", zIndex: 20 },
   heroLayer: { position: "absolute", left: 0, top: 0, width: "100%", height: "100%", resizeMode: "contain" },
 });

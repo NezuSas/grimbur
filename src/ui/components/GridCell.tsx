@@ -642,10 +642,6 @@ const GridCell = memo(({
 
       {killer && <View style={styles.killer} pointerEvents="none" />}
 
-      {/* Player highlight glow */}
-      {isPlayerHere && (
-        <View style={[styles.playerHighlight, { width: tileSize, height: tileSize }]} />
-      )}
       </View>
     </Animated.View>
   );
@@ -690,11 +686,6 @@ const styles = StyleSheet.create({
   flagVerdict: { position: "absolute", borderWidth: 3 },
   flagRight: { borderColor: "#A3BF7C", backgroundColor: "rgba(163, 191, 124,0.18)" },
   flagWrong: { borderColor: "#CF6F68", backgroundColor: "rgba(181, 82, 74,0.16)" },
-  playerHighlight: {
-    position: "absolute",
-    backgroundColor: "rgba(255,255,255,0.08)",
-    zIndex: 1,
-  },
   hintContainer: {
     position: "absolute",
     top: 0, left: 0, right: 0, bottom: 0,
