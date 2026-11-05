@@ -6,6 +6,7 @@ import { useGameLayout } from "../layout/useGameLayout";
 import { useT } from "../../i18n/useT";
 import { AttackButton } from "./DirectionPad";
 import RelicTray from "./RelicTray";
+import { trayCapacity } from "./relicStacks";
 import type { RelicId } from "../../core/engine/relics";
 import type { Direction } from "../../core/engine/types";
 import type { WeaponId } from "../../core/engine/weapons";
@@ -29,13 +30,16 @@ type Props = {
  */
 const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsLabel, refill, weapon = "bow" }) => {
   const { t } = useT();
-  const { splitAttack, attackPanelWidth, attackSize } = useGameLayout();
+  const { splitAttack, attackPanelWidth, attackSize, screenHeight, hudHeight, insets } = useGameLayout();
   if (!splitAttack) return null;
+  // The relics get the column above the attack button and the arrow offer that floats over it (56dp), never more.
+  const relicSize = Math.max(26, Math.min(attackPanelWidth * 0.38, 40));
+  const relicRoom = screenHeight - hudHeight - insets.top - insets.bottom - attackSize - 10 - 56 - 4 - 6;
   return (
     <View style={{ width: attackPanelWidth, alignSelf: "stretch", justifyContent: "flex-end", alignItems: "center", paddingBottom: 10 }}>
       {relics && relics.length > 0 && (
         <View style={{ position: "absolute", top: 4, left: 0, right: 0, alignItems: "center" }}>
-          <RelicTray relics={relics} size={Math.max(26, Math.min(attackPanelWidth * 0.38, 40))} label={relicsLabel ?? ""} max={6} details weapon={weapon} />
+          <RelicTray relics={relics} size={relicSize} label={relicsLabel ?? ""} max={Math.min(6, trayCapacity(attackPanelWidth, relicRoom, relicSize))} details weapon={weapon} />
         </View>
       )}
       <View>

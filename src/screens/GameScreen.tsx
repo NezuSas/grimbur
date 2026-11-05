@@ -40,6 +40,8 @@ import DangerVignette from "../ui/components/game/DangerVignette";
 import FloorBanner from "../ui/components/game/FloorBanner";
 import BossIntro from "../ui/components/game/BossIntro";
 import RelicTray from "../ui/components/RelicTray";
+import { devRelics } from "../dev/devHarness";
+import { trayCapacity } from "../ui/components/relicStacks";
 import ToolBar from "../ui/components/ToolBar";
 import CoachHint from "../ui/components/game/CoachHint";
 import ScorePopup from "../ui/components/game/ScorePopup";
@@ -124,7 +126,7 @@ export default function GameScreen({ navigation, route }: Props) {
   const { t, plural } = useT();
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
-  const { controlPanelWidth, hudHeight, splitAttack } = useGameLayout();
+  const { controlPanelWidth, hudHeight, splitAttack, screenHeight, padDiameter } = useGameLayout();
   const controlPosition = useSettingsStore(s => s.controlPosition);
   const reduceFlash = useSettingsStore(s => s.reduceFlash);
   const { modeLocked } = useEntitlements();
@@ -200,7 +202,7 @@ export default function GameScreen({ navigation, route }: Props) {
   }, [hintAllowed, state.rows, state.cols, state.entities, state.visited, state.isGameOver, state.isVictory]);
   const floorBiome = (__DEV__ ? route.params?.devBiome : undefined) ?? biomeFor(state.level, state.mode);
   // Equipped looks (Collection): read once per run. A board theme only repaints the floor; the biome's rules stay.
-  const [looks] = useState(() => {
+  const readLooks = () => {
     const saved = peekLocalStats();
     const board = saved ? equippedCosmetic(saved, "board") : null;
     const flag = saved ? equippedCosmetic(saved, "flag") : null;
@@ -217,7 +219,20 @@ export default function GameScreen({ navigation, route }: Props) {
       pet: pet ? petLook(pet, stage) ?? null : null,
       petAura: pet && stage >= 1 ? PET_TINT[pet] ?? null : null,
     };
-  });
+  };
+  const [looks, setLooks] = useState(readLooks);
+  const looksRead = useRef(!!peekLocalStats());
+  // Opened before the save was read (a link straight into a run): the looks follow as soon as it is.
+  useEffect(() => {
+    if (looksRead.current) return;
+    let live = true;
+    void getLocalStats().then(() => {
+      if (live) setLooks(readLooks());
+    });
+    return () => {
+      live = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const artBiome = looks.board ?? floorBiome;
   // Dev harness only: show the whole floor, to review the art of every tile and creature at once.
   const shownVisited = useMemo(() => (__DEV__ && route.params?.devReveal ? Array.from({ length: state.rows * state.cols }, (_, i) => i) : state.visited), [route.params?.devReveal, state.rows, state.cols, state.visited]);
@@ -545,6 +560,12 @@ export default function GameScreen({ navigation, route }: Props) {
       leaveRun();
     };
   }, []);
+
+  // Dev web only (?relics=N): the run starts holding N relics, to check how the tray fits every screen.
+  useEffect(() => {
+    const ids = devRelics();
+    if (ids && state.relics.length === 0 && state.entities.length > 0) restore({ ...state, relics: ids });
+  }, [state.runSeed, state.entities.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The finished run can no longer be continued.
   useEffect(() => {
@@ -908,6 +929,9 @@ export default function GameScreen({ navigation, route }: Props) {
   const inDanger = (nearby.enemy || nearby.pit) && !runEnded && !levelUpWindow;
   const heartbeat = useHeartbeat(inDanger && !reduceFlash && !paused && isFocused, Math.max(nearby.enemyCount, nearby.pitCount));
   const relicNames = state.relics.map(id => relicText(t, id, "name")).join(", ");
+  // Narrow screens put the relics above the tools and the pad: they get the height those leave, so they never cover a button.
+  const toolSize = Math.max(34, Math.min(46, (controlPanelWidth + 12 - 18) / 4));
+  const relicRoom = screenHeight - hudHeight - insets.top - insets.bottom - padDiameter - toolSize - 8 - 10 - 4 - 6;
 
   const boardSummary = [
     t("hud.floorOf", { level: state.level, floors: runFloors(mode) }),
@@ -1111,7 +1135,7 @@ export default function GameScreen({ navigation, route }: Props) {
           {/* Wide screens show the relics above the attack button; narrow ones, above the pad. */}
           {state.relics.length > 0 && !splitAttack && (
             <View style={styles.relicSlot} pointerEvents="box-none">
-              <RelicTray relics={state.relics} size={28} max={8} details weapon={weaponOf(state)} label={t("a11y.relics", { names: relicNames })} />
+              <RelicTray relics={state.relics} size={28} max={Math.min(8, trayCapacity(controlPanelWidth, relicRoom, 28))} details weapon={weaponOf(state)} label={t("a11y.relics", { names: relicNames })} />
             </View>
           )}
           <View style={styles.toolSlot}>
@@ -1125,7 +1149,7 @@ export default function GameScreen({ navigation, route }: Props) {
               onDetector={handleDetector}
               onBomb={handleBomb}
               onUndo={handleUndo}
-              size={Math.max(34, Math.min(46, (controlPanelWidth + 12 - 18) / 4))}
+              size={toolSize}
             />
           </View>
           {movePad === "floating" ? (

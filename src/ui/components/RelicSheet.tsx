@@ -29,12 +29,17 @@ const RelicSheet: React.FC<Props> = ({ visible, relics, weapon, onClose }) => {
               <GameIcon name="close" size={24} color="#E9D9B4" />
             </TouchableOpacity>
           </View>
-          {families.map(f => (
-            <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} maxFontSizeMultiplier={1.1}>
-              {`${t(`family.${f}.name` as TranslationKey)}: ${weaponLine(t, `family.${f}.bonus` as TranslationKey, weapon ?? 'bow')}`}
-            </Text>
-          ))}
+          {/* The set bonuses scroll with the list, so a short phone still shows the relics themselves. */}
           <ScrollView contentContainerStyle={styles.grid}>
+            {families.length > 0 && (
+              <View style={styles.families}>
+                {families.map(f => (
+                  <Text key={f} style={[styles.family, { color: FAMILY_COLOR[f] }]} maxFontSizeMultiplier={1.1}>
+                    {`${t(`family.${f}.name` as TranslationKey)}: ${weaponLine(t, `family.${f}.bonus` as TranslationKey, weapon ?? 'bow')}`}
+                  </Text>
+                ))}
+              </View>
+            )}
             {stacks.map(([id, count]) => (
               <View key={id} style={styles.row} accessible accessibilityLabel={`${relicText(t, id, 'name')}${count > 1 ? ` x${count}` : ''}. ${relicText(t, id, 'desc', weapon)}`}>
                 <View style={styles.iconBox}>
@@ -59,13 +64,14 @@ const RelicSheet: React.FC<Props> = ({ visible, relics, weapon, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 16 },
-  card: { width: '100%', maxWidth: 720, maxHeight: '92%', backgroundColor: '#1B140D', borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(201,165,90,0.55)', padding: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 10 },
+  card: { width: '100%', maxWidth: 720, maxHeight: '94%', backgroundColor: '#1B140D', borderRadius: 16, borderWidth: 1.5, borderColor: 'rgba(201,165,90,0.55)', paddingHorizontal: 14, paddingVertical: 10 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
   title: { color: '#F0D79A', fontSize: 18, fontWeight: '900', letterSpacing: 1 },
-  family: { fontSize: 13, fontWeight: '800', marginBottom: 4 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 6 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, flexBasis: '48%', flexGrow: 1, minWidth: 240, padding: 8, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(201,165,90,0.18)' },
+  families: { width: '100%', gap: 2 },
+  family: { fontSize: 13, fontWeight: '800' },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingTop: 4, paddingBottom: 2 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, flexBasis: '48%', flexGrow: 1, minWidth: 240, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(201,165,90,0.18)' },
   iconBox: { width: 40, height: 40 },
   count: { position: 'absolute', right: -4, bottom: -4, paddingHorizontal: 3, borderRadius: 6, backgroundColor: '#1B150F', borderWidth: 1, borderColor: '#C9A55A' },
   countText: { color: '#C9A55A', fontSize: 11, fontWeight: '900' },

@@ -6,6 +6,8 @@ import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { dailyKey, previousDayKey } from "../core/engine/seed";
 import { setMonetizationOverride } from "../services/entitlements";
 import { makeChallengeCode } from "../core/challenge/code";
+import { RELICS, type RelicId } from "../core/engine/relics";
+import { getLocalStats } from "../services/localStats";
 
 /**
  * Development-only helper for the web build: open any screen directly, with a stats preset, so every screen can be
@@ -182,10 +184,21 @@ export function readDevHarness(): DevLaunch | null {
     }
     if (q.get("monetization") === "on") setMonetizationOverride({ enabled: true });
     if (preset || q.get("owned")) window.localStorage.setItem(ENTITLEMENTS_KEY, JSON.stringify({ state: { fullUnlocked: q.get("owned") === "1" }, version: 0 }));
+    // Screens that only peek at the save (the run's equipped looks) find it loaded, as they do behind the cover screen.
+    void getLocalStats();
     if (!screen) return {};
     const params = q.get("params");
     return { initialState: { routes: [{ name: screen, params: params ? JSON.parse(params) : undefined }] } };
   } catch {
     return null;
   }
+}
+
+/** `?relics=14`: the run starts holding that many relics (dev web only), to check how the relic tray fits every screen. */
+export function devRelics(): RelicId[] | null {
+  if (Platform.OS !== "web" || typeof __DEV__ === "undefined" || !__DEV__ || typeof window === "undefined") return null;
+  const n = Number(new URLSearchParams(window.location.search).get("relics"));
+  if (!n) return null;
+  const ids = Object.keys(RELICS) as RelicId[];
+  return Array.from({ length: n }, (_, k) => ids[k % ids.length]);
 }
