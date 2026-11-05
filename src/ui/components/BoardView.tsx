@@ -252,6 +252,8 @@ const styleIdOf = <T,>(looks: Partial<Record<CosmeticId, T>>, look: T | null | u
   look ? ((Object.keys(looks) as CosmeticId[]).find(k => looks[k] === look) ?? null) : null;
 
 /** The hero's height against its tile, and where its feet sit inside its picture (from the top). */
+/** One tile walked: the slide and its two footfalls. A held direction (repeats every 210 ms) chains them, each restarting from where the hero is. */
+const WALK_MS = 260;
 const HERO_SCALE = 1.12;
 const HERO_FEET = 0.935;
 const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];
@@ -387,6 +389,12 @@ const BoardView: React.FC<Props> = memo(
     // Squash and stretch of a step: the hero stretches along the way it goes, then squashes on landing.
     const stretchX = useRef(new Animated.Value(1)).current;
     const stretchY = useRef(new Animated.Value(1)).current;
+    // One step across a tile is a little walk: two footfalls, each lifting the hero and rocking it onto that foot (0 -> 1).
+    const walk = useRef(new Animated.Value(1)).current;
+    const stepLift = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, -tileSize * 0.07, 0, -tileSize * 0.07, 0] }), [walk, tileSize]);
+    const stepSway = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: ["0deg", "-5deg", "0deg", "5deg", "0deg"] }), [walk]);
+    // Each foot lands with a small squash.
+    const stepSquash = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.44, 0.5, 0.56, 0.75, 0.94, 1], outputRange: [1, 1.03, 1, 0.95, 1, 1.03, 1, 1] }), [walk]);
 
     // The hero breathes while standing still: a slow, tiny vertical swell (off when the player asked for calm).
     const heroBreath = useRef(new Animated.Value(1)).current;
@@ -482,23 +490,17 @@ const BoardView: React.FC<Props> = memo(
         const id = ++dustId.current;
         setDusts(current => [...current.slice(-5), { id, x: from.col * tileSize, y: from.row * tileSize }]);
       }
+      const stepped = from.row !== rowIndex || from.col !== colIndex;
+      // Calm (reduced motion): a short plain slide. Otherwise the hero walks across at an even pace, two footfalls a tile
       Animated.timing(playerPos, {
         toValue: { x: colIndex * tileSize, y: rowIndex * tileSize },
-        duration: 150,
-        easing: Easing.out(Easing.cubic),
+        duration: calm || !stepped ? 150 : WALK_MS,
+        easing: calm || !stepped ? Easing.out(Easing.cubic) : Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }).start();
-      // Stretch along the step while sliding (about 105 ms), squash on landing, then a springy settle. Not when calm.
-      if (!calm && (from.row !== rowIndex || from.col !== colIndex)) {
-        const sideways = from.row === rowIndex;
-        const to = (value: Animated.Value, toValue: number, duration: number) => Animated.timing(value, { toValue, duration, useNativeDriver: true });
-        const settle = (value: Animated.Value) => Animated.spring(value, { toValue: 1, friction: 4, tension: 220, useNativeDriver: true });
-        Animated.sequence([
-          Animated.parallel([to(stretchX, sideways ? 1.14 : 0.9, 60), to(stretchY, sideways ? 0.9 : 1.14, 60)]),
-          Animated.delay(45),
-          Animated.parallel([to(stretchX, 1.12, 45), to(stretchY, 0.88, 45)]),
-          Animated.parallel([settle(stretchX), settle(stretchY)]),
-        ]).start();
+      if (!calm && stepped) {
+        walk.setValue(0);
+        Animated.timing(walk, { toValue: 1, duration: WALK_MS, easing: Easing.linear, useNativeDriver: true }).start();
       }
     }, [rowIndex, colIndex, tileSize]);
 
@@ -662,7 +664,7 @@ const BoardView: React.FC<Props> = memo(
         {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
         {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
         {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
-        <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
+        <Animated.View style={{ width: heroBody, height: heroBody, transformOrigin: "50% 92%", transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { translateY: stepLift }, { rotate: stepSway }, { scaleX: bodyX }, { scaleY: bodyY }, { scaleY: stepSquash }] }}>
         <Animated.View
           style={{
             width: heroBody,
