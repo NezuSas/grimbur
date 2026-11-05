@@ -969,6 +969,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         shield: state.shield || state.perks.startShield || relicCount(state.relics, 'bulwark') > 0,
         seed: seed || state.seed,
         playerIndex: 0,
+        // Every floor starts with the hero facing right, like the first one, not the way it looked when it left the last.
+        facingDir: 'RIGHT',
         visited: startingVisited(cols, rows, relicCount(state.relics, 'lantern') > 0 || state.perks.startLit, entities),
         // With every relic maxed there is nothing to offer: no draft, rather than an empty one that blocks input.
         pendingDraft: draft,

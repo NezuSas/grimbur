@@ -235,3 +235,12 @@ describe('texts that now say what the rules do', () => {
     expect(es['biome.magma.rule']).toMatch(/dos flechas/);
   });
 });
+
+describe('a new floor', () => {
+  it('starts with the hero facing right, whatever way it faced when it left the last one', () => {
+    const s0 = createState({ entities: [coin(100)] });
+    const next = gameReducer({ ...s0, isLevelUp: true, facingDir: 'LEFT' }, lvl(3));
+    expect(next.level).toBe(s0.level + 1);
+    expect(next.facingDir).toBe('RIGHT');
+  });
+});
