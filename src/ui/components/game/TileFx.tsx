@@ -52,13 +52,11 @@ type Props = {
  */
 const TileFx = ({ tiles, cols, tileSize, frames, delay, center, stand = 1, mark, tint, onDone }: Props) => {
   const life = useRef(new Animated.Value(0)).current;
-  const cycle = useRef(new Animated.Value(0)).current;
   const burn = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const loops = Math.ceil(TILE_FX_MS / (FRAME_MS * frames.length));
-    const spin = Animated.loop(Animated.timing(cycle, { toValue: frames.length, duration: FRAME_MS * frames.length, easing: Easing.linear, useNativeDriver: true }), { iterations: loops });
-    const parts = [Animated.timing(life, { toValue: 1, duration: TILE_FX_MS, easing: Easing.linear, useNativeDriver: true }), spin];
+    // The frames step with the effect's own life (a nested Animated.loop only ran once on the web, so the flames vanished early).
+    const parts = [Animated.timing(life, { toValue: 1, duration: TILE_FX_MS, easing: Easing.linear, useNativeDriver: true })];
     // The mark outlasts the effect: the whole thing is done (onDone) once it has faded too.
     if (mark) parts.push(Animated.timing(burn, { toValue: 1, duration: TILE_MARK_MS, easing: Easing.linear, useNativeDriver: true }));
     const run = Animated.sequence([Animated.delay(delay), Animated.parallel(parts)]);
@@ -74,6 +72,18 @@ const TileFx = ({ tiles, cols, tileSize, frames, delay, center, stand = 1, mark,
   const w = tileSize - inset * 2;
   const h = tileSize * (stand !== 1 ? BLOCK_FACE : 1) - inset * 2;
   const side = Math.min(w, h);
+  // Which frame shows at each step of the effect's life: step s shows frame s % 4, cycling the whole time it burns.
+  const steps = Math.max(frames.length, Math.round(TILE_FX_MS / FRAME_MS));
+  const frameOpacity = (k: number) => {
+    const inputRange: number[] = [];
+    const outputRange: number[] = [];
+    for (let s = 0; s < steps; s++) {
+      const on = s % frames.length === k ? 1 : 0;
+      inputRange.push(s / steps, (s + 1) / steps - 0.0001 / steps);
+      outputRange.push(on, on);
+    }
+    return life.interpolate({ inputRange, outputRange, extrapolate: "clamp" });
+  };
   return (
     <>
       {mark
@@ -172,7 +182,7 @@ const TileFx = ({ tiles, cols, tileSize, frames, delay, center, stand = 1, mark,
         const c = i % cols;
         // Tiles farther from where it landed catch a moment later.
         const lag = Math.min(0.18, (Math.abs(r - cr) + Math.abs(c - cc)) * 0.07);
-        const opacity = life.interpolate({ inputRange: [0, lag, lag + 0.1, 0.72, 1], outputRange: [0, 0, 1, 0.9, 0], extrapolate: "clamp" });
+        const opacity = life.interpolate({ inputRange: [0, lag, lag + 0.06, 0.85, 1], outputRange: [0, 0, 1, 1, 0], extrapolate: "clamp" });
         const grow = life.interpolate({ inputRange: [0, lag, lag + 0.14, 0.8, 1], outputRange: [0.3, 0.3, 1.08, 1, 0.7], extrapolate: "clamp" });
         const size = tileSize * 1.05;
         return (
@@ -199,11 +209,7 @@ const TileFx = ({ tiles, cols, tileSize, frames, delay, center, stand = 1, mark,
                   width: size,
                   height: size,
                   // Step through the frames: each shows for its quarter of the cycle.
-                  opacity: cycle.interpolate({
-                    inputRange: [k - 0.01, k, k + 0.99, k + 1],
-                    outputRange: [0, 1, 1, 0],
-                    extrapolate: "clamp",
-                  }),
+                  opacity: frameOpacity(k),
                 }}
               >
                 <SpriteImage source={frame} style={{ width: size, height: size }} resizeMode="contain" />
