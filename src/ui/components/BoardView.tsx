@@ -25,6 +25,7 @@ import FallenFoe from "./game/FallenFoe";
 import Companion, { type CompanionLook } from "./game/Companion";
 import { getNearbyHazards } from "../../core/engine/proximity";
 import SpriteImage from "./SpriteImage";
+import { WALK_MS } from "../walk";
 import Text from "./Text";
 import GridCell, { ASSETS, CLUE_ART, HeroClues, NO_HINTS } from "./GridCell";
 import { ANCIENT_FRAMES } from "./BossSprite";
@@ -255,8 +256,6 @@ const styleIdOf = <T,>(looks: Partial<Record<CosmeticId, T>>, look: T | null | u
 const HERO_LIGHT = require("../../assets/sprites/ui/Hero_Light.png");
 const HERO_SHADOW = require("../../assets/sprites/ui/Hero_Shadow.png");
 
-/** One tile walked: the slide and its two footfalls. A held direction (repeats every 210 ms) chains them, each restarting from where the hero is. */
-const WALK_MS = 260;
 const HERO_SCALE = 1.12;
 const HERO_FEET = 0.935;
 const OUTLINE_OFFSETS: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];

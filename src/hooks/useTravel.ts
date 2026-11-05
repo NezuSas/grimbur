@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Direction, GameState, HUNTER_TYPES } from '../core/engine/types';
 import { travelPath } from '../core/engine/travel';
+import { WALK_MS } from '../ui/walk';
 
-const STEP_MS = 110;
+/**
+ * The walk takes a step every tile walked, so every tile shows its painted steps; a hair under the step itself, so the next
+ * one starts just before the last ends and the standing pose never flashes in between.
+ */
+const STEP_MS = WALK_MS - 10;
 /** A roaming guardian or the Grimbur this close (in tiles) stops the walk. */
 const HUNTER_ALERT_DISTANCE = 3;
 
