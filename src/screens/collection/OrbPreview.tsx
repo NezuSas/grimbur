@@ -1,3 +1,4 @@
+import ShotDemo from "./ShotDemo";
 import React from "react";
 import { arcaneFx } from "../../ui/weaponFxArt";
 import SpriteImage from "../../ui/components/SpriteImage";
@@ -44,6 +45,8 @@ const OrbPreview = ({ id, size, small }: Props) => {
   const look = ORB_LOOKS[id] ?? ORB_LOOKS.orb_frost!;
   const still = calm || !!small;
   const clock = useFlightClock(still, CAST_MS);
+  // The big preview plays what the style really does in a run, on the game's own stone blocks.
+  if (!small) return <ShotDemo size={size} frames={arcaneFx(id)} mark="rune" tint={look.glow} projectile={s => <OrbBall look={look} size={s} />} />;
 
   const ball = size * 0.3;
   const tile = size * 0.17;

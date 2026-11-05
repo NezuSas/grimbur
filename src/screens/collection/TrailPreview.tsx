@@ -1,3 +1,4 @@
+import { BLOCK_ART } from "../../ui/biomeArt";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, View } from "react-native";
 import SpriteImage from "../../ui/components/SpriteImage";
@@ -200,6 +201,20 @@ const TrailPreview = ({ id, size, small }: Props) => {
 
   return (
     <View style={[{ width: size, height: size, alignItems: "center", justifyContent: "center" }, !small && { overflow: "hidden", borderRadius: size }]}>
+      {/* The big preview flies over the game's own stone blocks, as the arrow does in a run. */}
+      {!small
+        ? Array.from({ length: 9 }, (_, i) => {
+            const t = Math.floor((size * 0.86) / 3);
+            return (
+              <SpriteImage
+                key={`tile${i}`}
+                source={BLOCK_ART.cave.tileRevealed}
+                style={{ position: "absolute", left: (size - t * 3) / 2 + (i % 3) * t, top: (size - t * 3) / 2 + Math.floor(i / 3) * t, width: t, height: t }}
+                resizeMode="contain"
+              />
+            );
+          })
+        : null}
       {particles.map((p, i) => {
         const at = (age: number) => {
           if (wake.orbit) {

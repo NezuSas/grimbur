@@ -1,3 +1,4 @@
+import ShotDemo from "./ShotDemo";
 import { flameFx } from "../../ui/weaponFxArt";
 import SpriteImage from "../../ui/components/SpriteImage";
 import React from "react";
@@ -60,6 +61,8 @@ const BombPreview = ({ id, size, small }: Props) => {
   const look = BOMB_LOOKS[id] ?? BOMB_LOOKS.bomb_ember!;
   const still = calm || !!small;
   const clock = useFlightClock(still, THROW_MS);
+  // The big preview plays what the style really does in a run, on the game's own stone blocks.
+  if (!small) return <ShotDemo size={size} frames={flameFx(id)} mark="scorch" tint={look.blast} arc projectile={s => <BombBall look={look} size={s} />} />;
 
   const ball = size * 0.3;
   const tile = size * 0.16;
