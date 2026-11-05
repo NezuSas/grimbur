@@ -128,6 +128,8 @@ export interface GameState {
   /** The run's bestiary tally (see core/stats/bestiary.ts): creatures met and defeated. */
   met?: string[];
   slain?: Partial<Record<string, number>>;
+  /** Sleepers woken so far in the run: the bestiary tells a sleeper that woke into a stalker from one that was slain. */
+  woken?: number;
   /** The season's featured relic: offered in the first draft of the run. */
   seasonRelic?: RelicId | null;
   /** The week's event the run is played under (see events.ts); null outside expeditions. */

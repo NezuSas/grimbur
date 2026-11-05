@@ -353,6 +353,7 @@ export const en = {
   'skin.tier.epic': 'Epic',
   'skin.outfit.classic': 'Classic outfit',
   'skin.outfit.gala': 'Gala Attire',
+  'skin.outfit.winter': 'Winter Hunter',
   'skin.chroma': 'Chroma',
   'skin.chromas': '{owned} of {total} chromas',
   'skin.needsOutfit': 'Get the outfit first',
@@ -2522,6 +2523,10 @@ export const en = {
   'ascension.3.bomb': 'Fewer bombs than normal, the Grimbur has one more heart, and one more stalker from floor 5. Two more guardians and vortexes per floor.',
   'ascension.5.orb': 'The harshest: three orbs fewer, two more stalkers from floor 4, four more guardians and three more vortexes, relic drafts offer only 2 choices and the Grimbur gains another heart. Forge upgrades are practically required.',
   'ascension.5.bomb': 'The harshest: far fewer bombs, two more stalkers from floor 4, four more guardians and three more vortexes, relic drafts offer only 2 choices and the Grimbur gains another heart. Forge upgrades are practically required.',
+  // The same rules with no hero in sight (the manual): the ammo, not the arrows.
+  'ascension.1.neutral': 'Less ammo on every floor, and one more guardian.',
+  'ascension.3.neutral': 'Even less ammo than normal, the Grimbur has one more heart, and one more stalker from floor 5. Two more guardians and vortexes per floor.',
+  'ascension.5.neutral': 'The harshest: far less ammo, two more stalkers from floor 4, four more guardians and three more vortexes, relic drafts offer only 2 choices and the Grimbur gains another heart. Forge upgrades are practically required.',
   'over.part.season': 'Last season +{n}',
   'biome.magma.rule.orb': 'One more vortex, but two more orbs lie on the floor.',
   'biome.magma.rule.bomb': 'One more vortex, but one more bomb lies on the floor.',

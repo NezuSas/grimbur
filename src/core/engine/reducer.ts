@@ -64,12 +64,17 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>, opts:
   let struckFrom: number | null = null;
 
   let gems = patch.gems ?? state.gems;
+  let woken = state.woken ?? 0;
   if (cleared) {
     score += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(relics, 'greed')));
     gems += relicCount(relics, 'greed');
   } else if (!opts.stunned) {
     // (Stunning Blow: a kill leaves the hunters standing for this action, as a shot's does.)
-    if (relicCount(relics, 'lullaby') === 0) world = wakeSleepers(world, state.playerIndex, cols);
+    if (relicCount(relics, 'lullaby') === 0) {
+      const asleep = sleepersIn(world);
+      world = wakeSleepers(world, state.playerIndex, cols);
+      woken += asleep - sleepersIn(world);
+    }
     const acted = huntersAct(world, state.playerIndex, rows, cols, turn, hunterSlowdown(relics), modifiersFor(state.ascension).hunterHaste);
     world = acted.world;
     for (const [k, hitter] of acted.hits.entries()) {
@@ -98,6 +103,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>, opts:
     relics,
     gems,
     turn,
+    woken,
     isLevelUp: cleared,
     isVictory: cleared && hadBoss && state.mode !== 'endless',
     isGameOver: over,
@@ -211,6 +217,13 @@ export { nearestDanger };
 
 /** The altar costs the shield; where the next floor gives it back for nothing (Borin, the Bulwark) it would cost nothing. */
 export const altarIsFree = (state: Pick<GameState, 'perks' | 'relics'>): boolean => state.perks.startShield || relicCount(state.relics, 'bulwark') > 0;
+
+/** The sleepers still asleep in `world` (a wake-up's count is the drop, see GameState.woken). */
+function sleepersIn(world: World): number {
+  let n = 0;
+  for (const e of world.entities) if (e.type === 'sleeper') n += 1;
+  return n;
+}
 
 /** Sleepers within `radius` (Manhattan) of `center` wake up as stalkers (a bomb's noise). */
 const wakeNear = (world: World, center: number, cols: number, radius: number): World => {
@@ -472,6 +485,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let chestItems = state.items;
       let newSecrets = state.secretsFound ?? 0;
       let newMarked = state.marked;
+      let newWoken = state.woken ?? 0;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
       let absorbedThisMove = false;
@@ -489,8 +503,13 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       };
 
       // O(1) collision check via the entity map
-      const entityAtPoint = state.entityMap[nextIndex];
+      const steppedOn = state.entityMap[nextIndex];
 
+      /**
+       * What the hero meets on `nextIndex`: the tile stepped onto, and again where a vortex drops the hero when its last resort
+       * is a tile that holds something (a gem, a trap, a chest, a thief...), so it is taken like on a normal step.
+       */
+      const landOn = (entityAtPoint: GameEntity | undefined): void => {
       switch (entityAtPoint?.type) {
         case 'enemy':
         case 'stalker':
@@ -573,6 +592,9 @@ function reduceCore(state: GameState, action: GameAction): GameState {
             if (!newVisited.includes(destination)) {
               newVisited = [...newVisited, destination];
             }
+            // The last resort may be a tile that holds something (never anything deadly): it is met there, as on a step.
+            const landed = world.entityMap[destination];
+            if (landed && !LETHAL_TYPES.includes(landed.type)) landOn(landed);
           }
           break;
         }
@@ -610,6 +632,9 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           consumeEntity();
           break;
       }
+      };
+      landOn(steppedOn);
+      const entityAtPoint = steppedOn;
 
       // A secret room: its cache, found by following the glint on the tiles beside it (stepped onto, or landed on by a vortex).
       let newSecret = state.secret ?? null;
@@ -650,7 +675,11 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       const newTurn = retracing ? state.turn : state.turn + 1;
       if (!newIsGameOver && !floorCleared) {
         // Sleepers wake whenever the player ends an action near them, even when a shield just soaked a hit.
-        if (!has('lullaby')) world = wakeSleepers(world, nextIndex, cols);
+        if (!has('lullaby')) {
+          const asleep = sleepersIn(world);
+          world = wakeSleepers(world, nextIndex, cols);
+          newWoken += asleep - sleepersIn(world);
+        }
       }
       if (!newIsGameOver && !floorCleared && !absorbedThisMove && !retracing) {
         const acted = huntersAct(world, nextIndex, rows, cols, newTurn, hunterSlowdown(state.relics), modifiersFor(state.ascension).hunterHaste);
@@ -701,6 +730,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         secretsFound: newSecrets,
         secret: newSecret,
         turn: newTurn,
+        woken: newWoken,
         // Retracing with the Wayfarer Boots is not an action for the clocks: the ability does not recharge either.
         abilityCd: retracing ? state.abilityCd : Math.max(0, state.abilityCd - 1),
         // One step per floor can be taken back, never the one that ended the run or cleared the floor.
@@ -842,6 +872,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
 
       // Stunning Blow: a kill leaves the hunters standing for this action.
       const stunned = killedGuardian && relicCount(state.relics, 'stun_shot') > 0;
+      const asleep = sleepersIn(world);
       // A bomb is loud: the sleepers near the blast wake up (before the hunters act), stunned or not.
       if (plan && weapon === 'bomb' && plan.landing !== -1 && !newIsLevelUp && relicCount(state.relics, 'lullaby') === 0) {
         world = wakeNear(world, plan.landing, cols, BOMB_WAKE);
@@ -887,6 +918,8 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         shield: newShield,
         relics: newRelics,
         turn: newTurn,
+        // (Only waking takes a sleeper off the board after the shot itself: the hunters never do.)
+        woken: (state.woken ?? 0) + asleep - sleepersIn(world),
         abilityCd: Math.max(0, state.abilityCd - 1),
         undo: null,
         lastBreath: newIsGameOver ? snapshotOf(state) : null,

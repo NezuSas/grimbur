@@ -101,7 +101,7 @@ describe('outfits', () => {
       for (const skin of SKINS_BY_HERO[hero]) {
         expect([hero, skin, hasSkinArt(hero, skin)]).toEqual([hero, skin, true]);
         const art = skinArt(hero, skin);
-        if (skin.startsWith('gala')) {
+        if (skin.startsWith('gala') || skin.startsWith('winter')) {
           expect(art.frontImage).toBeDefined();
           expect(art.backImage).toBeDefined();
         }

@@ -354,6 +354,7 @@ export const es: Record<TranslationKey, string> = {
   'skin.tier.epic': 'Épico',
   'skin.outfit.classic': 'Atuendo clásico',
   'skin.outfit.gala': 'Traje de Gala',
+  'skin.outfit.winter': 'Cazador Invernal',
   'skin.chroma': 'Croma',
   'skin.chromas': '{owned} de {total} cromas',
   'skin.needsOutfit': 'Primero consigue el traje',
@@ -2523,6 +2524,10 @@ export const es: Record<TranslationKey, string> = {
   'ascension.3.bomb': 'Menos bombas que lo normal, el Grimbur tiene un corazón más y un acechador más desde el piso 5. Dos guardianes y dos vórtices más por piso.',
   'ascension.5.orb': 'Lo más duro: tres orbes menos, dos acechadores más desde el piso 4, cuatro guardianes y tres vórtices más, las elecciones de reliquia ofrecen solo 2 y el Grimbur gana otro corazón. Las mejoras de la Forja son casi obligatorias.',
   'ascension.5.bomb': 'Lo más duro: muchas menos bombas, dos acechadores más desde el piso 4, cuatro guardianes y tres vórtices más, las elecciones de reliquia ofrecen solo 2 y el Grimbur gana otro corazón. Las mejoras de la Forja son casi obligatorias.',
+  // The same rules with no hero in sight (the manual): the ammo, not the arrows.
+  'ascension.1.neutral': 'Menos munición en cada piso y un guardián más.',
+  'ascension.3.neutral': 'Aún menos munición que lo normal, el Grimbur tiene un corazón más y un acechador más desde el piso 5. Dos guardianes y dos vórtices más por piso.',
+  'ascension.5.neutral': 'Lo más duro: mucha menos munición, dos acechadores más desde el piso 4, cuatro guardianes y tres vórtices más, las elecciones de reliquia ofrecen solo 2 y el Grimbur gana otro corazón. Las mejoras de la Forja son casi obligatorias.',
   'over.part.season': 'Temporada anterior +{n}',
   'biome.magma.rule.orb': 'Un vórtice más, pero hay dos orbes más en el piso.',
   'biome.magma.rule.bomb': 'Un vórtice más, pero hay una bomba más en el piso.',

@@ -142,7 +142,10 @@ export const pickDeterministic = <T,>(pool: T[], seed: number, salt: number): T 
   return pool[Math.floor(next() * pool.length)];
 };
 
-/** Picks where a vortex sends the player. Prefers empty, unexplored tiles. */
+/**
+ * Picks where a vortex sends the player. Prefers empty, unexplored tiles. Its last resort is a tile that holds something harmless
+ * (a gem, a trap, a chest, a thief...): the reducer then meets it as on a normal step, so it is never left under the hero.
+ */
 export const pickTeleportDestination = (
   state: GameState,
   vortexIndex: number,

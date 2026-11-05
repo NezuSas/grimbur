@@ -124,11 +124,16 @@ CONTACT_KINDS = ['hero', 'attack', 'icon', 'win', 'lose']
 # the classic outfit (`<outfit>_<chroma>`). Their cloth keeps the hero's signature colour, so the hero's colour mask fits;
 # the pose boxes (Bram's apron) only fit the classic art, so they are left out.
 OUTFIT_ROOT = os.path.join(ROOT, 'src', 'assets', 'sprites', 'outfits')
-NEW_OUTFITS = ['gala']
+NEW_OUTFITS = ['gala', 'winter']
 # A newer outfit's own colour mask when the hero's classic one does not fit its cloth (Borin's gala velvet is a deep emerald,
 # not his classic olive moss).
 OUTFIT_MASKS = {
     ('gala', 2): dict(stone=False, hue_lo=60, hue_hi=175, hue_soft=8, sat_min=0.28, sat_soft=0.12, val_min=0.07, val_soft=0.06, hue_center=145),
+    ('winter', 2): dict(stone=False, hue_lo=60, hue_hi=175, hue_soft=8, sat_min=0.28, sat_soft=0.12, val_min=0.07, val_soft=0.06, hue_center=145),
+    # Auric's winter coat is a pale amber, far less saturated than his classic gold.
+    ('winter', 3): dict(hue_lo=22, hue_hi=56, hue_soft=6, sat_min=0.32, sat_soft=0.12, val_min=0.40, val_soft=0.12, hue_center=40, min_density=0.35),
+    # Bram's winter coat is a dark steel blue (so it stays apart from his red beard and can take chromas).
+    ('winter', 5): dict(hue_lo=195, hue_hi=250, hue_soft=10, sat_min=0.18, sat_soft=0.10, val_min=0.10, val_soft=0.08, hue_center=218),
 }
 # Outfits offered without chromas for a hero (Bram's gala: beard, skin and coat share one hue, a recolour can't tell them
 # apart). Keep in sync with OUTFIT_WITHOUT_CHROMAS in src/core/skins/skins.ts.

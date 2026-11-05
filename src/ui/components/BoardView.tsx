@@ -184,6 +184,11 @@ type Props = {
   paused?: boolean;
   /** The hero was just thrown by a vortex: it vanishes and reappears instead of sliding across the board. */
   teleported?: boolean;
+  /**
+   * The trap the hero just stepped on bit (GameState.lastPickup === 'trap'). False when it was disarmed instead (Trap Sense, Vael):
+   * its jaws then stay drawn as disarmed, not as a hit. Omitted, every trap reads as one that bit.
+   */
+  trapBit?: boolean;
   /** The last arrow shot: it flies across the board from the hero. */
   shot?: ArrowShot | null;
   /** Drag from the hero to shoot: the side being aimed (null when none / cancelled), and the shot when the finger is lifted. */
@@ -266,7 +271,7 @@ const OutlinedSprite = ({ source, visible, line }: { source: ImageSourcePropType
 );
 
 const BoardView: React.FC<Props> = memo(
-  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimArea, aimDir = null, shot = null, teleported = false, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, weapon = "bow", orbLook = null, bombLook = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
+  ({ level, rows, cols, entityMap = {}, visited, playerIndex, characterIndex, facingDir, guardianCount, isAttacking, highlight, onTilePress, onSwipe, flags, aimTiles, aimArea, aimDir = null, shot = null, teleported = false, trapBit = true, paused = false, onAimDrag, onAimFire, onTileLongPress, onReady, dying, killerTile, shakeKey, flagPing, calm, beat, skin, biome = "cave", trail = null, weapon = "bow", orbLook = null, bombLook = null, flag = null, pet = null, petAura = null, unveil = false, dark = false, deduced = null, friendGhosts, pastSteps, secretTile = null, beam = null, notes = null, onTileShiftClick }) => {
     const { tileSize, boardWidth, boardHeight, boardTilted } = useGameLayout(cols, rows);
     // The board leans back like a table (2.5D) unless the player chose the flat view (see ui/layout/boardTilt.ts).
     const tilt = useMemo(() => (boardTilted ? makeTilt(boardWidth, boardHeight, tileSize) : null), [boardTilted, boardWidth, boardHeight, tileSize]);
@@ -310,8 +315,9 @@ const BoardView: React.FC<Props> = memo(
     // the board as a ghost until the arrow lands, then falls (see FallenFoe). Laid out before paint so it never blinks. Calm: as before.
     const [ghosts, setGhosts] = useState<Record<number, GameEntity>>({});
     const [fallen, setFallen] = useState<{ id: number; entity: GameEntity }[]>([]);
-    // Traps that went off on this floor (the trap leaves the state when it bites): they stay drawn as sprung jaws.
-    const [sprung, setSprung] = useState<ReadonlySet<number>>(() => new Set());
+    // Traps that went off on this floor (the trap leaves the state when it bites): they stay drawn as sprung jaws, or as disarmed
+    // ones where Trap Sense or Vael took them apart (no hit).
+    const [sprung, setSprung] = useState<ReadonlyMap<number, "bit" | "disarmed">>(() => new Map());
     const prevEntities = useRef(entityMap);
     const ghostShot = useRef(0);
     const ghostTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -319,7 +325,7 @@ const BoardView: React.FC<Props> = memo(
     useLayoutEffect(() => {
       const before = prevEntities.current;
       prevEntities.current = entityMap;
-      if (before[playerIndex]?.type === "trap" && !entityMap[playerIndex]) setSprung(s => new Set(s).add(playerIndex));
+      if (before[playerIndex]?.type === "trap" && !entityMap[playerIndex]) setSprung(s => new Map(s).set(playerIndex, trapBit ? "bit" : "disarmed"));
       // A bomb that hits nothing on its line still blasts the guardians around where it lands (several fall at once).
       if (calm || !shot || (!shot.hit && shot.weapon !== "bomb") || ghostShot.current === shot.key || before === entityMap) return;
       ghostShot.current = shot.key;
@@ -341,7 +347,7 @@ const BoardView: React.FC<Props> = memo(
     useEffect(() => {
       setGhosts({});
       setFallen([]);
-      setSprung(new Set());
+      setSprung(new Map());
     }, [level]);
     const shown = useMemo(() => (Object.keys(ghosts).length > 0 ? { ...entityMap, ...ghosts } : entityMap), [entityMap, ghosts]);
     // The hero's own tile: its clues are drawn above the hero (HeroClues), where the body cannot cover them.
@@ -456,7 +462,7 @@ const BoardView: React.FC<Props> = memo(
       if (level !== prev.level || visited.length < prev.seen) {
         playerPos.setValue({ x: colIndex * tileSize, y: rowIndex * tileSize });
         setDusts([]);
-        setSprung(new Set()); // a restart (or an undo) puts the traps back
+        setSprung(new Map()); // a restart (or an undo) puts the traps back
         return;
       }
       // A vortex throw is no walk: the hero shrinks away where it stood and pops up on the new tile (calm: it just moves).
@@ -740,7 +746,7 @@ const BoardView: React.FC<Props> = memo(
                   lurking={shown[i]?.type === "stalker" && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) <= 2}
                   hideClue={dark && Math.abs(Math.floor(i / cols) - rowIndex) + Math.abs((i % cols) - colIndex) > 1}
                   calm={!!calm}
-                  sprung={sprung.has(i)}
+                  sprung={sprung.get(i) ?? false}
                   revealDelay={burst ? Math.min(600, 60 * Math.max(Math.abs(Math.floor(i / cols) - rowIndex), Math.abs((i % cols) - colIndex))) + 30 : 0}
                 />
               );

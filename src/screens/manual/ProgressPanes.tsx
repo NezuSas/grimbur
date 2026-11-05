@@ -34,6 +34,9 @@ export const WorldsPane = ({ kit }: { kit: Kit }) => {
   );
 };
 
+/** The depths whose rule names the hero's ammo: the manual shows their weapon-neutral line (`ascension.N.neutral`). */
+const NEUTRAL_DEPTHS: readonly number[] = [1, 3, 5];
+
 export const ModesPane = ({ kit }: { kit: Kit }) => {
   const { t, heading, fact, icon } = kit;
   return (
@@ -57,7 +60,8 @@ export const ModesPane = ({ kit }: { kit: Kit }) => {
                 {t(asKey(`ascension.label.${n}`))}
               </Text>
               <Text style={styles.heroLineBody} maxFontSizeMultiplier={1.3}>
-                {t(asKey(`ascension.${n}`))}
+                {/* No hero is in play here: the depths that cost ammo say so without naming arrows. */}
+                {t(asKey(NEUTRAL_DEPTHS.includes(n) ? `ascension.${n}.neutral` : `ascension.${n}`))}
               </Text>
             </View>
           </View>

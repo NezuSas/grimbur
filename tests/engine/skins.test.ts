@@ -41,7 +41,7 @@ describe('skin catalog', () => {
     expect(SKINS_BY_HERO[3]).not.toContain('gilded');
     expect(SKINS_BY_HERO[4]).toEqual([...SKIN_IDS]); // Mira: magenta is none of the themes
     expect(SKINS_BY_HERO[5]).not.toContain('ember'); // Bram: copper-orange
-    expect(SKINS_BY_HERO[5]).toHaveLength(CHROMA_IDS.length); // classic chromas minus ember, plus the gala alone
+    expect(SKINS_BY_HERO[5]).toHaveLength(CHROMA_IDS.length * 2 - 1); // classic and winter chromas minus ember, plus the gala alone
     for (const list of SKINS_BY_HERO) expect(list[0]).toBe('classic');
   });
 });

@@ -247,8 +247,8 @@ const GridCell = memo(({
   block?: boolean;
   /** Reduced motion: the vortex does not spin and the gems do not glint. */
   calm: boolean;
-  /** A trap went off here: the sprung jaws stay on the ground as a mark. */
-  sprung?: boolean;
+  /** A trap went off here: the sprung jaws stay on the ground as a mark ("disarmed": taken apart, no hit; true reads as "bit"). */
+  sprung?: boolean | "bit" | "disarmed";
   /** The flag worn in the Collection (the painted default when none). */
   flagArt?: ImageSourcePropType | null;
   /** The floor is over (cleared or lost): the fog gives up what it hid, and each flag shows whether it was right. */
@@ -372,11 +372,38 @@ const GridCell = memo(({
   const badge = compact ? Math.max(15, tileSize * (roar && vortex ? 0.46 : 0.6)) : Math.max(10, tileSize * (roar && vortex ? 0.4 : 0.5));
   const countSize = Math.max(11, tileSize * 0.24);
 
+  // The Grimbur (and its lieutenant, and the Colossus) with its hearts: drawn wherever it stands, in the fog too.
+  const bossArt = entity?.type === 'boss' ? (
+    <>
+      <Animated.View
+        style={[
+          styles.bossAura,
+          { width: tileSize, height: tileSize },
+          charged && styles.bossCharged,
+          charged && { transform: [{ scale: auraScale }] },
+        ]}
+        pointerEvents="none"
+      />
+      <BossSprite
+        style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
+        hp={entity.hp ?? 0}
+        charged={charged}
+        mini={!!entity.mini}
+        ancient={!!entity.ancient}
+        warden={!!entity.warden}
+      />
+      <View style={styles.bossHp} pointerEvents="none">
+        <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
+      </View>
+    </>
+  ) : null;
+
   // What a screen reader says about the tile: only what the player can see (never what the fog still hides).
   const a11y = (() => {
     const where = t("a11y.tile.where", { row: row + 1, col: col + 1 });
     if (isPlayerHere) return `${where}: ${t("a11y.tile.hero")}`;
     if (entity?.lava) return `${where}: ${t("a11y.tile.lava")}`;
+    if (!lit && entity?.type === 'boss') return `${where}: ${t("a11y.thing.boss")}`;
     if (!lit) return `${where}: ${t(flagged ? "a11y.tile.flagged" : "a11y.tile.hidden")}`;
     const parts: string[] = [];
     if (entity && seen) parts.push(entity.type === 'ammo' ? weaponLine(t, "a11y.thing.ammo", weapon) : t(`a11y.thing.${entity.type}` as TranslationKey));
@@ -470,31 +497,8 @@ const GridCell = memo(({
         <Text style={[styles.sleepMark, { fontSize: Math.max(9, tileSize * 0.3) }]} pointerEvents="none">zZ</Text>
       )}
 
-      {/* The Grimbur: shown on explored tiles, with its remaining hearts */}
-      {entity?.type === 'boss' && seen && (
-        <>
-          <Animated.View
-            style={[
-              styles.bossAura,
-              { width: tileSize, height: tileSize },
-              charged && styles.bossCharged,
-              charged && { transform: [{ scale: auraScale }] },
-            ]}
-            pointerEvents="none"
-          />
-          <BossSprite
-            style={{ width: tileSize * 1.15, height: tileSize * 1.15, position: 'absolute' }}
-            hp={entity.hp ?? 0}
-            charged={charged}
-            mini={!!entity.mini}
-            ancient={!!entity.ancient}
-            warden={!!entity.warden}
-          />
-          <View style={styles.bossHp} pointerEvents="none">
-            <Text style={[styles.bossHpText, { fontSize: Math.max(9, tileSize * 0.26) }]}>{'♥'.repeat(Math.max(entity.hp ?? 0, 0))}</Text>
-          </View>
-        </>
-      )}
+      {/* The Grimbur on explored tiles, with its remaining hearts (in the fog it is drawn dimmed, below) */}
+      {seen && bossArt}
 
       {lurking && !seen && (
         <SpriteImage source={ASSETS.stalker} style={{ width: tileSize * 0.9, height: tileSize * 0.9, tintColor: "#0B0705", opacity: 0.6 }} resizeMode="contain" />
@@ -503,6 +507,12 @@ const GridCell = memo(({
         <GlyphIcon name="trap" size={tileSize * 0.6} />
       )}
       </Animated.View>
+
+      {/* The Grimbur (or its lieutenant, or the Colossus) is in plain sight even in the fog: it hunts the hero and moves, so it is
+          never something to deduce. Dimmed there, so the explored ground still reads apart. */}
+      {!seen && bossArt ? (
+        <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.cell, styles.bossInFog, block && standUp(tileSize)]}>{bossArt}</View>
+      ) : null}
 
       {/* A pool of lava left by the Magma Colossus: seen through the fog (it is no secret), dimmer as it cools. */}
       {entity?.lava ? (
@@ -568,10 +578,16 @@ const GridCell = memo(({
         </View>
       )}
 
-      {/* A trap that went off stays on the ground, sprung: the floor remembers where it bit. */}
+      {/* A trap that went off stays on the ground, sprung: the floor remembers where it bit. One that was disarmed (Trap Sense,
+          Vael) lies faded with a check on it, so it never reads as a hit. */}
       {sprung && !entity && (
         <View style={styles.pickup} pointerEvents="none">
-          <SpriteImage source={TRAP_SPRUNG} style={{ width: tileSize * 0.62, height: tileSize * 0.62, opacity: 0.85 }} resizeMode="contain" />
+          <SpriteImage source={TRAP_SPRUNG} style={{ width: tileSize * 0.62, height: tileSize * 0.62, opacity: sprung === "disarmed" ? 0.4 : 0.85 }} resizeMode="contain" />
+          {sprung === "disarmed" ? (
+            <View style={[styles.trapDisarmed, { width: tileSize * 0.3, height: tileSize * 0.3, borderRadius: tileSize * 0.15 }]}>
+              <GameIcon name="checkmark" size={tileSize * 0.2} color="#E8F0D8" />
+            </View>
+          ) : null}
         </View>
       )}
 
@@ -651,6 +667,8 @@ const styles = StyleSheet.create({
   creatureShadow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(0,0,0,0.55)" },
   creatureGlow: { position: "absolute", alignSelf: "center", backgroundColor: "rgba(194, 80, 58,0.16)" },
   bossAura: { position: "absolute", backgroundColor: "rgba(194, 58, 68, 0.28)", borderRadius: 8 },
+  bossInFog: { opacity: 0.6 },
+  trapDisarmed: { position: "absolute", right: "14%", bottom: "14%", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(92, 122, 70, 0.85)" },
   tileTone: { position: 'absolute', borderRadius: 6 },
   // The painted tiles already tell explored from unexplored; these only push the two a little further apart.
   toneLit: { backgroundColor: 'rgba(255,236,200,0.07)' },

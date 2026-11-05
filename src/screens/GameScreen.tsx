@@ -1088,6 +1088,7 @@ export default function GameScreen({ navigation, route }: Props) {
             aimDir={state.attack > 0 ? aimDir : null}
             shot={shot}
             teleported={state.wasTeleported}
+            trapBit={state.lastPickup === "trap"}
             paused={paused || !isFocused}
             dying={state.isGameOver && !state.isVictory}
             highlight={peek ? peekTiles : undefined}

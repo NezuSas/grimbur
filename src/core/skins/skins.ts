@@ -8,9 +8,9 @@ import { HERO_COUNT } from '../stats/achievements';
  */
 export type ChromaId = 'classic' | 'ember' | 'verdant' | 'frost' | 'royal' | 'shadow' | 'gilded';
 export const CHROMA_IDS: readonly ChromaId[] = ['classic', 'ember', 'verdant', 'frost', 'royal', 'shadow', 'gilded'];
-export type OutfitId = 'classic' | 'gala';
+export type OutfitId = 'classic' | 'gala' | 'winter';
 /** Every outfit, the classic one first. A new outfit is added here once its art exists for every hero. */
-export const OUTFIT_IDS: readonly OutfitId[] = ['classic', 'gala'];
+export const OUTFIT_IDS: readonly OutfitId[] = ['classic', 'gala', 'winter'];
 type NewOutfit = Exclude<OutfitId, 'classic'>;
 type NewChroma = Exclude<ChromaId, 'classic'>;
 export type SkinId = ChromaId | NewOutfit | `${NewOutfit}_${NewChroma}`;

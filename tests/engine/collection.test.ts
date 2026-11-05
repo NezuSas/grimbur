@@ -32,7 +32,7 @@ describe('collection', () => {
     expect(visibleSkins(bought, 0, 'all')).toEqual(SKINS_BY_HERO[0]);
     expect(visibleSkins(bought, 0, 'owned')).toEqual(['classic', 'royal']);
     expect(visibleSkins(bought, 0, 'missing')).toEqual(SKINS_BY_HERO[0].filter(s => s !== 'classic' && s !== 'royal'));
-    expect(visibleSkins(bought, 0, 'premium')).toEqual(['shadow', 'gilded', 'gala']);
+    expect(visibleSkins(bought, 0, 'premium')).toEqual(['shadow', 'gilded', 'gala', 'winter']);
     // the filters together cover everything exactly once
     const own = visibleSkins(bought, 0, 'owned');
     const miss = visibleSkins(bought, 0, 'missing');

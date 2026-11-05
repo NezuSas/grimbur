@@ -2,7 +2,7 @@ import type { AchievementId } from '../stats/achievements';
 import { yuleGoalMet, type YuleGoal } from '../events/yule';
 import { completedMonth } from '../stats/season';
 import type { LocalStats } from '../stats/runStats';
-import { SKINS_BY_HERO } from '../skins/skins';
+import { SKINS_BY_HERO, chromaOf, outfitOf, type SkinId } from '../skins/skins';
 import { ownedSkins } from '../skins/ownership';
 import { MAX_MASTERY, masteryOf } from '../stats/mastery';
 import { allQuestsDone } from '../stats/heroQuests';
@@ -238,9 +238,15 @@ export const cosmeticInfo = (id: CosmeticId): CosmeticInfo => BY_ID.get(id)!;
 export const isCosmeticId = (v: unknown): v is CosmeticId => typeof v === 'string' && BY_ID.has(v as CosmeticId);
 export const cosmeticsOf = (kind: CosmeticKind): CosmeticInfo[] => COSMETICS.filter(c => c.kind === kind);
 
-/** A hero whose every offered outfit is owned. */
+/** A look counted in the collection share: the classic outfit's chromas and each newer outfit itself (its chromas are extras). */
+const countsAsOutfit = (id: SkinId): boolean => outfitOf(id) === 'classic' || chromaOf(id) === 'classic';
+
+/** A hero whose every offered outfit is owned (newer outfits' chromas are extras, not needed). */
 export const hasFullWardrobe = (stats: LocalStats): boolean =>
-  SKINS_BY_HERO.some((list, hero) => list.length > 1 && ownedSkins(stats, hero).length === list.length);
+  SKINS_BY_HERO.some((list, hero) => {
+    const counted = list.filter(countsAsOutfit);
+    return counted.length > 1 && ownedSkins(stats, hero).filter(countsAsOutfit).length === counted.length;
+  });
 
 /** Rewarded for owning a share of the collection (they are not counted in it, so the share never chases itself). */
 const isCollectionReward = (c: CosmeticInfo): boolean => c.unlock?.kind === 'collection';
@@ -260,8 +266,9 @@ export function collectionProgress(stats: LocalStats): { owned: number; total: n
   let owned = 0;
   let total = 0;
   SKINS_BY_HERO.forEach((list, hero) => {
-    total += Math.max(0, list.length - 1);
-    owned += Math.max(0, ownedSkins(stats, hero).length - 1);
+    const counted = list.filter(countsAsOutfit);
+    total += Math.max(0, counted.length - 1);
+    owned += Math.max(0, ownedSkins(stats, hero).filter(countsAsOutfit).length - 1);
   });
   for (const c of COSMETICS) {
     if (!countsInCollection(c)) continue;

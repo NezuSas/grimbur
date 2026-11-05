@@ -27,7 +27,17 @@ export const beastOf = (e: { type: string; mini?: boolean; ancient?: boolean; wa
   return isBeast(e.type) ? e.type : null;
 };
 
-type Tally = Pick<GameState, 'entities' | 'level' | 'runSeed' | 'isGameOver' | 'isVictory' | 'deathCause'> & { met?: BeastId[]; slain?: Partial<Record<BeastId, number>> };
+type Tally = Pick<GameState, 'entities' | 'level' | 'runSeed' | 'isGameOver' | 'isVictory' | 'deathCause'> & Partial<Pick<GameState, 'turn' | 'woken'>> & { met?: BeastId[]; slain?: Partial<Record<BeastId, number>> };
+
+/** Stalkers each Grimbur (or lieutenant) has called so far, by its bestiary id. */
+const callsOf = (entities: GameState['entities']) => {
+  const out: Partial<Record<BeastId, number>> = {};
+  for (const e of entities) {
+    const b = e.type === 'boss' ? beastOf(e) : null;
+    if (b) out[b] = (out[b] ?? 0) + (e.calls ?? 0);
+  }
+  return out;
+};
 
 const count = (entities: GameState['entities']) => {
   const out: Partial<Record<BeastId, number>> = {};
@@ -40,8 +50,11 @@ const count = (entities: GameState['entities']) => {
 
 /**
  * What one action added to the run's tally, from the state before and after it. A creature that leaves the floor without the
- * floor changing was defeated (or caught, for a thief); a sleeper that wakes becomes a stalker, so creatures that appear cancel
- * as many disappearances (the sleeper first). When a floor ends (cleared or fatal) everything it held counts as met.
+ * floor changing was defeated (or caught, for a thief). Creatures only ever appear in two ways, each counted where it happens: a
+ * sleeper that wakes becomes a stalker (GameState.woken) and a wounded Grimbur calls one (its `calls`). So a sleeper is slain only
+ * when more sleepers left than woke, and a stalker only when fewer stand than stood, woke and were called; a kill in the same
+ * action as a call or a wake-up still counts. An action that takes the floor back (undo, revive) restores its own tally and adds
+ * nothing. When a floor ends (cleared or fatal) everything it held counts as met.
  */
 export function tallyBestiary(prev: Tally, next: Tally): { met: BeastId[]; slain: Partial<Record<BeastId, number>> } {
   let met = next.met ?? prev.met ?? [];
@@ -51,17 +64,26 @@ export function tallyBestiary(prev: Tally, next: Tally): { met: BeastId[]; slain
     const add = [...ids].filter(b => !met.includes(b));
     if (add.length) met = [...met, ...add];
   };
-  if (prev.level === next.level) {
+  const rolledBack = (next.turn ?? 0) < (prev.turn ?? 0);
+  if (prev.level === next.level && !rolledBack) {
     const before = count(prev.entities);
     const after = count(next.entities);
-    let appeared = 0;
-    for (const b of SLAYABLE) appeared += Math.max(0, (after[b] ?? 0) - (before[b] ?? 0));
-    const gone: BeastId[] = [];
-    for (const b of ['sleeper', ...SLAYABLE.filter(x => x !== 'sleeper')] as BeastId[]) {
-      for (let k = 0; k < Math.max(0, (before[b] ?? 0) - (after[b] ?? 0)); k++) gone.push(b);
+    const woke = Math.max(0, (next.woken ?? 0) - (prev.woken ?? 0));
+    const callsBefore = callsOf(prev.entities);
+    const callsAfter = callsOf(next.entities);
+    let called = 0;
+    for (const [b, n] of Object.entries(callsAfter) as [BeastId, number][]) {
+      if (callsBefore[b] !== undefined) called += Math.max(0, n - callsBefore[b]!);
     }
-    for (const b of gone.slice(appeared)) slain = { ...slain, [b]: (slain[b] ?? 0) + 1 };
-    meet(gone.slice(appeared));
+    const gone: BeastId[] = [];
+    for (const b of SLAYABLE) {
+      const arrived = b === 'stalker' ? woke + called : 0;
+      const left = b === 'sleeper' ? woke : 0;
+      const n = Math.max(0, (before[b] ?? 0) + arrived - left - (after[b] ?? 0));
+      for (let k = 0; k < n; k++) gone.push(b);
+    }
+    for (const b of gone) slain = { ...slain, [b]: (slain[b] ?? 0) + 1 };
+    meet(gone);
   }
   const floorEnded = prev.level !== next.level || (!prev.isGameOver && next.isGameOver) || (!prev.isVictory && next.isVictory);
   if (floorEnded) {
