@@ -2,8 +2,9 @@ import type { CosmeticId } from "../core/cosmetics/cosmetics";
 import type { TranslationKey } from './en';
 import type { Params } from './translate';
 import type { RelicId } from '../core/engine/relics';
-import type { SkinId } from '../core/skins/skins';
+import { chromaOf, outfitOf, type OutfitId, type SkinId } from '../core/skins/skins';
 import { HERO_UNLOCKS } from '../core/stats/heroUnlocks';
+import { HERO_QUESTS } from '../core/stats/heroQuests';
 import { ACHIEVEMENTS, AchievementId } from '../core/stats/achievements';
 import { BEASTS } from '../core/stats/bestiary';
 import { UPGRADES, UpgradeId } from '../core/stats/forge';
@@ -17,7 +18,18 @@ export const heroText = (t: T, heroIndex: number, part: 'name' | 'title' | 'perk
   t(`hero.${heroIndex}.${part}` as TranslationKey);
 
 /** Localised hero skin name. */
-export const skinText = (t: T, id: SkinId): string => t(`skin.${id}.name` as TranslationKey);
+/** A look's name: the chroma for the classic outfit ("Brasa"), the outfit and its chroma for a newer one ("Traje de Gala · Brasa"). */
+export const skinText = (t: T, id: SkinId): string => {
+  const outfit = outfitOf(id);
+  if (outfit === 'classic') return t(`skin.${id}.name` as TranslationKey);
+  const chroma = chromaOf(id);
+  const name = t(`skin.outfit.${outfit}` as TranslationKey);
+  return chroma === 'classic' ? name : `${name} · ${t(`skin.${chroma}.name` as TranslationKey)}`;
+};
+/** An outfit's name ("Traje de Gala"). */
+export const outfitText = (t: T, outfit: OutfitId): string => t(`skin.outfit.${outfit}` as TranslationKey);
+/** A chroma's name alone ("Brasa"; the outfit's own colour reads "Clásico"). */
+export const chromaText = (t: T, id: SkinId): string => t(`skin.${chromaOf(id)}.name` as TranslationKey);
 
 /**
  * Localised relic text. With a weapon, the description is the one of that weapon (`relic.<id>.desc.<weapon>`) when its
@@ -64,8 +76,14 @@ export const achievementText = (t: T, id: AchievementId, part: 'name' | 'desc'):
   return t(`ach.${id}.desc` as TranslationKey, info?.params ?? {});
 };
 
+/** A hero challenge's text; `{name}` is the depth called `n` (for the "win at a depth" challenges). */
+export const questText = (t: T, hero: number, k: number): string => {
+  const n = HERO_QUESTS[hero]?.[k]?.n ?? 0;
+  return t(`quest.${hero}.${k}` as TranslationKey, { n, name: t(`ascension.label.${Math.min(5, Math.max(0, Math.trunc(n)))}` as TranslationKey) });
+};
+
 /** Localised Forge upgrade text. */
-export const forgeText = (t: T, id: UpgradeId, part: 'name' | 'desc'): string => {
+export const forgeText =(t: T, id: UpgradeId, part: 'name' | 'desc'): string => {
   const params = UPGRADES.find(u => u.id === id)?.params ?? {};
   return t(`forge.${id}.${part}` as TranslationKey, params);
 };

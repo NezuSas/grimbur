@@ -1,5 +1,5 @@
 // The pure helpers the reducer builds on: the world (entities by index), the hunters' turn, the Grimbur, pickups and teleports.
-import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, Direction, EntityType, DeathCause } from './types';
+import { GameState, GameEntity, LETHAL_TYPES, HUNTER_TYPES, GUARDIAN_TYPES, Direction, EntityType, DeathCause } from './types';
 import { GAME_CONFIG } from '../../config/gameConfig';
 import { createPRNG } from '../random/prng';
 import { floorEffects } from './events';
@@ -95,6 +95,28 @@ export const blastWorld = (world: World, center: number, cols: number): World =>
 };
 
 export const hasBoss = (world: World) => world.entities.some(e => e.type === 'boss');
+
+/** The Grimbur itself (the lair's boss), not its lieutenant nor the Magma Colossus (`mini` bosses). */
+export const hasLairBoss = (world: Pick<World, 'entities'>) => world.entities.some(e => e.type === 'boss' && !e.mini);
+
+/**
+ * Raven's Eye: the guardian or vortex closest to `from` (the floor's start, tile 0, by default), or nothing on a floor without
+ * one. Tiles in `skip` (already flagged) are passed over, so a mark always tells something new.
+ */
+export const nearestDanger = (entities: readonly GameEntity[], cols: number, from = 0, skip: readonly number[] = []): number[] => {
+  let best = -1;
+  let bestDist = Infinity;
+  for (const e of entities) {
+    if (e.type !== 'pit' && !GUARDIAN_TYPES.includes(e.type)) continue;
+    if (skip.includes(e.index)) continue;
+    const d = manhattan(e.index, from, cols);
+    if (d < bestDist || (d === bestDist && e.index < best)) {
+      best = e.index;
+      bestDist = d;
+    }
+  }
+  return best === -1 ? [] : [best];
+};
 
 /** The tile one step from `index` in `direction`, or -1 at the board edge. */
 export const neighbour = (index: number, direction: Direction, rows: number, cols: number): number => {
@@ -214,7 +236,7 @@ export const coolLava = (world: World): World => {
 
 /**
  * Lets every hunter that is due on `turn` act. Returns the types of the hunters that struck
- * (each one has to be absorbed or kills the player).
+ * (each one has to be absorbed or kills the player) and, in the same order, the tiles they struck from.
  */
 export const huntersAct = (
   world: World,
@@ -225,9 +247,10 @@ export const huntersAct = (
   slowdown: number,
   /** Stalkers (not the Grimbur) act this many actions sooner on the deepest depths. */
   haste = 0,
-): { world: World; hits: DeathCause[] } => {
+): { world: World; hits: DeathCause[]; strikers: number[] } => {
   const hunters = world.entities.filter(e => HUNTER_TYPES.includes(e.type)).map(e => ({ index: e.index, type: e.type, hp: e.hp, mini: e.mini, warden: e.warden }));
   const hits: DeathCause[] = [];
+  const strikers: number[] = [];
   let current = coolLava(world);
 
   for (const hunter of hunters) {
@@ -241,13 +264,16 @@ export const huntersAct = (
     // The Magma Colossus leaves a pool of lava on the tile it just left.
     const moved = hunter.warden && !acted.hit && !acted.world.entityMap[hunter.index];
     current = moved ? addEntity(acted.world, { index: hunter.index, type: 'pit', lava: true, ttl: LAVA_TURNS }) : acted.world;
-    if (acted.hit) hits.push(hunter.warden ? 'warden' : hunter.mini ? 'brute' : hunter.type);
+    if (acted.hit) {
+      hits.push(hunter.warden ? 'warden' : hunter.mini ? 'brute' : hunter.type);
+      strikers.push(hunter.index);
+    }
   }
   // Thieves are not hunters: every few actions they run for a gem, or away from a hero who gets close.
   if (turn % THIEF_EVERY === 0) {
     for (const thief of current.entities.filter(e => e.type === 'thief')) current = thiefAct(current, thief.index, playerIndex, rows, cols);
   }
-  return { world: current, hits };
+  return { world: current, hits, strikers };
 };
 
 /**
@@ -336,9 +362,13 @@ export function secretDraftTiles(secret: number | null | undefined, rows: number
   return out;
 }
 
-/** What a relic does at once when it is gained mid-floor (a draft pick, a chest, a gift): arrows, a bomb, a shield, light. */
-export function gainRelicNow(state: Pick<GameState, 'relics' | 'attack' | 'items' | 'shield' | 'visited' | 'cols' | 'rows' | 'entities'> & Partial<Pick<GameState, 'perks'>>, id: RelicId) {
+/**
+ * What a relic does at once when it is gained mid-floor (a draft pick, a chest, a gift): arrows, a bomb, a shield, light, and
+ * the Raven's Eye flags the danger nearest to the hero on the floor already loaded.
+ */
+export function gainRelicNow(state: Pick<GameState, 'relics' | 'attack' | 'items' | 'shield' | 'visited' | 'cols' | 'rows' | 'entities' | 'marked' | 'playerIndex'> & Partial<Pick<GameState, 'perks'>>, id: RelicId) {
   return {
+    marked: id === 'raven_eye' ? Array.from(new Set([...state.marked, ...nearestDanger(state.entities, state.cols, state.playerIndex, state.marked)])) : state.marked,
     relics: [...state.relics, id],
     attack: id === 'quiver' ? state.attack + scaleAmmo(state.perks?.weapon ?? 'bow', 2) : state.attack,
     items: id === 'bomb_belt' ? { ...state.items, bomb: Math.min(MAX_ITEMS, state.items.bomb + 1) } : state.items,

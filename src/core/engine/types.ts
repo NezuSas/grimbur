@@ -154,6 +154,10 @@ export interface GameState {
   secretsFound?: number;
   /** Times the lair has sent arrows to a hero that ran dry (see ensureWinnable); resets on every new floor. */
   lairRescues?: number;
+  /** Owl Totem: the detector charges already paid for this floor's explored tiles (see payOwl); resets on every new floor. */
+  owlPaid?: number;
+  /** On a run just ended by a hunter's strike, the tile it struck from (a revive flags it); null otherwise. */
+  struckFrom?: number | null;
 }
 
 /** What taking a step back restores. */

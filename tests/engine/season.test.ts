@@ -1,4 +1,4 @@
-import { EMPTY_SEASON, SEASON_REWARDS, SEASON_TIERS, addSeasonRun, claimSeason, daysLeftInSeason, parseSeason, seasonClaimable, seasonPointsFor, syncSeason, tiersReached } from '../../src/core/stats/season';
+import { EMPTY_SEASON, SEASON_REWARDS, SEASON_TIERS, addSeasonRun, claimSeason, daysLeftInSeason, parseSeason, rolloverSeason, seasonClaimable, seasonPointsFor, syncSeason, tiersReached } from '../../src/core/stats/season';
 import { EMPTY_STATS, mergeRun, parseStats } from '../../src/core/stats/runStats';
 import { ownsCosmetic } from '../../src/core/cosmetics/cosmetics';
 
@@ -44,5 +44,34 @@ describe('seasons', () => {
   it('earns the season title once a track is completed', () => {
     expect(ownsCosmetic(EMPTY_STATS, 'title_season')).toBe(false);
     expect(ownsCosmetic({ ...EMPTY_STATS, season: { ...EMPTY_SEASON, completed: 1 } }, 'title_season')).toBe(true);
+  });
+
+  it('pays the reached but unclaimed tiers of last month when the month turns', () => {
+    const october = addSeasonRun(EMPTY_SEASON, '2026-10-20', SEASON_TIERS[1]);
+    const rolled = rolloverSeason(october, '2026-11-02');
+    expect(rolled.embers).toBe(SEASON_REWARDS[0] + SEASON_REWARDS[1]);
+    expect(rolled.state).toMatchObject({ key: '2026-11', points: 0, claimed: 0, completed: 0, months: [] });
+    // Already claimed tiers are not paid twice; the same month changes nothing.
+    expect(rolloverSeason(claimSeason(october).state, '2026-11-02').embers).toBe(0);
+    expect(rolloverSeason(october, '2026-10-30')).toEqual({ state: october, embers: 0 });
+    expect(rolloverSeason(EMPTY_SEASON, '2026-11-02').embers).toBe(0);
+  });
+
+  it('keeps the title of a finished but unclaimed month', () => {
+    const full = addSeasonRun(EMPTY_SEASON, '2026-10-20', SEASON_TIERS[SEASON_TIERS.length - 1]);
+    const rolled = rolloverSeason(full, '2026-11-01');
+    expect(rolled.embers).toBe(SEASON_REWARDS.reduce((a, b) => a + b, 0));
+    expect(rolled.state).toMatchObject({ key: '2026-11', completed: 1, months: ['2026-10'] });
+    expect(syncSeason(full, '2026-11-01').months).toEqual(['2026-10']);
+  });
+
+  it("pays last month's unclaimed tiers with the first run of the new month", () => {
+    const { stats: october } = mergeRun(EMPTY_STATS, { score: 900, level: 10, victory: true, ascension: 5, day: '2026-10-20' } as never);
+    const owed = seasonClaimable(october.season);
+    expect(owed).toBeGreaterThan(0);
+    const { stats: november, payout } = mergeRun(october, { score: 100, level: 2, victory: false, day: '2026-11-03' } as never);
+    expect(payout.season).toBe(owed);
+    expect(november.embers - october.embers).toBe(payout.total);
+    expect(november.season).toMatchObject({ key: '2026-11', claimed: 0, points: 16 });
   });
 });

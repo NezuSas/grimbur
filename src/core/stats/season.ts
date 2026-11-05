@@ -37,17 +37,31 @@ export function seasonPointsFor(run: { level: number; victory?: boolean; ascensi
   return floors * SEASON_PER_FLOOR + won;
 }
 
-/** The state for the season of `day`: a new month starts a new track (the completed count is kept). */
-export function syncSeason(state: SeasonState, day: string): SeasonState {
+/**
+ * Moves the season to the month of `day`. When the month has turned, the old track is settled first: its reached tiers that
+ * were never claimed are paid (`embers`) and, if it was finished, its month counts as completed (so its title is kept). The
+ * new month then starts a fresh track (the completed count and months are kept).
+ */
+export function rolloverSeason(state: SeasonState, day: string): { state: SeasonState; embers: number } {
   const key = seasonKeyOf(day);
-  return state.key === key ? state : { key, points: 0, claimed: 0, completed: state.completed, months: state.months ?? [] };
+  if (state.key === key) return { state, embers: 0 };
+  const settled = state.key ? claimSeason(state) : { state, embers: 0 };
+  const old = settled.state;
+  return { state: { key, points: 0, claimed: 0, completed: old.completed, months: old.months ?? [] }, embers: settled.embers };
 }
 
-/** Adds a run played on `day` to the season. */
-export const addSeasonRun = (state: SeasonState, day: string, points: number): SeasonState => {
-  const s = syncSeason(state, day);
-  return points > 0 ? { ...s, points: s.points + points } : s;
+/** The state for the season of `day` (see `rolloverSeason`; the embers of an old track are paid by whoever saves it). */
+export const syncSeason = (state: SeasonState, day: string): SeasonState => rolloverSeason(state, day).state;
+
+/** Adds a run played on `day` to the season, with the embers a settled old track paid. */
+export const addSeasonRunPaid = (state: SeasonState, day: string, points: number): { state: SeasonState; embers: number } => {
+  const rolled = rolloverSeason(state, day);
+  const s = rolled.state;
+  return { state: points > 0 ? { ...s, points: s.points + points } : s, embers: rolled.embers };
 };
+
+/** Adds a run played on `day` to the season. */
+export const addSeasonRun = (state: SeasonState, day: string, points: number): SeasonState => addSeasonRunPaid(state, day, points).state;
 
 /** Tiers reached by `points`. */
 export const tiersReached = (points: number): number => SEASON_TIERS.filter(p => points >= p).length;

@@ -47,7 +47,7 @@ export function dailyDeals(stats: LocalStats, day: string): Deal[] {
   SKINS_BY_HERO.forEach((list, hero) => list.forEach(skin => SKINS[skin].price > 0 && skins.push({ kind: 'skin', hero, skin })));
   const cosmetics: DealItem[] = COSMETICS.filter(c => c.price > 0).map(c => ({ kind: 'cosmetic', id: c.id }));
   const available = (item: DealItem) =>
-    today.includes(dealKey(item)) || (item.kind === 'skin' ? !skinStatus(stats, item.hero, item.skin).owned : !ownsCosmetic(stats, item.id));
+    today.includes(dealKey(item)) || (item.kind === 'skin' ? (st => !st.owned && !st.needsOutfit)(skinStatus(stats, item.hero, item.skin)) : !ownsCosmetic(stats, item.id));
   const pick = (pool: DealItem[], n: number, salt: number) => shuffled(pool, seed + salt).filter(available).slice(0, n);
   return [...pick(skins, SKIN_DEALS, 0), ...pick(cosmetics, COSMETIC_DEALS, 7)].map(item => {
     const fullPrice = item.kind === 'skin' ? SKINS[item.skin].price : COSMETICS.find(c => c.id === item.id)!.price;

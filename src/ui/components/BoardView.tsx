@@ -605,6 +605,8 @@ const BoardView: React.FC<Props> = memo(
     const heroArt = characterWithSkin(characterIndex, skin);
     const idleSource = heroArt.playerImage;
     const attackSource = heroArt.attackImage;
+    const frontSource = heroArt.frontImage;
+    const backSource = heroArt.backImage;
     // While the attack button is held the hero already turns toward the aim and draws the bow.
     const aiming = !!aimDir;
     const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
@@ -612,6 +614,9 @@ const BoardView: React.FC<Props> = memo(
     const lastSide = useRef<"left" | "right">("right");
     if (currentFacing === "left" || currentFacing === "right") lastSide.current = currentFacing;
     const drawn = isAttacking || aiming;
+    // Moving (or aiming) down shows the hero's front, up its back, when the art has them; the side poses otherwise.
+    const facingArt = currentFacing === "down" ? frontSource : currentFacing === "up" ? backSource : undefined;
+    const pose: "idle" | "attack" | "facing" = facingArt ? "facing" : drawn ? "attack" : "idle";
 
     // The arrow: flies from the hero to the tile it stops on, trailing the hero's colour, and strikes there (see ArrowFlight).
     const flight = useRef(new Animated.Value(1)).current;
@@ -657,14 +662,19 @@ const BoardView: React.FC<Props> = memo(
             width: heroBody,
             height: heroBody,
             transform: [
-              { scaleX: lastSide.current === "left" ? -1 : 1 },
-              { translateY: currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0 },
-              { scale: currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
+              // The front / back views are drawn as they are (mirroring would swap the hand holding the weapon).
+              { scaleX: pose !== "facing" && lastSide.current === "left" ? -1 : 1 },
+              // Without them, looking up / down only leans the side view away from / toward the viewer.
+              { translateY: pose !== "facing" ? (currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0) : 0 },
+              // Attacking up / down: the front / back view lunges a little toward the shot.
+              { scale: pose === "facing" ? (drawn ? (currentFacing === "down" ? 1.07 : 0.97) : 1) : currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
             ],
           }}
         >
-          {idleSource && <OutlinedSprite source={idleSource} visible={!drawn} line={outline} />}
-          {attackSource && <OutlinedSprite source={attackSource} visible={drawn} line={outline} />}
+          {idleSource && <OutlinedSprite source={idleSource} visible={pose === "idle"} line={outline} />}
+          {attackSource && <OutlinedSprite source={attackSource} visible={pose === "attack"} line={outline} />}
+          {frontSource && <OutlinedSprite source={frontSource} visible={pose === "facing" && currentFacing === "down"} line={outline} />}
+          {backSource && <OutlinedSprite source={backSource} visible={pose === "facing" && currentFacing === "up"} line={outline} />}
         </Animated.View>
         </Animated.View>
       </>

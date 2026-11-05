@@ -19,14 +19,14 @@ import { AMMO_ART } from './weaponArt';
  * 2 GB. Only each hero's equipped outfit comes along; the collection screen loads the rest as it draws them.
  */
 export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePropType[] {
-  const heroes = characters.flatMap(c => [c.scoreImage, c.attackImage, c.playerImage, c.winImage, c.loseImage]);
+  const heroes = characters.flatMap(c => [c.scoreImage, c.attackImage, c.playerImage, c.winImage, c.loseImage, ...(c.frontImage ? [c.frontImage] : []), ...(c.backImage ? [c.backImage] : [])]);
   // The outfit each hero wears right now: the cover, the board and the hero screen draw it without a flash.
   const outfits = stats
     ? characters.flatMap((_, hero) => {
         const skin = equippedSkin(stats, hero);
         if (skin === 'classic') return []; // the classic art is the hero's own, already loaded above
         const art = skinArt(hero, skin);
-        return [art.scoreImage, art.attackImage, art.playerImage];
+        return [art.scoreImage, art.attackImage, art.playerImage, ...(art.frontImage ? [art.frontImage] : []), ...(art.backImage ? [art.backImage] : [])];
       })
     : [];
   const all: ImageSourcePropType[] = [

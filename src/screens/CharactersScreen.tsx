@@ -36,10 +36,10 @@ import { MIN_TOUCH } from "../ui/layout/useGameLayout";
 import { ABILITY_ART } from "../ui/toolArt";
 import { AMMO_ART } from "../ui/weaponArt";
 import { weaponOfHero } from "../core/engine/weapons";
-import { weaponName, weaponRule } from "../i18n/weaponText";
+import { weaponLine, weaponName, weaponRule } from "../i18n/weaponText";
 import GameIcon from "../ui/components/GameIcon";
 import { useT } from "../i18n/useT";
-import { heroText, unlockText , skinText } from "../i18n/keys";
+import { heroText, questText, unlockText , skinText } from "../i18n/keys";
 import { useSettingsStore } from "../state/settings/store";
 import { useEntitlements } from "../state/entitlements/useEntitlements";
 import { MAX_ASCENSION, ascensionRuleKey } from "../core/engine/ascension";
@@ -54,8 +54,9 @@ import type { TranslationKey } from "../i18n/en";
 import PressScale from "../ui/components/PressScale";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
-import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
+import { skinAccent, skinArt, type SkinId } from "../data/skinArt";
 import { equippedSkin, ownedSkins } from "../core/skins/ownership";
+import { chromaOf } from "../core/skins/skins";
 
 
 import { heroAccent } from "../data/heroAccent";
@@ -238,7 +239,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const wornFrame = equippedCosmetic(stats, "frame");
   // The framed hero fits the box it is given (measured: the stage's own sizes are scaled for small windows).
   const [frameBox, setFrameBox] = useState({ w: 0, h: 0 });
-  const accent = shownSkin === "classic" ? accentOf(selected) : SKIN_ACCENT[shownSkin];
+  const accent = chromaOf(shownSkin) === "classic" ? accentOf(selected) : skinAccent(shownSkin);
   const ctaDisabled = locked;
   const perks = HEROES[selected]?.perks;
   const ability = perks?.ability ?? null;
@@ -270,7 +271,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
   const nextLocked = depth >= maxDepth && depth < MAX_ASCENSION;
   const modeTitle = t(`heroes.mode.${mode}` as TranslationKey);
   // On a harder depth the line says what that depth changes and what winning it pays on top.
-  const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${t(ascensionRuleKey(depth) as TranslationKey)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
+  const depthRule = challenge ? `${t("challenge.label", { code: formatChallengeCode(challenge.code) })} · ${t("challenge.fair")}` : showDepth && depth > 0 ? `${weaponLine(t, ascensionRuleKey(depth) as TranslationKey, weapon)} ${t("heroes.depthReward", { n: VICTORY_EMBERS_PER_DEPTH * depth })}` : null;
   const modeRule = depthRule ?? t(`heroes.mode.${mode}.rule` as TranslationKey) + (mode === "daily" ? `  ${dailyKey()}` : "");
   const modeTint = mode === "daily" ? "#D38C46" : mode === "endless" ? "#A397BF" : mode === "quick" ? "#7FAFC6" : "#D2A85A";
 
@@ -401,7 +402,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                     >
                       <GameIcon name="remove" size={18} color="#fff" />
                     </TouchableOpacity>
-                    <View style={styles.depthLabel} accessible accessibilityLabel={`${t("heroes.depth")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${t(ascensionRuleKey(depth) as TranslationKey)}`}>
+                    <View style={styles.depthLabel} accessible accessibilityLabel={`${t("heroes.depth")}: ${t(`ascension.label.${depth}` as TranslationKey)}. ${weaponLine(t, ascensionRuleKey(depth) as TranslationKey, weapon)}`}>
                       <Text style={styles.depthText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.2}>
                         <EmberIcon size={12} /> {t(`ascension.label.${depth}` as TranslationKey).toLocaleUpperCase()}
                       </Text>
@@ -451,11 +452,11 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : null}
 
               {event ? (
-                <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${t(`event.${event}.rule` as TranslationKey)}`}>
+                <View style={styles.event} accessible accessibilityLabel={`${t("event.kicker")}: ${t(`event.${event}.name` as TranslationKey)}. ${weaponLine(t, `event.${event}.rule` as TranslationKey, weapon)}`}>
                   <GameIcon name="flash" size={13} color="#C9A55A" />
                   <Text style={styles.eventText} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
                     <Text style={styles.eventName}>{`${t(`event.${event}.name` as TranslationKey).toLocaleUpperCase()}  `}</Text>
-                    {t(`event.${event}.rule` as TranslationKey)}
+                    {weaponLine(t, `event.${event}.rule` as TranslationKey, weapon)}
                     {eventBest > 0 ? `  ·  ${t("event.best", { n: eventBest })}` : ""}
                   </Text>
                 </View>
@@ -540,7 +541,7 @@ const CharactersScreen: React.FC<Props> = ({ navigation, route }) => {
                       <View key={k} style={styles.questRow}>
                         <GameIcon name={done ? "checkmark-circle" : "ellipse-outline"} size={16} color={done ? "#A3BF7C" : "#8a7663"} />
                         <Text style={[styles.questText, done && styles.questTextDone]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.15}>
-                          {t(`quest.${selected}.${k}` as TranslationKey, { n: q.n })}
+                          {questText(t, selected, k)}
                         </Text>
                       </View>
                     );

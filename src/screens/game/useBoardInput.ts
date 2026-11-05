@@ -37,14 +37,21 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
 
   // Tiles the player marked as dangerous (long press). Cosmetic memory aid with one safety rule: stepping onto a marked tile is
   // refused, so a slip of the thumb cannot walk into a suspected hazard.
-  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  // The flags the engine set (the detector, the Raven's Eye, an orb's burst...) are added from the current state.marked, so a flag
+  // goes when the engine drops it (the stalker moved, the vortex was blown up, the lava cooled) instead of blocking the tile forever.
+  const [ownFlags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  const flags = useMemo<ReadonlySet<number>>(
+    () => (state.marked.length === 0 ? ownFlags : new Set([...ownFlags, ...state.marked])),
+    [ownFlags, state.marked],
+  );
   const flagsRef = useRef(flags);
   flagsRef.current = flags;
   const [flagPing, setFlagPing] = useState<{ index: number; n: number } | null>(null);
 
   const toggleFlag = useCallback(
     (index: number) => {
-      if (stateRef.current.visited.includes(index)) return;
+      // An engine flag is not the player's to lift.
+      if (stateRef.current.visited.includes(index) || stateRef.current.marked.includes(index)) return;
       haptic.impact();
       setFlags(prev => {
         const next = new Set(prev);
@@ -55,11 +62,6 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
     [stateRef],
   );
   useEffect(() => setFlags(new Set()), [state.level, state.runSeed, runNumber]);
-  // The detector flags the hazards it finds, exactly like the player's own long-press flags.
-  useEffect(() => {
-    if (state.marked.length === 0) return;
-    setFlags(prev => new Set([...prev, ...state.marked]));
-  }, [state.marked]);
 
   /** When the step sound of the last tap was already played at input time, so the state effect does not repeat it. */
   const stepSoundedAt = useRef(0);

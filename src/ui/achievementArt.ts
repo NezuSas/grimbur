@@ -21,6 +21,7 @@ const art = {
   speed: require('../assets/sprites/achievements/Ach_Speed.webp'),
   heroes: require('../assets/sprites/achievements/Ach_Heroes.webp'),
   hunt: require('../assets/sprites/enemies/Guardian_Enemy.webp'),
+  puzzles: require('../assets/sprites/ui/Icon_Riddle.webp'),
 } as const;
 
 /** The hunter's marks show the creature they are about. */
@@ -47,6 +48,9 @@ const BY_ID: Partial<Record<string, ImageSourcePropType>> = {
   first_relic: art.relics,
   first_forge: art.forge,
   first_gems: art.gems,
+  // Encounters on the way down, filed with the other encounter achievements.
+  enc_gambler: art.floor,
+  enc_miner: art.floor,
 };
 
 /** The win-with-a-hero achievements show that hero's own portrait. */
@@ -75,6 +79,17 @@ const BY_KIND: Partial<Record<DescKind, ImageSourcePropType>> = {
   encounters: art.floor,
   bestiary: art.hunt,
   beast: art.hunt,
+  quickWins: art.wins,
+  puzzles: art.puzzles,
+  puzzleStars: art.puzzles,
+  puzzleDaily: art.puzzles,
+  puzzleStreak: art.puzzles,
+  puzzleEndless: art.puzzles,
+  puzzleCrowns: art.puzzles,
+  puzzleCrownChapter: art.puzzles,
+  puzzleLegend: art.puzzles,
+  puzzleWeekly: art.puzzles,
+  puzzleArchive: art.puzzles,
 };
 
 /** The painted emblem of an achievement (every one has one: by id, by its hero, or by the theme of its description). */
@@ -96,7 +111,7 @@ export function achievementTheme(a: Pick<AchievementInfo, 'id' | 'desc'>): Achie
 
 /** Every family in the order the Achievements screen lists them: the first steps first, the long hauls last. */
 export const ACHIEVEMENT_THEMES: readonly AchievementTheme[] = [
-  'games', 'floor', 'gems', 'relics', 'forge', 'embers', 'score', 'wins', 'heroes', 'speed', 'depthWin', 'endless', 'streak', 'dailyRuns', 'dailyWins', 'hunt', 'achCount',
+  'games', 'floor', 'gems', 'relics', 'forge', 'embers', 'score', 'wins', 'heroes', 'speed', 'depthWin', 'endless', 'streak', 'dailyRuns', 'dailyWins', 'hunt', 'puzzles', 'achCount',
 ];
 
 /** The emblem standing for a whole family. */

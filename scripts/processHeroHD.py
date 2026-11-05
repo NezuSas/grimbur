@@ -2,7 +2,7 @@
 Puts the high-definition art of a hero into the game (2026-11-04 pipeline: one pose per picture, transparent background,
 the original file downloaded from the generator, so the hero is drawn at ~1500 px and only ever scaled DOWN).
 
-  python scripts/processHeroHD.py <hero dir with Hero.png Attack.png Icon.png Win.png Lose.png> <Colour>
+  python scripts/processHeroHD.py <hero dir with Hero.png Attack.png Icon.png Win.png Lose.png [Front.png Back.png]> <Colour> [Front,Back]
 
   - Hero / Icon: framed exactly as processHeroArt.py frames them (same height and feet line; the bust filling the portrait).
   - Attack / Win / Lose: each new pose is scaled to the same area as the CURRENT in-game pose and placed on its feet line and
@@ -67,16 +67,27 @@ def icon_pose(src: str) -> Image.Image:
     return out
 
 
-def main(src_dir: str, colour: str) -> None:
-    root = P.ROOT
-    for k in ('Hero', 'Icon', 'Attack', 'Win', 'Lose'):
+def main(src_dir: str, colour: str, only: str = '', outfit: str = '') -> None:
+    # A newer outfit (assets-src/art/outfits/<outfit>/<colour>) goes to src/assets/sprites/outfits/<outfit>, each pose
+    # matched to the classic outfit's pose in the game so the hero keeps its size whatever it wears.
+    classic = P.ROOT
+    root = os.path.join(os.path.dirname(P.ROOT), 'outfits', outfit) if outfit else P.ROOT
+    os.makedirs(root, exist_ok=True)
+    for k in (only.split(',') if only else ('Hero', 'Icon', 'Attack', 'Win', 'Lose', 'Front', 'Back')):
         src = os.path.join(src_dir, f'{k}.png')
         if not os.path.exists(src):
             print(f'{k}: not found, skipped')
             continue
+        if k in ('Front', 'Back'):
+            # Facing the viewer / walking away (moving down / up): framed like the standing pose, same height and feet line.
+            png = os.path.join(root, f'{k}_{colour}.png')
+            hero_pose(src).save(png)
+            to_webp(png)
+            print(f'{k}_{colour}: done')
+            continue
         # The pose it replaces is kept beside the new art (first run only), so a re-run still matches the original's size.
-        current = os.path.join(src_dir, '_old', f'{k}.webp')
-        if not os.path.exists(current):
+        current = os.path.join(classic, f'{k}_{colour}.webp') if outfit else os.path.join(src_dir, '_old', f'{k}.webp')
+        if not outfit and not os.path.exists(current):
             os.makedirs(os.path.dirname(current), exist_ok=True)
             shutil.copyfile(os.path.join(root, f'{k}_{colour}.webp'), current)
         # The standing pose and the portrait have fixed frames; the others match the current pose's size and place.
@@ -88,4 +99,5 @@ def main(src_dir: str, colour: str) -> None:
 
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    # Optional third argument: only these poses, comma separated (e.g. Front,Back, or '' for all); fourth: an outfit id.
+    main(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else '', sys.argv[4] if len(sys.argv) > 4 else '')

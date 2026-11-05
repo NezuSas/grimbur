@@ -3,9 +3,12 @@ import * as path from 'path';
 
 jest.mock('react-native', () => ({ Platform: { OS: 'ios' } }));
 
-import { SKINS_BY_HERO } from '../../src/core/skins/skins';
+import { SKINS_BY_HERO, chromasOf } from '../../src/core/skins/skins';
 import { HERO_COUNT } from '../../src/core/stats/achievements';
-import { SKIN_IDS, SKIN_ACCENT, skinArt, skinsForHero, SkinId } from '../../src/data/skinArt';
+import { SKIN_IDS, skinAccent, skinArt, SkinId } from '../../src/data/skinArt';
+
+/** The classic outfit's chromas offered to a hero. */
+const skinsForHero = (hero: number): SkinId[] => chromasOf(hero, 'classic');
 
 const ORDER: SkinId[] = ['classic', 'ember', 'verdant', 'frost', 'royal', 'shadow', 'gilded'];
 const REDUNDANT: Record<number, SkinId | undefined> = { 0: 'frost', 1: 'ember', 2: 'verdant', 3: 'gilded', 5: 'ember' };
@@ -28,12 +31,12 @@ const imgSize = (file: string) => {
 describe('skinArt', () => {
   it('lists skin ids with classic first and in the specified order', () => {
     expect([...SKIN_IDS]).toEqual(ORDER);
-    ORDER.forEach((s) => expect(SKIN_ACCENT[s]).toMatch(/^#[0-9A-Fa-f]{6}$/));
+    ORDER.forEach((s) => expect(skinAccent(s)).toMatch(/^#[0-9A-Fa-f]{6}$/));
   });
 
   it('covers every hero and matches the core catalog', () => {
     expect(CLASSIC_FILES).toHaveLength(HERO_COUNT);
-    for (let hero = 0; hero < HERO_COUNT; hero++) expect(skinsForHero(hero)).toEqual([...SKINS_BY_HERO[hero]]);
+    for (let hero = 0; hero < HERO_COUNT; hero++) expect(skinsForHero(hero)).toEqual(SKINS_BY_HERO[hero].filter(id => (ORDER as string[]).includes(id)));
   });
 
   it.each([0, 1, 2, 3, 4, 5])('hero %i has classic + its skins, in order, minus its redundant theme', (hero) => {
@@ -85,6 +88,22 @@ describe('skinArt', () => {
         expect(art.loseImage).toBeDefined();
         for (const kind of ['win', 'lose']) {
           expect(imgSize(path.join(SKINS_DIR, skin, `${hero}_${kind}.webp`))).toEqual({ w: 512, h: 512 });
+        }
+      }
+    }
+  });
+});
+
+describe('outfits', () => {
+  it('every look offered to a hero has its own art, front and back views included', () => {
+    const { hasSkinArt } = require('../../src/data/skinArt');
+    for (let hero = 0; hero < HERO_COUNT; hero++) {
+      for (const skin of SKINS_BY_HERO[hero]) {
+        expect([hero, skin, hasSkinArt(hero, skin)]).toEqual([hero, skin, true]);
+        const art = skinArt(hero, skin);
+        if (skin.startsWith('gala')) {
+          expect(art.frontImage).toBeDefined();
+          expect(art.backImage).toBeDefined();
         }
       }
     }

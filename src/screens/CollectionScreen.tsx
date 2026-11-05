@@ -22,17 +22,17 @@ import { getPlayerName } from "../services/playerProfile";
 import SpriteImage from "../ui/components/SpriteImage";
 import EmberIcon from "../ui/components/EmberIcon";
 import characters from "../data/characters";
-import { SKIN_ACCENT, skinArt, type SkinId } from "../data/skinArt";
-import { SKINS, SKINS_BY_HERO } from "../core/skins/skins";
+import { hasSkinArt, skinAccent, skinArt, type SkinId } from "../data/skinArt";
+import { OUTFIT_IDS, SKINS, SKINS_BY_HERO, chromaOf, chromasOf, outfitOf, skinIdOf, type OutfitId } from "../core/skins/skins";
 import { equippedSkin, skinStatus } from "../core/skins/ownership";
-import { COLLECTION_FILTERS, CollectionFilter, heroCollectionCount, visibleSkins } from "../core/skins/collection";
+import { COLLECTION_FILTERS, CollectionFilter, heroCollectionCount } from "../core/skins/collection";
 import { EMPTY_STATS, LocalStats } from "../core/stats/runStats";
 import { buySkinFor, equipSkinFor, getLocalStats, peekLocalStats } from "../services/localStats";
 import { analytics } from "../services/analytics";
 import { haptic, NotificationFeedbackType } from "../shared/haptics";
 import { emitSound } from "../audio/audioEventBus";
 import { useT } from "../i18n/useT";
-import { heroText, skinText } from "../i18n/keys";
+import { chromaText, heroText, outfitText, skinText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
 import { useSettingsStore } from "../state/settings/store";
 import { heroAccent } from "../data/heroAccent";
@@ -59,37 +59,59 @@ const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
   { id: "pet", art: require("../assets/sprites/cosmetics/Pet_Firefly_A.png") },
 ];
 
-const accentOf = (hero: number, skin: SkinId) => (skin === "classic" ? heroAccent(hero) : SKIN_ACCENT[skin]);
-const RARITY_COLOR = { free: "#9FA8DA", rare: "#7FAFC6", legendary: "#C9A55A" } as const;
+const accentOf = (hero: number, skin: SkinId) => (chromaOf(skin) === "classic" ? heroAccent(hero) : skinAccent(skin));
+const RARITY_COLOR = { free: "#9FA8DA", rare: "#7FAFC6", epic: "#B08DBE", legendary: "#C9A55A" } as const;
 
-type CardProps = { hero: number; skin: SkinId; size: number; owned: boolean; equipped: boolean; selected: boolean; price: number; onPress: (skin: SkinId) => void };
+type CardProps = {
+  hero: number;
+  outfit: OutfitId;
+  /** The look the card shows: the chroma worn, picked, or the outfit's own colour. */
+  look: SkinId;
+  size: number;
+  /** The outfit itself is owned (for the classic one, always). */
+  owned: boolean;
+  /** How many of its chromas are owned, of how many. */
+  chromas: { owned: number; total: number };
+  equipped: boolean;
+  selected: boolean;
+  price: number;
+  onPress: (skin: SkinId) => void;
+};
 
 /**
- * One outfit in the grid: the hero wearing it in full colour (an outfit must be seen to be wanted), ringed in its rarity
- * colour; one not owned yet carries a small lock and its price instead of being dimmed.
+ * One OUTFIT in the grid (its chromas are switched in the detail, like a champion's chromas): the hero wearing it in full
+ * colour, ringed in its rarity colour; one not owned yet carries a small lock and its price instead of being dimmed.
  */
-const OutfitCard = memo(({ hero, skin, size, owned, equipped, selected, price, onPress }: CardProps) => {
+const OutfitCard = memo(({ hero, outfit, look, size, owned, chromas, equipped, selected, price, onPress }: CardProps) => {
   const { t } = useT();
-  const info = SKINS[skin];
+  const info = SKINS[skinIdOf(outfit, "classic")];
   const rarity = RARITY_COLOR[info.tier];
+  const accent = accentOf(hero, look);
   return (
     <PressScale
-      onPress={() => onPress(skin)}
+      onPress={() => onPress(look)}
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      accessibilityLabel={`${skinText(t, skin)}. ${t(`skin.tier.${info.tier}` as TranslationKey)}${info.premium ? `. ${t("skin.premium")}` : ""}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
+      accessibilityLabel={`${outfitText(t, outfit)}. ${t(`skin.tier.${info.tier}` as TranslationKey)}. ${t("skin.chromas", chromas)}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
       style={[
         styles.card,
-        { width: size, height: size * 1.22, borderColor: selected ? "#E8D3A2" : rarity + "88", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accentOf(hero, skin) + "33" : "rgba(30, 22, 16, 0.85)" },
+        { width: size, height: size * 1.22, borderColor: selected ? "#E8D3A2" : rarity + "88", borderWidth: selected ? 3 : 1.5, backgroundColor: selected ? accent + "33" : "rgba(30, 22, 16, 0.85)" },
       ]}
     >
-      <View style={[styles.cardGlow, { backgroundColor: accentOf(hero, skin) + (selected ? "40" : "22") }]} />
-      <SpriteImage source={skinArt(hero, skin).playerImage} style={{ width: size * 0.92, height: size * 0.92 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <View style={[styles.cardGlow, { backgroundColor: accent + (selected ? "40" : "22") }]} />
+      <SpriteImage source={skinArt(hero, look).playerImage} style={{ width: size * 0.92, height: size * 0.92 }} resizeMode="contain" accessibilityIgnoresInvertColors />
       <View style={styles.cardFoot}>
         {owned ? (
-          <Text style={styles.cardName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-            {skinText(t, skin)}
-          </Text>
+          <>
+            <Text style={styles.cardName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {outfitText(t, outfit)}
+            </Text>
+            {chromas.total > 1 ? (
+              <Text style={styles.cardChromas} numberOfLines={1} maxFontSizeMultiplier={1.1}>
+                {t("skin.chromas", chromas)}
+              </Text>
+            ) : null}
+          </>
         ) : (
           <View style={styles.cardPrice}>
             <EmberIcon size={11} />
@@ -223,7 +245,25 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   useEffect(() => {
     if (category === "rewards" && milestones > rewardsSeen) setRewardsSeen(milestones);
   }, [category, milestones, rewardsSeen, setRewardsSeen]);
-  const list = visibleSkins(stats, hero, filter);
+  // One card per outfit painted for this hero; its chromas live in the detail.
+  const outfitsOfHero = OUTFIT_IDS.filter(o => hasSkinArt(hero, skinIdOf(o, "classic")));
+  const ownedChromas = (o: OutfitId) => chromasOf(hero, o).filter(id => skinStatus(stats, hero, id).owned).length;
+  const list = outfitsOfHero.filter(o => {
+    const total = chromasOf(hero, o).length;
+    const have = ownedChromas(o);
+    if (filter === "owned") return have > 0;
+    if (filter === "missing") return have < total;
+    if (filter === "premium") return SKINS[skinIdOf(o, "classic")].premium || chromasOf(hero, o).some(id => SKINS[id].premium);
+    return true;
+  });
+  // The chromas of the outfit on show, switched with the arrows or the swatches.
+  const chromaList = chromasOf(hero, outfitOf(shown));
+  const chromaAt = chromaList.indexOf(shown);
+  const stepChroma = (d: number) => {
+    if (chromaList.length < 2) return;
+    haptic.impact();
+    setPicked(chromaList[(chromaAt + d + chromaList.length) % chromaList.length]);
+  };
   const info = SKINS[shown];
   const state = skinStatus(stats, hero, shown);
   const accent = accentOf(hero, shown);
@@ -236,9 +276,11 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
     ? equipped
       ? t("skin.equipped")
       : t("skin.equip")
-    : state.canBuy
-      ? t("skin.buy", { price: state.price })
-      : t("skin.needEmbers", { n: Math.max(0, state.price - stats.embers) });
+    : state.needsOutfit
+      ? t("skin.needsOutfit")
+      : state.canBuy
+        ? t("skin.buy", { price: state.price })
+        : t("skin.needEmbers", { n: Math.max(0, state.price - stats.embers) });
 
   // Six tabs: when each gets less than ~78 px the portrait goes over the count instead of beside it.
   const tight = tabsWidth > 0 && (tabsWidth - 8 * (characters.length - 1)) / characters.length < 78;
@@ -358,10 +400,49 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                   <GameIcon name="lock-closed" size={14} color="#fff" />
                 </View>
               ) : null}
+              {/* The outfit's chromas, one tap away on either side of the hero. */}
+              {chromaList.length > 1 ? (
+                <>
+                  <PressScale onPress={() => stepChroma(-1)} accessibilityRole="button" accessibilityLabel={t("skin.chroma")} hitSlop={8} style={[styles.chromaArrow, { left: 0 }]}>
+                    <GameIcon name="chevron-back" size={22} color="#F3EADB" />
+                  </PressScale>
+                  <PressScale onPress={() => stepChroma(1)} accessibilityRole="button" accessibilityLabel={t("skin.chroma")} hitSlop={8} style={[styles.chromaArrow, { right: 0 }]}>
+                    <GameIcon name="chevron-forward" size={22} color="#F3EADB" />
+                  </PressScale>
+                </>
+              ) : null}
             </View>
 
             <Text style={[styles.outfitName, { textShadowColor: accent }]} numberOfLines={1} adjustsFontSizeToFit maxFontSizeMultiplier={1.2} accessibilityRole="header">
-              {`${heroText(t, hero, "name")} · ${skinText(t, shown)}`.toLocaleUpperCase()}
+              {`${heroText(t, hero, "name")} · ${outfitText(t, outfitOf(shown))}`.toLocaleUpperCase()}
+            </Text>
+            {/* The chroma swatches: every colour of this outfit, the one on show ringed, the ones not owned locked. */}
+            {chromaList.length > 1 ? (
+              <View style={styles.swatches} accessibilityRole="tablist">
+                {chromaList.map(id => {
+                  const on = id === shown;
+                  const mine = skinStatus(stats, hero, id).owned;
+                  return (
+                    <PressScale
+                      key={id}
+                      onPress={() => {
+                        haptic.impact();
+                        setPicked(id);
+                      }}
+                      accessibilityRole="tab"
+                      accessibilityState={{ selected: on }}
+                      accessibilityLabel={`${chromaText(t, id)}${mine ? "" : `. ${t("heroes.state.locked")}`}`}
+                      hitSlop={4}
+                      style={[styles.swatch, { backgroundColor: accentOf(hero, id), borderColor: on ? "#F3EADB" : "rgba(0,0,0,0.5)", borderWidth: on ? 3 : 1.5 }]}
+                    >
+                      {!mine ? <GameIcon name="lock-closed" size={10} color="#fff" /> : null}
+                    </PressScale>
+                  );
+                })}
+              </View>
+            ) : null}
+            <Text style={styles.chromaName} numberOfLines={1} maxFontSizeMultiplier={1.15}>
+              {chromaList.length > 1 ? `${t("skin.chroma")}: ${chromaText(t, shown)}` : skinText(t, shown)}
             </Text>
             <View style={styles.chips}>
               <View style={[styles.tag, { borderColor: rarity }]}>
@@ -400,6 +481,13 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                   {actionLabel.toLocaleUpperCase()}
                 </Text>
               </PressScale>
+            ) : !owned && state.needsOutfit ? (
+              <View style={styles.lockInfo} accessible accessibilityLabel={actionLabel}>
+                <View style={styles.lockRow}>
+                  <GameIcon name="lock-closed" size={13} color="#E2BE8C" />
+                  <Text style={styles.lockTitle} numberOfLines={2} maxFontSizeMultiplier={1.2}>{actionLabel}</Text>
+                </View>
+              </View>
             ) : !owned ? (
               <View style={styles.lockInfo} accessible accessibilityLabel={`${actionLabel}. ${stats.embers} / ${state.price}`}>
                 <View style={styles.lockRow}>
@@ -475,11 +563,26 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
                   {t("collection.empty")}
                 </Text>
               ) : null}
-              {list.map((id, i) => (
-                <Rise key={id} delay={riseDelay(i)}>
-                  <OutfitCard hero={hero} skin={id} size={cardSize} owned={skinStatus(stats, hero, id).owned} equipped={id === wornSkin} selected={id === shown} price={skinStatus(stats, hero, id).price} onPress={setPicked} />
-                </Rise>
-              ))}
+              {list.map((o, i) => {
+                const base = skinIdOf(o, "classic");
+                const look = outfitOf(shown) === o ? shown : outfitOf(wornSkin) === o ? wornSkin : base;
+                return (
+                  <Rise key={o} delay={riseDelay(i)}>
+                    <OutfitCard
+                      hero={hero}
+                      outfit={o}
+                      look={look}
+                      size={cardSize}
+                      owned={skinStatus(stats, hero, base).owned}
+                      chromas={{ owned: ownedChromas(o), total: chromasOf(hero, o).length }}
+                      equipped={outfitOf(wornSkin) === o}
+                      selected={outfitOf(shown) === o}
+                      price={skinStatus(stats, hero, base).price}
+                      onPress={setPicked}
+                    />
+                  </Rise>
+                );
+              })}
             </ScrollView>
           </View>
 
@@ -526,6 +629,11 @@ const styles = StyleSheet.create({
   cardGlow: { position: "absolute", left: "12%", right: "12%", top: "8%", aspectRatio: 1, borderRadius: 999 },
   cardFoot: { position: "absolute", bottom: 6, left: 4, right: 4, alignItems: "center" },
   cardName: { color: "#F3EADB", fontWeight: "900", fontSize: 12, paddingHorizontal: 4 },
+  cardChromas: { color: "#CAB39C", fontWeight: "800", fontSize: 10.5 },
+  chromaArrow: { position: "absolute", top: "42%", width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.45)", borderWidth: 1, borderColor: "rgba(232, 211, 162,0.5)" },
+  swatches: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" },
+  swatch: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  chromaName: { color: "#E1D4C8", fontWeight: "800", fontSize: 12.5 },
   cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(196, 139, 78,0.6)" },
   cardPriceText: { color: "#E2BE8C", fontWeight: "900", fontSize: 12 },
   cardStar: { position: "absolute", top: 4, left: 5 },

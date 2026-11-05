@@ -18,7 +18,9 @@ export type DeathReview =
 export function reviewDeath(state: Pick<GameState, 'isGameOver' | 'isVictory' | 'deathCause' | 'playerIndex' | 'lastBreath'>): DeathReview | null {
   const before = state.lastBreath;
   if (!state.isGameOver || state.isVictory || !before || !state.deathCause) return null;
-  if (state.deathCause === 'stalker' || state.deathCause === 'boss') return { kind: 'hunter', by: state.deathCause };
+  if (state.deathCause === 'stalker') return { kind: 'hunter', by: 'stalker' };
+  // The lieutenant ('brute') and the Magma Colossus ('warden') hunt and warn exactly like the Grimbur: not a gamble on a tile.
+  if (state.deathCause === 'boss' || state.deathCause === 'brute' || state.deathCause === 'warden') return { kind: 'hunter', by: 'boss' };
 
   const { rows, cols } = before;
   const marks = provenMarks(rows, cols, before.entities, before.visited);

@@ -91,7 +91,9 @@ export default function LessonScreen({ navigation, route }: Props) {
     return devMoves.reduce<GameState>((s, direction) => gameReducer(s, { type: "MOVE", direction }), start);
   });
   const [stepIndex, setStepIndex] = useState(0);
-  const [flags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  // The player's own long-press flags; the engine's (the detector's) are added from the current state, so they go when it drops them.
+  const [ownFlags, setFlags] = useState<ReadonlySet<number>>(() => new Set());
+  const flags = useMemo<ReadonlySet<number>>(() => (state.marked.length === 0 ? ownFlags : new Set([...ownFlags, ...state.marked])), [ownFlags, state.marked]);
   const [went, setWent] = useState(false);
   const [door, setDoor] = useState<0 | 1>(0);
   const [isAttacking, setIsAttacking] = useState(false);
@@ -123,12 +125,6 @@ export default function LessonScreen({ navigation, route }: Props) {
   useEffect(() => {
     setStepIndex(current => advanceLesson(lesson, current, state, { flags, went }));
   }, [lesson, state, flags, went]);
-
-  // The detector flags what it finds, exactly like the player's own long-press flags.
-  useEffect(() => {
-    if (state.marked.length === 0) return;
-    setFlags(prev => new Set([...prev, ...state.marked]));
-  }, [state.marked]);
 
   // A hazard ends the try; the lesson starts over after a moment.
   useEffect(() => {
@@ -164,14 +160,14 @@ export default function LessonScreen({ navigation, route }: Props) {
 
   const toggleFlag = useCallback(
     (index: number) => {
-      if (state.visited.includes(index)) return;
+      if (state.visited.includes(index) || state.marked.includes(index)) return;
       setFlags(prev => {
         const next = new Set(prev);
         if (!next.delete(index)) next.add(index);
         return next;
       });
     },
-    [state.visited],
+    [state.visited, state.marked],
   );
 
   const move = useCallback(

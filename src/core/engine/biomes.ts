@@ -5,7 +5,7 @@ import type { GameMode } from './seed';
  * Every three floors the cave changes and brings one rule with it:
  *  - cave:    the plain caves (floors 1-3), no rule.
  *  - crystal: crystal veins (4-6): one more shield lies on every floor.
- *  - magma:   magma tunnels (7-9): one more vortex, but one more arrow lies on the floor.
+ *  - magma:   magma tunnels (7-9): one more vortex, but one more ammo bundle (two arrows or orbs, one bomb) lies on the floor.
  *  - lair:    the Grimbur' lair keeps its own look.
  * The endless descent keeps cycling through them. Floors take their biome from the floor number alone.
  */

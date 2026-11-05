@@ -4,7 +4,8 @@ import GameIcon from "../../ui/components/GameIcon";
 import { useT } from "../../i18n/useT";
 import { heroText, skinText } from "../../i18n/keys";
 import SpriteImage from "../../ui/components/SpriteImage";
-import { SKIN_ACCENT, skinArt, type SkinId } from "../../data/skinArt";
+import { skinAccent, skinArt, type SkinId } from "../../data/skinArt";
+import { chromaOf, outfitOf } from "../../core/skins/skins";
 import { heroAccent } from "../../data/heroAccent";
 
 /** A few motes of the hero's colour that rise behind it, so the stage feels alive. */
@@ -105,7 +106,9 @@ export const SWATCH = 32;
 export const RING = 3;
 export const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPress }: SwatchProps) => {
   const { t } = useT();
-  const color = skin === "classic" ? heroAccent(heroIndex) : SKIN_ACCENT[skin];
+  const color = chromaOf(skin) === "classic" ? heroAccent(heroIndex) : skinAccent(skin);
+  // A newer outfit's looks wear a gold rim, so they read apart from the classic outfit's chromas of the same colour.
+  const newOutfit = outfitOf(skin) !== "classic";
   const box = SWATCH + (RING + 2) * 2;
   return (
     <TouchableOpacity
@@ -117,7 +120,7 @@ export const Swatch = memo(({ heroIndex, skin, previewing, owned, equipped, onPr
       accessibilityLabel={`${skinText(t, skin)}. ${owned ? (equipped ? t("skin.equipped") : t("skin.owned")) : t("heroes.state.locked")}`}
       style={[styles.swatchRing, { width: box, height: box, borderRadius: box / 2, borderColor: previewing ? "#fff" : "transparent" }]}
     >
-      <View style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55") }]}>
+      <View style={[styles.swatch, { backgroundColor: color + (owned ? "" : "55") }, newOutfit && styles.swatchOutfit]}>
         {!owned && <GameIcon name="lock-closed" size={13} color="#fff" />}
         {equipped && <GameIcon name="checkmark" size={18} color="#111" />}
       </View>
@@ -130,5 +133,6 @@ const styles = StyleSheet.create({
   thumbLock: { position: "absolute", right: -2, bottom: -2, backgroundColor: "#2A2016", borderRadius: 10, padding: 3, borderWidth: 1, borderColor: "rgba(255,255,255,0.4)" },
 
   swatchRing: { borderWidth: RING, alignItems: "center", justifyContent: "center" },
+  swatchOutfit: { borderWidth: 3, borderColor: "#E8BA52" },
   swatch: { width: SWATCH, height: SWATCH, borderRadius: SWATCH / 2, borderWidth: 1.5, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
 });

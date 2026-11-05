@@ -19,6 +19,7 @@ import DailyChestModal from "../ui/components/DailyChestModal";
 import WhatsNewModal, { WHATS_NEW_ID } from "../ui/components/WhatsNewModal";
 import { HERO_UNLOCKS, isHeroUnlocked } from "../core/stats/heroUnlocks";
 import { claimableCount, syncMissions } from "../core/stats/missions";
+import { EMPTY_SEASON, rolloverSeason, seasonClaimable } from "../core/stats/season";
 import { syncReminders } from "../services/reminders";
 import { maybeRequestReview } from "../services/storeReview";
 import { dailyKey, msUntilNextDay } from "../core/engine/seed";
@@ -33,6 +34,12 @@ import { flushPendingSubmits } from "../services/pendingSubmits";
 import { emitSound } from "../audio/audioEventBus";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CoverScreen">;
+
+/** True when the season has embers waiting: tiers to claim this month, or last month's unclaimed ones (paid on the Missions screen). */
+const seasonWaiting = (stats: LocalStats, today: string): boolean => {
+  const rolled = rolloverSeason(stats.season ?? EMPTY_SEASON, today);
+  return rolled.embers > 0 || seasonClaimable(rolled.state) > 0;
+};
 
 const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
   const calm = useSettingsStore(s => s.reduceFlash);
@@ -166,7 +173,7 @@ const CoverScreen: React.FC<Props> = ({ navigation, route }) => {
           forgeBadge={UPGRADES.some(u => canAfford(stats, u.id))}
           achievementsBadge={unlocked > achievementsSeen}
           collectionBadge={collectionBadge(stats) || collectionMilestonesReached(stats) > collectionRewardsSeen}
-          missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0}
+          missionsBadge={claimableCount(syncMissions(stats.missions, today, HERO_UNLOCKS.filter((_, i) => isHeroUnlocked(i, stats)).length)) > 0 || seasonWaiting(stats, today)}
           onPressMissions={() => navigation.navigate("MissionsScreen")}
           onPressPuzzles={() => navigation.navigate("PuzzlesScreen")}
           onPressEvent={yule ? () => setYuleOpen(true) : undefined}

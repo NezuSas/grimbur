@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addYulePuzzle } from '../core/events/yule';
 import { addFriend, markSeen, removeFriend } from '../core/social/friends';
-import { claimSeason, syncSeason } from '../core/stats/season';
+import { EMPTY_SEASON, claimSeason, rolloverSeason } from '../core/stats/season';
 import {
   LocalStats,
   MAX_FREEZES,
@@ -133,8 +133,16 @@ export const getMissions = (day: string = dailyKey()): Promise<LocalStats> =>
   serialized(async () => {
     const before = await getLocalStats();
     const synced = syncMissions(before.missions, day, unlockedHeroCount(before));
-    if (synced === before.missions) return before;
-    const stats = { ...before, missions: synced };
+    // A new month settles last month's season: the tiers it reached but never claimed are paid, its title kept.
+    const season = rolloverSeason(before.season ?? EMPTY_SEASON, day);
+    if (synced === before.missions && season.state === before.season) return before;
+    const stats = {
+      ...before,
+      missions: synced,
+      season: season.state,
+      embers: before.embers + season.embers,
+      lifetimeEmbers: before.lifetimeEmbers + season.embers,
+    };
     await save(stats);
     return stats;
   });
@@ -184,9 +192,11 @@ export const markFriendsSeen = (bests: Record<string, number>): Promise<LocalSta
 export const claimSeasonReward = (day: string = dailyKey()): Promise<LocalStats | null> =>
   serialized(async () => {
     const before = await getLocalStats();
-    const result = claimSeason(syncSeason(before.season, day));
-    if (result.embers <= 0) return null;
-    const stats = { ...before, season: result.state, embers: before.embers + result.embers, lifetimeEmbers: before.lifetimeEmbers + result.embers };
+    const rolled = rolloverSeason(before.season ?? EMPTY_SEASON, day);
+    const result = claimSeason(rolled.state);
+    const embers = rolled.embers + result.embers;
+    if (embers <= 0) return null;
+    const stats = { ...before, season: result.state, embers: before.embers + embers, lifetimeEmbers: before.lifetimeEmbers + embers };
     await save(stats);
     return stats;
   });

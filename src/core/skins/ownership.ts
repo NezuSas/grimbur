@@ -9,6 +9,8 @@ export interface SkinStatus {
   /** The free play goal is already met (it is claimed after the next finished run). */
   unlockedByPlay: boolean;
   progress?: { have: number; need: number; kind: 'wins' | 'depthWin' };
+  /** A chroma of a newer outfit whose outfit is not owned yet: it can't be bought before it. */
+  needsOutfit: boolean;
 }
 
 const hasOwned = (stats: LocalStats, hero: number, skin: SkinId) =>
@@ -37,10 +39,12 @@ export function skinStatus(stats: LocalStats, hero: number, skin: SkinId): SkinS
   const owned = hasOwned(stats, hero, skin);
   const g = goal(stats, hero, skin);
   const offered = isOffered(hero, skin);
+  const needsOutfit = !!info.requires && !hasOwned(stats, hero, info.requires);
   return {
     owned,
     equipped: owned && equippedSkin(stats, hero) === skin,
-    canBuy: offered && !owned && info.price > 0 && stats.embers >= info.price,
+    canBuy: offered && !owned && !needsOutfit && info.price > 0 && stats.embers >= info.price,
+    needsOutfit,
     price: info.price,
     unlockedByPlay: offered && !!g && g.have >= g.need,
     ...(g && offered ? { progress: g } : {}),
@@ -50,6 +54,8 @@ export function skinStatus(stats: LocalStats, hero: number, skin: SkinId): SkinS
 /** Spends embers and adds the skin; null when not offered to the hero, already owned or too expensive. */
 export function buySkin(stats: LocalStats, hero: number, skin: SkinId): LocalStats | null {
   if (!isOffered(hero, skin) || hasOwned(stats, hero, skin)) return null;
+  const req = SKINS[skin].requires;
+  if (req && !hasOwned(stats, hero, req)) return null;
   const price = SKINS[skin].price;
   if (stats.embers < price) return null;
   return { ...stats, embers: stats.embers - price, skins: { ...stats.skins, owned: [...stats.skins.owned, skinKey(hero, skin)] } };

@@ -9,7 +9,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-import { SKINS, SKIN_IDS, SKINS_BY_HERO } from '../../src/core/skins/skins';
+import { CHROMA_IDS, SKINS, SKIN_IDS, SKINS_BY_HERO, outfitOf } from '../../src/core/skins/skins';
 import { buySkin, claimUnlockedSkins, equipSkin, equippedSkin, ownedSkins, skinStatus } from '../../src/core/skins/ownership';
 import { EMPTY_STATS, LocalStats, mergeRun, parseStats } from '../../src/core/stats/runStats';
 import { HERO_COUNT } from '../../src/core/stats/achievements';
@@ -26,7 +26,7 @@ describe('skin catalog', () => {
       expect(s.id).toBe(id);
       if (s.tier === 'free') expect(s.price).toBe(0);
       else expect(s.price).toBeGreaterThan(0);
-      if (s.premium) expect(s.tier).toBe('legendary');
+      if (s.premium) expect(['legendary', 'epic']).toContain(s.tier);
     }
     expect(SKINS.shadow.premium && SKINS.gilded.premium).toBe(true);
     expect(SKINS.shadow.productId).toBe('skin_shadow');
@@ -34,13 +34,14 @@ describe('skin catalog', () => {
 
   it('offers each hero every skin except the one matching its colour', () => {
     expect(SKINS_BY_HERO).toHaveLength(HERO_COUNT);
-    expect(SKINS_BY_HERO[0]).toEqual(['classic', 'ember', 'verdant', 'royal', 'shadow', 'gilded']);
+    expect(SKINS_BY_HERO[0].filter(id => outfitOf(id) === 'classic')).toEqual(['classic', 'ember', 'verdant', 'royal', 'shadow', 'gilded']);
+    expect(SKINS_BY_HERO[0].filter(id => outfitOf(id) === 'gala')).toEqual(['gala', 'gala_ember', 'gala_verdant', 'gala_royal', 'gala_shadow', 'gala_gilded']);
     expect(SKINS_BY_HERO[1]).not.toContain('ember');
     expect(SKINS_BY_HERO[2]).not.toContain('verdant');
     expect(SKINS_BY_HERO[3]).not.toContain('gilded');
     expect(SKINS_BY_HERO[4]).toEqual([...SKIN_IDS]); // Mira: magenta is none of the themes
     expect(SKINS_BY_HERO[5]).not.toContain('ember'); // Bram: copper-orange
-    expect(SKINS_BY_HERO[5]).toHaveLength(SKIN_IDS.length - 1);
+    expect(SKINS_BY_HERO[5]).toHaveLength(CHROMA_IDS.length); // classic chromas minus ember, plus the gala alone
     for (const list of SKINS_BY_HERO) expect(list[0]).toBe('classic');
   });
 });
@@ -193,5 +194,19 @@ describe('services', () => {
   it('unlocks gilded by winning on depth 2', async () => {
     const r = await recordRun({ score: 100, level: 10, victory: true, heroIndex: 2, ascension: 2, day: '2026-01-01' });
     expect(r.newSkins).toEqual([{ hero: 2, skin: 'gilded' }]);
+  });
+});
+
+describe('outfits and chromas', () => {
+  it('a chroma of a newer outfit needs the outfit first', () => {
+    const { buySkin, skinStatus } = require('../../src/core/skins/ownership');
+    const { EMPTY_STATS } = require('../../src/core/stats/runStats');
+    const rich = { ...EMPTY_STATS, embers: 99999 };
+    expect(skinStatus(rich, 0, 'gala_ember').needsOutfit).toBe(true);
+    expect(buySkin(rich, 0, 'gala_ember')).toBeNull();
+    const withGala = buySkin(rich, 0, 'gala');
+    expect(withGala).not.toBeNull();
+    expect(skinStatus(withGala, 0, 'gala_ember').needsOutfit).toBe(false);
+    expect(buySkin(withGala, 0, 'gala_ember')).not.toBeNull();
   });
 });

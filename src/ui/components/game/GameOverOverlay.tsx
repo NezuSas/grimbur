@@ -14,7 +14,7 @@ import { formatTime } from '../../../shared/utils/formatTime';
 import OverlayContainer from './OverlayContainer';
 import { MIN_TOUCH } from '../../layout/useGameLayout';
 import { useT } from '../../../i18n/useT';
-import { achievementText, heroText, skinText } from '../../../i18n/keys';
+import { achievementText, heroText, questText, skinText } from '../../../i18n/keys';
 import type { SkinId } from '../../../data/skinArt';
 import type { TranslationKey } from '../../../i18n/en';
 import { type AchievementId } from '../../../core/stats/achievements';
@@ -36,7 +36,7 @@ import { ButtonGloss, PanelTrim, shade } from './popup';
 import RewardParade, { type RewardItem } from './RewardParade';
 import { nearMiss } from '../../../core/stats/nearMiss';
 import { ANCIENT_FRAMES } from '../BossSprite';
-import { HERO_QUESTS, QUEST_EMBERS } from '../../../core/stats/heroQuests';
+import { QUEST_EMBERS } from '../../../core/stats/heroQuests';
 import { heroAccent } from '../../../data/heroAccent';
 import { FRAME_ART, PET_TINT, petLook } from '../../cosmeticArt';
 import type { CosmeticId } from '../../../core/cosmetics/cosmetics';
@@ -320,6 +320,7 @@ const GameOverOverlay = ({
         payout.milestone > 0 && t('over.part.milestone', { n: payout.milestone }),
         payout.daily > 0 && t('over.part.daily', { n: payout.daily }),
         payout.achievements > 0 && t('over.part.achievements', { n: payout.achievements }),
+        (payout.season ?? 0) > 0 && t('over.part.season', { n: payout.season ?? 0 }),
       ].filter((p): p is string => !!p)
     : [];
   // A single source needs no breakdown: the pill already says it.
@@ -392,7 +393,7 @@ const GameOverOverlay = ({
           art: skinArt(questsDone.hero, 'classic').playerImage,
           standing: true,
           kicker: t('parade.kicker.quest', { name: heroText(t, questsDone.hero, 'name') }),
-          title: t(`quest.${questsDone.hero}.${k}` as TranslationKey, { n: HERO_QUESTS[questsDone.hero][k].n }),
+          title: questText(t, questsDone.hero, k),
           line: t('parade.questLine'),
           embers: QUEST_EMBERS,
         }))
@@ -437,6 +438,9 @@ const GameOverOverlay = ({
         ? t('over.fellEndless', { floor: level })
         : t('over.fell', { floor: level });
   const headline = demo ? t('over.demo.title') : victory ? t('over.win') : t('over.defeat');
+  // The hero's own word on how it went (not on the demo, nor on a very short window where every line counts).
+  const heroIdx = character.id - 1;
+  const voiceLine = !demo && !short && heroIdx >= 0 && heroIdx <= 5 ? t(`story.${victory ? 'win' : 'lose'}.${heroIdx}` as TranslationKey) : null;
   const glow = Math.round(spriteSize * 0.95);
   const left = (
     <View style={[styles.left, wide && { width: '38%' }]}>
@@ -452,6 +456,11 @@ const GameOverOverlay = ({
           <SpriteImage source={sprite} style={{ width: spriteSize * 1.12, height: spriteSize * 1.12 }} resizeMode="contain" accessibilityIgnoresInvertColors />
         </Animated.View>
       </View>
+      {voiceLine ? (
+        <Text style={[styles.quote, styles.quoteLeft, { color: '#D9C7AE' }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={1.1}>
+          {`“${voiceLine}”`}
+        </Text>
+      ) : null}
       {killerSprite && killerName ? (
         <View style={[styles.killerPill, { borderColor: accent + '88' }]} accessible accessibilityLabel={`${t('over.killedBy')}: ${killerName}`}>
           <SpriteImage source={killerSprite} style={styles.killerArt} resizeMode="contain" accessibilityIgnoresInvertColors />
@@ -808,7 +817,7 @@ const styles = StyleSheet.create({
   left: { alignItems: 'center', gap: 8 },
   halo: { position: 'absolute' },
   quote: { fontStyle: 'italic', fontWeight: '700', fontSize: 14, opacity: 0.95 },
-  quoteLeft: { textAlign: 'center', fontSize: 13, maxWidth: 260 },
+  quoteLeft: { textAlign: 'center', fontSize: 12.5, maxWidth: 260, opacity: 0.85 },
   extrasBox: { flexShrink: 1, minHeight: 0 },
   moreFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 28 },
   headline: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 7, paddingHorizontal: 10, borderRadius: 12, backgroundColor: 'rgba(201, 165, 90,0.12)', borderWidth: 1, borderColor: 'rgba(201, 165, 90,0.5)' },

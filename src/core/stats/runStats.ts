@@ -11,7 +11,7 @@ import { MAX_ASCENSION, clampAscension } from '../engine/ascension';
 import { UPGRADES, dailyBonus, embersFor, milestoneEmbers } from './forge';
 import { HERO_COUNT } from './achievements';
 import { XP_PER_FLOOR, XP_VICTORY, masteryXpFor } from './mastery';
-import { EMPTY_SEASON, SeasonState, addSeasonRun, parseSeason, seasonPointsFor } from './season';
+import { EMPTY_SEASON, SeasonState, addSeasonRunPaid, parseSeason, seasonPointsFor } from './season';
 import { type FriendEntry, parseFriends } from '../social/friends';
 import { EMPTY_BESTIARY, type Bestiary, mergeBestiary, parseBestiary } from './bestiary';
 import { EMPTY_RELIC_BOOK, addEventRun, addRunRelics, parseEventBest, parseRelicBook, parseRunBoard, type EventBest, type RelicBook, type RunBoard } from './runLog';
@@ -189,6 +189,8 @@ export interface RunPayout {
   quests: number;
   /** Rewards of the achievements unlocked by the run (filled in by the caller, 0 here). */
   achievements: number;
+  /** Unclaimed tiers of last month's season track, paid when this run opened the new season. */
+  season?: number;
   total: number;
 }
 
@@ -299,9 +301,12 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
   const welcomeBack = away >= WELCOME_BACK_DAYS ? Math.min(WELCOME_BACK_CAP, runEmbers) : 0;
   const questsDone = newQuests(stats.heroQuests, run);
   const quests = questsDone.length * QUEST_EMBERS;
-  const total = runEmbers + milestonePay + daily + welcomeBack + quests;
-  const payout: RunPayout = { run: runEmbers, milestone: milestonePay, daily, welcomeBack, quests, achievements: 0, total };
   const played = progressed && run.day !== undefined;
+  // A run in a new month settles the old season first: the tiers it reached but never claimed are paid now.
+  const seasoned = played ? addSeasonRunPaid(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : null;
+  const seasonPay = seasoned?.embers ?? 0;
+  const total = runEmbers + milestonePay + daily + welcomeBack + quests + seasonPay;
+  const payout: RunPayout = { run: runEmbers, milestone: milestonePay, daily, welcomeBack, quests, achievements: 0, total, ...(seasonPay > 0 ? { season: seasonPay } : {}) };
   const patch = {
     lastBonusDate: bonusDue ? (run.day as string) : stats.lastBonusDate,
     lastPlayedDate: played && (stats.lastPlayedDate === null || (run.day as string) > stats.lastPlayedDate) ? (run.day as string) : stats.lastPlayedDate,
@@ -328,7 +333,7 @@ function accumulate(stats: LocalStats, run: RunResult, milestone = 0) {
     heroBestFloor: (stats.heroBestFloor ?? EMPTY_STATS.heroBestFloor).map((n, i) => (played && run.heroIndex === i && isFullRun(run.mode) ? Math.max(n, run.level) : n)),
     heroBestScore: (stats.heroBestScore ?? EMPTY_STATS.heroBestScore).map((n, i) => (played && run.heroIndex === i && isFullRun(run.mode) ? Math.max(n, Math.trunc(run.score) || 0) : n)),
     eventBest: played && run.event && run.eventWeek ? addEventRun(stats.eventBest ?? null, run.eventWeek, run.event, Math.trunc(run.score) || 0, run.level) : stats.eventBest ?? null,
-    season: played ? addSeasonRun(stats.season ?? EMPTY_SEASON, run.day as string, seasonPointsFor(run, progressed)) : stats.season ?? EMPTY_SEASON,
+    season: seasoned ? seasoned.state : stats.season ?? EMPTY_SEASON,
   };
   return { patch, payout };
 }
@@ -578,7 +583,7 @@ function parseSkins(value: unknown): LocalStats['skins'] {
   const keys = new Set<string>();
   if (Array.isArray(owned)) {
     for (const k of owned) {
-      const m = typeof k === 'string' ? /^(\d{1,3}):([a-z]+)$/.exec(k) : null;
+      const m = typeof k === 'string' ? /^(\d{1,3}):([a-z_]+)$/.exec(k) : null;
       if (m && valid(Number(m[1]), m[2])) keys.add(skinKey(Number(m[1]), m[2] as SkinId));
     }
   }

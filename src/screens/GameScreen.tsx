@@ -1026,7 +1026,7 @@ export default function GameScreen({ navigation, route }: Props) {
           onDone={() => setBannerDone(bannerKey)}
           title={isLair ? t("floor.banner.lair") : t("floor.banner", { n: state.level })}
           omenName={isLair ? t("boss.goalTitle") : floorOmen ? omenText(t, floorOmen, "name") : biomeAnnounce ? t(`biome.${floorBiome}.name` as TranslationKey) : eventAnnounce ? `${t("event.kicker")}: ${t(`event.${state.event}.name` as TranslationKey)}` : undefined}
-          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule", weaponOf(state)) : biomeAnnounce ? weaponLine(t, `biome.${floorBiome}.rule` as TranslationKey, weaponOf(state)) : eventAnnounce ? t(`event.${state.event}.rule` as TranslationKey) : undefined}
+          omenRule={isLair ? t("boss.goalRule", { hearts: bossHearts(state) }) : floorOmen ? omenText(t, floorOmen, "rule", weaponOf(state)) : biomeAnnounce ? weaponLine(t, `biome.${floorBiome}.rule` as TranslationKey, weaponOf(state)) : eventAnnounce ? weaponLine(t, `event.${state.event}.rule` as TranslationKey, weaponOf(state)) : undefined}
           story={isLair ? t("story.lair") : biomeAnnounce ? t(`story.biome.${floorBiome}` as TranslationKey) : undefined}
           long={isLair}
           dismiss={bannerSkipped === bannerKey}

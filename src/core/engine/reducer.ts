@@ -13,7 +13,7 @@ import { provenSafeTiles } from './solver';
 import { VOLLEY_REACH, VOLLEY_TARGETS, FLARE_REACH } from './abilities';
 import { SECRET_ARROWS, SECRET_GEMS, secretScore } from './generator';
 import { encounterFor, resolveEncounter } from './encounters';
-import { createEntityMap, removeEntityAt, replaceEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss, splitSecret, gainRelicNow } from './worldHelpers';
+import { createEntityMap, removeEntityAt, replaceEntityAt, staysDark, startingVisited, tryAbsorb, nonEmpty, draftContext, blastWorld, hasBoss, neighbour, pickTeleportDestination, huntersAct, hunterSlowdown, manhattan, wakeSleepers, gemYield, hurtBoss, splitSecret, gainRelicNow, nearestDanger, hasLairBoss } from './worldHelpers';
 import type { World } from './worldHelpers';
 import { shotPlan, weaponOf, scaleAmmo, BOMB_WAKE } from './weapons';
 
@@ -24,12 +24,35 @@ const snapshotOf = (state: GameState): UndoSnapshot => {
 };
 
 /**
+ * `count` gems taken at once (one picked up or pulled by a magnet, or a thief's whole loot, caught, shot or blown up), with
+ * `totalBefore` gems already taken this run: the score each pays (hero, floor, Blood Pact, Lucky Coin), the shop gems (see
+ * gemYield) and the ammo the Blood Gems give (an arrow or an orb per gem, a bomb per second one).
+ */
+const takeGems = (state: GameState, count: number, totalBefore: number) => {
+  const mult = state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (relicCount(state.relics, 'blood_pact') > 0 ? 1.5 : 1);
+  const bloodGems = relicCount(state.relics, 'blood_gems') > 0;
+  const bomb = weaponOf(state) === 'bomb';
+  let score = 0;
+  let gems = 0;
+  let ammo = 0;
+  let total = totalBefore;
+  for (let k = 0; k < count; k++) {
+    score += coinReward(state.level, mult, relicCount(state.relics, 'lucky_coin'));
+    total += 1;
+    gems += gemYield(state, total);
+    if (bloodGems && (!bomb || total % 2 === 0)) ammo += 1;
+  }
+  return { score, gems, ammo, total };
+};
+
+/**
  * Finishes an action that is not a step (ability, bomb): it takes a turn, clears the floor when the last gem or the
  * Grimbur is gone and otherwise lets the hunters act. `patch` carries what the action changed.
  */
-const settle = (state: GameState, world: World, patch: Partial<GameState>): GameState => {
+const settle = (state: GameState, world: World, patch: Partial<GameState>, opts: { stunned?: boolean } = {}): GameState => {
   const { rows, cols } = state;
-  const hadBoss = hasBoss({ entities: state.entities, entityMap: state.entityMap });
+  // Only the Grimbur's own fall wins the run: a lieutenant or the Magma Colossus slain here just clears the floor.
+  const hadBoss = hasLairBoss(state);
   const coins = patch.coins ?? state.coins;
   let score = patch.score ?? state.score;
   let shield = patch.shield ?? state.shield;
@@ -38,23 +61,28 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
   const cleared = coins === 0 && !hasBoss(world);
   let over = false;
   let cause: GameState['deathCause'] = null;
+  let struckFrom: number | null = null;
 
   let gems = patch.gems ?? state.gems;
   if (cleared) {
     score += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(relics, 'greed')));
     gems += relicCount(relics, 'greed');
-  } else {
+  } else if (!opts.stunned) {
+    // (Stunning Blow: a kill leaves the hunters standing for this action, as a shot's does.)
     if (relicCount(relics, 'lullaby') === 0) world = wakeSleepers(world, state.playerIndex, cols);
     const acted = huntersAct(world, state.playerIndex, rows, cols, turn, hunterSlowdown(relics), modifiersFor(state.ascension).hunterHaste);
     world = acted.world;
-    for (const hitter of acted.hits) {
+    for (const [k, hitter] of acted.hits.entries()) {
       const absorbed = tryAbsorb(shield, relics);
       if (absorbed.ok) {
         shield = absorbed.shield;
         relics = absorbed.relics;
+        // Thorn Mail, as on a step or a shot: the stalker that struck into the shield dies on it.
+        if (relicCount(state.relics, 'thorns') > 0) world = thornsStrike(world, acted.strikers[k]);
       } else {
         over = true;
         cause = hitter;
+        struckFrom = acted.strikers[k];
         break;
       }
     }
@@ -74,6 +102,7 @@ const settle = (state: GameState, world: World, patch: Partial<GameState>): Game
     isVictory: cleared && hadBoss && state.mode !== 'endless',
     isGameOver: over,
     deathCause: over ? cause : null,
+    struckFrom,
     abilityCd: patch.abilityCd ?? Math.max(0, state.abilityCd - 1),
     undo: null,
     lastBreath: over ? snapshotOf(state) : null,
@@ -170,30 +199,15 @@ const withSeasonRelic = (draft: RelicId[], state: GameState): RelicId[] => {
 /** Shop gems the Grimbur's lieutenant drops when it falls. */
 export const MID_BOSS_GEMS = 4;
 
-/** Thorn Mail: a stalker that strikes into the shield dies on it (the Grimbur is too big for thorns). */
-const thornsStrike = (world: World, playerIndex: number, rows: number, cols: number): World => {
-  let out = world;
-  for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as const) {
-    const n = neighbour(playerIndex, dir, rows, cols);
-    if (n !== -1 && out.entityMap[n]?.type === 'stalker') out = removeEntityAt(out, n);
-  }
-  return out;
-};
+/**
+ * Thorn Mail: the stalker that struck into the shield (from tile `striker`) dies on it. Only that one: a stalker standing by that
+ * did not strike lives, and a Grimbur, lieutenant or Colossus is too big for thorns.
+ */
+const thornsStrike = (world: World, striker: number): World =>
+  world.entityMap[striker]?.type === 'stalker' ? removeEntityAt(world, striker) : world;
 
-/** Raven's Eye: the guardian or vortex closest to the floor's start (tile 0), or nothing on a floor without one. */
-export const nearestDanger = (entities: readonly GameEntity[], cols: number): number[] => {
-  let best = -1;
-  let bestDist = Infinity;
-  for (const e of entities) {
-    if (e.type !== 'pit' && !GUARDIAN_TYPES.includes(e.type)) continue;
-    const d = manhattan(e.index, 0, cols);
-    if (d < bestDist || (d === bestDist && e.index < best)) {
-      best = e.index;
-      bestDist = d;
-    }
-  }
-  return best === -1 ? [] : [best];
-};
+/** Raven's Eye (see worldHelpers): re-exported, the screens and tests read it from here. */
+export { nearestDanger };
 
 /** The altar costs the shield; where the next floor gives it back for nothing (Borin, the Bulwark) it would cost nothing. */
 export const altarIsFree = (state: Pick<GameState, 'perks' | 'relics'>): boolean => state.perks.startShield || relicCount(state.relics, 'bulwark') > 0;
@@ -247,6 +261,7 @@ function bombBlast(state: GameState, area: readonly number[]) {
   let hearts = 0;
   let bossKilled = false;
   let victory = false;
+  let lootAmmo = 0;
 
   for (const i of area) {
     const e = world.entityMap[i];
@@ -260,12 +275,13 @@ function bombBlast(state: GameState, area: readonly number[]) {
     } else if (e.type === 'thief') {
       const loot = e.loot ?? 0;
       world = removeEntityAt(world, i);
-      for (let k = 0; k < loot; k++) {
-        score += coinReward(state.level, state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier, relicCount(relics, 'lucky_coin'));
-        gems += 1;
-      }
+      // Its loot counts as taken, exactly as if the hero had caught it.
+      const taken = takeGems(state, loot, totalCoins);
+      score += taken.score;
+      gems += taken.gems;
+      lootAmmo += taken.ammo;
       coins -= loot;
-      totalCoins += loot;
+      totalCoins = taken.total;
       thieves += 1;
     } else if (e.type === 'trap') {
       world = removeEntityAt(world, i);
@@ -307,7 +323,7 @@ function bombBlast(state: GameState, area: readonly number[]) {
   const vortexes = area.filter(i => world.entityMap[i]?.type === 'pit');
   const kept = state.marked.filter(i => !inBlast.has(i) || world.entityMap[i]);
   const marked = vortexes.length > 0 ? Array.from(new Set([...kept, ...vortexes])) : kept;
-  return { world, score, combo, gems, coins, totalCoins, guardians, levelUp, victory: levelUp && victory, arrowBack, marked };
+  return { world, score, combo, gems, coins, totalCoins, guardians, levelUp, victory: levelUp && victory, arrowBack: arrowBack + lootAmmo, marked };
 }
 
 /**
@@ -379,8 +395,41 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
   const next = core.shield && relicCount(core.relics, 'blood_gems') > 0 ? { ...core, shield: false } : core;
   // A new floor starts its own count of rescues.
   const counted = next === state ? next : { ...next, ...tallyBestiary(state as never, next as never) };
-  const fresh = counted.level !== state.level || counted.runSeed !== state.runSeed ? { ...counted, lairRescues: 0 } : counted;
-  return ensureWinnable(fresh);
+  const newFloor = counted.level !== state.level || counted.runSeed !== state.runSeed || action.type === 'RESET';
+  const fresh = newFloor ? { ...counted, lairRescues: 0 } : counted;
+  return ensureWinnable(counted === state ? fresh : pruneMarks(payOwl(state, fresh, newFloor)));
+}
+
+/**
+ * Every flag the engine sets (detector, Raven's Eye, a burst, a revive) is on a tile that holds something. When that is gone (the
+ * stalker moved on, the keg blew up the vortex, the lava cooled, the thief ran) the flag goes too, or it would keep refusing steps
+ * onto a tile that is now free.
+ */
+function pruneMarks(state: GameState): GameState {
+  if (!state.marked.some(i => !state.entityMap[i])) return state;
+  return { ...state, marked: state.marked.filter(i => state.entityMap[i]) };
+}
+
+/**
+ * Owl Totem: every OWL_EVERY tiles explored on a floor give a detector charge (never past the bag). It is settled after every
+ * action, so the tiles an orb, a Flare, a Scout, a vortex or an encounter light count as much as the steps, and an action that
+ * explores past two thresholds pays two. `owlPaid` counts the charges already paid on the floor; a new floor starts the count
+ * over (its starting light pays nothing), and an Owl gained mid-floor only pays for what is explored from then on.
+ */
+function payOwl(before: GameState, next: GameState, newFloor: boolean): GameState {
+  const earned = Math.floor(next.visited.length / OWL_EVERY);
+  if (newFloor) return { ...next, owlPaid: earned };
+  if (relicCount(next.relics, 'owl') === 0) return next;
+  // (A run saved before the count existed, or an Owl just gained: everything explored so far counts as paid.)
+  const paid = relicCount(before.relics, 'owl') > 0 && next.owlPaid !== undefined
+    ? next.owlPaid
+    : Math.floor(before.visited.length / OWL_EVERY);
+  if (earned <= paid) return paid === next.owlPaid ? next : { ...next, owlPaid: paid };
+  return {
+    ...next,
+    owlPaid: earned,
+    items: { ...next.items, detector: Math.min(MAX_ITEMS, next.items.detector + earned - paid) },
+  };
 }
 
 function reduceCore(state: GameState, action: GameAction): GameState {
@@ -415,12 +464,14 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let newTotalCoins = state.totalCoins;
       let newGems = state.gems;
       let newDeathCause: GameState['deathCause'] = null;
+      let newStruckFrom: number | null = null;
       let newWasTeleported = false;
       let newLastPickup: PickupKind | null = null;
       let newVortexCost: 'arrow' | 'gem' | null = null;
       let newChestRelic: RelicId | null = null;
       let chestItems = state.items;
       let newSecrets = state.secretsFound ?? 0;
+      let newMarked = state.marked;
 
       /** A shield or a Phoenix Feather soaks one deadly touch. */
       let absorbedThisMove = false;
@@ -432,9 +483,6 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         absorbedThisMove = true;
         return true;
       };
-
-      // Blood Gems: an arrow (an orb) for every gem, a bomb for every second one.
-      const bloodGemPays = (total: number) => weaponOf(state) !== 'bomb' || total % 2 === 0;
 
       const consumeEntity = () => {
         world = removeEntityAt(world, nextIndex);
@@ -472,11 +520,11 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         case 'thief': {
           // Caught: the thief gives back every gem it carried and runs off for good.
           const loot = entityAtPoint.loot ?? 0;
-          for (let k = 0; k < loot; k++) {
-            newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
-            newTotalCoins += 1;
-            newGems += gemYield(state, newTotalCoins);
-          }
+          const taken = takeGems(state, loot, newTotalCoins);
+          newScore += taken.score;
+          newGems += taken.gems;
+          newAttack += taken.ammo;
+          newTotalCoins = taken.total;
           newCoins -= loot;
           newScore += GAME_CONFIG.scoring.pickup;
           newLastPickup = 'thief';
@@ -488,12 +536,13 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           // A chest holds a relic, now and for the rest of the run; sometimes a cursed one (never a second).
           const found = chestRelic(state.runSeed, state.level, nextIndex, newRelics, draftContext(state));
           if (found) {
-            const gained = gainRelicNow({ ...state, relics: newRelics, attack: newAttack, shield: newShield, items: chestItems, visited: newVisited }, found);
+            const gained = gainRelicNow({ ...state, relics: newRelics, attack: newAttack, shield: newShield, items: chestItems, visited: newVisited, marked: newMarked, playerIndex: nextIndex }, found);
             newRelics = gained.relics;
             newAttack = gained.attack;
             newShield = gained.shield;
             chestItems = gained.items;
             newVisited = gained.visited;
+            newMarked = gained.marked;
             newChestRelic = found;
           }
           newScore += GAME_CONFIG.scoring.pickup;
@@ -528,14 +577,16 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           break;
         }
 
-        case 'coin':
-          newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+        case 'coin': {
+          const taken = takeGems(state, 1, newTotalCoins);
+          newScore += taken.score;
           newCoins -= 1;
-          newTotalCoins += 1;
-          newGems += gemYield(state, newTotalCoins);
-          if (has('blood_gems') && bloodGemPays(newTotalCoins)) newAttack += 1;
+          newTotalCoins = taken.total;
+          newGems += taken.gems;
+          newAttack += taken.ammo;
           consumeEntity();
           break;
+        }
 
         case 'trap':
           if (!perks.trapImmune && !has('trap_sense')) {
@@ -576,27 +627,26 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         for (const dir of ['UP', 'DOWN', 'LEFT', 'RIGHT'] as const) {
           const n = neighbour(nextIndex, dir, rows, cols);
           if (n === -1 || world.entityMap[n]?.type !== 'coin') continue;
-          newScore += coinReward(state.level, perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (has('blood_pact') ? 1.5 : 1), has('lucky_coin'));
+          const taken = takeGems(state, 1, newTotalCoins);
+          newScore += taken.score;
           newCoins -= 1;
-          newTotalCoins += 1;
-          newGems += gemYield(state, newTotalCoins);
-          if (has('blood_gems') && bloodGemPays(newTotalCoins)) newAttack += 1;
+          newTotalCoins = taken.total;
+          newGems += taken.gems;
+          newAttack += taken.ammo;
           world = removeEntityAt(world, n);
           if (!newVisited.includes(n)) newVisited = [...newVisited, n];
         }
       }
 
-      // Owl Totem: every OWL_EVERY tiles explored on a floor give a detector charge.
-      let newItems = chestItems;
-      if (has('owl') && Math.floor(newVisited.length / OWL_EVERY) > Math.floor(state.visited.length / OWL_EVERY) && newItems.detector < MAX_ITEMS) {
-        newItems = { ...newItems, detector: newItems.detector + 1 };
-      }
+      // (The Owl Totem pays for the tiles explored after every action: see payOwl.)
+      const newItems = chestItems;
 
       // Taking the last gem clears the floor before anything can strike, and a hit that was just soaked
       // by a shield (or feather) stuns the hunters for this action, so one move never costs two protections.
       const floorCleared = newCoins === 0 && !newIsGameOver && !hasBoss(world);
       // Wayfarer Boots: retracing explored ground (outside the lair) does not move the hunters' clocks at all.
-      const retracing = has('iron_boots') && !isNewTile && !entityAtPoint && !hasBoss(world);
+      // Only the Grimbur's own lair counts: the lieutenant's floor and the Magma Colossus's are not it.
+      const retracing = has('iron_boots') && !isNewTile && !entityAtPoint && !hasLairBoss(world);
       const newTurn = retracing ? state.turn : state.turn + 1;
       if (!newIsGameOver && !floorCleared) {
         // Sleepers wake whenever the player ends an action near them, even when a shield just soaked a hit.
@@ -605,13 +655,14 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       if (!newIsGameOver && !floorCleared && !absorbedThisMove && !retracing) {
         const acted = huntersAct(world, nextIndex, rows, cols, newTurn, hunterSlowdown(state.relics), modifiersFor(state.ascension).hunterHaste);
         world = acted.world;
-        for (const hitter of acted.hits) {
+        for (const [k, hitter] of acted.hits.entries()) {
           if (!absorbHit()) {
             newIsGameOver = true;
             newDeathCause = hitter;
+            newStruckFrom = acted.strikers[k];
             break;
           }
-          if (has('thorns')) world = thornsStrike(world, nextIndex, rows, cols);
+          if (has('thorns')) world = thornsStrike(world, acted.strikers[k]);
         }
       }
 
@@ -630,6 +681,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         facingDir: direction,
         score: newScore,
         visited: newVisited,
+        marked: newMarked,
         isGameOver: newIsGameOver,
         isLevelUp: newIsLevelUp,
         coins: newCoins,
@@ -655,6 +707,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         undo: state.undoUsed || newIsGameOver || newIsLevelUp ? null : snapshotOf(state),
         lastBreath: newIsGameOver ? snapshotOf(state) : null,
         deathCause: newIsGameOver ? newDeathCause : null,
+        struckFrom: newIsGameOver ? newStruckFrom : null,
       };
     }
 
@@ -725,12 +778,12 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         // A shot thief drops what it stole; the gems count as taken.
         const loot = target.loot ?? 0;
         world = removeEntityAt(world, targetIndex);
-        for (let k = 0; k < loot; k++) {
-          newScore += coinReward(state.level, state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier, relicCount(state.relics, 'lucky_coin'));
-          newGems += 1;
-        }
+        const taken = takeGems(state, loot, state.totalCoins);
+        newScore += taken.score;
+        newGems += taken.gems;
+        arrowBack += taken.ammo;
         newCoinsAfter = state.coins - loot;
-        newTotalCoinsAfter = state.totalCoins + loot;
+        newTotalCoinsAfter = taken.total;
         if (newCoinsAfter === 0 && !hasBoss(world)) {
           newScore += Math.round(levelClearBonus(state.level) * (1 + 0.5 * relicCount(state.relics, 'greed')));
           newIsLevelUp = true;
@@ -752,7 +805,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
           const behind = second !== -1 ? world.entityMap[second] : undefined;
           if (behind && GUARDIAN_TYPES.includes(behind.type)) {
             newEnemyCombo = Math.min(newEnemyCombo + 1, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'));
-            newScore += killValue(newEnemyCombo);
+            newScore += killValue(newEnemyCombo) * (relicCount(state.relics, 'reaper') > 0 ? 2 : 1);
             world = removeEntityAt(world, second);
             if (relicCount(state.relics, 'hunter') > 0) newGems += 1;
           }
@@ -784,6 +837,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       let newRelics = state.relics;
       let newIsGameOver = false;
       let newDeathCause: GameState['deathCause'] = null;
+      let newStruckFrom: number | null = null;
       const newTurn = state.turn + 1;
 
       // Stunning Blow: a kill leaves the hunters standing for this action.
@@ -796,15 +850,16 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         if (relicCount(state.relics, 'lullaby') === 0) world = wakeSleepers(world, state.playerIndex, cols);
         const acted = huntersAct(world, state.playerIndex, rows, cols, newTurn, hunterSlowdown(state.relics), modifiersFor(state.ascension).hunterHaste);
         world = acted.world;
-        for (const hitter of acted.hits) {
+        for (const [k, hitter] of acted.hits.entries()) {
           const absorbed = tryAbsorb(newShield, newRelics);
           if (absorbed.ok) {
             newShield = absorbed.shield;
             newRelics = absorbed.relics;
-            if (relicCount(state.relics, 'thorns') > 0) world = thornsStrike(world, state.playerIndex, rows, cols);
+            if (relicCount(state.relics, 'thorns') > 0) world = thornsStrike(world, acted.strikers[k]);
           } else {
             newIsGameOver = true;
             newDeathCause = hitter;
+            newStruckFrom = acted.strikers[k];
             break;
           }
         }
@@ -828,6 +883,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         isVictory: newIsVictory,
         isGameOver: newIsGameOver,
         deathCause: newIsGameOver ? newDeathCause : null,
+        struckFrom: newIsGameOver ? newStruckFrom : null,
         shield: newShield,
         relics: newRelics,
         turn: newTurn,
@@ -845,15 +901,21 @@ function reduceCore(state: GameState, action: GameAction): GameState {
       const split = splitSecret(action.payload.entities);
       const entities = split.entities;
       const secret = state.features && !state.features.secrets ? null : split.secret;
-      let arrows = attack + state.perks.bonusArrows + relicCount(state.relics, 'quiver');
+      const weapon = weaponOf(state);
+      // Bombs are scarcer: the floor's own grant is halved (rounded up), never below one. The relics' flat bonuses below then
+      // count in bombs (the Quiver's +1 is one more bomb, the Blood Pact's -1 one bomb less, the Dice's +3 two more bombs), as
+      // their texts say; halving after them used to round most of them away.
+      let arrows = attack + state.perks.bonusArrows;
+      if (weapon === 'bomb') arrows = Math.max(1, scaleAmmo(weapon, arrows));
+      arrows += relicCount(state.relics, 'quiver');
       if (relicCount(state.relics, 'blood_pact') > 0) arrows = Math.max(1, arrows - 1);
       if (relicCount(state.relics, 'glass_bow') > 0) arrows = Math.max(1, Math.floor(arrows / 2));
-      if (relicCount(state.relics, 'gambler') > 0) arrows = Math.max(1, arrows + gamblerRoll(state.runSeed, state.level + 1));
-      // The archers' set bonus: one more arrow on every floor.
+      if (relicCount(state.relics, 'gambler') > 0) {
+        const roll = gamblerRoll(state.runSeed, state.level + 1);
+        arrows = Math.max(1, arrows + (roll > 0 ? scaleAmmo(weapon, roll) : roll));
+      }
+      // The archers' set bonus: one more arrow (bomb) on every floor.
       if (hasFamilyBonus(state.relics, 'archer')) arrows += 1;
-      const weapon = weaponOf(state);
-      // Bombs are scarcer: the floor's whole grant is halved (rounded up), never below one.
-      if (weapon === 'bomb') arrows = Math.max(1, scaleAmmo(weapon, arrows));
       // Arrows are a resource: some of the unused ones come along to the next floor.
       arrows += Math.min(scaleAmmo(weapon, GAME_CONFIG.arrows.carryOverCap), Math.max(0, state.attack));
       arrows = floorAmmo(weapon, arrows + state.pendingArrows, entities);
@@ -935,6 +997,7 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         items: gained.items,
         shield: gained.shield,
         visited: gained.visited,
+        marked: gained.marked,
       };
     }
 
@@ -1057,13 +1120,14 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         if (gems.length === 0) return state;
         const nearest = gems.reduce((a, b) => (manhattan(b.index, state.playerIndex, cols) < manhattan(a.index, state.playerIndex, cols) ? b : a));
         world = removeEntityAt(world, nearest.index);
-        const reward = coinReward(state.level, state.perks.coinMultiplier * floorEffects(state.omen, state.event).gemMultiplier * (relicCount(state.relics, 'blood_pact') > 0 ? 1.5 : 1), relicCount(state.relics, 'lucky_coin'));
+        const taken = takeGems(state, 1, state.totalCoins);
         return settle(state, world, {
           ...cooldown,
           coins: state.coins - 1,
-          totalCoins: state.totalCoins + 1,
-          gems: state.gems + gemYield(state, state.totalCoins + 1),
-          score: state.score + reward,
+          totalCoins: taken.total,
+          gems: state.gems + taken.gems,
+          score: state.score + taken.score,
+          attack: state.attack + taken.ammo,
           visited: state.visited.includes(nearest.index) ? state.visited : [...state.visited, nearest.index],
         });
       }
@@ -1082,18 +1146,27 @@ function reduceCore(state: GameState, action: GameAction): GameState {
         if (target.type === 'boss') {
           const hurt = hurtBoss(world, cursor, state);
           world = hurt.world;
-          score += hurt.killed ? GAME_CONFIG.boss.killScore : GAME_CONFIG.boss.hitScore;
+          if (!hurt.killed) {
+            score += GAME_CONFIG.boss.hitScore;
+          } else if (target.mini) {
+            // The lieutenant (or the Magma Colossus) pays what it pays to a shot: half the bounty and its shop gems.
+            score += Math.round(GAME_CONFIG.boss.killScore / 2);
+            bonusGems += MID_BOSS_GEMS;
+          } else {
+            score += GAME_CONFIG.boss.killScore;
+          }
           break;
         }
         if (GUARDIAN_TYPES.includes(target.type)) {
           combo = Math.min(combo + 1, GAME_CONFIG.multipliers.maxCombo + relicCount(state.relics, 'hunter'));
-          score += killValue(combo);
+          score += killValue(combo) * (relicCount(state.relics, 'reaper') > 0 ? 2 : 1);
           world = removeEntityAt(world, cursor);
           if (relicCount(state.relics, 'hunter') > 0) bonusGems += 1;
           hits++;
         }
       }
-      return settle(state, world, { ...cooldown, score, enemyCombo: combo, gems: state.gems + bonusGems });
+      // Stunning Blow: a volley that slays a guardian leaves the hunters standing, like a killing shot.
+      return settle(state, world, { ...cooldown, score, enemyCombo: combo, gems: state.gems + bonusGems }, { stunned: hits > 0 && relicCount(state.relics, 'stun_shot') > 0 });
     }
 
     case 'UNDO': {
@@ -1106,12 +1179,15 @@ function reduceCore(state: GameState, action: GameAction): GameState {
     case 'REVIVE': {
       const before = state.lastBreath;
       if (!state.isGameOver || state.isVictory || !before || state.mode === 'daily') return state;
-      // Back to just before the fatal action, with a shield and a few arrows; the tile that killed is flagged so it is not stepped on
-      // blind. Only a tile that holds what killed: a hunter that struck from beside the hero leaves the hero's own tile safe.
+      // Back to just before the fatal action, with a shield and a few arrows; what struck is flagged so it is not walked into blind:
+      // the tile the hero stepped onto when it held what killed, or else the tile of the hunter that struck from beside the hero
+      // (it stays flagged until it moves). The hero's own tile is never flagged.
       const killer = state.playerIndex;
-      const deadly = !!state.entityMap[killer];
-      const marked = deadly && killer !== before.playerIndex && !before.marked.includes(killer) ? [...before.marked, killer] : before.marked;
-      return { ...before, undo: null, lastBreath: null, revives: (state.revives ?? 0) + 1, shield: true, attack: Math.max(before.attack, scaleAmmo(weaponOf(state), REVIVE_ARROWS)), marked, isGameOver: false, deathCause: null };
+      const deadly = !!state.entityMap[killer] && killer !== before.playerIndex;
+      const hunterAt = state.struckFrom ?? -1;
+      const flagged = deadly ? killer : hunterAt !== -1 && before.entityMap[hunterAt] ? hunterAt : -1;
+      const marked = flagged !== -1 && !before.marked.includes(flagged) ? [...before.marked, flagged] : before.marked;
+      return { ...before, undo: null, lastBreath: null, revives: (state.revives ?? 0) + 1, shield: true, attack: Math.max(before.attack, scaleAmmo(weaponOf(state), REVIVE_ARROWS)), marked, isGameOver: false, deathCause: null, struckFrom: null };
     }
 
     case 'REFILL': {

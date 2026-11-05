@@ -20,6 +20,7 @@ import { useT } from "../../i18n/useT";
 import { heroText } from "../../i18n/keys";
 import type { TranslationKey } from "../../i18n/en";
 import { ENCOUNTERS, type EncounterId } from "../../core/engine/encounters";
+import { isAncientLair } from "../../core/engine/generator";
 import { ENCOUNTER_ART, ENCOUNTER_TINT } from "../../ui/components/game/EncounterModal";
 import { useEscapeKey } from "../../ui/hotkeys";
 
@@ -79,7 +80,9 @@ const RunDetail = ({ run, onClose }: Props) => {
   const mapSize = wide ? Math.min(cardW * 0.46, height * 0.95) : cardW - 40;
   const relics = [...new Set((run.relics ?? []).filter((r): r is RelicId => r in RELICS))];
   const modeLabel = run.mode === "daily" ? t("history.mode.daily") : run.mode === "endless" ? t("history.mode.endless") : run.mode === "quick" ? t("history.mode.quick") : t("history.mode.expedition");
-  const cause = !run.victory && run.cause ? t(`over.killer.${run.cause}` as TranslationKey) : null;
+  // The Ancestral Grimbur rules the lair on the hardest depths: it is named apart, as on the game over card.
+  const ancient = run.cause === "boss" && isAncientLair(run.depth ?? 0, run.level, run.mode === "endless");
+  const cause = !run.victory && run.cause ? (ancient ? t("boss.ancient.name") : t(`over.killer.${run.cause}` as TranslationKey)) : null;
 
   const facts: { icon: React.ComponentProps<typeof Ionicons>["name"]; color: string; text: string }[] = [
     { icon: "trophy", color: WIN, text: run.mode === "endless" ? t("history.endlessFloor", { n: run.level }) : `${n(run.score)} ${t("history.points")}` },
