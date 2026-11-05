@@ -623,6 +623,8 @@ const BoardView: React.FC<Props> = memo(
     const walkSources = heroArt.walkImages;
     const attackFrontSource = heroArt.attackFrontImage;
     const attackBackSource = heroArt.attackBackImage;
+    const frontWalkSources = heroArt.frontWalkImages;
+    const backWalkSources = heroArt.backWalkImages;
     // While the attack button is held the hero already turns toward the aim and draws the bow.
     const aiming = !!aimDir;
     const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
@@ -653,6 +655,24 @@ const BoardView: React.FC<Props> = memo(
         if (finished) setFlying(null);
       });
     }, [shot?.key]);
+
+    // A view of the hero that walks when it has painted steps: the standing picture at rest, its two steps while a tile is walked.
+    const walkingView = (base: ImageSourcePropType, frames: readonly [ImageSourcePropType, ImageSourcePropType] | undefined, visible: boolean) =>
+      frames ? (
+        <View pointerEvents="none" style={[styles.heroLayer, { opacity: visible ? 1 : 0 }]}>
+          <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: atRest }]}>
+            <OutlinedSprite source={base} visible line={outline} />
+          </Animated.View>
+          <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepA }]}>
+            <OutlinedSprite source={frames[0]} visible line={outline} />
+          </Animated.View>
+          <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepB }]}>
+            <OutlinedSprite source={frames[1]} visible line={outline} />
+          </Animated.View>
+        </View>
+      ) : (
+        <OutlinedSprite source={base} visible={visible} line={outline} />
+      );
 
     // The hero itself (and its companion). On the tilted board it is drawn upright over the board, not on the tilted floor:
     // the floor's perspective would blur it and flatten it (see heroScreen).
@@ -687,25 +707,11 @@ const BoardView: React.FC<Props> = memo(
             ],
           }}
         >
-          {walkSources && pose === "idle" ? (
-            <>
-              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: atRest }]}>
-                <OutlinedSprite source={idleSource} visible line={outline} />
-              </Animated.View>
-              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepA }]}>
-                <OutlinedSprite source={walkSources[0]} visible line={outline} />
-              </Animated.View>
-              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepB }]}>
-                <OutlinedSprite source={walkSources[1]} visible line={outline} />
-              </Animated.View>
-            </>
-          ) : (
-            idleSource && <OutlinedSprite source={idleSource} visible={pose === "idle"} line={outline} />
-          )}
+          {idleSource && walkingView(idleSource, walkSources, pose === "idle")}
           {attackSource && <OutlinedSprite source={attackSource} visible={pose === "attack"} line={outline} />}
           {/* Shooting down / up: the painted attack toward / away from the viewer when the look has it, else the view lunges. */}
-          {frontSource && <OutlinedSprite source={frontSource} visible={pose === "facing" && currentFacing === "down" && !(drawn && attackFrontSource)} line={outline} />}
-          {backSource && <OutlinedSprite source={backSource} visible={pose === "facing" && currentFacing === "up" && !(drawn && attackBackSource)} line={outline} />}
+          {frontSource && walkingView(frontSource, drawn ? undefined : frontWalkSources, pose === "facing" && currentFacing === "down" && !(drawn && attackFrontSource))}
+          {backSource && walkingView(backSource, drawn ? undefined : backWalkSources, pose === "facing" && currentFacing === "up" && !(drawn && attackBackSource))}
           {attackFrontSource && <OutlinedSprite source={attackFrontSource} visible={pose === "facing" && currentFacing === "down" && drawn} line={outline} />}
           {attackBackSource && <OutlinedSprite source={attackBackSource} visible={pose === "facing" && currentFacing === "up" && drawn} line={outline} />}
         </Animated.View>

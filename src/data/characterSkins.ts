@@ -7,5 +7,5 @@ export const characterWithSkin = (heroIndex: number, skin: SkinId = 'classic'): 
   if (skin === 'classic') return base;
   const art = skinArt(heroIndex, skin);
   // An outfit without its own front / back view (or walk) falls back to its side view (never to the classic colours).
-  return { ...base, ...art, frontImage: art.frontImage, backImage: art.backImage, walkImages: art.walkImages, attackFrontImage: art.attackFrontImage, attackBackImage: art.attackBackImage };
+  return { ...base, ...art, frontImage: art.frontImage, backImage: art.backImage, walkImages: art.walkImages, attackFrontImage: art.attackFrontImage, attackBackImage: art.attackBackImage, frontWalkImages: art.frontWalkImages, backWalkImages: art.backWalkImages };
 };

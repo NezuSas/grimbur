@@ -16,6 +16,9 @@ export interface Character {
   /** Attacking toward the viewer (down) / away from it (up); missing = the front / back view lunges. */
   attackFrontImage?: ImageSourcePropType;
   attackBackImage?: ImageSourcePropType;
+  /** Two steps walking toward the viewer (down) / away from it (up); missing = the front / back view glides. */
+  frontWalkImages?: readonly [ImageSourcePropType, ImageSourcePropType];
+  backWalkImages?: readonly [ImageSourcePropType, ImageSourcePropType];
   arrowColor: string;
 }
 
@@ -31,6 +34,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Cyan.webp"), require("../assets/sprites/characters/Walk2_Cyan.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Cyan.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Cyan.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Cyan.webp"), require("../assets/sprites/characters/FrontWalk2_Cyan.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Cyan.webp"), require("../assets/sprites/characters/BackWalk2_Cyan.webp")],
     winImage: require("../assets/sprites/characters/Win_Cyan.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Cyan.webp"),
     arrowColor: "#5FB4C4",
@@ -46,6 +51,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Red.webp"), require("../assets/sprites/characters/Walk2_Red.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Red.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Red.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Red.webp"), require("../assets/sprites/characters/FrontWalk2_Red.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Red.webp"), require("../assets/sprites/characters/BackWalk2_Red.webp")],
     winImage: require("../assets/sprites/characters/Win_Red.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Red.webp"),
     arrowColor: "#C23A44",
@@ -61,6 +68,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Green.webp"), require("../assets/sprites/characters/Walk2_Green.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Green.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Green.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Green.webp"), require("../assets/sprites/characters/FrontWalk2_Green.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Green.webp"), require("../assets/sprites/characters/BackWalk2_Green.webp")],
     winImage: require("../assets/sprites/characters/Win_Green.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Green.webp"),
     arrowColor: "#93C450",
@@ -76,6 +85,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Gold.webp"), require("../assets/sprites/characters/Walk2_Gold.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Gold.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Gold.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Gold.webp"), require("../assets/sprites/characters/FrontWalk2_Gold.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Gold.webp"), require("../assets/sprites/characters/BackWalk2_Gold.webp")],
     winImage: require("../assets/sprites/characters/Win_Gold.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Gold.webp"),
     arrowColor: "#D4B448",
@@ -91,6 +102,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Pink.webp"), require("../assets/sprites/characters/Walk2_Pink.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Pink.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Pink.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Pink.webp"), require("../assets/sprites/characters/FrontWalk2_Pink.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Pink.webp"), require("../assets/sprites/characters/BackWalk2_Pink.webp")],
     winImage: require("../assets/sprites/characters/Win_Pink.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Pink.webp"),
     arrowColor: "#BF6496",
@@ -106,6 +119,8 @@ const characters: Character[] = [
     walkImages: [require("../assets/sprites/characters/Walk1_Orange.webp"), require("../assets/sprites/characters/Walk2_Orange.webp")],
     attackFrontImage: require("../assets/sprites/characters/AttackFront_Orange.webp"),
     attackBackImage: require("../assets/sprites/characters/AttackBack_Orange.webp"),
+    frontWalkImages: [require("../assets/sprites/characters/FrontWalk1_Orange.webp"), require("../assets/sprites/characters/FrontWalk2_Orange.webp")],
+    backWalkImages: [require("../assets/sprites/characters/BackWalk1_Orange.webp"), require("../assets/sprites/characters/BackWalk2_Orange.webp")],
     winImage: require("../assets/sprites/characters/Win_Orange.webp"),
     loseImage: require("../assets/sprites/characters/Lose_Orange.webp"),
     arrowColor: "#CC8436",

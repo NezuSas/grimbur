@@ -6,6 +6,10 @@ import { useTravel } from "../../hooks/useTravel";
 import { arrowReachOf } from "../../core/engine/reducer";
 import { burstArea, ORB_BURST, shotPlan, squareArea, weaponOf } from "../../core/engine/weapons";
 import { lineOfFire, stepTarget } from "../../core/engine/travel";
+import { WALK_MS } from "../../ui/walk";
+
+/** The shortest gap between two steps: nearly a whole step, so each tile is seen walked (and input never feels stuck). */
+const STEP_PACE_MS = WALK_MS - 30;
 import { canRepeatStep } from "../../core/input/floatingPad";
 import type { Direction, GameState } from "../../core/engine/types";
 import type { ArrowShot } from "../../ui/components/BoardView";
@@ -65,7 +69,36 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
 
   /** When the step sound of the last tap was already played at input time, so the state effect does not repeat it. */
   const stepSoundedAt = useRef(0);
-  const manualMove = useCallback(
+  // Every tile is walked to the end: a step asked for while the hero is still walking the last one (two keys pressed together,
+  // a pad held down, quick taps) waits for it to finish, the latest wish winning, instead of cutting the walk short and
+  // sliding the hero diagonally across the board.
+  const lastStepAt = useRef(0);
+  const queuedStep = useRef<Direction | null>(null);
+  const stepTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (stepTimer.current) clearTimeout(stepTimer.current);
+    },
+    [],
+  );
+  const stepNow = useRef<(d: Direction) => void>(() => {});
+  const manualMove = useCallback((d: Direction) => {
+    const wait = lastStepAt.current + STEP_PACE_MS - Date.now();
+    if (wait > 0) {
+      queuedStep.current = d;
+      if (!stepTimer.current) {
+        stepTimer.current = setTimeout(() => {
+          stepTimer.current = null;
+          const next = queuedStep.current;
+          queuedStep.current = null;
+          if (next) stepNow.current(next);
+        }, wait);
+      }
+      return;
+    }
+    stepNow.current(d);
+  }, []);
+  const takeStep = useCallback(
     (d: Direction) => {
       if (pausedRef.current) return; // a stick still held under the pause card must not walk the hero
       cancelTravel();
@@ -83,10 +116,12 @@ export function useBoardInput({ state, stateRef, pausedRef, playing, runNumber, 
         stepSoundedAt.current = Date.now();
         emitSound("MOVE");
       }
+      lastStepAt.current = Date.now();
       move(d);
     },
     [cancelTravel, move, onRefusedFlag, playing, pausedRef, stateRef],
   );
+  stepNow.current = takeStep;
 
   // The arrow in flight: where it goes is worked out from the board as it is when the shot is taken.
   const [shot, setShot] = useState<ArrowShot | null>(null);
