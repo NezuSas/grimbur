@@ -13,6 +13,7 @@ const FLAP_MS = 320;
  * can never give a danger away. Calm (reduced motion): it hovers still on its first frame.
  */
 const OUTLINE: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+const RIM: readonly (readonly [number, number])[] = [[-1, 0], [1, 0], [0, -1], [0, 1], [-0.7, -0.7], [0.7, -0.7], [-0.7, 0.7], [0.7, 0.7]];
 
 const Companion = ({ look, size, calm = false, mirror = false, aura = null }: { look: CompanionLook; size: number; calm?: boolean; mirror?: boolean; aura?: string | null }) => {
   const line = Math.max(1, size * 0.03);
@@ -65,9 +66,12 @@ const Companion = ({ look, size, calm = false, mirror = false, aura = null }: { 
         />
       ) : null}
       {/* Both frames stay mounted and swap by opacity: changing the image source would flash. */}
-      {/* Each frame with a thin dark outline (its silhouette a hair to every side), so it reads on any board. */}
+      {/* Each frame with a thin dark outline (its silhouette a hair to every side) inside a soft warm rim, so it reads on the dark stone. */}
       {[look[0], look[1]].map((frame, f) => (
         <View key={f} pointerEvents="none" style={{ position: "absolute", width: size, height: size, opacity: (f === 1) === second ? 1 : 0 }}>
+          {RIM.map(([dx, dy], k) => (
+            <SpriteImage key={`r${k}`} source={frame} style={{ position: "absolute", left: dx * line * 2.4, top: dy * line * 2.4, width: size, height: size, tintColor: "#FFE6B0", opacity: 0.38 }} resizeMode="contain" />
+          ))}
           {OUTLINE.map(([dx, dy], k) => (
             <SpriteImage key={k} source={frame} style={{ position: "absolute", left: dx * line, top: dy * line, width: size, height: size, tintColor: "#140a05", opacity: 0.85 }} resizeMode="contain" />
           ))}

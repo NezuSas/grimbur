@@ -652,10 +652,10 @@ const BoardView: React.FC<Props> = memo(
         {pet && !dying ? (
           <>
             {/* Its shadow on the floor under it: it flies beside the hero, not on top of it. */}
-            <View pointerEvents="none" style={[styles.petShadow, { width: tileSize * 0.34, height: tileSize * 0.1, borderRadius: tileSize * 0.05, top: tileSize * 0.74, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.2 }]} />
+            <View pointerEvents="none" style={[styles.petShadow, { width: tileSize * 0.4, height: tileSize * 0.11, borderRadius: tileSize * 0.055, top: tileSize * 0.76, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.24 }]} />
             {/* Beside the hero at its chest, out where the taller hero no longer hides it, and big enough to read. */}
-            <Animated.View pointerEvents="none" style={{ position: "absolute", top: tileSize * 0.02, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.34, zIndex: 3 }}>
-              <Companion look={pet} size={tileSize * 0.64} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
+            <Animated.View pointerEvents="none" style={{ position: "absolute", top: -tileSize * 0.06, [lastSide.current === "left" ? "right" : "left"]: -tileSize * 0.44, zIndex: 3 }}>
+              <Companion look={pet} size={tileSize * 0.8} calm={!!calm || paused} mirror={lastSide.current === "left"} aura={petAura} />
             </Animated.View>
           </>
         ) : null}

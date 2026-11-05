@@ -1,8 +1,12 @@
-import React, { useMemo } from 'react';
-import { StyleSheet, View } from "react-native";
+import React, { useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Text from "./Text";
 import type { RelicId } from '../../core/engine/relics';
+import type { WeaponId } from '../../core/engine/weapons';
 import RelicIcon from './RelicIcon';
+import RelicSheet from './RelicSheet';
+import { relicStacks, trayView } from './relicStacks';
+import { useT } from '../../i18n/useT';
 
 type Props = {
   relics: readonly RelicId[];
@@ -10,20 +14,25 @@ type Props = {
   size: number;
   /** Spoken description for screen readers. */
   label: string;
+  /** How many tiles the tray shows at most: past that, the newest relics and a "+N" chip (see trayView). */
+  max?: number;
+  /** Tapping the tray opens every relic with its name and what it does (like the relic bars of other roguelites). */
+  details?: boolean;
+  /** For the relic texts that name the hero's weapon. */
+  weapon?: WeaponId;
 };
 
 /** The relics collected so far: one icon each, with a "x2" badge for duplicates. */
-const RelicTray: React.FC<Props> = ({ relics, size, label }) => {
-  const stacks = useMemo(() => {
-    const counts = new Map<RelicId, number>();
-    for (const id of relics) counts.set(id, (counts.get(id) ?? 0) + 1);
-    return [...counts.entries()];
-  }, [relics]);
+const RelicTray: React.FC<Props> = ({ relics, size, label, max, details = false, weapon }) => {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const stacks = useMemo(() => relicStacks(relics), [relics]);
   if (stacks.length === 0) return null;
+  const { shown, hidden } = trayView(stacks, max);
 
-  return (
-    <View style={styles.tray} accessible accessibilityLabel={label} pointerEvents="none">
-      {stacks.map(([id, count]) => (
+  const body = (
+    <>
+      {shown.map(([id, count]) => (
         <View key={id} style={{ width: size, height: size }}>
           <RelicIcon id={id} size={size} />
           {count > 1 && (
@@ -35,7 +44,37 @@ const RelicTray: React.FC<Props> = ({ relics, size, label }) => {
           )}
         </View>
       ))}
-    </View>
+      {hidden > 0 && (
+        <View style={[styles.more, { width: size, height: size, borderRadius: size * 0.28 }]}>
+          <Text style={[styles.moreText, { fontSize: Math.max(11, size * 0.36) }]} allowFontScaling={false}>
+            +{hidden}
+          </Text>
+        </View>
+      )}
+    </>
+  );
+
+  if (!details) {
+    return (
+      <View style={styles.tray} accessible accessibilityLabel={label} pointerEvents="none">
+        {body}
+      </View>
+    );
+  }
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.tray}
+        onPress={() => setOpen(true)}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={t('relics.sheet.hint')}
+      >
+        {body}
+      </TouchableOpacity>
+      <RelicSheet visible={open} relics={relics} weapon={weapon} onClose={() => setOpen(false)} />
+    </>
   );
 };
 
@@ -62,6 +101,8 @@ const styles = StyleSheet.create({
     borderColor: '#C9A55A',
   },
   countText: { color: '#C9A55A', fontSize: 11, fontWeight: '900' },
+  more: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(201, 165, 90, 0.16)', borderWidth: 1.5, borderColor: '#C9A55A' },
+  moreText: { color: '#F0D79A', fontWeight: '900' },
 });
 
 export default RelicTray;

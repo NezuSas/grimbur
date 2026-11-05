@@ -35,7 +35,7 @@ const AttackPanel: React.FC<Props> = ({ onAttack, onAim, arrows, relics, relicsL
     <View style={{ width: attackPanelWidth, alignSelf: "stretch", justifyContent: "flex-end", alignItems: "center", paddingBottom: 10 }}>
       {relics && relics.length > 0 && (
         <View style={{ position: "absolute", top: 4, left: 0, right: 0, alignItems: "center" }}>
-          <RelicTray relics={relics} size={Math.max(26, Math.min(attackPanelWidth * 0.38, 40))} label={relicsLabel ?? ""} />
+          <RelicTray relics={relics} size={Math.max(26, Math.min(attackPanelWidth * 0.38, 40))} label={relicsLabel ?? ""} max={6} details weapon={weapon} />
         </View>
       )}
       <View>

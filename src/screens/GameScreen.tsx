@@ -1110,8 +1110,8 @@ export default function GameScreen({ navigation, route }: Props) {
         <View style={[styles.controlsWrapper, { width: controlPanelWidth }]}>
           {/* Wide screens show the relics above the attack button; narrow ones, above the pad. */}
           {state.relics.length > 0 && !splitAttack && (
-            <View style={styles.relicSlot} pointerEvents="none">
-              <RelicTray relics={state.relics} size={28} label={t("a11y.relics", { names: relicNames })} />
+            <View style={styles.relicSlot} pointerEvents="box-none">
+              <RelicTray relics={state.relics} size={28} max={8} details weapon={weaponOf(state)} label={t("a11y.relics", { names: relicNames })} />
             </View>
           )}
           <View style={styles.toolSlot}>
