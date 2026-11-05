@@ -394,10 +394,13 @@ const BoardView: React.FC<Props> = memo(
     const stretchY = useRef(new Animated.Value(1)).current;
     // One step across a tile is a little walk: two footfalls, each lifting the hero and rocking it onto that foot (0 -> 1).
     const walk = useRef(new Animated.Value(1)).current;
-    const stepLift = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: [0, -tileSize * 0.07, 0, -tileSize * 0.07, 0] }), [walk, tileSize]);
-    const stepSway = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.5, 0.75, 1], outputRange: ["0deg", "-5deg", "0deg", "5deg", "0deg"] }), [walk]);
-    // Each foot lands with a small squash.
-    const stepSquash = useMemo(() => walk.interpolate({ inputRange: [0, 0.25, 0.44, 0.5, 0.56, 0.75, 0.94, 1], outputRange: [1, 1.03, 1, 0.95, 1, 1.03, 1, 1] }), [walk]);
+    // The painted steps of the side view: the stride (a foot planted ahead) for the first half of the tile, then the passing
+    // step (the other leg swinging through, the body at its highest), the standing pose at rest (walk = 1). The body rises
+    // a touch on the passing step (no rocking: the painted legs carry the walk).
+    const stepLift = useMemo(() => walk.interpolate({ inputRange: [0, 0.45, 0.72, 1], outputRange: [0, 0, -tileSize * 0.03, 0] }), [walk, tileSize]);
+    const stepA = useMemo(() => walk.interpolate({ inputRange: [0, 0.4999, 0.5, 1], outputRange: [1, 1, 0, 0] }), [walk]);
+    const stepB = useMemo(() => walk.interpolate({ inputRange: [0, 0.4999, 0.5, 0.9999, 1], outputRange: [0, 0, 1, 1, 0] }), [walk]);
+    const atRest = useMemo(() => walk.interpolate({ inputRange: [0, 0.9999, 1], outputRange: [0, 0, 1] }), [walk]);
 
     // The hero breathes while standing still: a slow, tiny vertical swell (off when the player asked for calm).
     const heroBreath = useRef(new Animated.Value(1)).current;
@@ -618,6 +621,7 @@ const BoardView: React.FC<Props> = memo(
     const attackSource = heroArt.attackImage;
     const frontSource = heroArt.frontImage;
     const backSource = heroArt.backImage;
+    const walkSources = heroArt.walkImages;
     // While the attack button is held the hero already turns toward the aim and draws the bow.
     const aiming = !!aimDir;
     const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
@@ -667,7 +671,7 @@ const BoardView: React.FC<Props> = memo(
         {/* Both poses stay mounted and are swapped by opacity: swapping the image source would flash */}
         {/* The art is drawn facing right: mirror it for left; up/down lean away from / toward the viewer. */}
         {/* The outer layer breathes and squashes on the feet (see bodyX / bodyY / feet). */}
-        <Animated.View style={{ width: heroBody, height: heroBody, transformOrigin: "50% 92%", transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { translateY: stepLift }, { rotate: stepSway }, { scaleX: bodyX }, { scaleY: bodyY }, { scaleY: stepSquash }] }}>
+        <Animated.View style={{ width: heroBody, height: heroBody, transform: [{ translateY: heroLift }, { scaleY: heroStand }, { translateY: feet }, { translateY: stepLift }, { scaleX: bodyX }, { scaleY: bodyY }] }}>
         <Animated.View
           style={{
             width: heroBody,
@@ -682,7 +686,21 @@ const BoardView: React.FC<Props> = memo(
             ],
           }}
         >
-          {idleSource && <OutlinedSprite source={idleSource} visible={pose === "idle"} line={outline} />}
+          {walkSources && pose === "idle" ? (
+            <>
+              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: atRest }]}>
+                <OutlinedSprite source={idleSource} visible line={outline} />
+              </Animated.View>
+              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepA }]}>
+                <OutlinedSprite source={walkSources[0]} visible line={outline} />
+              </Animated.View>
+              <Animated.View pointerEvents="none" style={[styles.heroLayer, { opacity: stepB }]}>
+                <OutlinedSprite source={walkSources[1]} visible line={outline} />
+              </Animated.View>
+            </>
+          ) : (
+            idleSource && <OutlinedSprite source={idleSource} visible={pose === "idle"} line={outline} />
+          )}
           {attackSource && <OutlinedSprite source={attackSource} visible={pose === "attack"} line={outline} />}
           {frontSource && <OutlinedSprite source={frontSource} visible={pose === "facing" && currentFacing === "down"} line={outline} />}
           {backSource && <OutlinedSprite source={backSource} visible={pose === "facing" && currentFacing === "up"} line={outline} />}
