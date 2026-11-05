@@ -36,22 +36,20 @@ import { heroText, skinText } from "../i18n/keys";
 import type { TranslationKey } from "../i18n/en";
 import { useSettingsStore } from "../state/settings/store";
 import { heroAccent } from "../data/heroAccent";
-import { AMMO_ART } from "../ui/weaponArt";
+import WeaponSwitch, { isShotKind, type ShotKind } from "./collection/WeaponSwitch";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CollectionScreen">;
 
-type Category = "skins" | "rewards" | CosmeticCategory;
+/** The weapon styles (arrow trails, orbs, bombs) live together under one Armas tab, one switch per weapon inside. */
+type Category = "skins" | "rewards" | "weapons" | Exclude<CosmeticCategory, ShotKind>;
 /** Today's deals first: the shelf that changes every day is what brings a player back to this screen. */
 /** Each category wears a piece of its own painted art. */
-/** `label` names a tab whose words are not `collection.cat.<id>` (the weapon styles use their kind's name). */
-const CATEGORIES: { id: Category; art: ImageSourcePropType; label?: TranslationKey }[] = [
+const CATEGORIES: { id: Category; art: ImageSourcePropType }[] = [
   { id: "deals", art: require("../assets/sprites/items/Icon_Gem.webp") },
   { id: "rewards", art: require("../assets/sprites/ui/Icon_Trophy.webp") },
   { id: "skins", art: require("../assets/sprites/ui/Icon_Tunic.webp") },
-  // Each weapon's styles, side by side: the archers' arrows, Mira's orbs, Bram's bombs.
-  { id: "trail", art: AMMO_ART.bow },
-  { id: "orb", art: AMMO_ART.orb },
-  { id: "bomb", art: AMMO_ART.bomb },
+  // Every weapon's styles in one tab: the archers' arrows, Mira's orbs, Bram's bombs.
+  { id: "weapons", art: require("../assets/sprites/ui/Attack_Ready.webp") },
   { id: "frame", art: require("../assets/sprites/cosmetics/Frame_Gold.png") },
   { id: "title", art: require("../assets/sprites/ui/Icon_Medal.webp") },
   { id: "board", art: require("../assets/sprites/tiles/Tile_Hidden.webp") },
@@ -127,7 +125,16 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
   const [gridWidth, setGridWidth] = useState(0);
   const [tabsWidth, setTabsWidth] = useState(0);
   const [stageSize, setStageSize] = useState({ w: 0, h: 0 });
-  const [category, setCategory] = useState<Category>(route.params?.category ?? (route.params?.skin ? "skins" : "deals"));
+  const asked = route.params?.category;
+  const [category, setCategoryRaw] = useState<Category>(isShotKind(asked) ? "weapons" : asked ?? (route.params?.skin ? "skins" : "deals"));
+  // The weapon open inside Armas; a screen that asks for a weapon's styles ("trail" / "orb" / "bomb") opens it there.
+  const [shotKind, setShotKind] = useState<ShotKind>(isShotKind(asked) ? asked : "trail");
+  const setCategory = useCallback((next: Category | ShotKind) => {
+    if (isShotKind(next)) {
+      setShotKind(next);
+      setCategoryRaw("weapons");
+    } else setCategoryRaw(next);
+  }, []);
   const [playerName, setPlayerName] = useState("");
   // A reward opened from the Rewards tab is shown first in its own category.
   const [openPick, setOpenPick] = useState<CosmeticId | null>(null);
@@ -270,7 +277,7 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <SpriteImage source={c.art} style={{ width: 20, height: 20 }} resizeMode="contain" accessibilityIgnoresInvertColors />
                 <Text style={[styles.catText, on && styles.catTextOn]} numberOfLines={1} maxFontSizeMultiplier={1.15}>
-                  {t(c.label ?? (`collection.cat.${c.id}` as TranslationKey))}
+                  {t(`collection.cat.${c.id}` as TranslationKey)}
                 </Text>
                 {c.id === "deals" || (c.id === "rewards" && newReward) ? <View style={[styles.catDot, on && { backgroundColor: "#1a0f00" }]} /> : null}
               </PressScale>
@@ -306,6 +313,29 @@ const CollectionScreen: React.FC<Props> = ({ navigation, route }) => {
               setOpenPick(id);
               setCategory(kind);
             }}
+          />
+        ) : category === "weapons" ? (
+          <CosmeticsBody
+            key={shotKind}
+            category={shotKind}
+            initialPick={openPick}
+            stats={stats}
+            onStats={setStats}
+            hero={hero}
+            playerName={playerName}
+            cardSize={cardSize}
+            onGridWidth={setGridWidth}
+            head={
+              <WeaponSwitch
+                kind={shotKind}
+                stats={stats}
+                portrait={skinArt(hero, "classic").scoreImage}
+                onKind={k => {
+                  setShotKind(k);
+                  setOpenPick(null);
+                }}
+              />
+            }
           />
         ) : category !== "skins" ? (
           <CosmeticsBody key={category} category={category} initialPick={openPick} stats={stats} onStats={setStats} hero={hero} playerName={playerName} cardSize={cardSize} onGridWidth={setGridWidth} />

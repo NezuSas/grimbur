@@ -117,12 +117,11 @@ const BombFlight = ({ shot, flight, tileSize, row, col, cols, look }: Props) => 
             left: (i % cols) * tileSize,
             top: Math.floor(i / cols) * tileSize,
             zIndex: 8,
-            opacity: flight.interpolate({ inputRange: [0, L, L + 0.03, L + 0.1, L + 0.15, 1], outputRange: [0, 0, 0.85, 0.5, 0.7, 0], extrapolate: "clamp" }),
+            // A soft glow of heat under the painted flames that rise from each tile (TileFx), not a flat coloured square.
+            opacity: flight.interpolate({ inputRange: [0, L, L + 0.04, 1], outputRange: [0, 0, 0.45, 0.25], extrapolate: "clamp" }),
           }}
         >
-          <View style={{ width: tileSize * 0.94, height: tileSize * 0.94, borderRadius: tileSize * 0.16, backgroundColor: blast, alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: tileSize * 0.5, height: tileSize * 0.5, borderRadius: tileSize * 0.25, backgroundColor: spark, opacity: 0.8 }} />
-          </View>
+          <View style={{ width: tileSize * 0.8, height: tileSize * 0.8, borderRadius: tileSize * 0.4, backgroundColor: blast, opacity: 0.55 }} />
         </Animated.View>
       ))}
 

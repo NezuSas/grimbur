@@ -57,6 +57,8 @@ type Props = {
   onGridWidth: (w: number) => void;
   /** The entry shown first (a reward opened from the Rewards tab). */
   initialPick?: string | null;
+  /** Drawn on top of the grid (the weapon switch of the Armas tab). */
+  head?: React.ReactNode;
 };
 
 /** One entry of the grid: a catalog item, or one of today's deals. */
@@ -66,7 +68,7 @@ type Entry = { key: string; id?: CosmeticId; deal?: Deal };
  * The cosmetic categories of the Collection (trails, frames, titles, boards) and today's deals: the chosen item big on the
  * left, with what it takes to have it, and the grid on the right. Mirrors the outfit view so the screen reads as one.
  */
-const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, onGridWidth, initialPick }: Props) => {
+const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, onGridWidth, initialPick, head }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
   const today = dailyKey();
@@ -87,6 +89,8 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
   }, [shown?.key, pop, calm, category]);
 
   const portrait = skinArt(hero, "classic").scoreImage;
+  // A weapon's style is worn by that weapon only: the one in use says so in words, as each weapon keeps its own.
+  const shotKind = category === "trail" || category === "orb" || category === "bomb";
   const preview = Math.max(60, Math.min(stage.h, stage.w));
 
   if (!shown) return null;
@@ -260,7 +264,12 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
               <Text style={styles.dealBadgeText}>-30%</Text>
             </View>
           ) : null}
-          {eEquipped ? (
+          {eEquipped && shotKind ? (
+            <View style={styles.cardInUse}>
+              <GameIcon name="checkmark" size={11} color="#111" />
+              <Text style={styles.cardInUseText} numberOfLines={1} maxFontSizeMultiplier={1}>{t("collection.weapons.inUse").toLocaleUpperCase()}</Text>
+            </View>
+          ) : eEquipped ? (
             <View style={styles.cardCheck}>
               <GameIcon name="checkmark" size={14} color="#111" />
             </View>
@@ -395,6 +404,7 @@ const CosmeticsBody = ({ category, stats, onStats, hero, playerName, cardSize, o
       </View>
 
       <View style={styles.browse}>
+        {head}
         {category === "deals" ? (
           <View style={styles.dealsHead}>
             <Text style={styles.dealsTitle} maxFontSizeMultiplier={1.2}>{t("collection.deals.title").toLocaleUpperCase()}</Text>
@@ -468,6 +478,8 @@ const styles = StyleSheet.create({
   cardPrice: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: "rgba(0,0,0,0.55)", borderWidth: 1, borderColor: "rgba(196, 139, 78,0.6)" },
   cardPriceText: { color: "#E2BE8C", fontWeight: "900", fontSize: 12 },
   cardCheck: { position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: "#A3BF7C", alignItems: "center", justifyContent: "center" },
+  cardInUse: { position: "absolute", top: 4, right: 4, flexDirection: "row", alignItems: "center", gap: 2, paddingHorizontal: 5, paddingVertical: 1.5, borderRadius: 9, backgroundColor: "#A3BF7C" },
+  cardInUseText: { color: "#111", fontWeight: "900", fontSize: 9.5, letterSpacing: 0.6 },
   cardLock: { position: "absolute", top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" },
   groupHead: { width: "100%", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 },
   groupTitle: { color: "#C9A55A", fontWeight: "900", fontSize: 12, letterSpacing: 2 },

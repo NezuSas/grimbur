@@ -1,4 +1,6 @@
 import React from "react";
+import { arcaneFx } from "../../ui/weaponFxArt";
+import SpriteImage from "../../ui/components/SpriteImage";
 import { Animated, View } from "react-native";
 import { ORB_LOOKS, type OrbLook } from "../../ui/cosmeticArt";
 import { useSettingsStore } from "../../state/settings/store";
@@ -53,12 +55,14 @@ const OrbPreview = ({ id, size, small }: Props) => {
     const motes = [[-0.36, -0.26, 0.07], [0.34, -0.3, 0.05], [0.38, 0.22, 0.06], [-0.3, 0.32, 0.045], [0.02, -0.42, 0.04]] as const;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ position: "absolute", width: big * 1.45, height: big * 1.45, borderRadius: big, backgroundColor: look.glow, opacity: 0.12 }} />
-        <View style={{ position: "absolute", width: big * 1.12, height: big * 1.12, borderRadius: big, borderWidth: Math.max(1.5, size * 0.014), borderColor: look.glow, opacity: 0.45 }} />
-        {motes.map(([mx, my, ms], k) => (
-          <View key={k} style={{ position: "absolute", left: size / 2 + mx * size - (ms * size) / 2, top: size / 2 + my * size - (ms * size) / 2, width: ms * size, height: ms * size, borderRadius: size, backgroundColor: k % 2 ? look.core : look.glow, opacity: 0.85 }} />
+        {/* The arcane burst this style casts on the lit tiles (what is bought), the orb glowing over it. */}
+        <SpriteImage source={arcaneFx(id)[2]} style={{ position: "absolute", width: size * 0.95, height: size * 0.95 }} resizeMode="contain" />
+        {motes.slice(0, 2).map(([mx, my, ms], k) => (
+          <View key={k} style={{ position: "absolute", left: size / 2 + mx * size - (ms * size) / 2, top: size / 2 + my * size - (ms * size) / 2, width: ms * size, height: ms * size, borderRadius: size, backgroundColor: look.core, opacity: 0.8 }} />
         ))}
-        <OrbBall look={look} size={big} />
+        <View style={{ position: "absolute", top: size * 0.12 }}>
+          <OrbBall look={look} size={big * 0.55} />
+        </View>
       </View>
     );
   }

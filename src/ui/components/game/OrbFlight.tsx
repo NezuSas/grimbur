@@ -104,10 +104,11 @@ const OrbFlight = ({ shot, flight, tileSize, row, col, cols, look }: Props) => {
               left: (i % cols) * tileSize,
               top: Math.floor(i / cols) * tileSize,
               zIndex: 8,
-              opacity: flight.interpolate({ inputRange: [0, start, start + 0.07, 1], outputRange: [0, 0, 0.6, 0], extrapolate: "clamp" }),
+              // A soft glow under the painted arcane burst that rises from each tile (TileFx).
+              opacity: flight.interpolate({ inputRange: [0, start, start + 0.07, 1], outputRange: [0, 0, 0.4, 0.2], extrapolate: "clamp" }),
             }}
           >
-            <View style={{ width: tileSize * 0.9, height: tileSize * 0.9, borderRadius: tileSize * 0.22, backgroundColor: glow, borderWidth: 2, borderColor: core }} />
+            <View style={{ width: tileSize * 0.8, height: tileSize * 0.8, borderRadius: tileSize * 0.4, backgroundColor: glow, opacity: 0.55 }} />
           </Animated.View>
         );
       })}

@@ -10,6 +10,8 @@ import { allBiomeImages } from './biomeArt';
 import { allToolImages } from './toolArt';
 import { allAchievementArt } from './achievementArt';
 import { allCosmeticImages } from './cosmeticArt';
+import { ARCANE_FX, FLAME_FX } from './weaponFxArt';
+import { AMMO_ART } from './weaponArt';
 
 /**
  * Every illustration the game shows in its first minutes, loaded once at startup so nothing pops in later.
@@ -62,6 +64,10 @@ export function getPreloadImages(stats: LocalStats | null = null): ImageSourcePr
     ...allToolImages(),
     ...allAchievementArt(),
     ...allCosmeticImages(),
+    // The weapons: their ammo and the painted effects a bomb or an orb leaves on the tiles.
+    ...Object.values(AMMO_ART),
+    ...Object.values(FLAME_FX).flat(),
+    ...Object.values(ARCANE_FX).flat(),
   ];
   // Hero win/lose images repeat the standing pose; load each file once.
   return Array.from(new Set(all));

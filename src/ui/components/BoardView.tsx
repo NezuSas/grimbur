@@ -10,11 +10,15 @@ import { Direction, GameEntity, GUARDIAN_TYPES } from "../../core/engine/types";
 import { secretDraftTiles } from "../../core/engine/worldHelpers";
 import BoardTouchLayer from "./BoardTouchLayer";
 import { LinearGradient } from "expo-linear-gradient";
-import { BLOCK_FACE, makeTilt, projectPoint, tiltTransforms } from "../layout/boardTilt";
+import { BLOCK_FACE, STAND, makeTilt, projectPoint, tiltTransforms } from "../layout/boardTilt";
 import type { TrailLook } from "../cosmeticArt";
 import ArrowFlight, { flightEasing, flightMs, landMs } from "./game/ArrowFlight";
 import OrbFlight from "./game/OrbFlight";
 import BombFlight from "./game/BombFlight";
+import TileFx from "./game/TileFx";
+import { arcaneFx, flameFx } from "../weaponFxArt";
+import { BOMB_LOOKS, ORB_LOOKS } from "../cosmeticArt";
+import type { CosmeticId } from "../../core/cosmetics/cosmetics";
 import type { WeaponId } from "../../core/engine/weapons";
 import type { BombLook, OrbLook } from "../cosmeticArt";
 import FallenFoe from "./game/FallenFoe";
@@ -237,6 +241,10 @@ type Props = {
   /** The tile of the floor's secret room (its neighbours glint once explored). */
   secretTile?: number | null;
 };
+
+/** Which embers-shop style a worn look is (the looks are the catalogue's own objects), to pick its painted effect. */
+const styleIdOf = <T,>(looks: Partial<Record<CosmeticId, T>>, look: T | null | undefined): CosmeticId | null =>
+  look ? ((Object.keys(looks) as CosmeticId[]).find(k => looks[k] === look) ?? null) : null;
 
 /** The hero's height against its tile, and where its feet sit inside its picture (from the top). */
 const HERO_SCALE = 1.12;
@@ -608,9 +616,12 @@ const BoardView: React.FC<Props> = memo(
     // The arrow: flies from the hero to the tile it stops on, trailing the hero's colour, and strikes there (see ArrowFlight).
     const flight = useRef(new Animated.Value(1)).current;
     const [flying, setFlying] = useState<ArrowShot | null>(null);
+    // What a bomb or an orb leaves on the tiles it touched (flames / an arcane burst), lingering after the flight is over.
+    const [lingering, setLingering] = useState<ArrowShot | null>(null);
     useEffect(() => {
       if (!shot || calm) return;
       setFlying(shot);
+      if ((shot.weapon === "bomb" || shot.weapon === "orb") && shot.area && shot.area.length && shot.landing !== undefined && shot.landing >= 0) setLingering(shot);
       flight.setValue(0);
       // The bomb's blast: a firm jolt the moment it goes off (calm never gets here).
       if (shot.weapon === "bomb") {
@@ -809,6 +820,20 @@ const BoardView: React.FC<Props> = memo(
               onDone={() => setFallen(list => list.filter(x => x.id !== f.id))}
             />
           ))}
+
+          {lingering ? (
+            <TileFx
+              key={`fx${lingering.key}`}
+              tiles={[lingering.landing!, ...lingering.area!.filter(i => i !== lingering.landing)]}
+              cols={cols}
+              tileSize={tileSize}
+              frames={lingering.weapon === "bomb" ? flameFx(styleIdOf(BOMB_LOOKS, bombLook)) : arcaneFx(styleIdOf(ORB_LOOKS, orbLook))}
+              delay={landMs(lingering)}
+              center={lingering.landing!}
+              stand={tilt ? STAND : 1}
+              onDone={() => setLingering(l => (l && l.key === lingering.key ? null : l))}
+            />
+          ) : null}
 
           {flying ? (
             flying.weapon === "orb" ? (

@@ -1,3 +1,5 @@
+import { flameFx } from "../../ui/weaponFxArt";
+import SpriteImage from "../../ui/components/SpriteImage";
 import React from "react";
 import { Animated, View } from "react-native";
 import { BOMB_LOOKS, type BombLook } from "../../ui/cosmeticArt";
@@ -85,18 +87,14 @@ const BombPreview = ({ id, size, small }: Props) => {
 
   if (still) {
     // On a card the bomb itself is the picture: big, its fuse burning in the style's spark, a burst of its blast behind it.
-    const big = size * 0.58;
-    const rays = Array.from({ length: 8 }, (_, k) => (k * Math.PI) / 4 + Math.PI / 8);
+    // The flames this style leaves on the blast tiles (what is bought), with the bomb in front of them.
+    const fire = flameFx(id)[1];
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <View style={{ position: "absolute", width: size * 0.86, height: size * 0.86, borderRadius: size, backgroundColor: look.blast, opacity: 0.16 }} />
-        {rays.map((r, k) => (
-          <View
-            key={k}
-            style={{ position: "absolute", left: size / 2 - size * 0.035, top: size / 2 - size * 0.42, width: size * 0.07, height: size * 0.2, borderRadius: size, backgroundColor: k % 2 ? look.spark : look.blast, opacity: 0.7, transform: [{ translateY: size * 0.32 }, { rotate: `${(r * 180) / Math.PI}deg` }, { translateY: -size * 0.32 }] }}
-          />
-        ))}
-        <BombBall look={look} size={big} />
+        <SpriteImage source={fire} style={{ position: "absolute", width: size * 0.92, height: size * 0.92, top: size * 0.0 }} resizeMode="contain" />
+        <View style={{ position: "absolute", bottom: size * 0.06 }}>
+          <BombBall look={look} size={size * 0.42} />
+        </View>
       </View>
     );
   }
