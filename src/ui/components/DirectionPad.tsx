@@ -11,7 +11,7 @@ import { aimFromDrag } from "../../core/input/swipe";
 import { haptic, NotificationFeedbackType } from "../../shared/haptics";
 import { useT } from "../../i18n/useT";
 import KeyHint from "./KeyHint";
-import { ATTACK_ART as ATTACK_SKINS } from "../cosmeticArt";
+import { attackArtFor } from "../cosmeticArt";
 import { equippedCosmetic } from "../../core/cosmetics/cosmetics";
 import { peekLocalStats } from "../../services/localStats";
 import { useTouchScale, useUiScale } from "../layout/scaledWindow";
@@ -69,15 +69,14 @@ const AIM_TURN: Record<Direction, string> = { RIGHT: "0deg", DOWN: "90deg", LEFT
  * and a painted arrow turns to show the way.
  */
 export const AttackButton = memo(({ size, arrows, label, onAttack, onAim, weapon = "bow" }: AttackButtonProps) => {
-  // The attack button worn in the Collection, read once (an empty quiver always shows the dull stone).
-  const [worn] = useState(() => {
+  // The attack button worn in the Collection, read once (an empty one always shows the dull stone).
+  const [wornId] = useState(() => {
     const saved = peekLocalStats();
-    const id = saved ? equippedCosmetic(saved, "attack") : null;
-    return id ? ATTACK_SKINS[id] ?? null : null;
+    return saved ? equippedCosmetic(saved, "attack") : null;
   });
-  // The worn medallions are painted with an arrow: they dress the bow only; the orb and the bomb keep their own. Picked on
-  // every render: the run (and so the weapon) is set up after the button first appears.
-  const readyArt = (weapon === "bow" && worn) || WEAPON_READY[weapon];
+  // The worn skin has a medallion per weapon (an arrow, an orb, a bomb). Picked on every render: the run (and so the
+  // weapon) is set up after the button first appears.
+  const readyArt = attackArtFor(wornId, weapon) ?? WEAPON_READY[weapon];
   const { t } = useT();
   const scale = useRef(new Animated.Value(1)).current;
   const empty = arrows <= 0;

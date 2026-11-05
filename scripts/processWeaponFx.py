@@ -1,12 +1,15 @@
 """
-Cuts the painted weapon effects into frames and makes one recoloured set per embers-shop style.
+Cuts the painted weapon effects into frames, one set per embers-shop style.
 
   python scripts/processWeaponFx.py
 
-Sources (assets-src/art/weapons): fx_flame.png (4 frames of a burning flame, Bram's bomb) and fx_arcane.png (4 frames of an
-arcane burst, Mira's orb), each a horizontal strip on a transparent background. Every frame is trimmed and placed on a
-256 px square standing on its base. Each style gets its own copy with the painting's hue turned to the style's colour
-(saturation and light kept, so the painted shading and the white-hot core stay); the default set is the original.
+Sources (assets-src/art/weapons), each a horizontal 4:1 strip of 4 frames on a transparent background:
+  fx_flame.png   the default bomb effect (a burning flame, Bram's bomb)
+  fx_arcane.png  the default orb effect (an arcane burst, Mira's orb)
+  fx_<style>.png a style's OWN painted effect (e.g. fx_bomb_frost.png, fx_orb_stars.png): used as it is, no recolour.
+A style without its own strip falls back to the default strip with the painting's hue turned to the style's colour
+(saturation and light kept, so the painted shading and the white-hot core stay). Every frame is trimmed and placed on a
+256 px square standing on its base.
 
 Writes src/assets/sprites/fx/{Flame,Arcane}_<style>_<n>.webp and src/ui/weaponFxArt.ts.
 """
@@ -99,12 +102,13 @@ def main():
         "import type { ImageSourcePropType } from 'react-native';",
         "import type { CosmeticId } from '../core/cosmetics/cosmetics';",
         '',
-        '/** The painted weapon effects, four frames each, one recoloured set per embers-shop style (scripts/processWeaponFx.py). */',
+        '/** The painted weapon effects, four frames each, one set per embers-shop style: its own painting, or a recolour of the default (scripts/processWeaponFx.py). */',
         'export type FxFrames = readonly [ImageSourcePropType, ImageSourcePropType, ImageSourcePropType, ImageSourcePropType];',
         '',
     ]
     for name, src, styles, base in (('Flame', 'fx_flame.png', FLAME_STYLES, 'FLAME'), ('Arcane', 'fx_arcane.png', ARCANE_STYLES, 'ARCANE')):
-        frames = frames_of(os.path.join(SRC, src))
+        default_frames = frames_of(os.path.join(SRC, src))
+        frames = default_frames
         # The painting's own hue: the most common hue among its strong, bright pixels.
         a = np.asarray(frames[1]).astype(np.float32) / 255
         mask = (a[..., 3] > 0.5) & (a[..., :3].max(-1) > 0.5) & ((a[..., :3].max(-1) - a[..., :3].min(-1)) > 0.25)
@@ -116,8 +120,12 @@ def main():
         lines.append(f'export const {base}_FX: Record<string, FxFrames> = {{')
         for style, colour in styles.items():
             reqs = []
-            for k, fr in enumerate(frames):
-                img = fr if colour is None else recolour(fr, colour, base_hue)
+            own_path = os.path.join(SRC, f'fx_{style}.png')
+            own = style != 'default' and os.path.exists(own_path)
+            style_frames = frames_of(own_path) if own else default_frames
+            print(f'{name} {style}:', f'own strip fx_{style}.png' if own else ('default strip' if colour is None else f'recolour to {colour}'))
+            for k, fr in enumerate(style_frames):
+                img = fr if own or colour is None else recolour(fr, colour, base_hue)
                 fname = f'{name}_{style}_{k}.webp'
                 img.save(os.path.join(OUT, fname), 'WEBP', quality=88, method=6)
                 reqs.append(f"require('../assets/sprites/fx/{fname}')")

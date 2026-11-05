@@ -156,13 +156,37 @@ export const FRAME_BODY_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = 
   frame_legend: require('../assets/sprites/cosmetics/FrameBody_Legend.png'),
 };
 
-/** The painted medallion the attack button wears while it has arrows (an empty quiver always shows the dull stone). */
-export const ATTACK_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
-  attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.webp'),
-  attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom.webp'),
-  attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal.webp'),
-  attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow.webp'),
+/**
+ * The painted medallion the attack button wears while it has ammo (an empty one always shows the dull stone), one per weapon:
+ * the bow's is painted with an arrow, the orb's with an orb, the bomb's with a bomb. One skin bought dresses every hero.
+ */
+export const ATTACK_ART_BY_WEAPON: Record<WeaponId, Partial<Record<CosmeticId, ImageSourcePropType>>> = {
+  bow: {
+    attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost.webp'),
+    attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom.webp'),
+    attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal.webp'),
+    attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow.webp'),
+  },
+  orb: {
+    attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost_Orb.webp'),
+    attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom_Orb.webp'),
+    attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal_Orb.webp'),
+    attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow_Orb.webp'),
+  },
+  bomb: {
+    attack_frost: require('../assets/sprites/cosmetics/AttackSkin_Frost_Bomb.webp'),
+    attack_venom: require('../assets/sprites/cosmetics/AttackSkin_Venom_Bomb.webp'),
+    attack_royal: require('../assets/sprites/cosmetics/AttackSkin_Royal_Bomb.webp'),
+    attack_shadow: require('../assets/sprites/cosmetics/AttackSkin_Shadow_Bomb.webp'),
+  },
 };
+
+/** The bow's medallions (kept for the callers that only show the skin itself). */
+export const ATTACK_ART = ATTACK_ART_BY_WEAPON.bow;
+
+/** The medallion an attack skin paints for a weapon (the bow's when that weapon has none); null when the id is not a skin. */
+export const attackArtFor = (id: CosmeticId | null | undefined, weapon: WeaponId): ImageSourcePropType | null =>
+  id ? ATTACK_ART_BY_WEAPON[weapon][id] ?? ATTACK_ART_BY_WEAPON.bow[id] ?? null : null;
 
 /** The flag planted on a tile the player marks as dangerous. */
 export const FLAG_ART: Partial<Record<CosmeticId, ImageSourcePropType>> = {
@@ -231,5 +255,5 @@ export const allCosmeticImages = (): ImageSourcePropType[] => [
   ...Object.values(TRAIL_LOOKS).map(t => t!.arrow),
   ...(Object.values(FRAME_ART) as ImageSourcePropType[]),
   ...(Object.values(FLAG_ART) as ImageSourcePropType[]),
-  ...(Object.values(ATTACK_ART) as ImageSourcePropType[]),
+  ...Object.values(ATTACK_ART_BY_WEAPON).flatMap(m => Object.values(m) as ImageSourcePropType[]),
 ];

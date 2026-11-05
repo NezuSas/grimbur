@@ -831,6 +831,8 @@ const BoardView: React.FC<Props> = memo(
               delay={landMs(lingering)}
               center={lingering.landing!}
               stand={tilt ? STAND : 1}
+              mark={lingering.weapon === "bomb" ? "scorch" : "rune"}
+              tint={lingering.weapon === "bomb" ? bombLook?.blast : orbLook?.glow}
               onDone={() => setLingering(l => (l && l.key === lingering.key ? null : l))}
             />
           ) : null}

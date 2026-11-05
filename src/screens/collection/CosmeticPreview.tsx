@@ -4,7 +4,7 @@ import Text from "../../ui/components/Text";
 import SpriteImage from "../../ui/components/SpriteImage";
 import { cosmeticInfo, type CosmeticId } from "../../core/cosmetics/cosmetics";
 import { BIOME_ART } from "../../ui/biomeArt";
-import { ATTACK_ART, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, PET_ART, PET_TINT, petLook } from "../../ui/cosmeticArt";
+import { attackArtFor, BOARD_BIOME, CELEBRATION_LOOKS, FLAG_ART, FRAME_ART, PET_ART, PET_TINT, petLook } from "../../ui/cosmeticArt";
 import Companion from "../../ui/components/game/Companion";
 import GemShower from "../../ui/components/game/GemShower";
 import { PlayerPortrait } from "../../ui/components/PlayerPortrait";
@@ -15,6 +15,7 @@ import { useSettingsStore } from "../../state/settings/store";
 import { useT } from "../../i18n/useT";
 import { cosmeticText } from "../../i18n/keys";
 import type { ImageSourcePropType } from "react-native";
+import { WEAPONS, weaponOfHero } from "../../core/engine/weapons";
 
 type Props = {
   id: CosmeticId;
@@ -36,6 +37,8 @@ type Props = {
 const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStage = 0 }: Props) => {
   const { t } = useT();
   const calm = useSettingsStore(s => s.reduceFlash);
+  // An attack skin is shown on the weapon of the hero the player last picked (it changes with the champion, as in a run).
+  const lastHero = useSettingsStore(s => s.lastHero);
   const kind = cosmeticInfo(id).kind;
   if (kind === "trail") return <TrailPreview id={id} size={size} small={small} />;
   if (kind === "orb") return <OrbPreview id={id} size={size} small={small} />;
@@ -102,9 +105,22 @@ const CosmeticPreview = ({ id, size, portrait, playerName, small, frame, petStag
     );
   }
   if (kind === "attack") {
+    const weapon = weaponOfHero(Math.max(0, lastHero ?? 0));
+    const others = WEAPONS.filter(w => w !== weapon);
+    const chip = size * 0.26;
     return (
       <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
-        <SpriteImage source={ATTACK_ART[id]!} style={{ width: size * 0.82, height: size * 0.82 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        <SpriteImage source={attackArtFor(id, weapon)!} style={{ width: size * (small ? 0.82 : 0.74), height: size * (small ? 0.82 : 0.74) }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        {/* The big preview also shows the same skin on the other two weapons: one purchase dresses every hero. */}
+        {small ? null : (
+          <View style={{ position: "absolute", right: 0, bottom: 0, gap: Math.max(2, size * 0.02) }}>
+            {others.map(w => (
+              <View key={w} style={[styles.attackChip, { width: chip, height: chip, borderRadius: chip / 2 }]}>
+                <SpriteImage source={attackArtFor(id, w)!} style={{ width: chip * 0.92, height: chip * 0.92 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     );
   }
@@ -169,5 +185,6 @@ const styles = StyleSheet.create({
   titleText: { color: "#C9A55A", fontWeight: "900", letterSpacing: 1 },
   titleOrnament: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3 },
   ornamentLine: { flex: 1, height: 1.5, borderRadius: 1, backgroundColor: "#C9A55A" },
+  attackChip: { alignItems: "center", justifyContent: "center", backgroundColor: "rgba(20,14,8,0.85)", borderWidth: 1.5, borderColor: "rgba(207, 160, 82,0.7)" },
   ornamentGem: { transform: [{ rotate: "45deg" }], backgroundColor: "#C9A55A" },
 });

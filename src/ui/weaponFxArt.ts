@@ -1,7 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import type { CosmeticId } from '../core/cosmetics/cosmetics';
 
-/** The painted weapon effects, four frames each, one recoloured set per embers-shop style (scripts/processWeaponFx.py). */
+/** The painted weapon effects, four frames each, one set per embers-shop style: its own painting, or a recolour of the default (scripts/processWeaponFx.py). */
 export type FxFrames = readonly [ImageSourcePropType, ImageSourcePropType, ImageSourcePropType, ImageSourcePropType];
 
 /** Bram's bomb: the flames left on the blast tiles. */
