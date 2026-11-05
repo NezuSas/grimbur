@@ -16,6 +16,9 @@ export interface SkinArt {
   backImage?: ImageSourcePropType;
   /** The side view's two walking steps; missing = the side view glides. */
   walkImages?: readonly [ImageSourcePropType, ImageSourcePropType];
+  /** Attacking toward the viewer (down) / away from it (up); missing = the front / back view lunges. */
+  attackFrontImage?: ImageSourcePropType;
+  attackBackImage?: ImageSourcePropType;
 }
 
 export const SKIN_IDS: readonly ChromaId[] = CHROMA_IDS;
@@ -43,6 +46,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/ember/0_lose.webp'),
       frontImage: require('../assets/sprites/skins/ember/0_front.webp'),
       backImage: require('../assets/sprites/skins/ember/0_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/ember/0_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/ember/0_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/ember/0_walk1.webp'), require('../assets/sprites/skins/ember/0_walk2.webp')],
     },
     2: {
@@ -53,6 +58,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/ember/2_lose.webp'),
       frontImage: require('../assets/sprites/skins/ember/2_front.webp'),
       backImage: require('../assets/sprites/skins/ember/2_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/ember/2_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/ember/2_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/ember/2_walk1.webp'), require('../assets/sprites/skins/ember/2_walk2.webp')],
     },
     3: {
@@ -63,6 +70,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/ember/3_lose.webp'),
       frontImage: require('../assets/sprites/skins/ember/3_front.webp'),
       backImage: require('../assets/sprites/skins/ember/3_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/ember/3_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/ember/3_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/ember/3_walk1.webp'), require('../assets/sprites/skins/ember/3_walk2.webp')],
     },
     4: {
@@ -73,6 +82,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/ember/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/ember/4_front.webp'),
       backImage: require('../assets/sprites/skins/ember/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/ember/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/ember/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/ember/4_walk1.webp'), require('../assets/sprites/skins/ember/4_walk2.webp')],
     },
   },
@@ -85,6 +96,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/verdant/0_lose.webp'),
       frontImage: require('../assets/sprites/skins/verdant/0_front.webp'),
       backImage: require('../assets/sprites/skins/verdant/0_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/verdant/0_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/verdant/0_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/verdant/0_walk1.webp'), require('../assets/sprites/skins/verdant/0_walk2.webp')],
     },
     1: {
@@ -95,6 +108,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/verdant/1_lose.webp'),
       frontImage: require('../assets/sprites/skins/verdant/1_front.webp'),
       backImage: require('../assets/sprites/skins/verdant/1_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/verdant/1_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/verdant/1_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/verdant/1_walk1.webp'), require('../assets/sprites/skins/verdant/1_walk2.webp')],
     },
     3: {
@@ -105,6 +120,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/verdant/3_lose.webp'),
       frontImage: require('../assets/sprites/skins/verdant/3_front.webp'),
       backImage: require('../assets/sprites/skins/verdant/3_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/verdant/3_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/verdant/3_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/verdant/3_walk1.webp'), require('../assets/sprites/skins/verdant/3_walk2.webp')],
     },
     4: {
@@ -115,6 +132,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/verdant/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/verdant/4_front.webp'),
       backImage: require('../assets/sprites/skins/verdant/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/verdant/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/verdant/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/verdant/4_walk1.webp'), require('../assets/sprites/skins/verdant/4_walk2.webp')],
     },
     5: {
@@ -134,6 +153,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/frost/1_lose.webp'),
       frontImage: require('../assets/sprites/skins/frost/1_front.webp'),
       backImage: require('../assets/sprites/skins/frost/1_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/frost/1_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/frost/1_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/frost/1_walk1.webp'), require('../assets/sprites/skins/frost/1_walk2.webp')],
     },
     2: {
@@ -144,6 +165,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/frost/2_lose.webp'),
       frontImage: require('../assets/sprites/skins/frost/2_front.webp'),
       backImage: require('../assets/sprites/skins/frost/2_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/frost/2_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/frost/2_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/frost/2_walk1.webp'), require('../assets/sprites/skins/frost/2_walk2.webp')],
     },
     3: {
@@ -154,6 +177,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/frost/3_lose.webp'),
       frontImage: require('../assets/sprites/skins/frost/3_front.webp'),
       backImage: require('../assets/sprites/skins/frost/3_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/frost/3_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/frost/3_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/frost/3_walk1.webp'), require('../assets/sprites/skins/frost/3_walk2.webp')],
     },
     4: {
@@ -164,6 +189,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/frost/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/frost/4_front.webp'),
       backImage: require('../assets/sprites/skins/frost/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/frost/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/frost/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/frost/4_walk1.webp'), require('../assets/sprites/skins/frost/4_walk2.webp')],
     },
     5: {
@@ -183,6 +210,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/royal/0_lose.webp'),
       frontImage: require('../assets/sprites/skins/royal/0_front.webp'),
       backImage: require('../assets/sprites/skins/royal/0_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/royal/0_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/royal/0_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/royal/0_walk1.webp'), require('../assets/sprites/skins/royal/0_walk2.webp')],
     },
     1: {
@@ -193,6 +222,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/royal/1_lose.webp'),
       frontImage: require('../assets/sprites/skins/royal/1_front.webp'),
       backImage: require('../assets/sprites/skins/royal/1_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/royal/1_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/royal/1_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/royal/1_walk1.webp'), require('../assets/sprites/skins/royal/1_walk2.webp')],
     },
     2: {
@@ -203,6 +234,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/royal/2_lose.webp'),
       frontImage: require('../assets/sprites/skins/royal/2_front.webp'),
       backImage: require('../assets/sprites/skins/royal/2_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/royal/2_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/royal/2_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/royal/2_walk1.webp'), require('../assets/sprites/skins/royal/2_walk2.webp')],
     },
     3: {
@@ -213,6 +246,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/royal/3_lose.webp'),
       frontImage: require('../assets/sprites/skins/royal/3_front.webp'),
       backImage: require('../assets/sprites/skins/royal/3_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/royal/3_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/royal/3_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/royal/3_walk1.webp'), require('../assets/sprites/skins/royal/3_walk2.webp')],
     },
     4: {
@@ -223,6 +258,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/royal/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/royal/4_front.webp'),
       backImage: require('../assets/sprites/skins/royal/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/royal/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/royal/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/royal/4_walk1.webp'), require('../assets/sprites/skins/royal/4_walk2.webp')],
     },
     5: {
@@ -242,6 +279,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/shadow/0_lose.webp'),
       frontImage: require('../assets/sprites/skins/shadow/0_front.webp'),
       backImage: require('../assets/sprites/skins/shadow/0_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/shadow/0_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/shadow/0_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/shadow/0_walk1.webp'), require('../assets/sprites/skins/shadow/0_walk2.webp')],
     },
     1: {
@@ -252,6 +291,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/shadow/1_lose.webp'),
       frontImage: require('../assets/sprites/skins/shadow/1_front.webp'),
       backImage: require('../assets/sprites/skins/shadow/1_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/shadow/1_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/shadow/1_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/shadow/1_walk1.webp'), require('../assets/sprites/skins/shadow/1_walk2.webp')],
     },
     2: {
@@ -262,6 +303,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/shadow/2_lose.webp'),
       frontImage: require('../assets/sprites/skins/shadow/2_front.webp'),
       backImage: require('../assets/sprites/skins/shadow/2_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/shadow/2_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/shadow/2_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/shadow/2_walk1.webp'), require('../assets/sprites/skins/shadow/2_walk2.webp')],
     },
     3: {
@@ -272,6 +315,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/shadow/3_lose.webp'),
       frontImage: require('../assets/sprites/skins/shadow/3_front.webp'),
       backImage: require('../assets/sprites/skins/shadow/3_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/shadow/3_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/shadow/3_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/shadow/3_walk1.webp'), require('../assets/sprites/skins/shadow/3_walk2.webp')],
     },
     4: {
@@ -282,6 +327,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/shadow/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/shadow/4_front.webp'),
       backImage: require('../assets/sprites/skins/shadow/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/shadow/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/shadow/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/shadow/4_walk1.webp'), require('../assets/sprites/skins/shadow/4_walk2.webp')],
     },
     5: {
@@ -301,6 +348,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/gilded/0_lose.webp'),
       frontImage: require('../assets/sprites/skins/gilded/0_front.webp'),
       backImage: require('../assets/sprites/skins/gilded/0_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/gilded/0_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/gilded/0_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/gilded/0_walk1.webp'), require('../assets/sprites/skins/gilded/0_walk2.webp')],
     },
     1: {
@@ -311,6 +360,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/gilded/1_lose.webp'),
       frontImage: require('../assets/sprites/skins/gilded/1_front.webp'),
       backImage: require('../assets/sprites/skins/gilded/1_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/gilded/1_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/gilded/1_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/gilded/1_walk1.webp'), require('../assets/sprites/skins/gilded/1_walk2.webp')],
     },
     2: {
@@ -321,6 +372,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/gilded/2_lose.webp'),
       frontImage: require('../assets/sprites/skins/gilded/2_front.webp'),
       backImage: require('../assets/sprites/skins/gilded/2_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/gilded/2_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/gilded/2_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/gilded/2_walk1.webp'), require('../assets/sprites/skins/gilded/2_walk2.webp')],
     },
     4: {
@@ -331,6 +384,8 @@ const GENERATED: Partial<Record<SkinId, Record<number, SkinArt>>> = {
       loseImage: require('../assets/sprites/skins/gilded/4_lose.webp'),
       frontImage: require('../assets/sprites/skins/gilded/4_front.webp'),
       backImage: require('../assets/sprites/skins/gilded/4_back.webp'),
+      attackFrontImage: require('../assets/sprites/skins/gilded/4_attackfront.webp'),
+      attackBackImage: require('../assets/sprites/skins/gilded/4_attackback.webp'),
       walkImages: [require('../assets/sprites/skins/gilded/4_walk1.webp'), require('../assets/sprites/skins/gilded/4_walk2.webp')],
     },
     5: {
@@ -1006,6 +1061,8 @@ export const skinArt = (heroIndex: number, skin: SkinId): SkinArt => {
     frontImage: c.frontImage,
     backImage: c.backImage,
     walkImages: c.walkImages,
+    attackFrontImage: c.attackFrontImage,
+    attackBackImage: c.attackBackImage,
   };
 };
 

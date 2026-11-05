@@ -73,7 +73,7 @@ def main(src_dir: str, colour: str, only: str = '', outfit: str = '') -> None:
     classic = P.ROOT
     root = os.path.join(os.path.dirname(P.ROOT), 'outfits', outfit) if outfit else P.ROOT
     os.makedirs(root, exist_ok=True)
-    for k in (only.split(',') if only else ('Hero', 'Icon', 'Attack', 'Win', 'Lose', 'Front', 'Back', 'Walk1', 'Walk2')):
+    for k in (only.split(',') if only else ('Hero', 'Icon', 'Attack', 'Win', 'Lose', 'Front', 'Back', 'Walk1', 'Walk2', 'AttackFront', 'AttackBack')):
         src = os.path.join(src_dir, f'{k}.png')
         if not os.path.exists(src):
             print(f'{k}: not found, skipped')
@@ -81,6 +81,14 @@ def main(src_dir: str, colour: str, only: str = '', outfit: str = '') -> None:
         if k in ('Front', 'Back', 'Walk1', 'Walk2'):
             # Facing the viewer / walking away (moving down / up) and the side view's two walking steps: framed like the
             # standing pose, same height and feet line.
+            png = os.path.join(root, f'{k}_{colour}.png')
+            hero_pose(src).save(png)
+            to_webp(png)
+            print(f'{k}_{colour}: done')
+            continue
+        if k in ('AttackFront', 'AttackBack'):
+            # Attacking toward / away from the viewer: framed like the front / back view it replaces while the hero shoots up
+            # or down, same height and feet line (an area match shrank the archers, whose stance and capes spread wide).
             png = os.path.join(root, f'{k}_{colour}.png')
             hero_pose(src).save(png)
             to_webp(png)

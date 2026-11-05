@@ -621,6 +621,8 @@ const BoardView: React.FC<Props> = memo(
     const frontSource = heroArt.frontImage;
     const backSource = heroArt.backImage;
     const walkSources = heroArt.walkImages;
+    const attackFrontSource = heroArt.attackFrontImage;
+    const attackBackSource = heroArt.attackBackImage;
     // While the attack button is held the hero already turns toward the aim and draws the bow.
     const aiming = !!aimDir;
     const currentFacing = (aimDir || facingDir || 'RIGHT').toLowerCase() as "up" | "down" | "left" | "right";
@@ -681,7 +683,7 @@ const BoardView: React.FC<Props> = memo(
               // Without them, looking up / down only leans the side view away from / toward the viewer.
               { translateY: pose !== "facing" ? (currentFacing === "up" ? -tileSize * 0.06 : currentFacing === "down" ? tileSize * 0.05 : 0) : 0 },
               // Attacking up / down: the front / back view lunges a little toward the shot.
-              { scale: pose === "facing" ? (drawn ? (currentFacing === "down" ? 1.07 : 0.97) : 1) : currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
+              { scale: pose === "facing" ? (drawn && !(currentFacing === "down" ? attackFrontSource : attackBackSource) ? (currentFacing === "down" ? 1.07 : 0.97) : 1) : currentFacing === "up" ? 0.94 : currentFacing === "down" ? 1.05 : 1 },
             ],
           }}
         >
@@ -701,8 +703,11 @@ const BoardView: React.FC<Props> = memo(
             idleSource && <OutlinedSprite source={idleSource} visible={pose === "idle"} line={outline} />
           )}
           {attackSource && <OutlinedSprite source={attackSource} visible={pose === "attack"} line={outline} />}
-          {frontSource && <OutlinedSprite source={frontSource} visible={pose === "facing" && currentFacing === "down"} line={outline} />}
-          {backSource && <OutlinedSprite source={backSource} visible={pose === "facing" && currentFacing === "up"} line={outline} />}
+          {/* Shooting down / up: the painted attack toward / away from the viewer when the look has it, else the view lunges. */}
+          {frontSource && <OutlinedSprite source={frontSource} visible={pose === "facing" && currentFacing === "down" && !(drawn && attackFrontSource)} line={outline} />}
+          {backSource && <OutlinedSprite source={backSource} visible={pose === "facing" && currentFacing === "up" && !(drawn && attackBackSource)} line={outline} />}
+          {attackFrontSource && <OutlinedSprite source={attackFrontSource} visible={pose === "facing" && currentFacing === "down" && drawn} line={outline} />}
+          {attackBackSource && <OutlinedSprite source={attackBackSource} visible={pose === "facing" && currentFacing === "up" && drawn} line={outline} />}
         </Animated.View>
         </Animated.View>
       </>

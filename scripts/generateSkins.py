@@ -110,13 +110,14 @@ SKIN_ACCENT = {
     'royal': '#B388FF', 'shadow': '#9575CD', 'gilded': '#FFD54F',
 }
 
-KINDS = [('hero', 'Hero'), ('attack', 'Attack'), ('icon', 'Icon'), ('win', 'Win'), ('lose', 'Lose'), ('front', 'Front'), ('back', 'Back'), ('walk1', 'Walk1'), ('walk2', 'Walk2')]
+KINDS = [('hero', 'Hero'), ('attack', 'Attack'), ('icon', 'Icon'), ('win', 'Win'), ('lose', 'Lose'), ('front', 'Front'), ('back', 'Back'), ('walk1', 'Walk1'), ('walk2', 'Walk2'), ('attackfront', 'AttackFront'), ('attackback', 'AttackBack')]
 # The front / back views (moving down / up) are optional; a hero whose cloth is boxed by pose (Bram) keeps the side view in an
 # outfit for them, since its boxes only fit the side poses.
 # The two painted walking steps of the side view are optional the same way.
-FACING_KINDS = ('front', 'back', 'walk1', 'walk2')
+FACING_KINDS = ('front', 'back', 'walk1', 'walk2', 'attackfront', 'attackback')
+KIND_FILE = dict(KINDS)
 def has_facing(hero, kind, outfit='classic'):
-    if not os.path.exists(os.path.join(outfit_dir(outfit), '%s_%s.webp' % (kind.capitalize(), HERO_FILES[hero]))):
+    if not os.path.exists(os.path.join(outfit_dir(outfit), '%s_%s.webp' % (KIND_FILE[kind], HERO_FILES[hero]))):
         return False
     return outfit != 'classic' or not HERO_MASKS[hero].get('regions')
 CONTACT_KINDS = ['hero', 'attack', 'icon', 'win', 'lose']
@@ -364,6 +365,9 @@ def write_ts():
     L.append("  backImage?: ImageSourcePropType;")
     L.append("  /** The side view's two walking steps; missing = the side view glides. */")
     L.append("  walkImages?: readonly [ImageSourcePropType, ImageSourcePropType];")
+    L.append("  /** Attacking toward the viewer (down) / away from it (up); missing = the front / back view lunges. */")
+    L.append("  attackFrontImage?: ImageSourcePropType;")
+    L.append("  attackBackImage?: ImageSourcePropType;")
     L.append("}")
     L.append("")
     L.append("export const SKIN_IDS: readonly ChromaId[] = CHROMA_IDS;")
@@ -398,6 +402,9 @@ def write_ts():
                 for kind in ('front', 'back'):
                     if has_facing(hero, kind, outfit):
                         entries.append("      %sImage: require('%s')," % (kind, name(kind.capitalize())))
+                for kind, key in (('attackfront', 'attackFrontImage'), ('attackback', 'attackBackImage')):
+                    if has_facing(hero, kind, outfit):
+                        entries.append("      %s: require('%s')," % (key, name(KIND_FILE[kind])))
                 if has_facing(hero, 'walk1', outfit) and has_facing(hero, 'walk2', outfit):
                     entries.append("      walkImages: [require('%s'), require('%s')]," % (name('Walk1'), name('Walk2')))
                 entries.append("    },")
@@ -421,6 +428,8 @@ def write_ts():
     L.append("    frontImage: c.frontImage,")
     L.append("    backImage: c.backImage,")
     L.append("    walkImages: c.walkImages,")
+    L.append("    attackFrontImage: c.attackFrontImage,")
+    L.append("    attackBackImage: c.attackBackImage,")
     L.append("  };")
     L.append("};")
     L.append("")

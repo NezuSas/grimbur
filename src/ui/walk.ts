@@ -3,4 +3,4 @@
  * the whole route instead of each step cutting the last one short. A held direction (repeats every 210 ms) chains the steps,
  * each restarting from where the hero is.
  */
-export const WALK_MS = 260;
+export const WALK_MS = 340;
